@@ -1,0 +1,31 @@
+FROM python:3.9-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    gettext \
+    postgresql-client \
+    netcat-openbsd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt --no-cache-dir
+
+# Copy project
+COPY . /app/
+
+# Run entrypoint script
+COPY scripts/entrypoint-celery.sh /entrypoint-celery.sh
+RUN chmod +x /entrypoint-celery.sh
+ENTRYPOINT ["/entrypoint-celery.sh"]
