@@ -45,7 +45,7 @@ media/
 env/
 venv/
 ENV/
-
+.env.production
 # Database migrations (except __init__.py)
 **/migrations/*.py
 !**/migrations/__init__.py
