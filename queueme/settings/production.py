@@ -6,28 +6,24 @@ These settings override the base settings for production environments.
 
 from .base import *
 
+# SECURITY WARNING: force DEBUG to be false in production regardless of .env
+# This is critical for security!
+os.environ["DEBUG"] = "False"
+DEBUG = False
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable not set!")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Use PostGIS in production
+# Set the engine at the database level to override settings from dj_database_url
+DATABASES["default"]["ENGINE"] = 'django.contrib.gis.db.backends.postgis'
 
-# Use PostgreSQL in production
-DATABASES = {
-    "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": os.environ.get("POSTGRES_DB", "queueme"),
-        "USER": os.environ.get("POSTGRES_USER", "queueme"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
-        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
-        "CONN_MAX_AGE": 600,  # Keep connections alive for 10 minutes
-        "OPTIONS": {
-            "connect_timeout": 10,  # 10 seconds connection timeout
-        },
-    }
+# Add production-specific database options
+DATABASES["default"]["CONN_MAX_AGE"] = 600  # Keep connections alive for 10 minutes
+DATABASES["default"]["OPTIONS"] = {
+    "connect_timeout": 10,  # 10 seconds connection timeout
 }
 
 # Enable SSL and security features

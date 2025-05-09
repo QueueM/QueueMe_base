@@ -3,7 +3,6 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-
 from utils.validators import validate_image_size
 
 
@@ -15,13 +14,48 @@ class Category(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Canonical name + four multilingual fields with safe defaults
     name = models.CharField(_("Name"), max_length=100)
-    name_en = models.CharField(_("Name (English)"), max_length=100)
-    name_ar = models.CharField(_("Name (Arabic)"), max_length=100)
+    name_en = models.CharField(
+        _("Name (English)"),
+        max_length=100,
+        blank=True,
+        default="",
+        help_text=_("Optional. Falls back to `name` if empty."),
+    )
+    name_ar = models.CharField(
+        _("Name (Arabic)"),
+        max_length=100,
+        blank=True,
+        default="",
+        help_text=_("Optional. Falls back to `name` if empty."),
+    )
+
     description = models.TextField(_("Description"), blank=True)
-    description_en = models.TextField(_("Description (English)"), blank=True)
-    description_ar = models.TextField(_("Description (Arabic)"), blank=True)
-    slug = models.SlugField(_("Slug"), max_length=120, unique=True, allow_unicode=True)
+    description_en = models.TextField(
+        _("Description (English)"),
+        blank=True,
+        default="",
+        help_text=_("Optional English description."),
+    )
+    description_ar = models.TextField(
+        _("Description (Arabic)"),
+        blank=True,
+        default="",
+        help_text=_("Optional Arabic description."),
+    )
+
+    slug = models.SlugField(
+        _("Slug"),
+        max_length=120,
+        unique=True,
+        allow_unicode=True,
+        blank=True,
+        default="",
+        help_text=_("Auto-generated from name if blank."),
+    )
+
     icon = models.ImageField(
         _("Icon"),
         upload_to="categories/icons/",
@@ -36,6 +70,7 @@ class Category(models.Model):
         null=True,
         validators=[validate_image_size],
     )
+
     parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -44,11 +79,13 @@ class Category(models.Model):
         blank=True,
         null=True,
     )
+
     is_active = models.BooleanField(_("Active"), default=True)
     is_featured = models.BooleanField(_("Featured"), default=False)
     position = models.PositiveIntegerField(
         _("Position"), default=0, help_text=_("Display order position")
     )
+
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
 
@@ -69,20 +106,17 @@ class Category(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        """
-        Override save method to automatically generate slug if not provided
-        and set multilingual fields.
-        """
+        # Auto-slugify from `name` if blank
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
 
-        # Ensure name fields are set
-        if not self.name_en and self.name:
+        # Ensure fallbacks: if someone clears name_en/name_ar, copy from `name` on save
+        if not self.name_en:
             self.name_en = self.name
-        if not self.name_ar and self.name:
+        if not self.name_ar:
             self.name_ar = self.name
 
-        # Ensure description fields are set
+        # Likewise for descriptions
         if not self.description_en and self.description:
             self.description_en = self.description
         if not self.description_ar and self.description:
@@ -92,47 +126,30 @@ class Category(models.Model):
 
     @property
     def is_parent(self):
-        """Check if this is a parent category (has no parent itself)"""
         return self.parent is None
 
     @property
     def is_child(self):
-        """Check if this is a child category (has a parent)"""
         return self.parent is not None
 
     @property
     def service_count(self):
-        """Get the count of services associated with this category"""
-        return (
-            self.services.count()
-            if self.is_child
-            else sum(child.services.count() for child in self.children.all())
-        )
+        if self.is_child:
+            return self.services.count()
+        return sum(child.services.count() for child in self.children.all())
 
     @property
     def specialist_count(self):
-        """Get the count of specialists associated with this category through services"""
         if self.is_child:
-            specialists = set()
-            for service in self.services.all():
-                specialists.update(
-                    [specialist.id for specialist in service.specialists.all()]
-                )
+            specialists = {s.id for svc in self.services.all() for s in svc.specialists.all()}
             return len(specialists)
-        else:
-            specialists = set()
-            for child in self.children.all():
-                for service in child.services.all():
-                    specialists.update(
-                        [specialist.id for specialist in service.specialists.all()]
-                    )
-            return len(specialists)
+        specialists = set()
+        for child in self.children.all():
+            for svc in child.services.all():
+                specialists.update({s.id for s in svc.specialists.all()})
+        return len(specialists)
 
     def get_all_children(self):
-        """
-        Recursively get all child categories
-        This can handle deeper nesting if needed in future
-        """
         all_children = []
         for child in self.children.all():
             all_children.append(child)
@@ -140,13 +157,12 @@ class Category(models.Model):
         return all_children
 
     def get_parent_hierarchy(self):
-        """Get list of all parents up to the root category"""
         hierarchy = []
         current = self
         while current.parent:
             hierarchy.append(current.parent)
             current = current.parent
-        return hierarchy[::-1]  # Reverse to get root->leaf order
+        return hierarchy[::-1]  # From root → this category
 
 
 class CategoryRelation(models.Model):

@@ -1,3 +1,4 @@
+# apps/storiesapp/models.py
 import uuid
 from datetime import timedelta
 
@@ -23,14 +24,17 @@ class Story(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     shop = models.ForeignKey(
-        Shop, on_delete=models.CASCADE, related_name="stories", verbose_name=_("Shop")
+        Shop,
+        on_delete=models.CASCADE,
+        related_name="stories",
+        verbose_name=_("Shop"),
     )
     story_type = models.CharField(
         _("Story Type"), max_length=10, choices=STORY_TYPE_CHOICES
     )
     media_url = models.URLField(_("Media URL"))
     thumbnail_url = models.URLField(_("Thumbnail URL"), null=True, blank=True)
-    created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
+    created_at = models.DateTimeField(_("Created At"), auto_now_add=True, editable=False)
     expires_at = models.DateTimeField(_("Expires At"), null=True, blank=True)
     is_active = models.BooleanField(_("Active"), default=True)
 
@@ -46,7 +50,8 @@ class Story(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.shop.name} - {self.get_story_type_display()} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+        ts = self.created_at.strftime('%Y-%m-%d %H:%M')
+        return f"{self.shop.name} - {self.get_story_type_display()} - {ts}"
 
     def save(self, *args, **kwargs):
         """Override save to set expiry time to 24h after creation"""
@@ -63,8 +68,8 @@ class Story(models.Model):
     def time_left(self):
         """Get time left before expiry in seconds"""
         if self.expires_at:
-            difference = self.expires_at - timezone.now()
-            return max(0, difference.total_seconds())
+            diff = self.expires_at - timezone.now()
+            return max(0, diff.total_seconds())
         return 0
 
     @property
@@ -81,7 +86,10 @@ class StoryView(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     story = models.ForeignKey(
-        Story, on_delete=models.CASCADE, related_name="views", verbose_name=_("Story")
+        Story,
+        on_delete=models.CASCADE,
+        related_name="views",
+        verbose_name=_("Story"),
     )
     customer = models.ForeignKey(
         User,
@@ -89,7 +97,7 @@ class StoryView(models.Model):
         related_name="story_views",
         verbose_name=_("Customer"),
     )
-    viewed_at = models.DateTimeField(_("Viewed At"), auto_now_add=True)
+    viewed_at = models.DateTimeField(_("Viewed At"), auto_now_add=True, editable=False)
 
     class Meta:
         verbose_name = _("Story View")
@@ -101,4 +109,5 @@ class StoryView(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.customer.phone_number} - {self.story.shop.name} - {self.viewed_at.strftime('%Y-%m-%d %H:%M')}"
+        ts = self.viewed_at.strftime('%Y-%m-%d %H:%M')
+        return f"{self.customer.phone_number} - {self.story.shop.name} - {ts}"
