@@ -49,8 +49,7 @@ def env(key: str, default: Optional[str] = None, *, required: bool = False) -> s
 # ---------------------------------------------------------------------------
 SECRET_KEY: str = env("SECRET_KEY", required=True)
 DEBUG: bool = env("DEBUG", "False").lower() in {"1", "true", "yes"}
-ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-
+ALLOWED_HOSTS: list[str] = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # ---------------------------------------------------------------------------
 # Database – PostgreSQL everywhere
@@ -98,8 +97,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_yasg",
     "channels",
-    "django_celery_beat",
-    "django_celery_results",
+    # "django_celery_beat",  # DISABLED
+    # "django_celery_results",  # DISABLED
     "django_filters",
     "storages",
     # Core apps
@@ -270,15 +269,20 @@ CHANNEL_LAYERS = {
 
 
 # ---------------------------------------------------------------------------
-# Celery
+# Celery - DISABLED TEMPORARILY
 # ---------------------------------------------------------------------------
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", "redis://redis:6379/0")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
-CELERY_TIMEZONE = "Asia/Riyadh"
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
-CELERY_RESULT_EXTENDED = True
+# CELERY_BROKER_URL = env("CELERY_BROKER_URL", "redis://redis:6379/0")
+# CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
+# CELERY_TIMEZONE = "Asia/Riyadh"
+# CELERY_TASK_TRACK_STARTED = True
+# CELERY_TASK_TIME_LIMIT = 30 * 60
+# CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+# CELERY_RESULT_EXTENDED = True
+
+# Dummy Celery settings to prevent errors
+DISABLE_CELERY = True
+CELERY_ALWAYS_EAGER = True
+CELERY_TASK_ALWAYS_EAGER = True
 
 
 # ---------------------------------------------------------------------------
@@ -473,4 +477,4 @@ RATE_LIMIT_OTP_VERIFY_LOCKOUT = 1800  # 30 minutes lockout after exceeding
 
 
 print(f"🏗️  Settings loaded  |  DEBUG={DEBUG}  |  DB={DATABASES['default']['ENGINE']}")
-print(f"📦  Installed apps: {', '.join(INSTALLED_APPS)}")
+print(f"��  Installed apps: {', '.join(INSTALLED_APPS)}")

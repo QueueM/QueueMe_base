@@ -4,12 +4,12 @@ After=network.target postgresql.service redis-server.service
 Wants=postgresql.service redis-server.service
 
 [Service]
-User=www-data
-Group=www-data
-WorkingDirectory=/path/to/queueme
-Environment="PATH=/path/to/queueme/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+User=arise
+Group=arise
+WorkingDirectory=/home/arise/queueme
+Environment="PATH=/home/arise/queueme/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="DJANGO_SETTINGS_MODULE=queueme.settings.production"
-ExecStart=/path/to/queueme/venv/bin/daphne -b 127.0.0.1 -p 8001 queueme.asgi:application
+ExecStart=/bin/bash -c 'source /home/arise/queueme/production_env.sh && /home/arise/queueme/venv/bin/daphne -b 127.0.0.1 -p 8001 queueme.asgi:application'
 Restart=on-failure
 RestartSec=5
 SyslogIdentifier=queueme-daphne

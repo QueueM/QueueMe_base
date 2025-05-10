@@ -6,8 +6,14 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    # Default to development settings
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "queueme.settings.development")
+    # Check if DJANGO_SETTINGS_MODULE is already set in the environment
+    # Only default to development if not already set
+    if "DJANGO_SETTINGS_MODULE" not in os.environ:
+        print("No settings module specified, defaulting to development settings")
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "queueme.settings.development")
+    else:
+        print(f"Using settings module: {os.environ['DJANGO_SETTINGS_MODULE']}")
+    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

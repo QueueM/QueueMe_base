@@ -1,0 +1,1 @@
+/home/arise/queueme/core/tasks/worker.py

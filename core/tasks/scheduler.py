@@ -6,12 +6,49 @@ This module provides utilities for scheduling tasks using Celery.
 
 import logging
 from datetime import datetime, timedelta
+from functools import wraps
 
 from celery import shared_task
 from celery.schedules import crontab
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+
+# Convenience wrapper function
+def schedule_task(task_func, args=None, kwargs=None, countdown=None, eta=None):
+    """Simple wrapper for TaskScheduler.schedule_task method."""
+    return TaskScheduler.schedule_task(task_func, args, kwargs, countdown, eta)
+
+
+def recurring_task(schedule, name=None, args=None, kwargs=None):
+    """
+    Decorator to create a recurring task.
+
+    Args:
+        schedule: Celery schedule (crontab, timedelta, etc.)
+        name (str): Task name (defaults to function name)
+        args (list): Task arguments
+        kwargs (dict): Task keyword arguments
+
+    Returns:
+        function: Decorated function
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        task_name = name or f"{func.__module__}.{func.__name__}"
+        TaskScheduler.create_periodic_task(
+            name=task_name,
+            task_func=func,
+            schedule=schedule,
+            args=args,
+            kwargs=kwargs
+        )
+        return wrapper
+    return decorator
 
 
 class TaskScheduler:

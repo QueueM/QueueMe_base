@@ -86,3 +86,4 @@ yarn-error.log
 .secrets/
 .media/
 generated_docs/
+production_env.sh

@@ -17,18 +17,18 @@ ALLOWED_HOSTS = ["*"]
 
 # Use PostgreSQL for development without PostGIS (simplifies setup)
 # In your development.py settings file
-DATABASES = {
-    "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "queueme",
-        "USER": "queueme",
-        "PASSWORD": "Arisearise",
-        "HOST": "localhost",
-        "PORT": "5432",
-    }
-}
-
 # Use console backend for emails in development
+   # In /home/arise/queueme/queueme/settings/development.py
+DATABASES = {
+       'default': {
+           'ENGINE': 'django.contrib.gis.db.backends.postgis',
+           'NAME': 'QueueMe_DB',
+           'USER': 'arise',
+           'PASSWORD': 'Arisearise@1',
+           'HOST': 'localhost',
+           'PORT': '5432',
+       }
+   }
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Use console backend for SMS in development
