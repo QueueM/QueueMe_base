@@ -87,3 +87,5 @@ yarn-error.log
 .media/
 generated_docs/
 production_env.sh
+production_env.sh
+*.env*
