@@ -467,24 +467,26 @@ class QueueTicketViewSet(viewsets.ModelViewSet):
     ViewSet for queue tickets.
     Provides complete set of CRUD operations.
     """
+
     queryset = QueueTicket.objects.all()
     serializer_class = QueueTicketSerializer
     permission_classes = [IsAuthenticated]
     filterset_fields = ["queue", "status", "customer"]
-    
+
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ["list", "retrieve"]:
             permission = has_permission("queue", "view")
-        elif self.action in ['create']:
-            permission = has_permission("queue", "add") 
-        elif self.action in ['update', 'partial_update']:
+        elif self.action in ["create"]:
+            permission = has_permission("queue", "add")
+        elif self.action in ["update", "partial_update"]:
             permission = has_permission("queue", "edit")
-        elif self.action in ['destroy']:
+        elif self.action in ["destroy"]:
             permission = has_permission("queue", "delete")
         else:
             permission = IsAuthenticated()
-            
+
         return [permission]
+
 
 # Also add QueueViewSet
 class QueueViewSet(viewsets.ModelViewSet):
@@ -492,23 +494,21 @@ class QueueViewSet(viewsets.ModelViewSet):
     ViewSet for queues.
     Provides complete set of CRUD operations.
     """
+
     queryset = Queue.objects.all()
     serializer_class = QueueSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ["list", "retrieve"]:
             permission = has_permission("queue", "view")
-        elif self.action in ['create']:
-            permission = has_permission("queue", "add") 
-        elif self.action in ['update', 'partial_update']:
+        elif self.action in ["create"]:
+            permission = has_permission("queue", "add")
+        elif self.action in ["update", "partial_update"]:
             permission = has_permission("queue", "edit")
-        elif self.action in ['destroy']:
+        elif self.action in ["destroy"]:
             permission = has_permission("queue", "delete")
         else:
             permission = IsAuthenticated()
-            
-        return [permission]
-    
 
-    
+        return [permission]

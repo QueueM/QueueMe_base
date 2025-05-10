@@ -6,9 +6,15 @@ multiple constraints including shop hours, specialist availability, service dura
 buffer times, and existing bookings.
 """
 
+import hashlib
+import json
 import logging
 from datetime import datetime, time, timedelta
 from typing import Any, Dict, List, Optional
+
+from django.core.cache import cache
+
+from utils.cache_utils import delete_pattern
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +99,8 @@ class SlotGenerator:
     def __init__(self):
         """Initialize the slot generator."""
         self.constraints = []
+        self.cache_enabled = True
+        self.cache_ttl = 300  # 5 minutes cache for availability data
 
     def generate_slots(
         self,
@@ -106,6 +114,7 @@ class SlotGenerator:
         buffer_after: int = 0,
         slot_granularity: int = 15,
         specialist_ids: Optional[List[str]] = None,
+        use_cache: bool = True
     ) -> List[Dict[str, Any]]:
         """
         Generate available time slots based on all constraints.
@@ -121,6 +130,7 @@ class SlotGenerator:
             buffer_after: Buffer time after service in minutes
             slot_granularity: Time between slot start times in minutes
             specialist_ids: Optional list of specialist IDs to filter by
+            use_cache: Whether to use cache for results (default: True)
 
         Returns:
             List of available time slots with details
@@ -128,6 +138,25 @@ class SlotGenerator:
         logger.debug(
             f"Generating slots for date {date} with service duration {service_duration}min"
         )
+
+        # Try to get from cache if enabled
+        if self.cache_enabled and use_cache:
+            cache_key = self._generate_cache_key(
+                date,
+                shop_hours,
+                service_availability,
+                specialist_hours,
+                existing_bookings,
+                service_duration,
+                buffer_before,
+                buffer_after,
+                slot_granularity,
+                specialist_ids
+            )
+            cached_result = cache.get(cache_key)
+            if cached_result is not None:
+                logger.debug(f"Cache hit for slots on date {date}")
+                return cached_result
 
         # 1. Start with shop hours as base availability
         base_slots = self._get_shop_base_slots(date, shop_hours)
@@ -172,7 +201,98 @@ class SlotGenerator:
         )
 
         # 6. Format and return the slots
-        return self._format_slots(discrete_slots, service_duration)
+        result = self._format_slots(discrete_slots, service_duration)
+        
+        # Cache the result if caching is enabled
+        if self.cache_enabled and use_cache:
+            cache.set(cache_key, result, self.cache_ttl)
+            
+        return result
+
+    def _generate_cache_key(self, date, shop_hours, service_availability, specialist_hours,
+                           existing_bookings, service_duration, buffer_before, 
+                           buffer_after, slot_granularity, specialist_ids):
+        """Generate a unique cache key for the slot generation parameters"""
+        # Create a dictionary of all parameters
+        params = {
+            'date': date.isoformat(),
+            'service_duration': service_duration,
+            'buffer_before': buffer_before,
+            'buffer_after': buffer_after,
+            'slot_granularity': slot_granularity,
+            'specialist_ids': specialist_ids,
+        }
+        
+        # Add shop_hours hash
+        if shop_hours:
+            shop_hours_str = json.dumps(
+                [{k: v.strftime('%H:%M') if isinstance(v, time) else v 
+                  for k, v in hour.items()} for hour in shop_hours],
+                sort_keys=True
+            )
+            params['shop_hours'] = hashlib.md5(shop_hours_str.encode()).hexdigest()
+            
+        # Add service_availability hash
+        if service_availability:
+            service_avail_str = json.dumps(
+                [{k: v.strftime('%H:%M') if isinstance(v, time) else v 
+                  for k, v in avail.items()} for avail in service_availability],
+                sort_keys=True
+            )
+            params['service_availability'] = hashlib.md5(service_avail_str.encode()).hexdigest()
+            
+        # Add specialist_hours hash
+        if specialist_hours:
+            specialist_hours_str = json.dumps(
+                [{k: v.strftime('%H:%M') if isinstance(v, time) else v 
+                  for k, v in hour.items()} for hour in specialist_hours],
+                sort_keys=True
+            )
+            params['specialist_hours'] = hashlib.md5(specialist_hours_str.encode()).hexdigest()
+            
+        # Add existing_bookings hash
+        if existing_bookings:
+            # Only include id, start_time, end_time, and specialist_id
+            bookings_str = json.dumps(
+                [{
+                    'id': str(booking.get('id', '')),
+                    'start_time': booking.get('start_time').isoformat() if booking.get('start_time') else '',
+                    'end_time': booking.get('end_time').isoformat() if booking.get('end_time') else '',
+                    'specialist_id': str(booking.get('specialist_id', ''))
+                } for booking in existing_bookings],
+                sort_keys=True
+            )
+            params['existing_bookings'] = hashlib.md5(bookings_str.encode()).hexdigest()
+        
+        # Create the final key
+        key_str = json.dumps(params, sort_keys=True)
+        return f"slots:{hashlib.md5(key_str.encode()).hexdigest()}"
+
+    def invalidate_cache_for_date(self, date, shop_id=None, specialist_id=None):
+        """
+        Invalidate cache for a specific date.
+        This should be called when a booking is created, updated, or cancelled
+        """
+        # Build pattern for cache deletion
+        date_str = date.isoformat()
+        
+        if shop_id and specialist_id:
+            # Specific shop and specialist
+            pattern = f"slots:*{date_str}*{shop_id}*{specialist_id}*"
+        elif shop_id:
+            # All slots for this shop on this date
+            pattern = f"slots:*{date_str}*{shop_id}*"
+        elif specialist_id:
+            # All slots for this specialist on this date
+            pattern = f"slots:*{date_str}*{specialist_id}*"
+        else:
+            # All slots for this date
+            pattern = f"slots:*{date_str}*"
+        
+        # Use the custom delete_pattern utility
+        deleted_count = delete_pattern(pattern)
+        
+        logger.debug(f"Invalidated {deleted_count} slot cache entries for date {date}")
 
     def _get_shop_base_slots(
         self, date: datetime.date, shop_hours: List[Dict[str, time]]
@@ -360,7 +480,7 @@ class SlotGenerator:
             List of discrete time slots that can be booked
         """
         discrete_slots = []
-        total_duration = service_duration + buffer_before + buffer_after
+        unused_unused_total_duration = service_duration + buffer_before + buffer_after
 
         for slot in available_slots:
             # Convert to datetime for easier arithmetic

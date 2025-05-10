@@ -16,8 +16,8 @@ def process_reel_video(reel_id):
     and optimize for streaming.
     """
     # Import inside function to avoid circular imports
-    from .services.reel_service import ReelService
     from .models import Reel
+    from .services.reel_service import ReelService
 
     try:
         reel = Reel.objects.get(id=reel_id)

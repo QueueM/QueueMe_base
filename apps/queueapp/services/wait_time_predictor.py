@@ -340,7 +340,7 @@ class WaitTimePredictor:
                 specialist_factors[specialist] /= global_avg
 
             # Build model (as a dict of coefficients)
-            model = {
+            unused_unused_model = {
                 "global_avg": global_avg,
                 "hour_factors": hour_factors,
                 "day_factors": day_factors,

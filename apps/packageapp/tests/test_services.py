@@ -477,7 +477,7 @@ class TestPackageBookingService(TestCase):
     def test_cancel_package_booking(self, mock_cancel_appointment):
         """Test cancelling all appointments in a package booking"""
         # Create mock appointments
-        appointment1 = Appointment.objects.create(
+        unused_unused_appointment1 = Appointment.objects.create(
             customer=self.customer,
             service=self.service1,
             specialist=self.specialist,
@@ -488,7 +488,7 @@ class TestPackageBookingService(TestCase):
             package_id=self.package.id,
         )
 
-        appointment2 = Appointment.objects.create(
+        unused_unused_appointment2 = Appointment.objects.create(
             customer=self.customer,
             service=self.service2,
             specialist=self.specialist,

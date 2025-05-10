@@ -148,12 +148,11 @@ class StoryConsumer(AsyncWebsocketConsumer):
         """Join the group for followed shops updates"""
         from django.contrib.contenttypes.models import ContentType
 
-
         try:
             # Get ContentType for Shop model
             from apps.shopapp.models import Shop
 
-            shop_content_type = ContentType.objects.get_for_model(Shop)
+            unused_unused_shop_content_type = ContentType.objects.get_for_model(Shop)
 
             # Create a joined group for all followed shops
             self.followed_group = f"stories_followed_{self.user_id}"

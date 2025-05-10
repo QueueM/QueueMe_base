@@ -1,7 +1,7 @@
 # apps/bookingapp/views.py
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import mixins, permissions, status, viewsets, generics
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -24,11 +24,66 @@ from apps.bookingapp.serializers import (
     BookingRescheduleSerializer,
     MultiServiceBookingCreateSerializer,
     MultiServiceBookingSerializer,
+    AppointmentCreateSerializer,
+    AppointmentDetailSerializer,
 )
 from apps.bookingapp.services.availability_service import AvailabilityService
 from apps.bookingapp.services.booking_service import BookingService
 from apps.bookingapp.services.multi_service_booker import MultiServiceBooker
 from apps.bookingapp.services.specialist_matcher import SpecialistMatcher
+from utils.request_validators import validate_request_schema, InputSanitizer, RequestValidationError
+from django.db import transaction
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+
+
+# Define JSON Schema for appointment creation
+CREATE_APPOINTMENT_SCHEMA = {
+    "type": "object",
+    "required": ["service_id", "specialist_id", "date", "start_time"],
+    "properties": {
+        "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the service"
+        },
+        "specialist_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the specialist"
+        },
+        "date": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Appointment date (YYYY-MM-DD)"
+        },
+        "start_time": {
+            "type": "string",
+            "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Appointment start time (HH:MM)"
+        },
+        "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Optional notes for the appointment"
+        }
+    },
+    "additionalProperties": False
+}
+
+# Define JSON Schema for appointment cancellation
+CANCEL_APPOINTMENT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional reason for cancellation"
+        }
+    },
+    "additionalProperties": False
+}
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):
@@ -81,22 +136,34 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         # Admins can see all appointments
         return super().get_queryset()
 
+    @validate_request_schema(CREATE_APPOINTMENT_SCHEMA, schema_id="create_appointment")
     def create(self, request, *args, **kwargs):
-        """Create appointment with simplified input format"""
-        serializer = BookingCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
+        """Create appointment with JSON schema validation"""
         try:
+            # Data has already been validated by the schema validator
+            # Get validated and sanitized data from request
+            data = request.validated_data
+            
+            # Parse date and time
+            from datetime import datetime
+            
+            try:
+                date_obj = datetime.strptime(data["date"], "%Y-%m-%d").date()
+                time_obj = datetime.strptime(data["start_time"], "%H:%M").time()
+            except ValueError as e:
+                return Response(
+                    {"detail": f"Date/time parsing error: {str(e)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             # Use booking service to create appointment
             appointment = BookingService.create_appointment(
                 customer_id=request.user.id,
-                service_id=serializer.validated_data["service_id"],
-                specialist_id=serializer.validated_data["specialist_id"],
-                start_time_str=serializer.validated_data["start_time"].strftime(
-                    "%H:%M"
-                ),
-                date_str=serializer.validated_data["date"].strftime("%Y-%m-%d"),
-                notes=serializer.validated_data.get("notes", ""),
+                service_id=data["service_id"],
+                specialist_id=data["specialist_id"],
+                start_time_str=data["start_time"],
+                date_str=data["date"],
+                notes=data.get("notes", ""),
             )
 
             # Return created appointment
@@ -104,21 +171,24 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"detail": f"Unexpected error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=True, methods=["post"])
+    @validate_request_schema(CANCEL_APPOINTMENT_SCHEMA, schema_id="cancel_appointment")
     def cancel(self, request, pk=None):
         """Cancel an appointment"""
         appointment = self.get_object()
-
-        serializer = BookingCancelSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
 
         try:
             # Use booking service to cancel appointment
             cancelled_appointment = BookingService.cancel_appointment(
                 appointment_id=appointment.id,
                 cancelled_by_id=request.user.id,
-                reason=serializer.validated_data.get("reason", ""),
+                reason=request.validated_data.get("reason", ""),
             )
 
             # Return updated appointment
@@ -391,3 +461,99 @@ class MultiServiceBookingViewSet(
             return Response(suggested_bookings)
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AppointmentCreateView(generics.CreateAPIView):
+    """Create a new appointment with conflict detection"""
+    
+    serializer_class = AppointmentCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        """
+        Create appointment with atomic transaction to prevent race conditions.
+        Uses SELECT FOR UPDATE to lock rows while checking for availability.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        # Extract data for conflict check
+        service_id = serializer.validated_data['service'].id
+        specialist_id = serializer.validated_data['specialist'].id
+        shop_id = serializer.validated_data['shop'].id
+        start_time = serializer.validated_data['start_time']
+        
+        # Calculate end time
+        service = serializer.validated_data['service']
+        end_time = start_time + timedelta(minutes=service.duration)
+        
+        # Check for conflicts using FOR UPDATE to lock rows
+        # This prevents race conditions where multiple users try to book the same slot
+        conflicts = Appointment.objects.select_for_update().filter(
+            specialist_id=specialist_id,
+            status__in=['scheduled', 'confirmed', 'in_progress'],
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        ).exists()
+        
+        if conflicts:
+            return Response(
+                {"detail": "This time slot is no longer available. Please select another."},
+                status=status.HTTP_409_CONFLICT
+            )
+        
+        # No conflicts, save the appointment
+        appointment = serializer.save(customer=request.user)
+        
+        # Return the created appointment
+        output_serializer = AppointmentDetailSerializer(appointment)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class MultiServiceBookingCreateView(generics.CreateAPIView):
+    """Create a multi-service booking with multiple appointments"""
+    
+    serializer_class = MultiServiceBookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        """
+        Create multiple appointments and group them in a booking.
+        Uses transaction to ensure all appointments are created or none.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        # Extract appointments data for conflict check
+        appointments_data = serializer.validated_data.get('appointments_data', [])
+        
+        # Check for conflicts in all appointments
+        for appt_data in appointments_data:
+            specialist_id = appt_data['specialist_id']
+            start_time = appt_data['start_time']
+            duration = appt_data.get('duration', 30)  # Default 30 minutes
+            end_time = start_time + timedelta(minutes=duration)
+            
+            # Check for conflicts
+            conflicts = Appointment.objects.select_for_update().filter(
+                specialist_id=specialist_id,
+                status__in=['scheduled', 'confirmed', 'in_progress'],
+                start_time__lt=end_time,
+                end_time__gt=start_time
+            ).exists()
+            
+            if conflicts:
+                return Response(
+                    {"detail": f"Conflict detected for appointment at {start_time}. Please select another time."},
+                    status=status.HTTP_409_CONFLICT
+                )
+        
+        # No conflicts, create the booking
+        booking = serializer.save(customer=request.user)
+        
+        return Response(
+            MultiServiceBookingSerializer(booking).data,
+            status=status.HTTP_201_CREATED
+        )

@@ -60,7 +60,7 @@ class BundleOptimizer:
         dependencies = {}
 
         # Get all service IDs
-        service_ids = [s.id for s in services]
+        unused_unused_service_ids = [s.id for s in services]
 
         # Check for common categories that imply ordering
         preparation_categories = ["washing", "prep", "setup"]

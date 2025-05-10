@@ -10,52 +10,23 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from model_utils import FieldTracker
 
 from apps.authapp.constants import OTP_LENGTH, USER_TYPE_CHOICES, USER_TYPE_CUSTOMER
 from apps.authapp.validators import normalize_phone_number, validate_phone_number
-
-
-class UserManager(BaseUserManager):
-    def create_user(self, phone_number, password=None, **extra_fields):
-        """
-        Create and save a user with the given phone number and password.
-        """
-        if not phone_number:
-            raise ValueError(_("Phone number is required"))
-
-        # Normalize the phone number
-        phone_number = normalize_phone_number(phone_number)
-
-        user = self.model(phone_number=phone_number, **extra_fields)
-
-        if password:
-            user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, phone_number, password=None, **extra_fields):
-        """
-        Create and save a superuser with the given phone number and password.
-        """
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
-        extra_fields.setdefault("is_verified", True)
-        extra_fields.setdefault("profile_completed", True)
-        extra_fields.setdefault("user_type", "admin")
-
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError(_("Superuser must have is_staff=True."))
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError(_("Superuser must have is_superuser=True."))
-
-        return self.create_user(phone_number, password, **extra_fields)
+from apps.authapp.managers import UserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom user model that uses phone number for authentication instead of usernames.
     """
+
+    USER_TYPE_CHOICES = (
+        ("customer", _("Customer")),
+        ("employee", _("Employee")),
+        ("admin", _("Admin")),
+    )
 
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, verbose_name=_("ID")
@@ -65,12 +36,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         unique=True,
         validators=[validate_phone_number],
-    )
-    user_type = models.CharField(
-        _("User Type"),
-        max_length=20,
-        choices=USER_TYPE_CHOICES,
-        default=USER_TYPE_CUSTOMER,
     )
     email = models.EmailField(_("Email Address"), blank=True, null=True)
     first_name = models.CharField(_("First Name"), max_length=150, blank=True)
@@ -93,10 +58,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_("Designates whether this user has verified their phone number."),
     )
-    profile_completed = models.BooleanField(
-        _("Profile Completed"),
-        default=False,
-        help_text=_("Designates whether the user has completed their profile."),
+    user_type = models.CharField(
+        _("User Type"),
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default="customer",
     )
     language_preference = models.CharField(
         _("Language Preference"),
@@ -106,6 +72,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField(_("Date Joined"), default=timezone.now)
     last_login = models.DateTimeField(_("Last Login"), null=True, blank=True)
+    
+    # Field tracker for detecting changes
+    tracker = FieldTracker(fields=['is_active', 'is_verified', 'user_type'])
 
     objects = UserManager()
 
@@ -116,6 +85,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name = _("User")
         verbose_name_plural = _("Users")
         ordering = ["-date_joined"]
+        indexes = [
+            models.Index(fields=["phone_number"]),
+            models.Index(fields=["user_type"]),
+        ]
 
     def __str__(self):
         return self.phone_number
@@ -130,6 +103,26 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         """Return the short name for the user."""
         return self.first_name
+
+    @property
+    def profile_completed(self):
+        """Check if user has completed their profile with essential information."""
+        # Define what makes a completed profile based on user_type
+        if not (self.first_name and self.last_name):
+            return False
+            
+        if self.user_type == "customer":
+            # For customers, basic personal info is sufficient
+            return bool(self.phone_number and self.is_verified)
+        elif self.user_type == "employee":
+            # For employees, we might want to check if they have an employee profile
+            try:
+                return bool(hasattr(self, 'employee') and self.employee)
+            except:
+                return False
+        else:
+            # For admins or other types
+            return bool(self.email)
 
     def save(self, *args, **kwargs):
         # Normalize phone number before saving
@@ -197,3 +190,38 @@ class OTP(models.Model):
         # Normalize phone number before saving
         self.phone_number = normalize_phone_number(self.phone_number)
         super().save(*args, **kwargs)
+
+
+class SecurityEvent(models.Model):
+    """
+    Model for storing security-related events for auditing purposes.
+    """
+    SEVERITY_CHOICES = [
+        ('info', 'Info'),
+        ('warning', 'Warning'),
+        ('critical', 'Critical'),
+    ]
+
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='security_events'
+    )
+    event_type = models.CharField(max_length=100)
+    details = models.JSONField()
+    severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='info')
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'event_type', 'created_at']),
+            models.Index(fields=['severity', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.event_type} - {self.user} - {self.created_at}"

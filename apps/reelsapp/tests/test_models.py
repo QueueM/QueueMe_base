@@ -99,7 +99,7 @@ class ReelModelTest(TestCase):
         mock_s3_storage.return_value = mock_instance
 
         # Store the video path for verification
-        video_path = self.reel.video.name
+        unused_unused_video_path = self.reel.video.name
 
         # Delete the reel
         self.reel.delete()

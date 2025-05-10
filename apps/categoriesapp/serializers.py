@@ -5,16 +5,19 @@ from core.localization.translator import get_translated_field
 
 from .models import Category, CategoryRelation
 
+
 # Create simplified serializer for Category model
 class CategorySimpleSerializer(serializers.ModelSerializer):
     """
     Simplified serializer for Category model with minimal fields.
     Used by other apps that need basic category information.
     """
+
     class Meta:
         model = Category
-        fields = ('id', 'name', 'icon')
+        fields = ("id", "name", "icon")
         read_only_fields = fields
+
 
 class CategoryRelationSerializer(serializers.ModelSerializer):
     """
@@ -286,5 +289,7 @@ class CategoryRelationCreateSerializer(serializers.ModelSerializer):
             )
 
         return data
+
+
 CategorySimpleSerializer = CategorySerializer
 CategoryLightSerializer = CategoryListSerializer

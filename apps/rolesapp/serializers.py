@@ -254,7 +254,7 @@ class UserRoleSerializer(serializers.ModelSerializer):
         user_id = data.get("user").id if data.get("user") else None
         if user_id:
             try:
-                user = User.objects.get(id=user_id)
+                unused_unused_user = User.objects.get(id=user_id)
             except User.DoesNotExist:
                 raise serializers.ValidationError({"user": _("User does not exist")})
 
@@ -262,7 +262,7 @@ class UserRoleSerializer(serializers.ModelSerializer):
         role_id = data.get("role").id if data.get("role") else None
         if role_id:
             try:
-                role = Role.objects.get(id=role_id)
+                unused_unused_role = Role.objects.get(id=role_id)
             except Role.DoesNotExist:
                 raise serializers.ValidationError({"role": _("Role does not exist")})
 

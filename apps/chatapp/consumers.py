@@ -119,7 +119,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
 
                 # Get user type for response
-                user = await database_sync_to_async(self.get_user)()
+                unused_unused_user = await database_sync_to_async(self.get_user)()
                 conversation = await database_sync_to_async(self.get_conversation)()
 
                 # Format created_at for response

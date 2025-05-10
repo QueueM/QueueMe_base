@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 import polyline
 from django.conf import settings
@@ -214,7 +215,7 @@ class RoutingService:
 
             # Convert all points to coordinates
             origin_coords = RoutingService._get_coordinates(origin)
-            destination_coords = RoutingService._get_coordinates(destination)
+            unused_unused_destination_coords = RoutingService._get_coordinates(destination)
 
             waypoint_coords = []
             for waypoint in waypoints:

@@ -8,6 +8,8 @@ This consumer provides real-time updates about queue status, including:
 """
 
 import json
+import logging
+from typing import Optional
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -17,240 +19,190 @@ from apps.authapp.services.token_service import TokenService
 from apps.queueapp.models import Queue, QueueTicket
 from apps.queueapp.services.queue_service import QueueService
 
+logger = logging.getLogger(__name__)
+
 
 class QueueStatusConsumer(AsyncWebsocketConsumer):
     """WebSocket consumer for real-time queue status updates."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_id: Optional[str] = None
+        self.queue_id: Optional[str] = None
+        self.queue_group_name: Optional[str] = None
+        self.ticket: Optional[QueueTicket] = None
+
     async def connect(self):
         """Handle WebSocket connection."""
-        # Get token from query string
-        query_string = self.scope["query_string"].decode()
-        query_params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
-        token = query_params.get("token", "")
+        try:
+            # Get token from query string
+            query_string = self.scope["query_string"].decode()
+            query_params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
+            token = query_params.get("token", "")
 
-        # Verify token and get user
-        user = await database_sync_to_async(TokenService.get_user_from_token)(token)
+            if not token:
+                logger.warning("Queue status connection rejected: No token provided")
+                await self.close(code=4001)
+                return
 
-        if not user:
-            # Reject connection if token is invalid
-            await self.close(code=4001)
-            return
+            # Verify token and get user
+            user = await database_sync_to_async(TokenService.get_user_from_token)(token)
 
-        self.user_id = str(user.id)
+            if not user:
+                logger.warning("Queue status connection rejected: Invalid token")
+                await self.close(code=4001)
+                return
 
-        # Get queue ID from URL
-        self.queue_id = self.scope["url_route"]["kwargs"]["queue_id"]
-        self.queue_group_name = f"queue_{self.queue_id}"
+            if not user.is_active:
+                logger.warning(f"Queue status connection rejected: User {user.id} is inactive")
+                await self.close(code=4002)
+                return
 
-        # Check if user has access to this queue
-        has_access = await database_sync_to_async(self.check_queue_access)()
+            self.user_id = str(user.id)
 
-        if not has_access:
-            # Reject connection if user doesn't have access
-            await self.close(code=4003)
-            return
+            # Get queue ID from URL
+            self.queue_id = self.scope["url_route"]["kwargs"]["queue_id"]
+            self.queue_group_name = f"queue_{self.queue_id}"
 
-        # Join queue group
-        await self.channel_layer.group_add(self.queue_group_name, self.channel_name)
+            # Check if user has access to this queue
+            has_access = await database_sync_to_async(self.check_queue_access)()
 
-        # Accept connection
-        await self.accept()
+            if not has_access:
+                logger.warning(
+                    f"Queue status connection rejected: User {self.user_id} has no access to queue {self.queue_id}"
+                )
+                await self.close(code=4003)
+                return
 
-        # Send initial queue status
-        await self.send_queue_status()
+            # Get user's ticket in this queue
+            self.ticket = await database_sync_to_async(self.get_user_ticket)()
+
+            # Join queue group
+            await self.channel_layer.group_add(self.queue_group_name, self.channel_name)
+
+            # Accept connection
+            await self.accept()
+
+            # Send initial queue status
+            await self.send_queue_status()
+
+            logger.info(
+                f"Queue status connection established for user {self.user_id} to queue {self.queue_id}"
+            )
+
+        except Exception as e:
+            logger.error(f"Error in queue status connection: {str(e)}")
+            await self.close(code=4000)
 
     async def disconnect(self, close_code):
         """Handle WebSocket disconnection."""
-        # Leave queue group
-        await self.channel_layer.group_discard(self.queue_group_name, self.channel_name)
+        try:
+            if self.queue_group_name:
+                await self.channel_layer.group_discard(
+                    self.queue_group_name, self.channel_name
+                )
+            logger.info(
+                f"Queue status connection closed for user {self.user_id} to queue {self.queue_id}"
+            )
+        except Exception as e:
+            logger.error(f"Error in queue status disconnection: {str(e)}")
 
     async def receive(self, text_data):
-        """Handle messages received from the WebSocket client."""
+        """Handle incoming WebSocket messages."""
         try:
             data = json.loads(text_data)
-            action = data.get("action")
+            message_type = data.get("type")
 
-            if action == "refresh":
-                # Client requested a refresh of queue status
-                await self.send_queue_status()
-            elif action == "heartbeat":
-                # Respond to heartbeat to keep connection alive
-                await self.send(text_data=json.dumps({"type": "heartbeat_response"}))
+            if message_type == "ping":
+                await self.send(text_data=json.dumps({"type": "pong"}))
+            else:
+                logger.warning(f"Received unknown message type: {message_type}")
+
         except json.JSONDecodeError:
-            # Invalid JSON, ignore
-            pass
+            logger.warning("Received invalid JSON data")
+        except Exception as e:
+            logger.error(f"Error processing message: {str(e)}")
 
     async def queue_update(self, event):
-        """Handle queue update events from other parts of the system."""
-        # Send queue update to WebSocket
-        await self.send(
-            text_data=json.dumps(
-                {"type": "queue_update", "data": event["data"]}, cls=DjangoJSONEncoder
-            )
-        )
-
-    async def customer_called(self, event):
-        """Handle customer called event."""
-        # Send customer called notification to WebSocket
-        await self.send(
-            text_data=json.dumps(
-                {"type": "customer_called", "data": event["data"]},
-                cls=DjangoJSONEncoder,
-            )
-        )
-
-    async def queue_status(self, event):
-        """Handle queue status events."""
-        # Send queue status to WebSocket
-        await self.send(
-            text_data=json.dumps(
-                {"type": "queue_status", "data": event["data"]}, cls=DjangoJSONEncoder
-            )
-        )
+        """Handle queue update events."""
+        try:
+            await self.send_queue_status()
+        except Exception as e:
+            logger.error(f"Error sending queue update: {str(e)}")
 
     async def send_queue_status(self):
         """Send current queue status to the client."""
-        # Get queue status data
-        queue_data = await database_sync_to_async(self.get_queue_status)()
+        try:
+            if not self.ticket:
+                status = await database_sync_to_async(self.get_queue_status)()
+            else:
+                status = await database_sync_to_async(self.get_ticket_status)()
 
-        # Send queue status to client
-        await self.send(
-            text_data=json.dumps(
-                {"type": "queue_status", "data": queue_data}, cls=DjangoJSONEncoder
+            await self.send(
+                text_data=json.dumps(
+                    {"type": "queue_status", "data": status}, cls=DjangoJSONEncoder
+                )
             )
-        )
+        except Exception as e:
+            logger.error(f"Error sending queue status: {str(e)}")
 
     def check_queue_access(self):
         """Check if user has access to this queue."""
-        from apps.authapp.models import User
-        from apps.rolesapp.services.permission_resolver import PermissionResolver
-
-        user = User.objects.get(id=self.user_id)
-
-        # Get queue
         try:
             queue = Queue.objects.get(id=self.queue_id)
+            return QueueService.check_user_queue_access(self.user_id, queue)
         except Queue.DoesNotExist:
             return False
+        except Exception as e:
+            logger.error(f"Error checking queue access: {str(e)}")
+            return False
 
-        # Check if user is a customer with a ticket in this queue
-        if user.user_type == "customer":
-            # Check if user has a ticket in this queue
-            has_ticket = QueueTicket.objects.filter(
+    def get_user_ticket(self):
+        """Get user's active ticket in this queue."""
+        try:
+            return QueueTicket.objects.filter(
                 queue_id=self.queue_id,
-                customer_id=self.user_id,
-                status__in=["waiting", "called", "serving"],
-            ).exists()
-
-            return has_ticket
-        else:
-            # For employees/staff, check if they have permission and shop access
-            from apps.employeeapp.models import Employee
-
-            try:
-                employee = Employee.objects.get(user_id=self.user_id)
-
-                # Check if queue belongs to employee's shop
-                if queue.shop_id != employee.shop_id:
-                    return False
-
-                # Check if employee has queue permission
-                return PermissionResolver.has_permission(user, "queue", "view")
-            except Employee.DoesNotExist:
-                return False
+                user_id=self.user_id,
+                status__in=["waiting", "called"],
+            ).first()
+        except Exception as e:
+            logger.error(f"Error getting user ticket: {str(e)}")
+            return None
 
     def get_queue_status(self):
-        """Get current queue status."""
-        from apps.authapp.models import User
+        """Get general queue status."""
+        try:
+            queue = Queue.objects.get(id=self.queue_id)
+            return {
+                "queue_id": str(queue.id),
+                "name": queue.name,
+                "status": queue.status,
+                "current_position": None,
+                "estimated_wait_time": None,
+                "total_waiting": queue.get_waiting_count(),
+            }
+        except Queue.DoesNotExist:
+            return None
+        except Exception as e:
+            logger.error(f"Error getting queue status: {str(e)}")
+            return None
 
-        user = User.objects.get(id=self.user_id)
-        queue = Queue.objects.get(id=self.queue_id)
+    def get_ticket_status(self):
+        """Get status for user's ticket."""
+        try:
+            if not self.ticket:
+                return self.get_queue_status()
 
-        result = {
-            "queue_id": str(self.queue_id),
-            "queue_name": queue.name,
-            "queue_status": queue.status,
-            "shop_name": queue.shop.name,
-        }
-
-        if user.user_type == "customer":
-            # Get customer's ticket
-            try:
-                ticket = QueueTicket.objects.get(
-                    queue_id=self.queue_id,
-                    customer_id=self.user_id,
-                    status__in=["waiting", "called", "serving"],
-                )
-
-                # Get number of people ahead
-                people_ahead = QueueTicket.objects.filter(
-                    queue=queue, position__lt=ticket.position, status="waiting"
-                ).count()
-
-                # Update estimated wait time based on current queue
-                estimated_wait = QueueService.estimate_wait_time(
-                    queue.id, ticket.position
-                )
-
-                # Add ticket data to result
-                result.update(
-                    {
-                        "ticket_id": str(ticket.id),
-                        "ticket_number": ticket.ticket_number,
-                        "position": ticket.position,
-                        "people_ahead": people_ahead,
-                        "status": ticket.status,
-                        "estimated_wait_time": estimated_wait,
-                        "join_time": (
-                            ticket.join_time.isoformat() if ticket.join_time else None
-                        ),
-                        "called_time": (
-                            ticket.called_time.isoformat()
-                            if ticket.called_time
-                            else None
-                        ),
-                    }
-                )
-            except QueueTicket.DoesNotExist:
-                # No active ticket
-                result.update({"has_ticket": False})
-        else:
-            # For staff, get all active tickets in the queue
-            active_tickets = QueueTicket.objects.filter(
-                queue=queue, status__in=["waiting", "called", "serving"]
-            ).order_by("position")
-
-            tickets_data = []
-            for ticket in active_tickets:
-                tickets_data.append(
-                    {
-                        "ticket_id": str(ticket.id),
-                        "ticket_number": ticket.ticket_number,
-                        "customer_id": str(ticket.customer_id),
-                        "customer_name": ticket.customer.phone_number,
-                        "position": ticket.position,
-                        "status": ticket.status,
-                        "estimated_wait_time": ticket.estimated_wait_time,
-                        "join_time": (
-                            ticket.join_time.isoformat() if ticket.join_time else None
-                        ),
-                        "called_time": (
-                            ticket.called_time.isoformat()
-                            if ticket.called_time
-                            else None
-                        ),
-                        "service": str(ticket.service.name) if ticket.service else None,
-                    }
-                )
-
-            # Add tickets data to result
-            result.update(
-                {
-                    "active_tickets": tickets_data,
-                    "waiting_count": active_tickets.filter(status="waiting").count(),
-                    "called_count": active_tickets.filter(status="called").count(),
-                    "serving_count": active_tickets.filter(status="serving").count(),
-                }
-            )
-
-        return result
+            return {
+                "queue_id": str(self.ticket.queue.id),
+                "name": self.ticket.queue.name,
+                "status": self.ticket.queue.status,
+                "ticket_id": str(self.ticket.id),
+                "ticket_number": self.ticket.ticket_number,
+                "current_position": self.ticket.position,
+                "estimated_wait_time": self.ticket.estimated_wait_time,
+                "total_waiting": self.ticket.queue.get_waiting_count(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting ticket status: {str(e)}")
+            return None

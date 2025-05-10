@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from ..constants import (
     MAINTENANCE_CANCELLED,
+    PLATFORM_STATUS_CHOICES,
     PLATFORM_STATUS_DEGRADED,
     PLATFORM_STATUS_MAJOR_OUTAGE,
     PLATFORM_STATUS_OPERATIONAL,

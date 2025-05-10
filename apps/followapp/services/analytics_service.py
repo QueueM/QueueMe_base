@@ -214,9 +214,9 @@ class FollowAnalyticsService:
             sorted_events = sorted(events, key=lambda x: x.timestamp)
 
             # Check the current state (after all events)
-            current_state = "unfollowed"
+            unused_current_state = "unfollowed"
             if sorted_events and sorted_events[-1].event_type == "follow":
-                current_state = "following"
+                unused_unused_current_state = "following"
 
                 # This is a current follower, check for how long
                 follow_time = sorted_events[-1].timestamp

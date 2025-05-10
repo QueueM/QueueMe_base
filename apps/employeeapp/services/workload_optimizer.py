@@ -315,7 +315,7 @@ class WorkloadOptimizer:
             from apps.specialistsapp.models import SpecialistService
 
             # Get service
-            service = Service.objects.get(id=service_id)
+            unused_unused_service = Service.objects.get(id=service_id)
 
             # Get specialists who can provide this service
             specialist_services = SpecialistService.objects.filter(

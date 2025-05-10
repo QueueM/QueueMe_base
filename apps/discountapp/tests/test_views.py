@@ -37,8 +37,8 @@ class ServiceDiscountViewSetTestCase(APITestCase):
     def test_list_discounts(self):
         """Test listing service discounts"""
         # Create some discounts
-        discount1 = ServiceDiscountFactory(shop=self.shop)
-        discount2 = ServiceDiscountFactory(shop=self.shop)
+        unused_unused_discount1 = ServiceDiscountFactory(shop=self.shop)
+        unused_unused_discount2 = ServiceDiscountFactory(shop=self.shop)
 
         # Get discounts list
         url = reverse("servicediscount-list")
@@ -88,7 +88,7 @@ class ServiceDiscountViewSetTestCase(APITestCase):
             shop=self.shop, status="active", apply_to_all_services=True
         )
 
-        inactive_discount = ServiceDiscountFactory(
+        unused_unused_inactive_discount = ServiceDiscountFactory(
             shop=self.shop, status="paused", apply_to_all_services=True
         )
 

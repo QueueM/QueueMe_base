@@ -145,7 +145,8 @@ class ContentRecommender:
 
                 # Convert distance to a score (closer is better)
                 distance = haversine_distance(customer_location, shop_location)
-                # Max distance considered is 50km, normalize to 0-1 range and invert (closer is better)
+                # Max distance considered is 50km, normalize to 0-1 range and invert
+                # (closer is better)
                 distance_score = max(0, 1 - (distance / 50))
                 score += distance_score * self.LOCATION_WEIGHT
 

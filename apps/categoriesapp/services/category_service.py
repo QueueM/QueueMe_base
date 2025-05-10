@@ -413,7 +413,7 @@ class CategoryService:
             try:
                 category = Category.objects.get(id=category_id)
                 cache.delete(f"category_slug_{category.slug}")
-            except:
+            except Exception:
                 pass
 
         # Clear general category caches

@@ -14,6 +14,8 @@ from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop, ShopHours
 from apps.specialistsapp.models import Specialist, SpecialistService
 
+from .test_fix import create_test_shop
+
 
 class AppointmentViewSetTest(TestCase):
     """Test cases for the AppointmentViewSet"""
@@ -37,9 +39,10 @@ class AppointmentViewSetTest(TestCase):
             is_superuser=True,
         )
 
-        # Create test shop
-        self.shop = Shop.objects.create(
-            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        # Create test shop using the helper
+        self.shop = create_test_shop(
+            name="Test Shop", 
+            username="testshop"
         )
 
         # Create shop hours
@@ -248,9 +251,10 @@ class MultiServiceBookingViewSetTest(TestCase):
             phone_number="1234567890", user_type="customer", password="testpass123"
         )
 
-        # Create test shop
-        self.shop = Shop.objects.create(
-            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        # Create test shop using the helper
+        self.shop = create_test_shop(
+            name="Test Shop", 
+            username="testshop"
         )
 
         # Create test services

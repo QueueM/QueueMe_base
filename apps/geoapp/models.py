@@ -10,12 +10,8 @@ class Country(models.Model):
     """Country model for geographic hierarchy"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(
-        _("Name"), max_length=100, unique=True
-    )
-    code = models.CharField(
-        _("Country Code"), max_length=3, unique=True
-    )
+    name = models.CharField(_("Name"), max_length=100, unique=True)
+    code = models.CharField(_("Country Code"), max_length=3, unique=True)
     flag_icon = models.ImageField(
         _("Flag Icon"), upload_to="countries/flags/", null=True, blank=True
     )

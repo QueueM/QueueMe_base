@@ -60,7 +60,7 @@ class Command(BaseCommand):
             # This is just a placeholder, it won't be saved to DB
             from django.contrib.contenttypes.models import ContentType
 
-            ct = ContentType.objects.get_for_model(Appointment)
+            unused_unused_ct = ContentType.objects.get_for_model(Appointment)
 
             self.stdout.write(
                 self.style.WARNING(

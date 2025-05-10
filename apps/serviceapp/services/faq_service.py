@@ -1,3 +1,4 @@
+from django.db import models
 
 from apps.serviceapp.models import Service, ServiceFAQ
 

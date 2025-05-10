@@ -15,6 +15,7 @@ from datetime import datetime
 
 import django
 import psycopg2
+from django.apps import apps
 from tabulate import tabulate
 
 # Setup Django environment
@@ -23,7 +24,6 @@ sys.path.append(BASE_DIR)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "queueme.settings.production")
 django.setup()
 
-from django.apps import apps
 
 # Setup logging
 logging.basicConfig(
@@ -113,7 +113,7 @@ class DataValidator:
             cursor = self.pg_conn.cursor()
             cursor.execute(
                 f"""
-                SELECT column_name 
+                SELECT column_name
                 FROM information_schema.columns
                 WHERE table_name = '{table_name}'
                 ORDER BY ordinal_position;
@@ -296,9 +296,9 @@ class DataValidator:
 
                     # Check for orphaned foreign keys
                     query = f"""
-                        SELECT t1."{fk_column}", COUNT(*) 
-                        FROM "{table_name}" t1 
-                        LEFT JOIN "{fk_table}" t2 ON t1."{fk_column}" = t2."{fk_field}" 
+                        SELECT t1."{fk_column}", COUNT(*)
+                        FROM "{table_name}" t1
+                        LEFT JOIN "{fk_table}" t2 ON t1."{fk_column}" = t2."{fk_field}"
                         WHERE t1."{fk_column}" IS NOT NULL AND t2."{fk_field}" IS NULL
                         GROUP BY t1."{fk_column}";
                     """

@@ -99,5 +99,3 @@ class TicketUpdateSerializer(serializers.Serializer):
 class QueueTicketPositionSerializer(serializers.Serializer):
     ticket_number = serializers.CharField(required=True)
     queue_id = serializers.UUIDField(required=True)
-
-

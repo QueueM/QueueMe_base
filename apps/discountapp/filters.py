@@ -1,6 +1,6 @@
 # apps/discountapp/filters.py
 import django_filters
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 
 from apps.discountapp.models import Coupon, PromotionalCampaign, ServiceDiscount
@@ -72,7 +72,7 @@ class ServiceDiscountFilter(django_filters.FilterSet):
                 Q(status="active")
                 & Q(start_date__lte=now)
                 & Q(end_date__gte=now)
-                & (Q(usage_limit=0) | Q(used_count__lt=models.F("usage_limit")))
+                & (Q(usage_limit=0) | Q(used_count__lt=F("usage_limit")))
             )
         return queryset
 
@@ -149,7 +149,7 @@ class CouponFilter(django_filters.FilterSet):
                 Q(status="active")
                 & Q(start_date__lte=now)
                 & Q(end_date__gte=now)
-                & (Q(usage_limit=0) | Q(used_count__lt=models.F("usage_limit")))
+                & (Q(usage_limit=0) | Q(used_count__lt=F("usage_limit")))
             )
         return queryset
 

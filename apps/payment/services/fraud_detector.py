@@ -38,7 +38,7 @@ class FraudDetector:
         user_id = transaction.user_id
         amount = transaction.amount
         payment_method = transaction.payment_method
-        payment_type = transaction.payment_type
+        unused_unused_payment_type = transaction.payment_type
         device_fingerprint = transaction.device_fingerprint
         ip_address = transaction.ip_address
 

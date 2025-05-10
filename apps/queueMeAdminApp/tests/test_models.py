@@ -72,7 +72,7 @@ class AdminNotificationModelTest(TestCase):
         older.save()
 
         # Create a newer notification
-        newer = AdminNotification.objects.create(
+        unused_unused_newer = AdminNotification.objects.create(
             title="Newer Notification",
             message="This is a newer notification",
             level="error",
@@ -198,7 +198,7 @@ class SupportMessageModelTest(TestCase):
         older.save()
 
         # Create a newer message
-        newer = SupportMessage.objects.create(
+        unused_unused_newer = SupportMessage.objects.create(
             ticket=self.ticket,
             sender=self.user,
             message="Newer message",
@@ -253,7 +253,7 @@ class MaintenanceScheduleModelTest(TestCase):
 
     def test_ordering(self):
         # Create an earlier scheduled maintenance
-        earlier = MaintenanceSchedule.objects.create(
+        unused_unused_earlier = MaintenanceSchedule.objects.create(
             title="Earlier Maintenance",
             description="This is an earlier maintenance",
             affected_components=["database"],
@@ -263,7 +263,7 @@ class MaintenanceScheduleModelTest(TestCase):
         )
 
         # Create a later scheduled maintenance
-        later = MaintenanceSchedule.objects.create(
+        unused_unused_later = MaintenanceSchedule.objects.create(
             title="Later Maintenance",
             description="This is a later maintenance",
             affected_components=["api"],
@@ -313,7 +313,7 @@ class AuditLogModelTest(TestCase):
         older.save()
 
         # Create a newer log
-        newer = AuditLog.objects.create(
+        unused_unused_newer = AuditLog.objects.create(
             action="delete",
             actor=self.user,
             entity_type="Shop",

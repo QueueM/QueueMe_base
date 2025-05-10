@@ -10,12 +10,14 @@ from apps.notificationsapp.services.notification_service import NotificationServ
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
 from apps.specialistsapp.models import Specialist
+from utils.distributed_locks import DistributedLock, with_distributed_lock
 
 
 class BookingService:
     """Service for managing the booking process with transaction management"""
 
     @staticmethod
+    @with_distributed_lock("specialist:{specialist_id}:date:{date_str}")
     @transaction.atomic
     def create_appointment(
         customer_id, service_id, specialist_id, start_time_str, date_str, notes=None
@@ -102,6 +104,7 @@ class BookingService:
         return appointment
 
     @staticmethod
+    @with_distributed_lock("appointment:{appointment_id}")
     @transaction.atomic
     def cancel_appointment(appointment_id, cancelled_by_id, reason=""):
         """
@@ -138,6 +141,7 @@ class BookingService:
         return appointment
 
     @staticmethod
+    @with_distributed_lock("appointment:{appointment_id}:specialist:{new_specialist_id or 'current'}")
     @transaction.atomic
     def reschedule_appointment(
         appointment_id, new_date_str, new_start_time_str, new_specialist_id=None
@@ -220,6 +224,7 @@ class BookingService:
         return appointment
 
     @staticmethod
+    @with_distributed_lock("multi_service_booking:shop:{shop_id}:customer:{customer_id}")
     @transaction.atomic
     def create_multi_service_booking(customer_id, bookings_data, shop_id):
         """

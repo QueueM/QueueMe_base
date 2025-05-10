@@ -4,11 +4,6 @@ from rest_framework.routers import DefaultRouter
 
 from api.documentation.swagger import schema_view
 from api.v1.views.index import api_root
-
-# Create a router for v1 API endpoints
-router = DefaultRouter()
-
-# Import app-specific viewsets and register them
 from apps.authapp.views import AuthViewSet
 from apps.bookingapp.views import AppointmentViewSet
 from apps.categoriesapp.views import CategoryViewSet
@@ -26,6 +21,11 @@ from apps.serviceapp.views import ServiceViewSet
 from apps.shopapp.views import ShopViewSet
 from apps.specialistsapp.views import SpecialistViewSet
 from apps.storiesapp.views import StoryViewSet
+
+# Create a router for v1 API endpoints
+router = DefaultRouter()
+
+# Import app-specific viewsets and register them
 
 # Register routes
 router.register(r"auth", AuthViewSet, basename="auth")

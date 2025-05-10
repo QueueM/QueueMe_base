@@ -62,7 +62,7 @@ class ShopFollowersSerializer(serializers.ModelSerializer):
     def get_follower_count(self, obj):
         try:
             return obj.follow_stats.follower_count
-        except:
+        except Exception:
             return 0
 
 

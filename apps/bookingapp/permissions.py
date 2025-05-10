@@ -14,7 +14,7 @@ class AppointmentPermission(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        user = request.user
+        unused_unused_user = request.user
 
         # Allow list and create for all authenticated users
         if view.action in ["list", "create"]:
@@ -79,7 +79,7 @@ class MultiServiceBookingPermission(permissions.BasePermission):
     """Permission class for multi-service bookings"""
 
     def has_permission(self, request, view):
-        user = request.user
+        unused_unused_user = request.user
 
         # Allow list and create for all authenticated users
         if view.action in ["list", "create"]:

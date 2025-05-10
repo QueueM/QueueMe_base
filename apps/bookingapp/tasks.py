@@ -63,7 +63,7 @@ def send_upcoming_appointment_summary():
     count = 0
     for summary in shop_summary:
         shop_id = summary["shop"]
-        appointment_count = summary["appointment_count"]
+        unused_unused_appointment_count = summary["appointment_count"]
 
         # Get shop's appointments for tomorrow
         shop_appointments = Appointment.objects.filter(

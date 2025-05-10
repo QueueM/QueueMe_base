@@ -246,7 +246,7 @@ class TimingOptimizerTest(TestCase):
         evening = timezone.now().replace(hour=20, minute=0)
 
         for i in range(5):
-            notification = Notification.objects.create(
+            unused_notification = Notification.objects.create(
                 user=self.user,
                 template=template,
                 type="test_notification",
@@ -257,7 +257,7 @@ class TimingOptimizerTest(TestCase):
                 read_at=morning - timezone.timedelta(days=i),
             )
 
-            notification = Notification.objects.create(
+            unused_unused_notification = Notification.objects.create(
                 user=self.user,
                 template=template,
                 type="test_notification",

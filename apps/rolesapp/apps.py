@@ -21,7 +21,6 @@ class RolesappConfig(AppConfig):
         # Create default permissions if app is migrated
         from django.db import connection
 
-
         tables = connection.introspection.table_names()
         if "rolesapp_permission" in tables:
             # Only run this if the database is ready and tables exist

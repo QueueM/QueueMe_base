@@ -52,7 +52,7 @@ class EmailService:
             try:
                 text_template_path = f"notificationsapp/email/{template_name}.txt"
                 text_content = render_to_string(text_template_path, context)
-            except:
+            except Exception:
                 # Fall back to stripping HTML
                 if html_content:
                     text_content = strip_tags(html_content)

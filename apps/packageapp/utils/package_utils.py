@@ -1,4 +1,3 @@
-
 from django.db.models import Avg, Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -144,7 +143,7 @@ def check_package_availability(package_id, date_str):
         date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
 
         # Check start/end dates
-        today = timezone.now().date()
+        unused_unused_today = timezone.now().date()
         if package.start_date and date_obj < package.start_date:
             return False
         if package.end_date and date_obj > package.end_date:

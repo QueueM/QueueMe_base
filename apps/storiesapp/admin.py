@@ -7,9 +7,7 @@ from apps.storiesapp.models import Story, StoryView
 
 @admin.register(Story)
 class StoryAdmin(admin.ModelAdmin):
-    list_display = (
-        "id", "shop", "story_type", "created_at", "expires_at", "is_active"
-    )
+    list_display = ("id", "shop", "story_type", "created_at", "expires_at", "is_active")
     list_filter = ("story_type", "is_active", "shop")
     search_fields = ("shop__name",)
     date_hierarchy = "created_at"

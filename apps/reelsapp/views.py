@@ -68,7 +68,7 @@ class ReelViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         shop_id = self.kwargs.get("shop_id")
-        shop = get_object_or_404(Shop, id=shop_id)
+        unused_unused_shop = get_object_or_404(Shop, id=shop_id)
 
         # Let the serializer handle the shop assignment
         reel = serializer.save()
@@ -149,8 +149,8 @@ class CustomerReelViewSet(
         # City-based restriction - only show reels from shops in same city as customer
         user = self.request.user
         # If customer's location is manually specified via query params
-        lat = self.request.query_params.get("lat")
-        lng = self.request.query_params.get("lng")
+        unused_unused_lat = self.request.query_params.get("lat")
+        unused_unused_lng = self.request.query_params.get("lng")
         city = self.request.query_params.get("city")
 
         if city:

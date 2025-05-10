@@ -116,21 +116,29 @@ def has_shop_permission(resource, action):
         @wraps(view_func)
         def _wrapped_view(view, request, *args, **kwargs):
             user = request.user
-            
+
             # Try to get shop_id from URL kwargs, query params, or request data
-            shop_id = kwargs.get('shop_id') or request.query_params.get('shop_id') or request.data.get('shop_id')
-            
+            shop_id = (
+                kwargs.get("shop_id")
+                or request.query_params.get("shop_id")
+                or request.data.get("shop_id")
+            )
+
             if not shop_id:
                 raise PermissionDenied("Shop ID not found in request")
-                
-            if not PermissionResolver.has_context_permission(user, 'shop', shop_id, resource, action):
+
+            if not PermissionResolver.has_context_permission(
+                user, "shop", shop_id, resource, action
+            ):
                 message = PERMISSION_DENIED_MESSAGES.get(
                     action, PERMISSION_DENIED_MESSAGES["default"]
                 )
                 raise PermissionDenied(message)
-                
+
             return view_func(view, request, *args, **kwargs)
+
         return _wrapped_view
+
     return decorator
 
 

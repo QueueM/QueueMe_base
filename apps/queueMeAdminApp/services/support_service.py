@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Count, Q
 
 from ..constants import (
+    TICKET_STATUS_CHOICES,
     TICKET_STATUS_IN_PROGRESS,
     TICKET_STATUS_OPEN,
     TICKET_STATUS_WAITING,

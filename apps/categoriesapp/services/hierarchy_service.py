@@ -403,7 +403,7 @@ class HierarchyService:
                             try:
                                 cat = Category.objects.get(id=c_id)
                                 cycle_with_names.append({"id": c_id, "name": cat.name})
-                            except:
+                            except Exception:
                                 cycle_with_names.append({"id": c_id, "name": "Unknown"})
 
                         issues["circular_references"].append(cycle_with_names)

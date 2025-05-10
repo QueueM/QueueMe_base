@@ -13,6 +13,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.authapp.models import User
+from apps.authapp.services.token_service import TokenService
 from apps.categoriesapp.models import Category
 from apps.companiesapp.models import Company
 from apps.employeeapp.models import Employee
@@ -134,8 +135,6 @@ class BookingFlowIntegrationTest(TestCase):
         UserRole.objects.create(user=self.employee_user, role=self.manager_role)
 
         # Get JWT token for customer
-        from apps.authapp.services.token_service import TokenService
-
         self.customer_token = TokenService.get_tokens_for_user(self.customer)["access"]
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.customer_token}")
 
@@ -319,8 +318,6 @@ class QueueIntegrationTest(TestCase):
         )
 
         # Get JWT token for customer
-        from apps.authapp.services.token_service import TokenService
-
         self.customer_token = TokenService.get_tokens_for_user(self.customer)["access"]
         self.customer2_token = TokenService.get_tokens_for_user(self.customer2)[
             "access"
@@ -504,8 +501,6 @@ class ChatIntegrationTest(TestCase):
         UserRole.objects.create(user=self.employee_user, role=self.employee_role)
 
         # Get JWT tokens
-        from apps.authapp.services.token_service import TokenService
-
         self.customer_token = TokenService.get_tokens_for_user(self.customer)["access"]
         self.employee_token = TokenService.get_tokens_for_user(self.employee_user)[
             "access"

@@ -1,8 +1,6 @@
 import datetime
 from typing import Any, Dict, List
 
-
-
 from ..models import Follow
 from .follow_service import FollowService
 

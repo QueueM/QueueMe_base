@@ -1,4 +1,3 @@
-
 from django.db.models import (
     Avg,
     Count,
@@ -1109,7 +1108,7 @@ class StatsService:
                 customer_profile = Customer.objects.get(user=booking.customer)
                 if customer_profile.first_name or customer_profile.last_name:
                     customer_name = f"{customer_profile.first_name} {customer_profile.last_name}".strip()
-            except:
+            except Exception:
                 pass
 
             # Format specialist name
@@ -1291,7 +1290,7 @@ class StatsService:
 
             profiles = Customer.objects.filter(user_id__in=customer_ids)
             customer_profiles = {str(profile.user_id): profile for profile in profiles}
-        except:
+        except Exception:
             pass
 
         # Define columns
@@ -1514,7 +1513,7 @@ class StatsService:
                 customer_profile = Customer.objects.get(user=review.customer)
                 if customer_profile.first_name or customer_profile.last_name:
                     customer_name = f"{customer_profile.first_name} {customer_profile.last_name}".strip()
-            except:
+            except Exception:
                 pass
 
             # Format rating with stars

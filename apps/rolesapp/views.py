@@ -504,7 +504,7 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 
             # Check if the entity exists
             model_class = content_type.model_class()
-            entity = model_class.objects.get(id=entity_id)
+            unused_unused_entity = model_class.objects.get(id=entity_id)
 
             # Check if user has permission to manage roles for this entity
             has_permission = False

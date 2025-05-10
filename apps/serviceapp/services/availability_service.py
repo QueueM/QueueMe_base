@@ -109,13 +109,15 @@ class AvailabilityService:
         possible_slots = []
 
         # Convert time objects to datetime for easier arithmetic
-        date_obj = datetime.combine(date, time.min)
+        unused_unused_date_obj = datetime.combine(date, time.min)
         service_open_dt = datetime.combine(date, shop_open)
         service_close_dt = datetime.combine(date, shop_close)
 
         # Account for buffer time and duration
         slot_duration = service.duration
-        total_slot_time = slot_duration + service.buffer_before + service.buffer_after
+        unused_unused_total_slot_time = (
+            slot_duration + service.buffer_before + service.buffer_after
+        )
 
         # Start time is service open time plus buffer before
         current_dt = service_open_dt + timedelta(minutes=service.buffer_before)
@@ -215,7 +217,7 @@ class AvailabilityService:
 
         # Check existing appointments
         # Calculate total slot time with buffers
-        date_obj = datetime.combine(date, time.min)
+        unused_unused_date_obj = datetime.combine(date, time.min)
 
         # Slot start with buffer before
         slot_start_with_buffer = datetime.combine(date, start_time) - timedelta(

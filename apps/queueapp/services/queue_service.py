@@ -2,7 +2,7 @@ import logging
 import random
 
 from django.db import transaction
-from django.db.models import Avg, F, Max, Q
+from django.db.models import Avg, Count, F, Max, Q
 from django.utils import timezone
 
 from apps.notificationsapp.services.notification_service import NotificationService
@@ -327,7 +327,7 @@ class QueueService:
                 specialist=specialist,
                 position=position,
                 status="waiting",
-                notes=f"Appointment customer" if is_appointment else "",
+                notes="Appointment customer" if is_appointment else "",
             )
 
             # Store appointment reference if applicable

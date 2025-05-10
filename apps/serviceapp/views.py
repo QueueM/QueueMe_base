@@ -1,6 +1,6 @@
 import datetime
 
-from django.db import transaction
+from django.db import models, transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -480,7 +480,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         from .services.service_service import ServiceService
 
-        updated_service = ServiceService.manage_specialists(
+        unused_unused_updated_service = ServiceService.manage_specialists(
             service.id, specialist_ids, replace
         )
 

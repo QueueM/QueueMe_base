@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+
 from utils.validators import validate_image_size
 
 
@@ -141,7 +142,9 @@ class Category(models.Model):
     @property
     def specialist_count(self):
         if self.is_child:
-            specialists = {s.id for svc in self.services.all() for s in svc.specialists.all()}
+            specialists = {
+                s.id for svc in self.services.all() for s in svc.specialists.all()
+            }
             return len(specialists)
         specialists = set()
         for child in self.children.all():

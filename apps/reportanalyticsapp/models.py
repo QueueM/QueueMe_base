@@ -11,7 +11,7 @@ from apps.specialistsapp.models import Specialist
 
 class Report(models.Model):
     """Report template definition that can be scheduled or executed on demand"""
-    
+
     REPORT_TYPE_CHOICES = (
         ("shop_performance", _("Shop Performance")),
         ("specialist_performance", _("Specialist Performance")),
@@ -21,16 +21,18 @@ class Report(models.Model):
         ("service_popularity", _("Service Popularity")),
         ("custom", _("Custom")),
     )
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("Report Name"), max_length=255)
-    report_type = models.CharField(_("Report Type"), max_length=30, choices=REPORT_TYPE_CHOICES)
+    report_type = models.CharField(
+        _("Report Type"), max_length=30, choices=REPORT_TYPE_CHOICES
+    )
     description = models.TextField(_("Description"), blank=True)
-    
+
     # Report structure and definition
     template = models.JSONField(_("Template Definition"), default=dict)
     query_definition = models.JSONField(_("Query Definition"), default=dict)
-    
+
     # Optional shop scope - null means platform-wide report
     shop = models.ForeignKey(
         Shop,
@@ -40,9 +42,13 @@ class Report(models.Model):
         null=True,
         blank=True,
     )
-    
+
     # Ownership and timestamps
-    is_system = models.BooleanField(_("System Report"), default=False, help_text=_("Whether this is a system-provided report template"))
+    is_system = models.BooleanField(
+        _("System Report"),
+        default=False,
+        help_text=_("Whether this is a system-provided report template"),
+    )
     created_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -64,49 +70,51 @@ class Report(models.Model):
     def __str__(self):
         shop_name = f" - {self.shop.name}" if self.shop else " - Platform-wide"
         return f"{self.name}{shop_name}"
-    
+
     def execute(self, parameters=None):
         """
         Execute this report with the given parameters
-        
+
         Args:
             parameters (dict): Optional parameters to override template defaults
-            
+
         Returns:
             ReportExecution: The created execution record
         """
         from apps.reportanalyticsapp.services.report_service import ReportService
-        
+
         # Create a new report execution
         execution = ReportExecution.objects.create(
             name=self.name,
             report_type=self.report_type,
             parameters=parameters or {},
             status="pending",
-            created_by=parameters.get("user") if parameters and "user" in parameters else None,
+            created_by=(
+                parameters.get("user") if parameters and "user" in parameters else None
+            ),
         )
-        
+
         # Queue report generation (this would typically be handled by a task queue)
         try:
             result = ReportService.generate_report(
                 report_id=str(self.id),
                 execution_id=str(execution.id),
-                parameters=parameters or {}
+                parameters=parameters or {},
             )
-            
+
             # Update execution with results if synchronous
             if result:
                 execution.status = "completed"
                 execution.result_data = result
                 execution.end_time = timezone.now()
                 execution.save()
-                
+
         except Exception as e:
             execution.status = "failed"
             execution.error_message = str(e)
             execution.end_time = timezone.now()
             execution.save()
-            
+
         return execution
 
 

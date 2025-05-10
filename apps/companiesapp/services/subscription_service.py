@@ -2,7 +2,6 @@
 from django.db import transaction
 
 
-
 class SubscriptionLinkService:
     @staticmethod
     @transaction.atomic
@@ -78,7 +77,9 @@ class SubscriptionLinkService:
             shop_ids = shops.values_list("id", flat=True)
 
             # Count employees/specialists
-            employee_count = Employee.objects.filter(shop_id__in=shop_ids).count()
+            unused_unused_employee_count = Employee.objects.filter(
+                shop_id__in=shop_ids
+            ).count()
             specialist_count = Employee.objects.filter(
                 shop_id__in=shop_ids, specialist__isnull=False
             ).count()

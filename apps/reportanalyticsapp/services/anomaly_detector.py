@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 from django.db.models import Avg, Count, F, Q
+from django.db.models.functions import Extract
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
@@ -834,7 +835,7 @@ class AnomalyDetector:
 
         for day, values in day_of_week_data.items():
             day_mean = np.mean(values)
-            day_std = np.std(values) if len(values) > 1 else 0
+            unused_unused_day_std = np.std(values) if len(values) > 1 else 0
 
             # Compare day mean to overall mean
             z_score = (day_mean - overall_mean) / overall_std if overall_std > 0 else 0

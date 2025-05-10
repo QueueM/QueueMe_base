@@ -104,7 +104,7 @@ class ReportService:
             raise ValueError(f"Unsupported entity type: {entity_type}")
 
         # Generate cache key for potential caching
-        cache_key = f"report_{report_type}_{entity_id}_{entity_type}_{date_range['start'].isoformat()}_{date_range['end'].isoformat()}"
+        unused_unused_cache_key = f"report_{report_type}_{entity_id}_{entity_type}_{date_range['start'].isoformat()}_{date_range['end'].isoformat()}"
 
         # Get report data based on report type
         if report_type == "business_overview":
@@ -585,7 +585,7 @@ class ReportService:
                 ]
                 if low_rated:
                     recommendations.append(
-                        f"Consider training for specialists with lower ratings"
+                        "Consider training for specialists with lower ratings"
                     )
 
             # Unbalanced workloads
@@ -812,7 +812,7 @@ class ReportService:
 
         elif format == "excel":
             # Create Excel file using pandas
-            df = ReportService._convert_to_dataframe(report_data)
+            unused_unused_df = ReportService._convert_to_dataframe(report_data)
             excel_buffer = io.BytesIO()
 
             with pd.ExcelWriter(excel_buffer) as writer:

@@ -1,5 +1,14 @@
 from django.core.cache import cache
-from django.db.models import Case, Count, F, FloatField, Q, Value, When
+from django.db.models import (
+    Case,
+    Count,
+    ExpressionWrapper,
+    F,
+    FloatField,
+    Q,
+    Value,
+    When,
+)
 from django.db.models.functions import Coalesce
 
 from apps.specialistsapp.constants import SPECIALIST_RECOMMENDATIONS_CACHE_KEY

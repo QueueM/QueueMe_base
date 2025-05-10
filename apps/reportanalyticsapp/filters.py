@@ -1,4 +1,3 @@
-
 from django_filters import rest_framework as filters
 
 from apps.reportanalyticsapp.models import (

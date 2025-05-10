@@ -1,10 +1,11 @@
 # apps/companiesapp/services/branch_service.py
-from django.db import transaction
+import uuid
+
+from django.db import models, transaction
 
 from apps.geoapp.models import Location
 from apps.shopapp.models import Shop
 from apps.subscriptionapp.services.subscription_service import SubscriptionService
-
 
 
 class BranchService:
@@ -48,7 +49,6 @@ class BranchService:
         # Annotate shops with metrics
         from django.db.models import Avg, Count, Q
         from django.utils import timezone
-
 
         today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 

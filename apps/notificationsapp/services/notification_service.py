@@ -377,7 +377,7 @@ class NotificationService:
                         "data": notification.data,
                     },
                 )
-            except:
+            except Exception:
                 # Fallback to using the notification body directly
                 email_body = notification.body
 

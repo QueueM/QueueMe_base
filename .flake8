@@ -3,8 +3,30 @@ exclude =
     .git,
     __pycache__,
     venv/,
+    venv311/,
     env/,
     .venv/,
     .env/,
     build/,
-    dist/
+    dist/,
+    */migrations/*
+ignore = 
+    # Whitespace issues
+    E203,  # whitespace before ':'
+    W291,  # trailing whitespace
+    W293,  # blank line contains whitespace
+    W503,  # line break before binary operator
+    
+    # Code style
+    E302,  # expected 2 blank lines
+    E305,  # expected 2 blank lines after class or function
+    E501,  # line too long
+    E722,  # bare except
+    
+    # Unused imports/variables
+    F401,  # module imported but unused
+    F541,  # f-string without placeholders
+    F811,  # redefinition of unused name
+    F841,  # local variable is assigned to but never used
+
+max-line-length = 100

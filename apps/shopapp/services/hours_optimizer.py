@@ -1,7 +1,7 @@
 from datetime import time, timedelta
 
-from django.db.models import Avg, Count
-from django.db.models.functions import ExtractHour, ExtractWeekDay
+from django.db.models import Avg, Case, Count, IntegerField, Value, When
+from django.db.models.functions import ExtractHour, ExtractMonth, ExtractWeekDay
 
 from apps.bookingapp.models import Appointment
 from apps.shopapp.models import Shop, ShopHours
@@ -362,7 +362,7 @@ class HoursOptimizer:
                     "season": "high",
                     "months": high_season_months,
                     "month_names": high_season_names,
-                    "reasoning": f"Booking volume is significantly higher during these months. Consider extending hours or adding more staff.",
+                    "reasoning": "Booking volume is significantly higher during these months. Consider extending hours or adding more staff.",
                 }
             )
 
@@ -391,7 +391,7 @@ class HoursOptimizer:
                     "season": "low",
                     "months": low_season_months,
                     "month_names": low_season_names,
-                    "reasoning": f"Booking volume is significantly lower during these months. Consider reducing hours to optimize staff resources.",
+                    "reasoning": "Booking volume is significantly lower during these months. Consider reducing hours to optimize staff resources.",
                 }
             )
 

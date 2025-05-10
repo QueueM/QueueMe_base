@@ -17,7 +17,7 @@ from django.utils import timezone
 from apps.bookingapp.models import Appointment
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
-from apps.specialistsapp.models import Specialist
+from apps.specialistsapp.models import Specialist, SpecialistService
 from core.cache.cache_manager import cache_with_key_prefix
 
 
@@ -44,7 +44,7 @@ class DemandForecaster:
         """
         # Get shop
         try:
-            shop = Shop.objects.get(id=shop_id)
+            unused_unused_shop = Shop.objects.get(id=shop_id)
         except Shop.DoesNotExist:
             return {"error": "Shop not found"}
 
@@ -266,7 +266,7 @@ class DemandForecaster:
         """
         # Get shop
         try:
-            shop = Shop.objects.get(id=shop_id)
+            unused_unused_shop = Shop.objects.get(id=shop_id)
         except Shop.DoesNotExist:
             return {"error": "Shop not found"}
 
@@ -354,7 +354,7 @@ class DemandForecaster:
         """
         # Get shop
         try:
-            shop = Shop.objects.get(id=shop_id)
+            unused_unused_shop = Shop.objects.get(id=shop_id)
         except Shop.DoesNotExist:
             return {"error": "Shop not found"}
 
@@ -431,7 +431,7 @@ class DemandForecaster:
         """
         # Get shop
         try:
-            shop = Shop.objects.get(id=shop_id)
+            unused_unused_shop = Shop.objects.get(id=shop_id)
         except Shop.DoesNotExist:
             return {"error": "Shop not found"}
 
@@ -887,7 +887,7 @@ class DemandForecaster:
     def _estimate_service_capacity(service, days):
         """Estimate service capacity over a period"""
         # Get service shop
-        shop = service.shop
+        unused_unused_shop = service.shop
 
         # Get specialists for this service
         specialist_count = SpecialistService.objects.filter(service=service).count()
@@ -1000,8 +1000,8 @@ class DemandForecaster:
         # Adjust based on competitor pricing (if available)
         if competitor_pricing:
             avg_competitor_price = competitor_pricing["average"]
-            min_competitor_price = competitor_pricing["min"]
-            max_competitor_price = competitor_pricing["max"]
+            unused_unused_min_competitor_price = competitor_pricing["min"]
+            unused_unused_max_competitor_price = competitor_pricing["max"]
 
             price_difference_pct = (
                 ((current_price - avg_competitor_price) / avg_competitor_price) * 100

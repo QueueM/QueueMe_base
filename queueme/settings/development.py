@@ -18,13 +18,13 @@ ALLOWED_HOSTS = ["*"]
 # Use PostgreSQL for development without PostGIS (simplifies setup)
 # In your development.py settings file
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'queueme',
-        'USER': 'queueme',
-        'PASSWORD': 'Arisearise',
-        'HOST': 'localhost',
-        'PORT': '5432',
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": "queueme",
+        "USER": "queueme",
+        "PASSWORD": "Arisearise",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 
@@ -49,6 +49,7 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 if DEBUG:
     try:
         import debug_toolbar
+
         INSTALLED_APPS.append("debug_toolbar")
         MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
         INTERNAL_IPS = ["127.0.0.1"]

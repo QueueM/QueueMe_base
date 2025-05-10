@@ -201,18 +201,18 @@ class DiscountServiceTestCase(TestCase):
             shop=self.shop, status="active", apply_to_all_services=True
         )
 
-        inactive_discount = ServiceDiscountFactory(
+        unused_unused_inactive_discount = ServiceDiscountFactory(
             shop=self.shop, status="paused", apply_to_all_services=True
         )
 
-        expired_discount = ServiceDiscountFactory(
+        unused_unused_expired_discount = ServiceDiscountFactory(
             shop=self.shop,
             start_date=timezone.now() - datetime.timedelta(days=10),
             end_date=timezone.now() - datetime.timedelta(days=1),
             apply_to_all_services=True,
         )
 
-        future_discount = ServiceDiscountFactory(
+        unused_unused_future_discount = ServiceDiscountFactory(
             shop=self.shop,
             start_date=timezone.now() + datetime.timedelta(days=1),
             end_date=timezone.now() + datetime.timedelta(days=10),
@@ -229,7 +229,7 @@ class DiscountServiceTestCase(TestCase):
     def test_calculate_discount(self):
         """Test discount calculation"""
         # Create discount and coupon
-        discount = ServiceDiscountFactory(
+        unused_unused_discount = ServiceDiscountFactory(
             shop=self.shop,
             discount_type="percentage",
             value=15,
@@ -276,7 +276,7 @@ class DiscountServiceTestCase(TestCase):
     def test_apply_multiple_discounts(self):
         """Test applying multiple combinable discounts"""
         # Create combinable discounts
-        discount1 = ServiceDiscountFactory(
+        unused_unused_discount1 = ServiceDiscountFactory(
             shop=self.shop,
             discount_type="percentage",
             value=10,
@@ -285,7 +285,7 @@ class DiscountServiceTestCase(TestCase):
             priority=2,
         )
 
-        discount2 = ServiceDiscountFactory(
+        unused_unused_discount2 = ServiceDiscountFactory(
             shop=self.shop,
             discount_type="fixed",
             value=5,
@@ -330,7 +330,7 @@ class DiscountServiceTestCase(TestCase):
         self.assertEqual(coupon_discount["amount"], Decimal("15"))
 
         # Verify non-combinable discount
-        non_combinable = ServiceDiscountFactory(
+        unused_unused_non_combinable = ServiceDiscountFactory(
             shop=self.shop,
             discount_type="percentage",
             value=25,  # Better than others combined
@@ -418,21 +418,21 @@ class PromotionServiceTestCase(TestCase):
             is_active=True,
         )
 
-        inactive_campaign = PromotionalCampaignFactory(
+        unused_unused_inactive_campaign = PromotionalCampaignFactory(
             shop=self.shop,
             start_date=now - datetime.timedelta(days=1),
             end_date=now + datetime.timedelta(days=10),
             is_active=False,
         )
 
-        future_campaign = PromotionalCampaignFactory(
+        unused_unused_future_campaign = PromotionalCampaignFactory(
             shop=self.shop,
             start_date=now + datetime.timedelta(days=1),
             end_date=now + datetime.timedelta(days=10),
             is_active=True,
         )
 
-        past_campaign = PromotionalCampaignFactory(
+        unused_unused_past_campaign = PromotionalCampaignFactory(
             shop=self.shop,
             start_date=now - datetime.timedelta(days=10),
             end_date=now - datetime.timedelta(days=1),

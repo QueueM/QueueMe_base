@@ -223,7 +223,7 @@ class ReviewServicesTestCase(TestCase):
     def test_review_service(self):
         """Test review service"""
         # Create a test image
-        image = SimpleUploadedFile(
+        unused_unused_image = SimpleUploadedFile(
             "test_image.jpg", b"file_content", content_type="image/jpeg"
         )
 

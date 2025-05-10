@@ -411,7 +411,7 @@ class SpecialistServiceCreateSerializer(serializers.ModelSerializer):
         shop = specialist.employee.shop
 
         try:
-            service = Service.objects.get(id=value, shop=shop)
+            unused_unused_service = Service.objects.get(id=value, shop=shop)
             return value
         except Service.DoesNotExist:
             raise serializers.ValidationError(
@@ -624,6 +624,8 @@ class PortfolioItemUpdateSerializer(serializers.ModelSerializer):
             attrs["category"] = None
 
         return attrs
+
+
 # Create an alias for backward compatibility
 SpecialistSerializer = SpecialistDetailSerializer
 SpecialistMiniSerializer = SpecialistListSerializer

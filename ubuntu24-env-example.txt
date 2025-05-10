@@ -1,0 +1,100 @@
+# QueueMe Environment Configuration for Ubuntu 24.04
+# =================================================
+
+# Core settings
+# -------------
+DEBUG=False
+SECRET_KEY=change_me_to_a_strong_random_string
+ALLOWED_HOSTS=localhost,127.0.0.1,your_domain_or_ip_here
+
+# Database settings
+# ----------------
+# PostgreSQL configuration
+POSTGRES_DB=queueme
+POSTGRES_USER=queueme
+POSTGRES_PASSWORD=queueme
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+USE_SQLITE=False  # Set to True only for development if needed
+
+# Redis settings
+# -------------
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_URL=redis://localhost:6379/1
+
+# Celery settings
+# --------------
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+# Email settings
+# -------------
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your_email@example.com
+EMAIL_HOST_PASSWORD=your_email_password
+DEFAULT_FROM_EMAIL=noreply@example.com
+
+# SMS settings (Twilio)
+# ---------------------
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_FROM_NUMBER=your_twilio_phone_number
+
+# AWS S3 settings (optional)
+# -------------------------
+# Uncomment and fill these if you want to use S3 for file storage
+# AWS_ACCESS_KEY_ID=your_aws_access_key_id
+# AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+# AWS_STORAGE_BUCKET_NAME=your_s3_bucket_name
+# AWS_S3_REGION_NAME=me-south-1
+
+# Security settings
+# ----------------
+SECURE_SSL_REDIRECT=0
+SESSION_COOKIE_SECURE=0
+CSRF_COOKIE_SECURE=0
+SECURE_HSTS_SECONDS=0
+SECURE_HSTS_INCLUDE_SUBDOMAINS=0
+SECURE_HSTS_PRELOAD=0
+
+# Set these to 1 when using HTTPS
+# SECURE_SSL_REDIRECT=1
+# SESSION_COOKIE_SECURE=1
+# CSRF_COOKIE_SECURE=1
+# SECURE_HSTS_SECONDS=31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS=1
+# SECURE_HSTS_PRELOAD=1
+
+# Payment Gateway settings (optional)
+# ---------------------------------
+MOYASAR_API_KEY=your_moyasar_api_key
+MOYASAR_WEBHOOK_SECRET=your_moyasar_webhook_secret
+
+# Frontend URLs
+# ------------
+FRONTEND_URL=https://queueme.net
+SHOP_PANEL_URL=https://shop.queueme.net
+ADMIN_PANEL_URL=https://admin.queueme.net
+
+# Rate limiting settings
+# --------------------
+RATE_LIMIT_DEFAULT_RATE=100
+RATE_LIMIT_DEFAULT_PERIOD=60
+RATE_LIMIT_API_RATE=60
+RATE_LIMIT_API_PERIOD=60
+RATE_LIMIT_OTP_RATE=5
+RATE_LIMIT_OTP_PERIOD=300
+RATE_LIMIT_OTP_LOCKOUT=1800
+RATE_LIMIT_OTP_VERIFY_RATE=10
+RATE_LIMIT_OTP_VERIFY_PERIOD=300
+RATE_LIMIT_OTP_VERIFY_LOCKOUT=1800
+
+# Locale settings
+# -------------
+TIME_ZONE=Asia/Riyadh
+
+# Application settings
+# ------------------
+DJANGO_SETTINGS_MODULE=queueme.settings.production 

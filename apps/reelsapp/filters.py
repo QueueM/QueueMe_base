@@ -1,5 +1,5 @@
 import django_filters
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 
 from .models import Reel
 

@@ -12,6 +12,7 @@ from apps.reviewapp.models import (
     ShopReview,
     SpecialistReview,
 )
+from apps.reviewapp.services.rating_service import RatingService
 
 
 class ReviewMediaInline(GenericTabularInline):

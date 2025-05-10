@@ -17,7 +17,9 @@ from apps.categoryapp.models import Category
 from apps.queueapp.models import QueueTicket
 from apps.reportanalyticsapp.services.analytics_service import AnalyticsService
 from apps.reviewapp.models import Review
+from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
+from apps.specialistsapp.models import Specialist
 from core.cache.cache_manager import cache_with_key_prefix
 
 

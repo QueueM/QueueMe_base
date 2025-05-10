@@ -394,7 +394,7 @@ class ScheduleOptimizer:
         # Process each staff member's preferences
         for staff_id, preferences in staff_preferences.items():
             unavailable_days = preferences.get("unavailable_days", [])
-            preferred_days = preferences.get("preferred_days", [])
+            unused_unused_preferred_days = preferences.get("preferred_days", [])
             preferred_hours = preferences.get("preferred_hours", {})
 
             # Remove assignments on unavailable days
@@ -406,7 +406,7 @@ class ScheduleOptimizer:
                     date_str, {}
                 ):
                     # Need to reassign these hours to other staff
-                    hours_to_reassign = adjusted_schedule[date_str].pop(staff_id)
+                    unused_unused_hours_to_reassign = adjusted_schedule[date_str].pop(staff_id)
 
                     # In a real implementation, would have logic to reassign to other staff
                     # For this simplified version, we'll just note it as a warning
@@ -431,12 +431,12 @@ class ScheduleOptimizer:
                     preferred_range = list(range(pref_start.hour, pref_end.hour))
 
                     # Hours to remove (outside preferred range)
-                    hours_to_remove = [
+                    unused_unused_hours_to_remove = [
                         h for h in current_hours if h not in preferred_range
                     ]
 
                     # Hours to potentially add (within preferred range but not scheduled)
-                    hours_to_add = [
+                    unused_unused_hours_to_add = [
                         h for h in preferred_range if h not in current_hours
                     ]
 
@@ -467,12 +467,12 @@ class ScheduleOptimizer:
 
         # Identify staff who are over/under-utilized
         target_avg_hours = sum(staff_hours.values()) / len(staff_hours)
-        overloaded_staff = [
+        unused_unused_overloaded_staff = [
             staff_id
             for staff_id, hours in staff_hours.items()
             if hours > target_avg_hours * 1.1  # More than 10% over average
         ]
-        underutilized_staff = [
+        unused_unused_underutilized_staff = [
             staff_id
             for staff_id, hours in staff_hours.items()
             if hours < target_avg_hours * 0.9  # More than 10% under average

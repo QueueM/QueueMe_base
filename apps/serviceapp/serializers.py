@@ -430,6 +430,8 @@ class AvailabilitySlotSerializer(serializers.Serializer):
     duration = serializers.IntegerField()
     buffer_before = serializers.IntegerField()
     buffer_after = serializers.IntegerField()
+
+
 ServiceSerializer = ServiceDetailSerializer
 # Create an alias for ServiceMiniSerializer that's being imported by customersapp
 ServiceMiniSerializer = ServiceListSerializer

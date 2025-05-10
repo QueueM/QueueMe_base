@@ -163,6 +163,7 @@ class IsAuthenticated(permissions.BasePermission):
     Allows access only to authenticated users.
     Similar to DRF's IsAuthenticated but can be extended with QueueMe-specific logic.
     """
+
     message = "Authentication is required to perform this action."
 
     def has_permission(self, request, view):
@@ -174,28 +175,30 @@ class IsShopStaffOrAdmin(permissions.BasePermission):
     """
     Permission class to check if user is shop staff or admin
     """
+
     message = "Only shop staff or admins can perform this action."
-    
+
     def has_permission(self, request, view):
         user = request.user
         if not user.is_authenticated:
             return False
-            
+
         # Check if user is Queue Me admin
         if PermissionResolver.is_queue_me_admin(user):
             return True
-            
+
         # Check if user has any shop staff role
-        return (PermissionResolver.is_shop_manager(user) or 
-                PermissionResolver.has_permission(user, "shop", "manage"))
-                
+        return PermissionResolver.is_shop_manager(
+            user
+        ) or PermissionResolver.has_permission(user, "shop", "manage")
+
     def has_object_permission(self, request, view, obj):
         user = request.user
-        
+
         # QueueMe admins can access everything
         if PermissionResolver.is_queue_me_admin(user):
             return True
-            
+
         # For shop objects
         shop_id = None
         if hasattr(obj, "id") and getattr(obj, "__class__").__name__ == "Shop":
@@ -203,11 +206,14 @@ class IsShopStaffOrAdmin(permissions.BasePermission):
         # For shop-owned objects
         elif hasattr(obj, "shop") and obj.shop:
             shop_id = obj.shop.id
-            
+
         if shop_id:
-            return (PermissionResolver.is_shop_manager_for(user, shop_id) or
-                    PermissionResolver.has_context_permission(user, "shop", shop_id, "shop", "manage"))
-                    
+            return PermissionResolver.is_shop_manager_for(
+                user, shop_id
+            ) or PermissionResolver.has_context_permission(
+                user, "shop", shop_id, "shop", "manage"
+            )
+
         return False
 
 
@@ -217,36 +223,38 @@ class IsShopStaffOrReadOnly(permissions.BasePermission):
     Permission class that allows read-only access to anyone,
     but restricts write operations to shop staff (managers/owners).
     """
+
     message = "Only shop staff can modify this resource."
-    
+
     def has_permission(self, request, view):
         # Allow GET, HEAD, OPTIONS requests for anyone
         if request.method in permissions.SAFE_METHODS:
             return True
-            
+
         user = request.user
         if not user.is_authenticated:
             return False
-            
+
         # Check if user is Queue Me admin
         if PermissionResolver.is_queue_me_admin(user):
             return True
-            
+
         # Check if user has any shop staff role for write operations
-        return (PermissionResolver.is_shop_manager(user) or 
-                PermissionResolver.has_permission(user, "shop", "manage"))
-    
+        return PermissionResolver.is_shop_manager(
+            user
+        ) or PermissionResolver.has_permission(user, "shop", "manage")
+
     def has_object_permission(self, request, view, obj):
         # Allow read permissions for any request
         if request.method in permissions.SAFE_METHODS:
             return True
-            
+
         user = request.user
-        
+
         # QueueMe admins can access everything
         if PermissionResolver.is_queue_me_admin(user):
             return True
-            
+
         # For shop objects
         shop_id = None
         if hasattr(obj, "id") and getattr(obj, "__class__").__name__ == "Shop":
@@ -254,9 +262,12 @@ class IsShopStaffOrReadOnly(permissions.BasePermission):
         # For shop-owned objects
         elif hasattr(obj, "shop") and obj.shop:
             shop_id = obj.shop.id
-            
+
         if shop_id:
-            return (PermissionResolver.is_shop_manager_for(user, shop_id) or
-                    PermissionResolver.has_context_permission(user, "shop", shop_id, "shop", "manage"))
-                    
+            return PermissionResolver.is_shop_manager_for(
+                user, shop_id
+            ) or PermissionResolver.has_context_permission(
+                user, "shop", shop_id, "shop", "manage"
+            )
+
         return False

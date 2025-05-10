@@ -14,6 +14,12 @@ MAX_OTP_VERIFICATION_ATTEMPTS = getattr(settings, "MAX_OTP_VERIFICATION_ATTEMPTS
 # Number of OTPs allowed in an hour (for rate limiting)
 MAX_OTP_REQUESTS_PER_HOUR = getattr(settings, "MAX_OTP_REQUESTS_PER_HOUR", 5)
 
+# Number of OTPs allowed in a day (for rate limiting)
+MAX_OTP_REQUESTS_PER_DAY = getattr(settings, "MAX_OTP_REQUESTS_PER_DAY", 15)
+
+# Number of OTPs allowed in a week (for rate limiting)
+MAX_OTP_REQUESTS_PER_WEEK = getattr(settings, "MAX_OTP_REQUESTS_PER_WEEK", 50)
+
 # OTP length
 OTP_LENGTH = getattr(settings, "OTP_LENGTH", 6)
 

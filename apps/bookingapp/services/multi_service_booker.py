@@ -33,7 +33,7 @@ class MultiServiceBooker:
                         continue
 
                     # Same specialist - definite conflict
-                    return f"Conflict between services: overlapping times with same specialist"
+                    return "Conflict between services: overlapping times with same specialist"
 
         # Check specialist availability for each booking
         from apps.bookingapp.services.conflict_service import ConflictService
@@ -45,9 +45,7 @@ class MultiServiceBooker:
             )
 
             if conflict:
-                return (
-                    f"Specialist already has an appointment during the requested time"
-                )
+                return "Specialist already has an appointment during the requested time"
 
         return None  # No conflicts found
 

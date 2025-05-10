@@ -7,6 +7,7 @@ from .models import Shop, ShopFollower, ShopHours, ShopSettings, ShopVerificatio
 
 # Existing serializer classes...
 
+
 class ShopHoursSerializer(serializers.ModelSerializer):
     weekday_display = serializers.CharField(
         source="get_weekday_display", read_only=True
@@ -332,10 +333,11 @@ class ShopLocationSerializer(serializers.ModelSerializer):
         return None
 
 
-# Add imports for company, user, and category serializers
-from apps.companiesapp.serializers import CompanySerializer
 from apps.authapp.serializers import UserSerializer
 from apps.categoriesapp.serializers import CategorySerializer
+
+# Add imports for company, user, and category serializers
+from apps.companiesapp.serializers import CompanySerializer
 
 
 # Add the missing ShopDetailSerializer
@@ -343,9 +345,12 @@ class ShopDetailSerializer(ShopSerializer):
     """
     Extended Shop serializer with additional details for admin views
     """
-    company_details = CompanySerializer(source='company', read_only=True)
-    manager_details = UserSerializer(source='manager', read_only=True)
-    verification = ShopVerificationSerializer(source='shopverification_set', many=True, read_only=True)
+
+    company_details = CompanySerializer(source="company", read_only=True)
+    manager_details = UserSerializer(source="manager", read_only=True)
+    verification = ShopVerificationSerializer(
+        source="shopverification_set", many=True, read_only=True
+    )
     followers = serializers.SerializerMethodField()
     revenue_stats = serializers.SerializerMethodField()
     bookings_stats = serializers.SerializerMethodField()
@@ -353,40 +358,30 @@ class ShopDetailSerializer(ShopSerializer):
 
     class Meta(ShopSerializer.Meta):
         fields = ShopSerializer.Meta.fields + [
-            'company_details',
-            'manager_details',
-            'verification',
-            'followers',
-            'revenue_stats',
-            'bookings_stats',
-            'category_details',
+            "company_details",
+            "manager_details",
+            "verification",
+            "followers",
+            "revenue_stats",
+            "bookings_stats",
+            "category_details",
         ]
-    
+
     def get_followers(self, obj):
         # Return limited follower information for admin purposes
         followers = obj.shopfollower_set.all()[:10]
         return ShopFollowerSerializer(followers, many=True).data
-    
+
     def get_revenue_stats(self, obj):
         # Placeholder - in a real implementation, you'd calculate this from booking data
-        return {
-            'total_revenue': 0,
-            'this_month': 0,
-            'last_month': 0,
-            'growth_rate': 0
-        }
-    
+        return {"total_revenue": 0, "this_month": 0, "last_month": 0, "growth_rate": 0}
+
     def get_bookings_stats(self, obj):
         # Placeholder - in a real implementation, you'd calculate this from booking data
-        return {
-            'total_bookings': 0,
-            'completed': 0,
-            'cancelled': 0,
-            'no_show': 0
-        }
-    
+        return {"total_bookings": 0, "completed": 0, "cancelled": 0, "no_show": 0}
+
     def get_category_details(self, obj):
-        if hasattr(obj, 'category') and obj.category:
+        if hasattr(obj, "category") and obj.category:
             return CategorySerializer(obj.category).data
         return None
 

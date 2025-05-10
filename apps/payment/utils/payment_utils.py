@@ -4,7 +4,6 @@ import re
 from decimal import Decimal
 
 
-
 def format_amount(amount, currency="SAR"):
     """Format amount with currency symbol"""
     if currency == "SAR":

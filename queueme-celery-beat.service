@@ -1,0 +1,18 @@
+[Unit]
+Description=QueueMe Celery Beat Scheduler
+After=network.target postgresql.service redis-server.service queueme-celery.service
+Wants=postgresql.service redis-server.service queueme-celery.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/queueme
+Environment="PATH=/path/to/queueme/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="DJANGO_SETTINGS_MODULE=queueme.settings.production"
+ExecStart=/path/to/queueme/venv/bin/celery -A queueme beat --loglevel=info
+Restart=on-failure
+RestartSec=5
+SyslogIdentifier=queueme-celery-beat
+
+[Install]
+WantedBy=multi-user.target 

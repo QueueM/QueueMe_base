@@ -132,7 +132,7 @@ class StoryServiceTest(TestCase):
         )
 
         # Create a non-expired story
-        active_story = Story.objects.create(
+        unused_unused_active_story = Story.objects.create(
             shop=self.shop,
             story_type="image",
             media_url="https://example.com/active.jpg",

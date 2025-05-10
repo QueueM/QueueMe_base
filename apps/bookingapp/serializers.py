@@ -448,3 +448,115 @@ class MultiServiceBookingCreateSerializer(serializers.Serializer):
             )
 
         return data
+
+
+class AppointmentCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating appointments through the more optimized endpoint"""
+    
+    class Meta:
+        model = Appointment
+        fields = [
+            "service", 
+            "specialist", 
+            "shop", 
+            "start_time", 
+            "notes"
+        ]
+    
+    def validate(self, data):
+        """Validate appointment data ensuring no scheduling conflicts"""
+        service = data.get("service")
+        specialist = data.get("specialist")
+        shop = data.get("shop")
+        start_time = data.get("start_time")
+        
+        if not all([service, specialist, shop, start_time]):
+            raise serializers.ValidationError(_("Missing required fields"))
+        
+        # Validate that appointment is in the future
+        if start_time < timezone.now():
+            raise serializers.ValidationError(_("Cannot book appointments in the past"))
+        
+        # Validate specialist can provide this service
+        from apps.specialistsapp.models import SpecialistService
+        specialist_service = SpecialistService.objects.filter(
+            specialist=specialist, service=service
+        ).exists()
+        
+        if not specialist_service:
+            raise serializers.ValidationError(_("Specialist does not provide this service"))
+        
+        # Validate that service belongs to the shop
+        if service.shop != shop:
+            raise serializers.ValidationError(_("Service does not belong to the selected shop"))
+        
+        # Validate specialist belongs to the shop
+        if specialist.employee.shop != shop:
+            raise serializers.ValidationError(_("Specialist does not belong to the selected shop"))
+        
+        # Calculate end time
+        end_time = start_time + timezone.timedelta(minutes=service.duration)
+        data["end_time"] = end_time
+        
+        return data
+    
+    def create(self, validated_data):
+        """Create appointment with additional fields from service"""
+        service = validated_data.get("service")
+        
+        # Set calculated fields from service
+        validated_data["buffer_before"] = service.buffer_before
+        validated_data["buffer_after"] = service.buffer_after
+        validated_data["duration"] = service.duration
+        validated_data["total_price"] = service.price
+        
+        # Create appointment
+        return super().create(validated_data)
+
+
+class AppointmentDetailSerializer(serializers.ModelSerializer):
+    """Detailed serializer for appointments with all related details"""
+    
+    customer_details = UserSerializer(source="customer", read_only=True)
+    service_details = ServiceSerializer(source="service", read_only=True)
+    specialist_details = SpecialistSerializer(source="specialist", read_only=True)
+    shop_details = ShopSerializer(source="shop", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    payment_status_display = serializers.CharField(
+        source="get_payment_status_display", read_only=True
+    )
+    
+    class Meta:
+        model = Appointment
+        fields = [
+            "id",
+            "customer",
+            "customer_details",
+            "service",
+            "service_details",
+            "specialist",
+            "specialist_details",
+            "shop",
+            "shop_details",
+            "start_time",
+            "end_time",
+            "status",
+            "status_display",
+            "notes",
+            "payment_status",
+            "payment_status_display",
+            "total_price",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "customer_details",
+            "service_details",
+            "specialist_details",
+            "shop_details",
+            "status_display",
+            "payment_status_display",
+            "created_at",
+            "updated_at",
+        ]

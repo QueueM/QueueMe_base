@@ -444,7 +444,8 @@ class ConflictDetector:
                     for i, booking in service_bookings[service_id]:
                         # Check if all dependencies are met
                         for dep_service_id in depends_on:
-                            # Find if there's a booking for the dependent service that ends before this one starts
+                            # Find if there's a booking for the dependent service that ends before
+                            # this one starts
                             dep_satisfied = False
                             for dep_idx, dep_booking in service_bookings.get(
                                 dep_service_id, []

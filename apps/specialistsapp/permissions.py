@@ -31,7 +31,7 @@ class CanViewSpecialist(permissions.BasePermission):
             try:
                 employee = user.employee
                 return employee.shop_id == obj.employee.shop_id
-            except:
+            except Exception:
                 pass
 
         # For customers, specialist must be active and from active shop
@@ -81,7 +81,7 @@ class CanManageSpecialist(permissions.BasePermission):
                     return PermissionResolver.has_shop_permission(
                         user, str(employee.shop_id), "specialist", "edit"
                     )
-            except:
+            except Exception:
                 pass
 
         return False

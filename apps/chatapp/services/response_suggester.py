@@ -1,7 +1,6 @@
 import logging
 import re
 
-
 from apps.serviceapp.models import Service
 
 logger = logging.getLogger("chatapp.services")
@@ -109,7 +108,7 @@ class ResponseSuggester:
                 # Generic availability response with shop hours
                 # In reality, you'd fetch actual shop hours
                 suggestions.append(
-                    f"We're open Sunday to Thursday from 9:00 AM to 6:00 PM. Would you like to book an appointment for a specific service?"
+                    "We're open Sunday to Thursday from 9:00 AM to 6:00 PM. Would you like to book an appointment for a specific service?"
                 )
 
         elif intent == "booking_status":

@@ -67,14 +67,14 @@ class Command(BaseCommand):
             if service_ids:
                 services = Service.objects.filter(id__in=service_ids)
                 if not services.exists():
-                    raise CommandError(f"No services found with the provided IDs")
+                    raise CommandError("No services found with the provided IDs")
 
             # Get categories if provided
             categories = None
             if category_ids:
                 categories = Category.objects.filter(id__in=category_ids)
                 if not categories.exists():
-                    raise CommandError(f"No categories found with the provided IDs")
+                    raise CommandError("No categories found with the provided IDs")
 
             # Set dates
             now = timezone.now()

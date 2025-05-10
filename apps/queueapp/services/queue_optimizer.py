@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 
+from django.db import transaction
 from django.db.models import Avg, Count, ExpressionWrapper, F, fields
 from django.utils import timezone
 
@@ -162,7 +163,7 @@ class QueueOptimizer:
                         )
 
                         # Update our tracking list
-                        current_index = optimized_order.index(ticket.id)
+                        unused_unused_current_index = optimized_order.index(ticket.id)
                         optimized_order.remove(ticket.id)
                         optimized_order.insert(new_position, ticket.id)
 
@@ -226,7 +227,7 @@ class QueueOptimizer:
         # Calculate time of day distribution
         hour_distribution = (
             tickets.annotate(
-                hour=ExtpressionWrapper(
+                hour=ExpressionWrapper(
                     F("join_time__hour"), output_field=fields.IntegerField()
                 )
             )

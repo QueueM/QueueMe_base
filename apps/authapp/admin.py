@@ -20,7 +20,6 @@ class UserAdmin(BaseUserAdmin):
     list_filter = (
         "user_type",
         "is_verified",
-        "profile_completed",
         "is_staff",
         "is_active",
         "date_joined",
@@ -38,7 +37,6 @@ class UserAdmin(BaseUserAdmin):
                 "fields": (
                     "user_type",
                     "is_verified",
-                    "profile_completed",
                     "language_preference",
                 )
             },

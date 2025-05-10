@@ -291,7 +291,7 @@ class EmployeeLeaveViewSetTest(APITestCase):
         start_date = datetime.now().date()
         end_date = start_date + timedelta(days=5)
 
-        leave = EmployeeLeave.objects.create(
+        unused_unused_leave = EmployeeLeave.objects.create(
             employee=self.employee,
             leave_type="vacation",
             start_date=start_date,

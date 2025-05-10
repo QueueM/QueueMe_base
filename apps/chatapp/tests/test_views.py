@@ -1,4 +1,3 @@
-
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -234,7 +233,7 @@ class ChatAPITest(TestCase):
         )
 
         # Create an employee with no chat permission
-        no_perm_employee = Employee.objects.create(
+        unused_unused_no_perm_employee = Employee.objects.create(
             user=no_perm_user,
             shop=self.shop,
             first_name="No",

@@ -74,7 +74,10 @@ class Discount(models.Model):
         help_text=_("Higher priority discounts are applied first"),
     )
     shop = models.ForeignKey(
-        Shop, on_delete=models.CASCADE, related_name="%(class)s_discounts", verbose_name=_("Shop")
+        Shop,
+        on_delete=models.CASCADE,
+        related_name="%(class)s_discounts",
+        verbose_name=_("Shop"),
     )
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)

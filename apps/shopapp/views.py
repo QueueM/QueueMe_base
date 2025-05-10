@@ -92,7 +92,7 @@ class ShopViewSet(viewsets.ModelViewSet):
         return ShopSerializer
 
     def perform_create(self, serializer):
-        company = self.request.data.get("company")
+        unused_unused_company = self.request.data.get("company")
         from apps.rolesapp.services.permission_resolver import PermissionResolver
 
         # Check if user has permission to create shop for this company
@@ -187,7 +187,6 @@ class ShopViewSet(viewsets.ModelViewSet):
         Get shop statistics.
         """
         shop = self.get_object()
-
 
         # Get today's date
         from django.utils import timezone
@@ -688,7 +687,6 @@ class TopShopsView(generics.ListAPIView):
         # Get top shops based on reviews and booking count
         from django.contrib.contenttypes.models import ContentType
         from django.db.models import Avg, Case, Count, F, FloatField, Value, When
-
 
         shop_type = ContentType.objects.get_for_model(Shop)
 

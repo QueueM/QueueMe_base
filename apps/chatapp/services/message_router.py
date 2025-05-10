@@ -1,7 +1,6 @@
 import logging
 import re
 
-
 from apps.chatapp.models import Conversation, Message
 from apps.employeeapp.models import Employee
 from apps.rolesapp.services.permission_resolver import PermissionResolver
@@ -263,7 +262,7 @@ class MessageRouter:
 
                 is_specialist = Specialist.objects.filter(employee=staff).exists()
                 return 1.0 if is_specialist else 0.5
-            except:
+            except Exception:
                 return 0.5
 
         # Check for support queries

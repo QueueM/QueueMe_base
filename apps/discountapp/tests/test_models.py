@@ -218,13 +218,13 @@ class PromotionalCampaignTestCase(TestCase):
         now = timezone.now()
 
         # Valid date range
-        campaign = PromotionalCampaignFactory(
+        unused_unused_campaign = PromotionalCampaignFactory(
             shop=self.shop, start_date=now, end_date=now + datetime.timedelta(days=10)
         )
 
         # Invalid date range (end before start)
         with self.assertRaises(Exception):
-            invalid_campaign = PromotionalCampaignFactory(
+            unused_unused_invalid_campaign = PromotionalCampaignFactory(
                 shop=self.shop,
                 start_date=now,
                 end_date=now - datetime.timedelta(days=1),

@@ -117,7 +117,8 @@ class WaitTimePredictor:
                     specialist_id=specialist_id
                 )
 
-            # If no specific service/specialist or not enough data, get average for all services in this queue
+            # If no specific service/specialist or not enough data, get average for
+            # all services in this queue
             if not service_times or service_times.get("count", 0) < self.MIN_SAMPLES:
                 service_times = self._get_service_time_statistics(queue_id=queue_id)
 
@@ -376,8 +377,8 @@ class WaitTimePredictor:
             )
 
             # Filter to same hour of day
-            hour_start = current_hour
-            hour_end = (current_hour + 1) % 24
+            unused_unused_hour_start = current_hour
+            unused_unused_hour_end = (current_hour + 1) % 24
 
             similar_hour_tickets = [
                 ticket

@@ -4,12 +4,13 @@ from django.db.models import (
     ExpressionWrapper,
     F,
     FloatField,
+    Max,
     Q,
     Sum,
     Value,
     When,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Cast, Coalesce
 from django.utils import timezone
 
 from apps.specialistsapp.constants import (

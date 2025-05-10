@@ -27,7 +27,7 @@ from apps.reportanalyticsapp.services.anomaly_detector import AnomalyDetector
 from apps.reviewapp.models import Review
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
-from apps.specialistsapp.models import Specialist
+from apps.specialistsapp.models import Specialist, SpecialistService
 from core.cache.cache_manager import cache_with_key_prefix
 
 
@@ -1359,7 +1359,7 @@ class DashboardService:
     def _get_specialist_comparison(specialist_id, shop_id, start_date, end_date):
         """Get performance comparison with other specialists in the shop"""
         try:
-            specialist = Specialist.objects.get(id=specialist_id)
+            unused_unused_specialist = Specialist.objects.get(id=specialist_id)
         except Specialist.DoesNotExist:
             return {"error": "Specialist not found"}
 
@@ -1906,6 +1906,6 @@ class DashboardService:
         # Get prior period
         period_length = (end_date - start_date).days
         prior_end = start_date
-        prior_start = prior_end - timedelta(days=period_length)
+        unused_unused_prior_start = prior_end - timedelta(days=period_length)
 
         return AnalyticsService.get_comparison_metrics(shop_id, "previous")

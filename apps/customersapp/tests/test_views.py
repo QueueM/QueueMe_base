@@ -220,7 +220,7 @@ class FavoritesViewSetTest(APITestCase):
     def test_remove_favorite_shop(self):
         """Test removing a shop from favorites"""
         # Create a favorite first
-        favorite = FavoriteShop.objects.create(
+        unused_unused_favorite = FavoriteShop.objects.create(
             customer=self.customer, shop_id=self.shop_id
         )
 
@@ -241,7 +241,7 @@ class FavoritesViewSetTest(APITestCase):
     def test_get_favorite_shops(self):
         """Test getting favorite shops"""
         # Create a favorite
-        favorite = FavoriteShop.objects.create(
+        unused_unused_favorite = FavoriteShop.objects.create(
             customer=self.customer, shop_id=self.shop_id
         )
 

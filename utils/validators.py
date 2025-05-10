@@ -207,7 +207,7 @@ def validate_amount(
             value = Decimal(cleaned_value)
         else:
             value = Decimal(str(value))
-    except (ValueError, TypeError, decimal.InvalidOperation):
+    except (ValueError, TypeError, Decimal.InvalidOperation):
         raise ValidationError(_("Invalid amount format"))
 
     if value < min_value:

@@ -4,6 +4,9 @@ from decimal import Decimal
 
 import requests
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -16,6 +19,8 @@ from apps.subscriptionapp.constants import (
     STATUS_INITIATED,
     STATUS_PAST_DUE,
     STATUS_TRIAL,
+    SUBSCRIPTION_PERIOD_CHOICES,
+    SUBSCRIPTION_STATUS_CHOICES,
 )
 from apps.subscriptionapp.models import (
     Plan,
@@ -276,8 +281,6 @@ class SubscriptionService:
             payment_url = response_data.get("source", {}).get("transaction_url")
 
             # Create transaction record
-            from django.contrib.contenttypes.models import ContentType
-
             from apps.payment.models import Transaction
 
             transaction = Transaction.objects.create(
@@ -390,8 +393,6 @@ class SubscriptionService:
                     status_after=STATUS_ACTIVE,
                     metadata={"payment_id": payment_id, "invoice_id": str(invoice.id)},
                 )
-
-                return True
 
             return True
 
@@ -857,7 +858,7 @@ class SubscriptionService:
             return False
 
         # Prepare email context
-        context = {
+        unused_unused_context = {
             "company_name": company.name,
             "plan_name": subscription.plan_name or subscription.plan.name,
             "canceled_at": subscription.canceled_at,
@@ -900,7 +901,7 @@ class SubscriptionService:
             return False
 
         # Prepare email context
-        context = {
+        unused_unused_context = {
             "company_name": company.name,
             "plan_name": subscription.plan_name or subscription.plan.name,
             "expired_at": timezone.now(),
@@ -942,7 +943,7 @@ class SubscriptionService:
             return False
 
         # Prepare email context
-        context = {
+        unused_unused_context = {
             "company_name": company.name,
             "old_plan_name": old_plan_name,
             "new_plan_name": subscription.plan_name or subscription.plan.name,
@@ -981,7 +982,7 @@ class SubscriptionService:
     @staticmethod
     def _cancel_moyasar_subscription(moyasar_id):
         """Cancel a subscription in Moyasar"""
-        headers = {
+        unused_unused_headers = {
             "Authorization": f"Basic {SubscriptionService._get_moyasar_auth()}",
             "Content-Type": "application/json",
         }

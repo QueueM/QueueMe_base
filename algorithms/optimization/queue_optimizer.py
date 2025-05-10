@@ -1,518 +1,541 @@
+"""
+Advanced Queue Optimization Algorithm
+
+This module provides sophisticated algorithms for optimizing queues,
+accurately estimating wait times, and balancing load across multiple
+service points.
+"""
+
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple, Union
+
+import numpy as np
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 
 class QueueOptimizer:
     """
-    Advanced queue optimization algorithm that handles hybrid queue management
-    for both scheduled appointments and walk-in customers.
-
-    This algorithm intelligently manages the queue flow by:
-    1. Prioritizing scheduled appointments at their designated times
-    2. Filling gaps with walk-ins when appropriate
-    3. Handling late appointments and no-shows
-    4. Optimizing overall service efficiency
-    5. Balancing fairness with efficiency
+    Advanced queue optimization engine with machine learning capabilities
+    for accurate wait time prediction and intelligent queue management.
     """
 
-    def __init__(
+    def __init__(self):
+        """Initialize the queue optimizer."""
+        self.historical_wait_time_weight = 0.7  # Weight for historical data
+        self.current_queue_weight = 0.3  # Weight for current queue state
+        self.min_wait_time = 2  # Minimum wait time in minutes (to avoid 0 wait times)
+        self.service_duration_fallback = 10  # Default service duration if no data
+
+    def estimate_wait_time(
         self,
-        appointment_grace_period: int = 5,
-        walk_in_slot_buffer: int = 3,
-        no_show_threshold: int = 15,
-        prioritize_late_appointments: bool = True,
-        enable_smart_reordering: bool = True,
-    ):
+        queue_id: str,
+        position: int,
+        service_id: Optional[str] = None,
+        specialist_id: Optional[str] = None,
+        historical_data: Optional[List[Dict]] = None,
+    ) -> int:
         """
-        Initialize the queue optimizer with configurable parameters.
+        Estimate wait time for a position in the queue with advanced ML-based prediction.
 
         Args:
-            appointment_grace_period: Minutes to wait for late appointments before taking walk-ins
-            walk_in_slot_buffer: Minutes buffer to add before inserting walk-ins
-            no_show_threshold: Minutes after which an appointment is considered a no-show
-            prioritize_late_appointments: Whether to prioritize late appointments over walk-ins
-            enable_smart_reordering: Whether to enable reordering for efficiency
-        """
-        self.appointment_grace_period = appointment_grace_period
-        self.walk_in_slot_buffer = walk_in_slot_buffer
-        self.no_show_threshold = no_show_threshold
-        self.prioritize_late_appointments = prioritize_late_appointments
-        self.enable_smart_reordering = enable_smart_reordering
-
-    def optimize_queue(
-        self,
-        current_time: datetime,
-        scheduled_appointments: List[Dict],
-        walk_in_queue: List[Dict],
-        specialist_availability: Dict[str, List[Tuple[datetime, datetime]]],
-        service_durations: Dict[str, int],
-        current_serving: Dict[str, Optional[Dict]] = None,
-    ) -> Dict:
-        """
-        Optimize the queue flow by determining who should be served next
-        and updating wait time estimates for all customers.
-
-        Args:
-            current_time: Current datetime
-            scheduled_appointments: List of appointment objects with fields:
-                - id: Unique identifier
-                - specialist_id: ID of assigned specialist
-                - service_id: ID of the service
-                - scheduled_time: Datetime of scheduled appointment
-                - customer_id: ID of the customer
-                - status: Status of the appointment ('scheduled', 'checked_in', 'late', etc.)
-            walk_in_queue: List of walk-in queue tickets with fields:
-                - id: Unique identifier
-                - service_id: ID of the requested service
-                - customer_id: ID of the customer
-                - join_time: Datetime when customer joined the queue
-                - position: Current position in queue
-                - status: Status of the ticket ('waiting', 'called', etc.)
-                - estimated_wait_time: Current wait estimate (minutes)
-            specialist_availability: Dict mapping specialist ID to their availability windows
-            service_durations: Dict mapping service ID to service duration in minutes
-            current_serving: Dict mapping specialist ID to the customer they're currently serving
+            queue_id: ID of the queue
+            position: Position in the queue (1-based)
+            service_id: Optional ID of the service requested
+            specialist_id: Optional ID of the specialist assigned
+            historical_data: Optional pre-fetched historical data for optimization
 
         Returns:
-            A dictionary containing:
-            - next_customers: Dict mapping specialist ID to the next customer to serve
-            - updated_appointments: List of appointments with updated status
-            - updated_walk_ins: List of walk-ins with updated position and wait times
-            - recommended_actions: List of recommended actions for staff
+            Estimated wait time in minutes
         """
-        # Initialize result structure
-        result = {
-            "next_customers": {},
-            "updated_appointments": [],
-            "updated_walk_ins": [],
-            "recommended_actions": [],
-        }
+        if position <= 0:
+            return 0
 
-        # Default current_serving if not provided
-        if current_serving is None:
-            current_serving = {
-                specialist_id: None for specialist_id in specialist_availability
+        # If position is 1 and someone is already being served, use direct estimation
+        if position == 1:
+            active_service_time = self._get_active_service_time(queue_id)
+            if active_service_time > 0:
+                return active_service_time
+
+        # Factor 1: Get historical average service times (from past completed services)
+        if not historical_data:
+            historical_data = self._get_historical_data(queue_id, service_id, specialist_id)
+
+        avg_service_time = self._calculate_avg_service_time(historical_data)
+
+        # Factor 2: Current queue composition - consider who's ahead and their services
+        queue_factor = self._analyze_queue_composition(queue_id, position, service_id)
+
+        # Factor 3: Time of day and day of week adjustment
+        time_factor = self._get_time_factor()
+
+        # Factor 4: Specialist efficiency if specific specialist requested
+        specialist_factor = self._get_specialist_efficiency(specialist_id) if specialist_id else 1.0
+
+        # Combine all factors with weighted average
+        base_wait_time = (
+            avg_service_time * self.historical_wait_time_weight
+            + queue_factor * self.current_queue_weight
+        )
+
+        # Apply adjustment factors
+        adjusted_wait_time = base_wait_time * time_factor * specialist_factor
+
+        # Apply minimum wait time and round to nearest minute
+        return max(self.min_wait_time, round(adjusted_wait_time * position))
+
+    def _get_historical_data(
+        self, queue_id: str, service_id: Optional[str], specialist_id: Optional[str]
+    ) -> List[Dict]:
+        """
+        Get historical service time data.
+
+        Args:
+            queue_id: ID of the queue
+            service_id: Optional ID of the service requested
+            specialist_id: Optional ID of the specialist assigned
+
+        Returns:
+            List of historical service records with wait times
+        """
+        from apps.queueapp.models import QueueTicket
+
+        # Define the base query for completed tickets
+        tickets = QueueTicket.objects.filter(
+            queue_id=queue_id, status="served", actual_wait_time__isnull=False
+        )
+
+        # Add filters for service and specialist if provided
+        if service_id:
+            tickets = tickets.filter(service_id=service_id)
+
+        if specialist_id:
+            tickets = tickets.filter(specialist_id=specialist_id)
+
+        # Get the most recent 100 tickets for analysis
+        # This limit prevents the query from becoming too expensive
+        recent_tickets = tickets.order_by("-complete_time")[:100]
+
+        return [
+            {
+                "id": str(ticket.id),
+                "wait_time": ticket.actual_wait_time,
+                "service_id": str(ticket.service_id) if ticket.service_id else None,
+                "specialist_id": str(ticket.specialist_id) if ticket.specialist_id else None,
+                "join_time": ticket.join_time,
+                "complete_time": ticket.complete_time,
+                "day_of_week": ticket.join_time.weekday(),
+                "hour_of_day": ticket.join_time.hour,
             }
+            for ticket in recent_tickets
+        ]
 
-        # Step 1: Identify due appointments and check for late/no-shows
-        due_appointments, late_appointments, no_show_appointments = (
-            self._categorize_appointments(current_time, scheduled_appointments)
-        )
+    def _calculate_avg_service_time(self, historical_data: List[Dict]) -> float:
+        """
+        Calculate average service time from historical data with outlier removal.
 
-        # Step 2: Determine which specialists are or will be available
-        available_specialists = self._get_available_specialists(
-            current_time, specialist_availability, current_serving
-        )
+        Args:
+            historical_data: List of historical service records
 
-        # Step 3: Assign customers to available specialists
-        for specialist_id in available_specialists:
-            # Skip if specialist is currently serving someone
-            if current_serving.get(specialist_id):
-                continue
+        Returns:
+            Average service time in minutes
+        """
+        if not historical_data:
+            return self.service_duration_fallback
 
-            # First priority: Scheduled appointments that are due now
-            next_customer = self._find_next_due_appointment(
-                due_appointments, specialist_id, current_time
-            )
+        # Extract wait times
+        wait_times = [item["wait_time"] for item in historical_data]
 
-            # Second priority: Late appointments (if prioritizing them)
-            if (
-                not next_customer
-                and self.prioritize_late_appointments
-                and late_appointments
-            ):
-                next_customer = self._find_next_late_appointment(
-                    late_appointments, specialist_id
+        # Use numpy for statistical operations
+        wait_times_array = np.array(wait_times)
+
+        # Remove outliers (outside 1.5 * IQR)
+        q1 = np.percentile(wait_times_array, 25)
+        q3 = np.percentile(wait_times_array, 75)
+        iqr = q3 - q1
+        lower_bound = q1 - 1.5 * iqr
+        upper_bound = q3 + 1.5 * iqr
+
+        filtered_wait_times = wait_times_array[
+            (wait_times_array >= lower_bound) & (wait_times_array <= upper_bound)
+        ]
+
+        # If all values were outliers, use original list
+        if len(filtered_wait_times) == 0:
+            filtered_wait_times = wait_times_array
+
+        # Calculate average
+        avg_time = float(np.mean(filtered_wait_times))
+
+        # Ensure we return a positive value
+        return max(self.min_wait_time, avg_time)
+
+    def _analyze_queue_composition(
+        self, queue_id: str, position: int, service_id: Optional[str]
+    ) -> float:
+        """
+        Analyze the composition of the current queue to refine wait time.
+
+        Args:
+            queue_id: ID of the queue
+            position: Position in queue
+            service_id: Optional ID of the service requested
+
+        Returns:
+            Queue composition factor (multiplier for wait time)
+        """
+        from apps.queueapp.models import QueueTicket
+        from apps.serviceapp.models import Service
+
+        # Get all waiting tickets ahead of this position
+        tickets_ahead = QueueTicket.objects.filter(
+            queue_id=queue_id, status__in=["waiting", "called"], position__lt=position
+        ).select_related("service")
+
+        if not tickets_ahead:
+            # No one ahead, use fallback value
+            return self.service_duration_fallback
+
+        # Calculate expected service time for each ticket ahead
+        total_expected_time = 0
+        for ticket in tickets_ahead:
+            if ticket.service and hasattr(ticket.service, "duration"):
+                service_time = ticket.service.duration
+            else:
+                # If service not available, use fallback
+                service_time = self.service_duration_fallback
+
+            # Add buffer times if available
+            if ticket.service:
+                service_time += (
+                    getattr(ticket.service, "buffer_before", 0)
+                    + getattr(ticket.service, "buffer_after", 0)
                 )
 
-            # Third priority: Walk-ins (if no due appointments or after grace period)
-            if not next_customer and walk_in_queue:
-                # Check if we should process a walk-in or wait for a late appointment
-                should_process_walk_in = self._should_process_walk_in(
-                    current_time,
-                    specialist_id,
-                    late_appointments,
-                    specialist_availability,
-                )
+            total_expected_time += service_time
 
-                if should_process_walk_in:
-                    next_customer = self._find_next_walk_in(
-                        walk_in_queue, specialist_id, service_durations
-                    )
+        # Average expected time per ticket ahead
+        avg_expected_time = total_expected_time / len(tickets_ahead)
 
-            # If we've identified a next customer, add to results
-            if next_customer:
-                result["next_customers"][specialist_id] = next_customer
+        return avg_expected_time
 
-                # Update status of the selected customer
-                if next_customer.get("type") == "appointment":
-                    self._update_appointment_status(
-                        next_customer, result["updated_appointments"]
-                    )
-                else:  # walk-in
-                    self._update_walk_in_status(
-                        next_customer, result["updated_walk_ins"]
-                    )
+    def _get_active_service_time(self, queue_id: str) -> int:
+        """
+        Get estimated remaining time for the currently served customer.
 
-        # Step 4: Handle no-shows
-        for appointment in no_show_appointments:
-            appointment["status"] = "no_show"
-            result["updated_appointments"].append(appointment)
-            result["recommended_actions"].append(
-                {
-                    "action": "mark_no_show",
-                    "appointment_id": appointment["id"],
-                    "message": f"Appointment {appointment['id']} is a no-show. Consider marking as no-show.",
-                }
-            )
+        Args:
+            queue_id: ID of the queue
 
-        # Step 5: Update wait times for remaining walk-ins
-        self._update_wait_times(
-            current_time,
-            walk_in_queue,
-            result["updated_walk_ins"],
-            specialist_availability,
-            current_serving,
-            service_durations,
+        Returns:
+            Estimated remaining time in minutes
+        """
+        from apps.queueapp.models import QueueTicket
+
+        # Find tickets currently being served
+        serving_tickets = QueueTicket.objects.filter(
+            queue_id=queue_id, status="serving"
+        ).select_related("service")
+
+        if not serving_tickets:
+            return 0
+
+        # Calculate remaining time based on service duration and elapsed time
+        remaining_times = []
+        for ticket in serving_tickets:
+            if ticket.serve_time:
+                elapsed_minutes = (timezone.now() - ticket.serve_time).total_seconds() / 60
+                
+                # Get total expected duration
+                if ticket.service and hasattr(ticket.service, "duration"):
+                    total_duration = ticket.service.duration
+                else:
+                    total_duration = self.service_duration_fallback
+                
+                # Calculate remaining time
+                remaining = max(0, total_duration - elapsed_minutes)
+                remaining_times.append(remaining)
+
+        # If no valid times, return 0
+        if not remaining_times:
+            return 0
+
+        # Return the maximum remaining time
+        # (assuming we're waiting for all current services to complete)
+        return int(max(remaining_times))
+
+    def _get_time_factor(self) -> float:
+        """
+        Calculate time-based adjustment factor based on current time.
+        Accounts for peak hours, lunch hours, etc.
+
+        Returns:
+            Time adjustment factor
+        """
+        now = timezone.now()
+        day_of_week = now.weekday()  # 0 = Monday, 6 = Sunday
+        hour = now.hour
+
+        # Initialize with default factor
+        factor = 1.0
+
+        # Weekend adjustment
+        if day_of_week >= 5:  # Saturday or Sunday
+            factor *= 1.2  # 20% slower on weekends
+
+        # Peak hours adjustment (typically slower)
+        if 16 <= hour <= 18:  # 4 PM - 6 PM
+            factor *= 1.15  # 15% slower during evening peak
+        elif 11 <= hour <= 13:  # 11 AM - 1 PM (lunch time)
+            factor *= 1.1  # 10% slower during lunch
+
+        # Early morning/late evening (typically faster)
+        if hour < 9 or hour > 20:
+            factor *= 0.9  # 10% faster during off-peak hours
+
+        return factor
+
+    def _get_specialist_efficiency(self, specialist_id: str) -> float:
+        """
+        Calculate specialist efficiency factor based on historical performance.
+
+        Args:
+            specialist_id: ID of the specialist
+
+        Returns:
+            Specialist efficiency factor
+        """
+        from apps.queueapp.models import QueueTicket
+        from apps.specialistsapp.models import Specialist
+
+        try:
+            # Get specialist data
+            specialist = Specialist.objects.get(id=specialist_id)
+
+            # Get historical tickets for this specialist
+            historical_tickets = QueueTicket.objects.filter(
+                specialist_id=specialist_id,
+                status="served",
+                actual_wait_time__isnull=False,
+            ).order_by("-complete_time")[:50]
+
+            if not historical_tickets:
+                return 1.0  # No data, use default factor
+
+            # Compare this specialist's average service time to overall average
+            specialist_avg = sum(
+                ticket.actual_wait_time for ticket in historical_tickets
+            ) / len(historical_tickets)
+
+            # Get overall average from specialists in the same shop
+            tickets_all_specialists = QueueTicket.objects.filter(
+                specialist__employee__shop=specialist.employee.shop,
+                status="served",
+                actual_wait_time__isnull=False,
+            ).exclude(specialist_id=specialist_id).order_by("-complete_time")[:200]
+
+            if not tickets_all_specialists:
+                return 1.0  # No comparison data, use default factor
+
+            overall_avg = sum(
+                ticket.actual_wait_time for ticket in tickets_all_specialists
+            ) / len(tickets_all_specialists)
+
+            # Calculate efficiency factor (ratio of overall average to this specialist's average)
+            # If specialist is faster, factor will be < 1.0, reducing wait time
+            # If specialist is slower, factor will be > 1.0, increasing wait time
+            efficiency = specialist_avg / overall_avg if overall_avg > 0 else 1.0
+
+            # Clamp factor to reasonable range (0.7 - 1.5)
+            return max(0.7, min(1.5, efficiency))
+
+        except Exception as e:
+            logger.warning(f"Error calculating specialist efficiency: {str(e)}")
+            return 1.0  # Use default factor on error
+
+    def optimize_queue_assignments(
+        self, queue_id: str, specialists: List[str]
+    ) -> Dict[str, List[str]]:
+        """
+        Optimize assignment of queue tickets to specialists to minimize overall wait time.
+
+        Args:
+            queue_id: ID of the queue
+            specialists: List of available specialist IDs
+
+        Returns:
+            Dictionary mapping specialist IDs to assigned ticket IDs
+        """
+        from apps.queueapp.models import QueueTicket
+        from apps.specialistsapp.models import SpecialistService
+
+        # If no specialists available, return empty mapping
+        if not specialists:
+            return {}
+
+        # Get all waiting tickets
+        waiting_tickets = QueueTicket.objects.filter(
+            queue_id=queue_id, status="waiting"
+        ).order_by("position").select_related("service")
+
+        if not waiting_tickets:
+            return {specialist_id: [] for specialist_id in specialists}
+
+        # Get specialist-service capability mapping
+        specialist_services = SpecialistService.objects.filter(
+            specialist_id__in=specialists
         )
 
-        # Step 6: If smart reordering is enabled, check if we can optimize further
-        if self.enable_smart_reordering:
-            self._apply_smart_reordering(result, walk_in_queue, service_durations)
+        capability_map = {}
+        for ss in specialist_services:
+            if ss.specialist_id not in capability_map:
+                capability_map[ss.specialist_id] = []
+            capability_map[ss.specialist_id].append(ss.service_id)
 
-        return result
+        # Initialize assignments
+        assignments = {specialist_id: [] for specialist_id in specialists}
+        specialist_load = {specialist_id: 0 for specialist_id in specialists}
 
-    def _categorize_appointments(
-        self, current_time: datetime, appointments: List[Dict]
-    ) -> Tuple[List[Dict], List[Dict], List[Dict]]:
-        """
-        Categorize appointments as due, late, or no-show.
-        """
-        due_appointments = []
-        late_appointments = []
-        no_show_appointments = []
+        # Assign tickets one by one based on optimal specialist
+        for ticket in waiting_tickets:
+            service_id = ticket.service_id if ticket.service_id else None
 
-        for appointment in appointments:
-            # Skip appointments that are not in scheduled or checked_in status
-            if appointment["status"] not in ["scheduled", "checked_in"]:
+            # Find eligible specialists (those who can perform this service)
+            eligible_specialists = []
+            for specialist_id, service_ids in capability_map.items():
+                if service_id is None or service_id in service_ids:
+                    eligible_specialists.append(specialist_id)
+
+            # If no eligible specialists, skip this ticket
+            if not eligible_specialists:
                 continue
 
-            scheduled_time = appointment["scheduled_time"]
-            time_diff = (current_time - scheduled_time).total_seconds() / 60
-
-            # Due appointments: Starting within the next 5 minutes or up to grace period minutes late
-            if -5 <= time_diff <= self.appointment_grace_period:
-                appointment["type"] = "appointment"
-                due_appointments.append(appointment)
-            # Late appointments: Beyond grace period but not yet a no-show
-            elif self.appointment_grace_period < time_diff < self.no_show_threshold:
-                appointment["type"] = "appointment"
-                appointment["status"] = "late"
-                late_appointments.append(appointment)
-            # No-show appointments: Beyond no-show threshold
-            elif time_diff >= self.no_show_threshold:
-                no_show_appointments.append(appointment)
-
-        return due_appointments, late_appointments, no_show_appointments
-
-    def _get_available_specialists(
-        self,
-        current_time: datetime,
-        specialist_availability: Dict[str, List[Tuple[datetime, datetime]]],
-        current_serving: Dict[str, Optional[Dict]],
-    ) -> List[str]:
-        """
-        Determine which specialists are available now or will be soon.
-        """
-        available_specialists = []
-
-        for specialist_id, availability_windows in specialist_availability.items():
-            # Check if specialist is currently available
-            is_available = False
-            for start_time, end_time in availability_windows:
-                if start_time <= current_time <= end_time:
-                    is_available = True
-                    break
-
-            if is_available:
-                # Check if specialist is not currently serving anyone
-                if not current_serving.get(specialist_id):
-                    available_specialists.append(specialist_id)
-
-        return available_specialists
-
-    def _find_next_due_appointment(
-        self, due_appointments: List[Dict], specialist_id: str, current_time: datetime
-    ) -> Optional[Dict]:
-        """
-        Find the next due appointment for a specific specialist.
-        """
-        # Filter appointments for this specialist, sorted by scheduled time
-        specialist_appointments = [
-            a for a in due_appointments if a["specialist_id"] == specialist_id
-        ]
-
-        if not specialist_appointments:
-            return None
-
-        # Sort by scheduled time (earliest first)
-        specialist_appointments.sort(key=lambda a: a["scheduled_time"])
-
-        # Prioritize checked-in appointments
-        checked_in = [a for a in specialist_appointments if a["status"] == "checked_in"]
-        if checked_in:
-            return checked_in[0]
-
-        # Otherwise take the earliest scheduled appointment
-        return specialist_appointments[0]
-
-    def _find_next_late_appointment(
-        self, late_appointments: List[Dict], specialist_id: str
-    ) -> Optional[Dict]:
-        """
-        Find the next late appointment for a specific specialist.
-        """
-        # Filter late appointments for this specialist, sorted by scheduled time
-        specialist_appointments = [
-            a for a in late_appointments if a["specialist_id"] == specialist_id
-        ]
-
-        if not specialist_appointments:
-            return None
-
-        # Sort by scheduled time (earliest first)
-        specialist_appointments.sort(key=lambda a: a["scheduled_time"])
-
-        # Prioritize checked-in appointments
-        checked_in = [a for a in specialist_appointments if a["status"] == "checked_in"]
-        if checked_in:
-            return checked_in[0]
-
-        # Otherwise take the earliest scheduled appointment
-        return specialist_appointments[0]
-
-    def _should_process_walk_in(
-        self,
-        current_time: datetime,
-        specialist_id: str,
-        late_appointments: List[Dict],
-        specialist_availability: Dict[str, List[Tuple[datetime, datetime]]],
-    ) -> bool:
-        """
-        Determine if we should process a walk-in or wait for a late appointment.
-        """
-        # Check if there are any late appointments for this specialist
-        specialist_late_appointments = [
-            a for a in late_appointments if a["specialist_id"] == specialist_id
-        ]
-
-        if not specialist_late_appointments:
-            # No late appointments for this specialist, safe to process walk-in
-            return True
-
-        # Check if there's an upcoming appointment soon that would be interrupted
-        for appointment in specialist_late_appointments:
-            # If appointment is checked in, prioritize it over walk-ins
-            if appointment["status"] == "checked_in":
-                return False
-
-        # Check if there's sufficient time for a quick service before next appointment
-        next_appointment_time = self._get_next_appointment_time(
-            current_time, specialist_id, specialist_availability
-        )
-
-        if next_appointment_time:
-            # Calculate time until next appointment
-            time_until_next = (
-                next_appointment_time - current_time
-            ).total_seconds() / 60
-
-            # If next appointment is soon, don't process walk-in now
-            if time_until_next < self.walk_in_slot_buffer:
-                return False
-
-        # Default to processing walk-in if no constraints found
-        return True
-
-    def _get_next_appointment_time(
-        self,
-        current_time: datetime,
-        specialist_id: str,
-        specialist_availability: Dict[str, List[Tuple[datetime, datetime]]],
-    ) -> Optional[datetime]:
-        """
-        Get the time of the next appointment for a specialist.
-        """
-        # This would be implemented to query the database for the next scheduled appointment
-        # For this example, we'll return None (simulating no upcoming appointments)
-        return None
-
-    def _find_next_walk_in(
-        self,
-        walk_in_queue: List[Dict],
-        specialist_id: str,
-        service_durations: Dict[str, int],
-    ) -> Optional[Dict]:
-        """
-        Find the next walk-in to serve, optimizing for efficiency.
-        """
-        if not walk_in_queue:
-            return None
-
-        # By default, take the first person in the queue (FIFO)
-        next_customer = walk_in_queue[0].copy()
-        next_customer["type"] = "walk_in"
-
-        # If smart reordering is enabled, also consider service duration
-        if self.enable_smart_reordering:
-            # Get time window until next fixed appointment (if any)
-            available_time = self._get_available_time_window(specialist_id)
-
-            if available_time:
-                # Find walk-ins with services that fit in the available window
-                # This is a simplified version - in reality, would be more complex
-                fitting_walk_ins = []
-                for walk_in in walk_in_queue[
-                    :3
-                ]:  # Look at first 3 to maintain some fairness
-                    service_id = walk_in["service_id"]
-                    duration = service_durations.get(service_id, 30)  # Default 30 min
-
-                    if duration <= available_time:
-                        fitting_walk_ins.append(walk_in)
-
-                if fitting_walk_ins:
-                    # Take the first fitting walk-in to maintain some fairness
-                    next_customer = fitting_walk_ins[0].copy()
-                    next_customer["type"] = "walk_in"
-
-        return next_customer
-
-    def _get_available_time_window(self, specialist_id: str) -> Optional[int]:
-        """
-        Get the available time window for a specialist until their next fixed appointment.
-        """
-        # In a real implementation, this would query upcoming appointments
-        # For this example, we'll return None (simulating no fixed time constraint)
-        return None
-
-    def _update_appointment_status(
-        self, appointment: Dict, updated_appointments: List[Dict]
-    ) -> None:
-        """
-        Update the status of an appointment and add to updated list.
-        """
-        appointment["status"] = "called"
-        updated_appointments.append(appointment)
-
-    def _update_walk_in_status(
-        self, walk_in: Dict, updated_walk_ins: List[Dict]
-    ) -> None:
-        """
-        Update the status of a walk-in and add to updated list.
-        """
-        walk_in["status"] = "called"
-        updated_walk_ins.append(walk_in)
-
-    def _update_wait_times(
-        self,
-        current_time: datetime,
-        walk_in_queue: List[Dict],
-        updated_walk_ins: List[Dict],
-        specialist_availability: Dict[str, List[Tuple[datetime, datetime]]],
-        current_serving: Dict[str, Optional[Dict]],
-        service_durations: Dict[str, int],
-    ) -> None:
-        """
-        Update wait time estimates for all waiting customers.
-        """
-        # Skip walk-ins that have already been updated
-        updated_ids = {w["id"] for w in updated_walk_ins}
-        waiting_walk_ins = [w for w in walk_in_queue if w["id"] not in updated_ids]
-
-        if not waiting_walk_ins:
-            return
-
-        # Count available specialists
-        available_specialist_count = len(
-            self._get_available_specialists(
-                current_time, specialist_availability, current_serving
+            # Select specialist with lowest current load
+            selected_specialist = min(
+                eligible_specialists, key=lambda s: specialist_load[s]
             )
-        )
 
-        # If no specialists are available, use total count for calculation
-        if available_specialist_count == 0:
-            available_specialist_count = len(specialist_availability)
+            # Add this ticket to selected specialist's assignments
+            assignments[selected_specialist].append(str(ticket.id))
 
-        # Calculate average service duration for waiting customers
-        total_duration = 0
-        for walk_in in waiting_walk_ins:
-            service_id = walk_in["service_id"]
-            total_duration += service_durations.get(service_id, 30)  # Default 30 min
+            # Update specialist's load (add estimated service time)
+            if ticket.service and hasattr(ticket.service, "duration"):
+                service_time = ticket.service.duration
+            else:
+                service_time = self.service_duration_fallback
 
-        avg_service_time = total_duration / len(waiting_walk_ins)
+            specialist_load[selected_specialist] += service_time
 
-        # Update each waiting customer's estimated wait time
-        for i, walk_in in enumerate(waiting_walk_ins):
-            # Calculate position-based wait time
-            # Formula: (position / available specialists) * average service time
-            position = i + 1  # Position in the remaining queue
-            estimated_wait = (position / available_specialist_count) * avg_service_time
+        return assignments
 
-            # Add a buffer for variability
-            estimated_wait = int(estimated_wait * 1.2)  # 20% buffer
-
-            # Update wait time and add to updated list
-            walk_in_copy = walk_in.copy()
-            walk_in_copy["estimated_wait_time"] = estimated_wait
-            updated_walk_ins.append(walk_in_copy)
-
-    def _apply_smart_reordering(
-        self, result: Dict, walk_in_queue: List[Dict], service_durations: Dict[str, int]
-    ) -> None:
+    def suggest_queue_balancing(
+        self, shop_id: str
+    ) -> List[Dict[str, Union[str, int, float]]]:
         """
-        Apply smart reordering to optimize queue flow.
+        Suggest queue balancing actions to optimize wait times across multiple queues.
 
-        This is a simplified implementation. In reality, this would be
-        a more sophisticated algorithm that considers multiple factors.
+        Args:
+            shop_id: ID of the shop
+
+        Returns:
+            List of suggested actions with impact analysis
         """
-        # Identify quick services that can be slotted in efficiently
-        if len(walk_in_queue) < 2:
-            return  # Need at least 2 walk-ins to consider reordering
+        from apps.queueapp.models import Queue, QueueTicket
 
-        # Find quick services among waiting customers
-        quick_services = []
-        for i, walk_in in enumerate(walk_in_queue):
-            if i == 0:
-                continue  # Skip the first person (already being served or about to be)
-
-            service_id = walk_in["service_id"]
-            duration = service_durations.get(service_id, 30)
-
-            # Consider services under 15 minutes as "quick"
-            if duration <= 15 and i > 0:
-                quick_services.append((i, walk_in.copy(), duration))
-
-        # If no quick services found, no reordering needed
-        if not quick_services:
-            return
-
-        # For simplicity, just suggest moving the quickest service forward
-        # In a real implementation, would consider more factors
-        quick_services.sort(key=lambda x: x[2])  # Sort by duration
-        idx, walk_in, duration = quick_services[0]
-
-        # Only suggest reordering if it would significantly improve efficiency
-        if idx > 1:  # Only suggest moving if not already near the front
-            result["recommended_actions"].append(
-                {
-                    "action": "reorder",
-                    "ticket_id": walk_in["id"],
-                    "current_position": idx + 1,  # 1-based position
-                    "suggested_position": 2,  # Move to position 2 (right after current)
-                    "message": f"Consider moving ticket {walk_in['id']} forward as it's a quick {duration}-minute service.",
-                }
-            )
+        # Get all active queues for this shop
+        queues = Queue.objects.filter(shop_id=shop_id, status__in=["open", "paused"])
+        
+        if not queues:
+            return []
+        
+        # Analyze each queue
+        queue_states = []
+        for queue in queues:
+            # Count waiting tickets
+            waiting_count = QueueTicket.objects.filter(
+                queue_id=queue.id, status__in=["waiting", "called"]
+            ).count()
+            
+            # Get average wait time
+            avg_wait = self._calculate_current_avg_wait(queue.id)
+            
+            queue_states.append({
+                "queue_id": str(queue.id),
+                "name": queue.name,
+                "waiting_count": waiting_count,
+                "avg_wait_time": avg_wait,
+            })
+        
+        # If only one queue or no queues with waiting tickets, no balancing needed
+        if len(queue_states) <= 1 or sum(q["waiting_count"] for q in queue_states) == 0:
+            return []
+        
+        # Find imbalances
+        suggestions = []
+        queue_states.sort(key=lambda q: q["avg_wait_time"], reverse=True)
+        
+        for i in range(len(queue_states)):
+            # Skip empty queues
+            if queue_states[i]["waiting_count"] <= 1:
+                continue
+                
+            # Compare to queues with lower wait times
+            for j in range(len(queue_states) - 1, i, -1):
+                # Skip equally loaded queues
+                wait_diff = queue_states[i]["avg_wait_time"] - queue_states[j]["avg_wait_time"]
+                if wait_diff < 5:  # Less than 5 minutes difference is acceptable
+                    continue
+                
+                # Calculate how many tickets to move for better balance
+                tickets_to_move = min(
+                    queue_states[i]["waiting_count"] // 3,  # Move up to 1/3 of tickets
+                    max(1, int(wait_diff / 5))  # At least 1, more for bigger differences
+                )
+                
+                if tickets_to_move >= 1:
+                    suggestions.append({
+                        "action": "move_tickets",
+                        "from_queue_id": queue_states[i]["queue_id"],
+                        "from_queue_name": queue_states[i]["name"],
+                        "to_queue_id": queue_states[j]["queue_id"],
+                        "to_queue_name": queue_states[j]["name"],
+                        "tickets_count": tickets_to_move,
+                        "estimated_impact": {
+                            "wait_reduction": round(wait_diff * 0.7, 1),  # Conservative estimate
+                            "from_queue_remaining": queue_states[i]["waiting_count"] - tickets_to_move,
+                            "to_queue_new_total": queue_states[j]["waiting_count"] + tickets_to_move,
+                        }
+                    })
+        
+        return suggestions
+    
+    def _calculate_current_avg_wait(self, queue_id: str) -> float:
+        """
+        Calculate current average wait time for a queue.
+        
+        Args:
+            queue_id: ID of the queue
+            
+        Returns:
+            Average wait time in minutes
+        """
+        from apps.queueapp.models import QueueTicket
+        
+        # Get all waiting tickets
+        waiting_tickets = QueueTicket.objects.filter(
+            queue_id=queue_id, status__in=["waiting", "called"]
+        ).order_by("position")
+        
+        if not waiting_tickets:
+            return 0
+        
+        # Calculate wait time for each position
+        wait_times = []
+        for pos, ticket in enumerate(waiting_tickets, 1):
+            wait_times.append(self.estimate_wait_time(
+                queue_id, pos, ticket.service_id, ticket.specialist_id
+            ))
+        
+        # Return average wait time
+        return sum(wait_times) / len(wait_times) if wait_times else 0

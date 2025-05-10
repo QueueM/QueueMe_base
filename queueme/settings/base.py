@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
 
 # Load the appropriate .env file based on settings module
-if 'production' in os.environ.get('DJANGO_SETTINGS_MODULE', ''):
+if "production" in os.environ.get("DJANGO_SETTINGS_MODULE", ""):
     load_dotenv(BASE_DIR / ".env.production")  # Load production .env if exists
 else:
     load_dotenv(BASE_DIR / ".env")  # Load development .env if exists
@@ -55,18 +55,29 @@ ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS", "localhost,127.0.0.1").split(","
 # ---------------------------------------------------------------------------
 # Database – PostgreSQL everywhere
 # ---------------------------------------------------------------------------
-DEFAULT_PG_URL = (
-    f"postgres://{env('POSTGRES_USER', 'queueme')}:{env('POSTGRES_PASSWORD', 'queueme')}"
-    f"@{env('POSTGRES_HOST', 'localhost')}:{env('POSTGRES_PORT', '5432')}/{env('POSTGRES_DB', 'queueme')}"
-)
-
-DATABASES: dict[str, Any] = {
-    "default": dj_database_url.parse(
-        env("DATABASE_URL", DEFAULT_PG_URL),
-        conn_max_age=int(env("DB_CONN_MAX_AGE", "60")),
-        ssl_require=env("DB_SSL_REQUIRE", "False").lower() in {"1", "true"},
-    )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'queueme'),
+        'USER': os.environ.get('POSTGRES_USER', 'queueme'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'queueme'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        'CONN_MAX_AGE': 600,
+        'OPTIONS': {
+            'connect_timeout': 10,
+        },
+    }
 }
+
+# SQLite fallback for development if needed
+if os.environ.get('USE_SQLITE', 'False').lower() == 'true':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -76,7 +87,7 @@ INSTALLED_APPS = [
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
-    'django.contrib.gis',  # Commented out due to PostGIS dependency
+    "django.contrib.gis",  # Commented out due to PostGIS dependency
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -136,6 +147,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "queueme.middleware.performance_middleware.PerformanceMiddleware",
+    "queueme.middleware.rate_limiting.RateLimitingMiddleware",  # Rate limiting protection
 ]
 
 ROOT_URLCONF = "queueme.urls"
@@ -445,6 +457,19 @@ LOGGING = {
 FRONTEND_URL = env("FRONTEND_URL", "https://queueme.net")
 SHOP_PANEL_URL = env("SHOP_PANEL_URL", "https://shop.queueme.net")
 ADMIN_PANEL_URL = env("ADMIN_PANEL_URL", "https://admin.queueme.net")
+
+
+# Rate limiting settings
+RATE_LIMIT_DEFAULT_RATE = 100  # 100 requests
+RATE_LIMIT_DEFAULT_PERIOD = 60  # per minute
+RATE_LIMIT_API_RATE = 60  # 60 API requests
+RATE_LIMIT_API_PERIOD = 60  # per minute
+RATE_LIMIT_OTP_RATE = 5  # 5 OTP send requests
+RATE_LIMIT_OTP_PERIOD = 300  # per 5 minutes (300 seconds)
+RATE_LIMIT_OTP_LOCKOUT = 1800  # 30 minutes lockout after exceeding
+RATE_LIMIT_OTP_VERIFY_RATE = 10  # 10 OTP verify attempts
+RATE_LIMIT_OTP_VERIFY_PERIOD = 300  # per 5 minutes
+RATE_LIMIT_OTP_VERIFY_LOCKOUT = 1800  # 30 minutes lockout after exceeding
 
 
 print(f"🏗️  Settings loaded  |  DEBUG={DEBUG}  |  DB={DATABASES['default']['ENGINE']}")

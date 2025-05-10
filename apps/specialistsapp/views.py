@@ -531,7 +531,7 @@ class SpecialistAvailabilityView(APIView):
                 # Format: YYYYMMDD
                 date_obj = datetime.strptime(date, "%Y%m%d").date()
 
-            specialist = get_object_or_404(
+            unused_unused_specialist = get_object_or_404(
                 Specialist.objects.select_related("employee__shop"),
                 id=specialist_id,
                 employee__is_active=True,

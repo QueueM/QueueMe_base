@@ -308,4 +308,6 @@ class ReviewMetric(models.Model):
 
     def __str__(self):
         return f"Metrics for {self.content_type.model} (ID: {self.object_id})"
+
+
 Review = ServiceReview

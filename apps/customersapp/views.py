@@ -1,4 +1,8 @@
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated

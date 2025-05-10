@@ -38,66 +38,68 @@ from apps.reviewapp.serializers import (
     SpecialistReviewSerializer,
 )
 from apps.reviewapp.services.rating_service import RatingService
+from apps.rolesapp.services.permission_resolver import PermissionResolver
+
 
 class ReviewViewSet(viewsets.ViewSet):
     """
     Main ViewSet for reviews - routes to appropriate specialized review ViewSets
     based on the review type. This serves as a consolidated API endpoint.
     """
+
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_shop_review_viewset(self):
-        return ShopReviewViewSet.as_view({'get': 'list', 'post': 'create'})
+        return ShopReviewViewSet.as_view({"get": "list", "post": "create"})
 
     def get_specialist_review_viewset(self):
-        return SpecialistReviewViewSet.as_view({'get': 'list', 'post': 'create'})
-    
+        return SpecialistReviewViewSet.as_view({"get": "list", "post": "create"})
+
     def get_service_review_viewset(self):
-        return ServiceReviewViewSet.as_view({'get': 'list', 'post': 'create'})
-    
+        return ServiceReviewViewSet.as_view({"get": "list", "post": "create"})
+
     def get_platform_review_viewset(self):
-        return PlatformReviewViewSet.as_view({'get': 'list', 'post': 'create'})
+        return PlatformReviewViewSet.as_view({"get": "list", "post": "create"})
 
     def list(self, request):
         """Return reviews based on the review_type parameter"""
-        review_type = request.query_params.get('review_type', 'shop')
-        
-        if review_type == 'shop':
+        review_type = request.query_params.get("review_type", "shop")
+
+        if review_type == "shop":
             return self.get_shop_review_viewset()(request)
-        elif review_type == 'specialist':
+        elif review_type == "specialist":
             return self.get_specialist_review_viewset()(request)
-        elif review_type == 'service':
+        elif review_type == "service":
             return self.get_service_review_viewset()(request)
-        elif review_type == 'platform':
+        elif review_type == "platform":
             return self.get_platform_review_viewset()(request)
         else:
             return Response(
-                {"error": _("Invalid review type")}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": _("Invalid review type")}, status=status.HTTP_400_BAD_REQUEST
             )
-    
+
     def create(self, request):
         """Create a review based on the review_type parameter"""
-        review_type = request.data.get('review_type', 'shop')
-        
-        if review_type == 'shop':
+        review_type = request.data.get("review_type", "shop")
+
+        if review_type == "shop":
             return self.get_shop_review_viewset()(request)
-        elif review_type == 'specialist':
+        elif review_type == "specialist":
             return self.get_specialist_review_viewset()(request)
-        elif review_type == 'service':
+        elif review_type == "service":
             return self.get_service_review_viewset()(request)
-        elif review_type == 'platform':
+        elif review_type == "platform":
             return self.get_platform_review_viewset()(request)
         else:
             return Response(
-                {"error": _("Invalid review type")}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": _("Invalid review type")}, status=status.HTTP_400_BAD_REQUEST
             )
-    
+
     # Add this line at the end to ensure the ViewSet has a queryset attribute
     # needed for router registration
     queryset = ShopReview.objects.none()  # Empty queryset as a fallback
-    
+
+
 class ShopReviewViewSet(viewsets.ModelViewSet):
     """ViewSet for shop reviews"""
 

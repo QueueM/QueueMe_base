@@ -18,7 +18,13 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
+from django.db.models.functions import (
+    Extract,
+    ExtractWeekDay,
+    TruncDay,
+    TruncMonth,
+    TruncWeek,
+)
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
@@ -31,7 +37,7 @@ from apps.reportanalyticsapp.queries import (
 from apps.reviewapp.models import Review
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
-from apps.specialistsapp.models import Specialist
+from apps.specialistsapp.models import Specialist, SpecialistWorkingHours
 from core.cache.cache_manager import cache_with_key_prefix
 
 

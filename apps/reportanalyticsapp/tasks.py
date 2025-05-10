@@ -32,8 +32,8 @@ def update_shop_analytics(shop_id, date):
         )
 
         # Time range for the day
-        day_start = datetime.combine(date_obj, datetime.min.time())
-        day_end = datetime.combine(date_obj, datetime.max.time())
+        unused_unused_day_start = datetime.combine(date_obj, datetime.min.time())
+        unused_unused_day_end = datetime.combine(date_obj, datetime.max.time())
 
         # Update booking metrics
         bookings = Appointment.objects.filter(shop=shop, start_time__date=date_obj)
@@ -144,8 +144,8 @@ def update_specialist_analytics(specialist_id, date):
         )
 
         # Time range for the day
-        day_start = datetime.combine(date_obj, datetime.min.time())
-        day_end = datetime.combine(date_obj, datetime.max.time())
+        unused_unused_day_start = datetime.combine(date_obj, datetime.min.time())
+        unused_unused_day_end = datetime.combine(date_obj, datetime.max.time())
 
         # Update booking metrics
         bookings = Appointment.objects.filter(

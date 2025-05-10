@@ -39,7 +39,7 @@ def handle_notification_created(sender, instance, created, **kwargs):
                     f"notifications_{instance.user_id}",
                     {"type": "unread_count_update", "count": unread_count},
                 )
-            except:
+            except Exception:
                 # WebSocket channel may not exist yet, that's ok
                 pass
 
@@ -66,7 +66,7 @@ def handle_notification_status_change(sender, instance, **kwargs):
                         f"notifications_{instance.user_id}",
                         {"type": "unread_count_update", "count": unread_count},
                     )
-                except:
+                except Exception:
                     # WebSocket channel may not exist, that's ok
                     pass
 

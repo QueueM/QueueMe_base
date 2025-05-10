@@ -141,7 +141,7 @@ class RatingService:
         VERIFIED_WEIGHT = 0.2  # How much verified purchases matter
         HELPFULNESS_WEIGHT = 0.2  # How much helpfulness votes matter
         QUALITY_WEIGHT = 0.1  # How much review quality matters
-        BAYESIAN_PRIOR_WEIGHT = 0.2  # How much statistical confidence matters
+        unused_unused_BAYESIAN_PRIOR_WEIGHT = 0.2  # How much statistical confidence matters
 
         # Bayesian prior (overall average, tends to 3.5 for new items)
         PRIOR_MEAN = 3.5

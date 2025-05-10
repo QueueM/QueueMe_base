@@ -647,7 +647,7 @@ class MultiServiceScheduler:
             if preferred_time_window:
                 pref_start, pref_end = preferred_time_window
                 schedule_start = schedule["start_time"].time()
-                schedule_end = schedule["end_time"].time()
+                unused_unused_schedule_end = schedule["end_time"].time()
 
                 # Closer to preferred time is better
                 if pref_start <= schedule_start <= pref_end:

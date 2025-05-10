@@ -18,7 +18,7 @@ if not SECRET_KEY:
 
 # Use PostGIS in production
 # Set the engine at the database level to override settings from dj_database_url
-DATABASES["default"]["ENGINE"] = 'django.contrib.gis.db.backends.postgis'
+DATABASES["default"]["ENGINE"] = "django.contrib.gis.db.backends.postgis"
 
 # Add production-specific database options
 DATABASES["default"]["CONN_MAX_AGE"] = 600  # Keep connections alive for 10 minutes

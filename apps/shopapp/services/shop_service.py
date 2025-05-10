@@ -54,7 +54,7 @@ class ShopService:
             )
 
             # Create employee record
-            employee = Employee.objects.create(
+            unused_unused_employee = Employee.objects.create(
                 user=user, shop=shop, position="manager", **manager_data
             )
 
@@ -196,7 +196,6 @@ class ShopService:
         # Get top shops based on reviews and booking count
         from django.contrib.contenttypes.models import ContentType
         from django.db.models import Avg, Case, Count, F, FloatField, Value, When
-
 
         shop_type = ContentType.objects.get_for_model(Shop)
 

@@ -7,7 +7,7 @@ in the Queue Me platform, including authentication, authorization,
 input validation, and protection against common vulnerabilities.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 from django.test import TestCase
 from django.urls import reverse
@@ -15,6 +15,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.authapp.models import OTP, User
+from apps.bookingapp.models import Appointment
 from apps.categoriesapp.models import Category
 from apps.companiesapp.models import Company
 from apps.employeeapp.models import Employee
@@ -65,7 +66,7 @@ class AuthenticationSecurityTest(TestCase):
     def test_otp_expiry(self):
         """Test OTP expires after the specified period."""
         # Create an expired OTP
-        expired_otp = OTP.objects.create(
+        unused_unused_expired_otp = OTP.objects.create(
             phone_number="9876543210",
             code="654321",
             expires_at=timezone.now() - timedelta(minutes=1),
@@ -276,7 +277,7 @@ class AuthorizationSecurityTest(TestCase):
             location=self.location,
         )
 
-        service2 = Service.objects.create(
+        unused_unused_service2 = Service.objects.create(
             shop=shop2,
             category=self.category,
             name="Test Service 2",

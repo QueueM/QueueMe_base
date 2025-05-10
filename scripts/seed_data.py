@@ -13,19 +13,11 @@ import uuid
 from datetime import datetime, time, timedelta
 
 import django
-from faker import Faker
-from tqdm import tqdm
-
-# Setup Django environment
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(BASE_DIR))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "queueme.settings.development")
-django.setup()
-
-
-# Import Django models
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from faker import Faker
+from tqdm import tqdm
 
 from apps.authapp.models import User
 from apps.bookingapp.models import Appointment
@@ -49,6 +41,16 @@ from apps.specialistsapp.models import (
     SpecialistWorkingHours,
 )
 from apps.storiesapp.models import Story
+
+# Setup Django environment
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(BASE_DIR))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "queueme.settings.development")
+django.setup()
+
+
+# Import Django models
+
 
 # Setup logging
 logging.basicConfig(
@@ -689,7 +691,7 @@ class DataSeeder:
 
     def seed_appointments(self):
         """Create appointments for services"""
-        logger.info(f"Creating appointments for services...")
+        logger.info("Creating appointments for services...")
 
         total_appointments = 0
 
@@ -762,7 +764,7 @@ class DataSeeder:
                     status = "scheduled"
 
                 # Create appointment
-                appointment = Appointment.objects.create(
+                unused_unused_appointment = Appointment.objects.create(
                     customer=customer,
                     service=service,
                     specialist=specialist,
@@ -782,7 +784,7 @@ class DataSeeder:
 
     def seed_queue_tickets(self):
         """Create queue tickets for shops"""
-        logger.info(f"Creating queue tickets for shops...")
+        logger.info("Creating queue tickets for shops...")
 
         total_tickets = 0
 
@@ -862,7 +864,7 @@ class DataSeeder:
                     actual_wait_time = None
 
                 # Create queue ticket
-                ticket = QueueTicket.objects.create(
+                unused_unused_ticket = QueueTicket.objects.create(
                     queue=queue,
                     ticket_number=ticket_number,
                     customer=customer,
@@ -885,7 +887,7 @@ class DataSeeder:
 
     def seed_reviews(self):
         """Create reviews for shops, specialists, and services"""
-        logger.info(f"Creating reviews...")
+        logger.info("Creating reviews...")
 
         total_reviews = 0
 
@@ -943,7 +945,7 @@ class DataSeeder:
                     tzinfo=timezone.get_current_timezone(),
                 )
 
-                shop_review = Review.objects.create(
+                unused_unused_shop_review = Review.objects.create(
                     shop=shop,
                     customer=customer,
                     title=title,
@@ -1002,7 +1004,7 @@ class DataSeeder:
 
     def seed_content(self):
         """Create reels and stories for shops"""
-        logger.info(f"Creating content (reels and stories) for shops...")
+        logger.info("Creating content (reels and stories) for shops...")
 
         total_reels = 0
         total_stories = 0
@@ -1030,8 +1032,10 @@ class DataSeeder:
                     shop=shop,
                     caption=caption,
                     media_type="video",  # Assuming 'video' as most reels are videos
-                    media_url=f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/mock/reels/{uuid.uuid4()}.mp4",  # Mock URL
-                    thumbnail_url=f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/mock/thumbnails/{uuid.uuid4()}.jpg",  # Mock URL
+                    # Mock URL
+                    media_url=f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/mock/reels/{uuid.uuid4()}.mp4",
+                    # Mock URL
+                    thumbnail_url=f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/mock/thumbnails/{uuid.uuid4()}.jpg",
                     likes_count=random.randint(0, 100),
                     comments_count=random.randint(0, 20),
                     shares_count=random.randint(0, 10),
@@ -1054,11 +1058,12 @@ class DataSeeder:
                     tzinfo=timezone.get_current_timezone(),
                 )
 
-                story = Story.objects.create(
+                unused_unused_story = Story.objects.create(
                     shop=shop,
                     caption=caption,
                     media_type=random.choice(["image", "video"]),
-                    media_url=f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/mock/stories/{uuid.uuid4()}.jpg",  # Mock URL
+                    # Mock URL
+                    media_url=f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/mock/stories/{uuid.uuid4()}.jpg",
                     created_at=created_at,
                     expires_at=created_at + timedelta(hours=24),  # 24-hour expiry
                 )
@@ -1069,7 +1074,7 @@ class DataSeeder:
 
     def seed_conversations(self):
         """Create conversations and messages between customers and shops"""
-        logger.info(f"Creating conversations and messages...")
+        logger.info("Creating conversations and messages...")
 
         total_conversations = 0
         total_messages = 0
@@ -1129,7 +1134,7 @@ class DataSeeder:
                         minutes=j * 5
                     )  # 5 minutes between messages
 
-                    message = Message.objects.create(
+                    unused_unused_message = Message.objects.create(
                         conversation=conversation,
                         sender=sender,
                         employee=employee,
@@ -1152,7 +1157,7 @@ class DataSeeder:
 
     def seed_follows(self):
         """Create follow relationships between customers and shops"""
-        logger.info(f"Creating follow relationships...")
+        logger.info("Creating follow relationships...")
 
         total_follows = 0
 
@@ -1180,7 +1185,7 @@ class DataSeeder:
 
     def seed_notification_templates(self):
         """Create notification templates"""
-        logger.info(f"Creating notification templates...")
+        logger.info("Creating notification templates...")
 
         templates = [
             {
@@ -1229,7 +1234,7 @@ class DataSeeder:
                 },
             )
 
-        logger.info(f"Created notification templates")
+        logger.info("Created notification templates")
 
     @transaction.atomic
     def run(self):

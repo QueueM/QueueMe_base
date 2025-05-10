@@ -151,7 +151,7 @@ def calculate_bounding_box(center_lat, center_lng, radius_km):
     min_lat = math.degrees(min_lat_rad)
     max_lat = math.degrees(max_lat_rad)
     min_lng = math.degrees(min_lng_rad)
-    max_lng = degrees(max_lng_rad)
+    max_lng = math.degrees(max_lng_rad)
 
     # Handle edge cases at poles and 180th meridian
     min_lat = max(-90.0, min_lat)

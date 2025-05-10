@@ -67,6 +67,7 @@ iniconfig==2.1.0
 isort==6.0.1
 Jinja2==3.1.6
 jmespath==1.0.1
+jsonschema==4.21.1
 kombu==5.5.3
 MarkupSafe==3.0.2
 mccabe==0.7.0
@@ -99,6 +100,7 @@ pyphen==0.17.2
 python-crontab==3.2.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.0
+python-magic==0.4.27
 pytz==2023.3.post1
 PyYAML==6.0.2
 redis==5.0.1
@@ -125,7 +127,7 @@ typing_extensions==4.13.2
 tzdata==2025.2
 uritemplate==4.1.1
 urllib3==2.0.7
-vine==5.1.0
+vine==5.1.1
 virtualenv==20.31.1
 wcwidth==0.2.13
 weasyprint==60.1
@@ -135,3 +137,8 @@ yamllint==1.37.1
 yarl==1.20.0
 zope.interface==7.2
 zopfli==0.2.3.post1
+
+# Production requirements
+gunicorn==21.2.0
+supervisor==4.2.5
+sentry-sdk==1.35.0

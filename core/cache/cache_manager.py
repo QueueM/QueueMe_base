@@ -241,6 +241,7 @@ def cache_with_key_prefix(prefix, timeout=None):
     Returns:
         callable: Decorated function
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -249,15 +250,18 @@ def cache_with_key_prefix(prefix, timeout=None):
             cache_mgr = CacheManager(namespace)
 
             # Generate key with prefix
-            args_str = [str(arg) for arg in args if not hasattr(arg, '__dict__')]
-            kwargs_str = [f"{k}={v}" for k, v in sorted(kwargs.items()) 
-                          if not hasattr(v, '__dict__')]
-                
+            args_str = [str(arg) for arg in args if not hasattr(arg, "__dict__")]
+            kwargs_str = [
+                f"{k}={v}"
+                for k, v in sorted(kwargs.items())
+                if not hasattr(v, "__dict__")
+            ]
+
             key_parts = [prefix, func.__name__]
             key_parts.extend(args_str)
             key_parts.extend(kwargs_str)
             key = ":".join(key_parts)
-            
+
             # Check cache first
             result = cache_mgr.get(key)
             if result is not None:
@@ -268,17 +272,19 @@ def cache_with_key_prefix(prefix, timeout=None):
             start_time = time.time()
             result = func(*args, **kwargs)
             execution_time = time.time() - start_time
-            
+
             # Cache the result
             cache_mgr.set(key, result, timeout)
-            
+
             # Log for debugging
             logger.debug(f"Cached result for prefixed key: {key}")
             if execution_time > 0.5:
                 logger.warning(
                     f"Slow execution ({execution_time:.2f}s) of {func.__name__}, cached with prefix {prefix}"
                 )
-                
+
             return result
+
         return wrapper
+
     return decorator

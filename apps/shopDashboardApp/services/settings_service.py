@@ -1,5 +1,3 @@
-
-
 from apps.shopDashboardApp.constants import (
     DEFAULT_KPIS,
     TIME_PERIOD_MONTH,

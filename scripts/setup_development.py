@@ -95,7 +95,7 @@ class SetupDevelopment:
                 )
                 return default_config
         except json.JSONDecodeError:
-            logger.error(f"Error parsing config file. Using default configuration.")
+            logger.error("Error parsing config file. Using default configuration.")
             return default_config
 
     def _load_state(self):
@@ -346,13 +346,13 @@ class SetupDevelopment:
         else:
             # Create minimal .env file
             with open(self.env_file, "w") as f:
-                f.write(f"DEBUG=True\n")
+                f.write("DEBUG=True\n")
                 f.write(
                     f"SECRET_KEY=development-secret-key-{datetime.now().strftime('%Y%m%d')}\n"
                 )
-                f.write(f"ALLOWED_HOSTS=localhost,127.0.0.1\n")
+                f.write("ALLOWED_HOSTS=localhost,127.0.0.1\n")
 
-                f.write(f"\n# Database settings\n")
+                f.write("\n# Database settings\n")
                 f.write(
                     f"POSTGRES_HOST={self.config['database'].get('host', 'localhost')}\n"
                 )
@@ -367,11 +367,11 @@ class SetupDevelopment:
                     f"POSTGRES_PASSWORD={self.config['database'].get('password', 'queueme')}\n"
                 )
 
-                f.write(f"\n# Redis settings\n")
+                f.write("\n# Redis settings\n")
                 f.write(f"REDIS_HOST={self.config['redis'].get('host', 'localhost')}\n")
                 f.write(f"REDIS_PORT={self.config['redis'].get('port', 6379)}\n")
 
-                f.write(f"\n# Superuser settings\n")
+                f.write("\n# Superuser settings\n")
                 f.write(
                     f"DJANGO_SUPERUSER_PHONE={self.config['initial_superuser'].get('phone_number', '+966555555555').replace('+', '')}\n"
                 )
@@ -615,7 +615,7 @@ class SetupDevelopment:
         # Get username for completion tracking
         try:
             username = getpass.getuser()
-        except:
+        except BaseException:
             username = "unknown"
 
         self.setup_state["username"] = username
@@ -632,9 +632,9 @@ class SetupDevelopment:
         logger.info("Next steps:")
         logger.info("1. Activate the virtual environment:")
         if self.os_type == "Windows":
-            logger.info(f"   venv\\Scripts\\activate")
+            logger.info("   venv\\Scripts\\activate")
         else:
-            logger.info(f"   source venv/bin/activate")
+            logger.info("   source venv/bin/activate")
         logger.info("2. Start the development server:")
         logger.info("   python manage.py runserver")
         logger.info("3. Access the admin interface at:")

@@ -158,10 +158,10 @@ class VerificationService:
         # Send in-app and SMS notification
         if approved:
             notification_type = "verification_approved"
-            message = _(f"Congratulations! Your shop {shop.name} has been verified.")
+            unused_message = _(f"Congratulations! Your shop {shop.name} has been verified.")
         else:
             notification_type = "verification_rejected"
-            message = _(
+            unused_unused_message = _(
                 f"Your verification request for {shop.name} has been rejected. Reason: {verification_request.rejection_reason}"
             )
 

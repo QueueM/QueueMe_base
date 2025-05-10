@@ -1,4 +1,3 @@
-
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
@@ -59,7 +58,7 @@ class FollowViewSetTestCase(APITestCase):
     def test_list_following(self):
         """Test listing shops the user follows"""
         # Create a follow relationship
-        follow = Follow.objects.create(customer=self.customer, shop=self.shop)
+        unused_unused_follow = Follow.objects.create(customer=self.customer, shop=self.shop)
 
         url = reverse("followapp:follow-following")
         response = self.client.get(url)

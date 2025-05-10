@@ -10,6 +10,10 @@ from collections import defaultdict, deque
 
 from channels.middleware import BaseMiddleware
 
+# Module-level constants for rate limits
+MAX_CONNECTIONS_PER_MINUTE = 10  # Max connections per minute per client
+MAX_MESSAGES_PER_MINUTE = 60  # Max messages per minute per client
+
 
 class WebsocketRateLimiter(BaseMiddleware):
     """
@@ -20,11 +24,8 @@ class WebsocketRateLimiter(BaseMiddleware):
     2. Message rate limiting: Limits how many messages a client can send in a time period
     """
 
-    # Rate limits
-    MAX_CONNECTIONS_PER_MINUTE = 10  # Max connections per minute per client
-    MAX_MESSAGES_PER_MINUTE = 60  # Max messages per minute per client
-
     # Storage for rate tracking
+    # Use the module-level constants for maxlen
     connection_history = defaultdict(lambda: deque(maxlen=MAX_CONNECTIONS_PER_MINUTE))
     message_history = defaultdict(lambda: deque(maxlen=MAX_MESSAGES_PER_MINUTE))
 

@@ -1,6 +1,6 @@
 from datetime import datetime, time, timedelta
 
-from django.db.models import Avg, F
+from django.db.models import Avg, F, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 

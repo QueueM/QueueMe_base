@@ -56,7 +56,7 @@ class OTPService:
         ).update(is_used=True)
 
         # Create OTP record
-        otp = OTP.objects.create(
+        unused_unused_otp = OTP.objects.create(
             user=user, phone_number=phone_number, code=code, expires_at=expires_at
         )
 

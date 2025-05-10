@@ -135,7 +135,7 @@ class SpecialistStatusConsumer(AsyncWebsocketConsumer):
             try:
                 employee = user.employee
                 return employee.shop_id == specialist.employee.shop_id
-            except:
+            except Exception:
                 pass
 
         # For customers, specialist must be active and from active shop
@@ -164,7 +164,7 @@ class SpecialistStatusConsumer(AsyncWebsocketConsumer):
                     return PermissionResolver.has_shop_permission(
                         user, str(employee.shop_id), "specialist", "edit"
                     )
-            except:
+            except Exception:
                 pass
 
         # The specialist's own employee can update status

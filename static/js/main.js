@@ -328,50 +328,340 @@
         const errors = {};
         let valid = true;
         
-        // Get all form inputs with validation attributes
-        const inputs = form.querySelectorAll('[data-validate]');
-        
-        inputs.forEach(input => {
-          const validations = input.dataset.validate.split(' ');
-          const fieldName = input.name || input.id;
-          const value = input.value.trim();
-          
-          validations.forEach(validation => {
-            if (validation === 'required' && !value) {
-              errors[fieldName] = errors[fieldName] || 'This field is required';
-              valid = false;
-            } else if (validation === 'email' && value && !this._validateEmail(value)) {
-              errors[fieldName] = errors[fieldName] || 'Please enter a valid email address';
-              valid = false;
-            } else if (validation === 'phone' && value && !this._validatePhone(value)) {
-              errors[fieldName] = errors[fieldName] || 'Please enter a valid phone number';
-              valid = false;
-            } else if (validation.startsWith('min:') && value.length < parseInt(validation.split(':')[1])) {
-              const min = parseInt(validation.split(':')[1]);
-              errors[fieldName] = errors[fieldName] || `Must be at least ${min} characters`;
-              valid = false;
-            } else if (validation.startsWith('max:') && value.length > parseInt(validation.split(':')[1])) {
-              const max = parseInt(validation.split(':')[1]);
-              errors[fieldName] = errors[fieldName] || `Must be at most ${max} characters`;
-              valid = false;
+        try {
+            // Get all form inputs with validation attributes
+            const inputs = form.querySelectorAll('[data-validate]');
+            
+            if (inputs.length === 0) {
+                // No validation rules found, consider form valid
+                return { valid: true, errors: {} };
             }
-          });
+            
+            inputs.forEach(input => {
+                const validations = (input.dataset.validate || '').split(' ').filter(Boolean);
+                const fieldName = input.name || input.id;
+                const value = input.type === 'checkbox' ? input.checked : input.value.trim();
+                
+                // Skip validation for disabled or hidden fields
+                if (input.disabled || input.type === 'hidden' || input.style.display === 'none' || input.style.visibility === 'hidden') {
+                    return;
+                }
+                
+                // Clear previous error state
+                this._clearFieldError(input);
+                
+                // Check validations - return on first error for each field
+                for (const validation of validations) {
+                    // Required field check
+                    if (validation === 'required' && !value) {
+                        this._setFieldError(input, fieldName, 'This field is required', errors);
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Skip other validations if field is empty and not required
+                    if (!value && !validations.includes('required')) {
+                        continue;
+                    }
+                    
+                    // Email validation
+                    if (validation === 'email' && !this._validateEmail(value)) {
+                        this._setFieldError(input, fieldName, 'Please enter a valid email address', errors);
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Phone validation
+                    if (validation === 'phone' && !this._validatePhone(value)) {
+                        this._setFieldError(input, fieldName, 'Please enter a valid phone number', errors);
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Password validation
+                    if (validation === 'password' && !this._validatePassword(value)) {
+                        this._setFieldError(
+                            input, 
+                            fieldName, 
+                            'Password must be at least 8 characters long and contain uppercase, lowercase, number and special character',
+                            errors
+                        );
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Min length validation
+                    if (validation.startsWith('min:')) {
+                        const min = parseInt(validation.split(':')[1], 10);
+                        if (isNaN(min)) {
+                            console.error(`Invalid min validation value: ${validation}`);
+                        } else if (value.length < min) {
+                            this._setFieldError(input, fieldName, `Must be at least ${min} characters`, errors);
+                            valid = false;
+                            break;
+                        }
+                    }
+                    
+                    // Max length validation
+                    if (validation.startsWith('max:')) {
+                        const max = parseInt(validation.split(':')[1], 10);
+                        if (isNaN(max)) {
+                            console.error(`Invalid max validation value: ${validation}`);
+                        } else if (value.length > max) {
+                            this._setFieldError(input, fieldName, `Must be at most ${max} characters`, errors);
+                            valid = false;
+                            break;
+                        }
+                    }
+                    
+                    // Numeric validation
+                    if (validation === 'numeric' && !this._validateNumeric(value)) {
+                        this._setFieldError(input, fieldName, 'Must contain only numbers', errors);
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Alpha validation
+                    if (validation === 'alpha' && !this._validateAlpha(value)) {
+                        this._setFieldError(input, fieldName, 'Must contain only letters', errors);
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Alphanumeric validation
+                    if (validation === 'alphanumeric' && !this._validateAlphanumeric(value)) {
+                        this._setFieldError(input, fieldName, 'Must contain only letters and numbers', errors);
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Pattern validation
+                    if (validation.startsWith('pattern:')) {
+                        const pattern = validation.split(':')[1];
+                        if (!this._validatePattern(value, pattern)) {
+                            const errorMessage = input.dataset.patternError || 'Invalid format';
+                            this._setFieldError(input, fieldName, errorMessage, errors);
+                            valid = false;
+                            break;
+                        }
+                    }
+                    
+                    // Field matching validation
+                    if (validation.startsWith('match:')) {
+                        const matchFieldSelector = validation.split(':')[1];
+                        const matchField = form.querySelector(`[name="${matchFieldSelector}"], #${matchFieldSelector}`);
+                        
+                        if (!matchField) {
+                            console.error(`Cannot find matching field: ${matchFieldSelector}`);
+                        } else if (value !== matchField.value) {
+                            const errorMessage = input.dataset.matchError || 'Fields do not match';
+                            this._setFieldError(input, fieldName, errorMessage, errors);
+                            valid = false;
+                            break;
+                        }
+                    }
+                    
+                    // Date validation
+                    if (validation === 'date' && !this._validateDate(value)) {
+                        this._setFieldError(input, fieldName, 'Please enter a valid date', errors);
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Future date validation
+                    if (validation === 'future_date' && !this._validateFutureDate(value)) {
+                        this._setFieldError(input, fieldName, 'Please enter a future date', errors);
+                        valid = false;
+                        break;
+                    }
+                    
+                    // Custom validation via data attribute
+                    if (validation === 'custom' && typeof window.customValidators === 'object') {
+                        const validatorName = input.dataset.validator;
+                        if (validatorName && typeof window.customValidators[validatorName] === 'function') {
+                            const result = window.customValidators[validatorName](value, input, form);
+                            if (result !== true) {
+                                const errorMessage = result || input.dataset.customError || 'Invalid value';
+                                this._setFieldError(input, fieldName, errorMessage, errors);
+                                valid = false;
+                                break;
+                            }
+                        } else {
+                            console.error(`Custom validator not found: ${validatorName}`);
+                        }
+                    }
+                }
+            });
+            
+            // Run form-level validations if defined
+            if (valid && typeof window.formValidators === 'object' && form.dataset.formValidator) {
+                const formValidatorName = form.dataset.formValidator;
+                if (formValidatorName && typeof window.formValidators[formValidatorName] === 'function') {
+                    const formData = this._getFormData(form);
+                    const result = window.formValidators[formValidatorName](formData, form);
+                    if (result !== true) {
+                        if (typeof result === 'object') {
+                            // Field-specific errors
+                            Object.keys(result).forEach(field => {
+                                const input = form.querySelector(`[name="${field}"], #${field}`);
+                                if (input) {
+                                    this._setFieldError(input, field, result[field], errors);
+                                } else {
+                                    errors[field] = result[field];
+                                }
+                            });
+                        } else {
+                            // Global form error
+                            errors.global = result || 'Validation failed';
+                            this._setFormError(form, errors.global);
+                        }
+                        valid = false;
+                    }
+                }
+            }
+            
+            return { valid, errors };
+        } catch (error) {
+            console.error('Form validation error:', error);
+            return { 
+                valid: false, 
+                errors: { 
+                    global: 'An error occurred during validation. Please check your form and try again.'
+                }
+            };
+        }
+    },
+
+    _setFieldError(input, fieldName, message, errors) {
+        // Add error class to input
+        input.classList.add('is-invalid');
+        
+        // Create or update error message element
+        let errorElement = input.nextElementSibling;
+        if (!errorElement || !errorElement.classList.contains('invalid-feedback')) {
+            errorElement = document.createElement('div');
+            errorElement.className = 'invalid-feedback';
+            input.parentNode.insertBefore(errorElement, input.nextSibling);
+        }
+        errorElement.textContent = message;
+        
+        // Add to errors object
+        errors[fieldName] = message;
+        
+        // Handle aria attributes for accessibility
+        input.setAttribute('aria-invalid', 'true');
+        errorElement.id = `error-${fieldName}`;
+        input.setAttribute('aria-describedby', errorElement.id);
+    },
+
+    _clearFieldError(input) {
+        // Remove error class and aria attributes
+        input.classList.remove('is-invalid');
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+        
+        // Remove error message element
+        const errorElement = input.nextElementSibling;
+        if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+            errorElement.remove();
+        }
+    },
+
+    _setFormError(form, message) {
+        // Check if error container already exists
+        let errorContainer = form.querySelector('.form-error-container');
+        
+        if (!errorContainer) {
+            // Create error container if it doesn't exist
+            errorContainer = document.createElement('div');
+            errorContainer.className = 'form-error-container alert alert-danger';
+            form.prepend(errorContainer);
+        }
+        
+        errorContainer.textContent = message;
+        errorContainer.setAttribute('role', 'alert');
+    },
+
+    _getFormData(form) {
+        // Get form data as an object
+        const formData = new FormData(form);
+        const data = {};
+        
+        formData.forEach((value, key) => {
+            // Handle checkbox arrays
+            if (key.endsWith('[]')) {
+                const cleanKey = key.substring(0, key.length - 2);
+                if (!data[cleanKey]) {
+                    data[cleanKey] = [];
+                }
+                data[cleanKey].push(value);
+            } else if (data[key]) {
+                // Convert to array if multiple values with same key
+                if (!Array.isArray(data[key])) {
+                    data[key] = [data[key]];
+                }
+                data[key].push(value);
+            } else {
+                data[key] = value;
+            }
         });
         
-        return { valid, errors };
-      },
-      
-      _validateEmail(email) {
-        const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-        return re.test(email);
-      },
-      
-      _validatePhone(phone) {
-        // Saudi phone number format validation
-        // Supports formats: +966xxxxxxxxx, 966xxxxxxxxx, 05xxxxxxxx, 5xxxxxxxx
-        const re = /^(\+9665|9665|05|5)\d{8}$/;
-        return re.test(phone);
-      },
+        return data;
+    },
+
+    _validateEmail(value) {
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+        return emailRegex.test(value);
+    },
+
+    _validatePhone(value) {
+        // Basic international phone format
+        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+        return phoneRegex.test(value.replace(/[\s()-]/g, ''));
+    },
+
+    _validatePassword(value) {
+        // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        return passwordRegex.test(value);
+    },
+
+    _validateNumeric(value) {
+        return /^-?\d+$/.test(value);
+    },
+
+    _validateAlpha(value) {
+        return /^[a-zA-Z\s]+$/.test(value);
+    },
+
+    _validateAlphanumeric(value) {
+        return /^[a-zA-Z0-9\s]+$/.test(value);
+    },
+
+    _validatePattern(value, pattern) {
+        try {
+            const regex = new RegExp(pattern);
+            return regex.test(value);
+        } catch (e) {
+            console.error('Invalid regex pattern:', pattern, e);
+            return false;
+        }
+    },
+
+    _validateDate(value) {
+        // Check if value is a valid date
+        const date = new Date(value);
+        return !isNaN(date.getTime());
+    },
+
+    _validateFutureDate(value) {
+        // Check if value is a date in the future
+        const date = new Date(value);
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // Compare dates only, not time
+        
+        return !isNaN(date.getTime()) && date >= now;
+    },
       
       // Display form errors
       showFormErrors(form, errors) {

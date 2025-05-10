@@ -1,6 +1,5 @@
 from datetime import datetime, time, timedelta
 
-
 from apps.bookingapp.models import Appointment
 from apps.shopapp.models import ShopHours
 from apps.specialistsapp.models import Specialist, SpecialistWorkingHours
@@ -112,7 +111,7 @@ class PackageAvailabilityService:
             possible_slots = []
 
             # Convert time objects to datetime for easier arithmetic
-            date_obj = datetime.combine(date, time.min)
+            unused_unused_date_obj = datetime.combine(date, time.min)
             package_open_dt = datetime.combine(date, package_open)
             package_close_dt = datetime.combine(date, package_close)
 
@@ -255,7 +254,7 @@ class PackageAvailabilityService:
 
         # Check existing appointments
         # Calculate total slot time with buffers
-        date_obj = datetime.combine(date, time.min)
+        unused_unused_date_obj = datetime.combine(date, time.min)
 
         # Slot start with buffer before
         slot_start_with_buffer = datetime.combine(date, start_time) - timedelta(

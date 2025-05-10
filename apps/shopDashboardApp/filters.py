@@ -1,5 +1,5 @@
-from django_filters import rest_framework as filters
 from django.db import models
+from django_filters import rest_framework as filters
 
 from apps.shopDashboardApp.constants import (
     KPI_CATEGORY_CHOICES,
@@ -29,10 +29,10 @@ class DashboardWidgetFilter(filters.FilterSet):
         fields = ["widget_type", "category", "is_visible", "title"]
         filter_overrides = {
             models.JSONField: {
-                'filter_class': filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': 'icontains',
-                }
+                "filter_class": filters.CharFilter,
+                "extra": lambda f: {
+                    "lookup_expr": "icontains",
+                },
             },
         }
 
@@ -51,10 +51,10 @@ class ScheduledReportFilter(filters.FilterSet):
         fields = ["name", "frequency", "is_active", "created_at"]
         filter_overrides = {
             models.JSONField: {
-                'filter_class': filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': 'icontains',
-                }
+                "filter_class": filters.CharFilter,
+                "extra": lambda f: {
+                    "lookup_expr": "icontains",
+                },
             },
         }
 
@@ -71,10 +71,10 @@ class DashboardLayoutFilter(filters.FilterSet):
         # Add the same filter_overrides in case this model uses JSONField
         filter_overrides = {
             models.JSONField: {
-                'filter_class': filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': 'icontains',
-                }
+                "filter_class": filters.CharFilter,
+                "extra": lambda f: {
+                    "lookup_expr": "icontains",
+                },
             },
         }
 
@@ -88,9 +88,9 @@ class DashboardSettingsFilter(filters.FilterSet):
         # Add the same filter_overrides in case this model uses JSONField
         filter_overrides = {
             models.JSONField: {
-                'filter_class': filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': 'icontains',
-                }
+                "filter_class": filters.CharFilter,
+                "extra": lambda f: {
+                    "lookup_expr": "icontains",
+                },
             },
         }

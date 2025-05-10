@@ -1,4 +1,5 @@
 import django_filters
+from django.db import models
 from django.db.models import Q
 
 from .models import Package

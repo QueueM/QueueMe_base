@@ -34,7 +34,9 @@ class Story(models.Model):
     )
     media_url = models.URLField(_("Media URL"))
     thumbnail_url = models.URLField(_("Thumbnail URL"), null=True, blank=True)
-    created_at = models.DateTimeField(_("Created At"), auto_now_add=True, editable=False)
+    created_at = models.DateTimeField(
+        _("Created At"), auto_now_add=True, editable=False
+    )
     expires_at = models.DateTimeField(_("Expires At"), null=True, blank=True)
     is_active = models.BooleanField(_("Active"), default=True)
 
@@ -50,7 +52,7 @@ class Story(models.Model):
         ]
 
     def __str__(self):
-        ts = self.created_at.strftime('%Y-%m-%d %H:%M')
+        ts = self.created_at.strftime("%Y-%m-%d %H:%M")
         return f"{self.shop.name} - {self.get_story_type_display()} - {ts}"
 
     def save(self, *args, **kwargs):
@@ -109,5 +111,5 @@ class StoryView(models.Model):
         ]
 
     def __str__(self):
-        ts = self.viewed_at.strftime('%Y-%m-%d %H:%M')
+        ts = self.viewed_at.strftime("%Y-%m-%d %H:%M")
         return f"{self.customer.phone_number} - {self.story.shop.name} - {ts}"

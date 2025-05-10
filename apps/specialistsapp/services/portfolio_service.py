@@ -108,7 +108,7 @@ class PortfolioService:
             if portfolio_item.image:
                 try:
                     default_storage.delete(portfolio_item.image.path)
-                except:
+                except Exception:
                     pass
 
             # Generate path and filename
@@ -137,7 +137,7 @@ class PortfolioService:
         if portfolio_item.image:
             try:
                 default_storage.delete(portfolio_item.image.path)
-            except:
+            except Exception:
                 pass
 
         portfolio_item.delete()

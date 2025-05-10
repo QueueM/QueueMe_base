@@ -5,6 +5,8 @@ This consumer provides real-time notifications to users for various events.
 """
 
 import json
+import logging
+from typing import Optional, Dict, Any
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -12,153 +14,147 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from apps.authapp.services.token_service import TokenService
 from apps.notificationsapp.models import Notification
+from apps.notificationsapp.services.notification_service import NotificationService
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     """WebSocket consumer for real-time notifications."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_id: Optional[str] = None
+        self.notification_group_name: Optional[str] = None
+
     async def connect(self):
         """Handle WebSocket connection."""
-        # Get token from query string
-        query_string = self.scope["query_string"].decode()
-        query_params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
-        token = query_params.get("token", "")
+        try:
+            # Get token from query string
+            query_string = self.scope["query_string"].decode()
+            query_params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
+            token = query_params.get("token", "")
 
-        # Verify token and get user
-        user = await database_sync_to_async(TokenService.get_user_from_token)(token)
+            if not token:
+                logger.warning("Notification connection rejected: No token provided")
+                await self.close(code=4001)
+                return
 
-        if not user:
-            # Reject connection if token is invalid
-            await self.close(code=4001)
-            return
+            # Verify token and get user
+            user = await database_sync_to_async(TokenService.get_user_from_token)(token)
 
-        self.user_id = self.scope["url_route"]["kwargs"]["user_id"]
+            if not user:
+                logger.warning("Notification connection rejected: Invalid token")
+                await self.close(code=4001)
+                return
 
-        # Verify user_id from token matches user_id from URL
-        if str(user.id) != self.user_id:
-            # Reject connection if user_id doesn't match
-            await self.close(code=4003)
-            return
+            if not user.is_active:
+                logger.warning(f"Notification connection rejected: User {user.id} is inactive")
+                await self.close(code=4002)
+                return
 
-        # Set up notification group for this user
-        self.notification_group_name = f"notifications_{self.user_id}"
+            self.user_id = str(user.id)
 
-        # Join notification group
-        await self.channel_layer.group_add(
-            self.notification_group_name, self.channel_name
-        )
+            # Verify user_id from token matches user_id from URL
+            url_user_id = self.scope["url_route"]["kwargs"]["user_id"]
+            if str(user.id) != url_user_id:
+                logger.warning(
+                    f"Notification connection rejected: User ID mismatch. Token: {user.id}, URL: {url_user_id}"
+                )
+                await self.close(code=4003)
+                return
 
-        # Accept connection
-        await self.accept()
+            # Set up notification group for this user
+            self.notification_group_name = f"notifications_{self.user_id}"
 
-        # Send unread notification count on connect
-        await self.send_unread_count()
+            # Join notification group
+            await self.channel_layer.group_add(
+                self.notification_group_name, self.channel_name
+            )
+
+            # Accept connection
+            await self.accept()
+
+            # Send unread notification count on connect
+            await self.send_unread_count()
+
+            logger.info(f"Notification connection established for user {self.user_id}")
+
+        except Exception as e:
+            logger.error(f"Error in notification connection: {str(e)}")
+            await self.close(code=4000)
 
     async def disconnect(self, close_code):
         """Handle WebSocket disconnection."""
-        # Leave notification group
-        await self.channel_layer.group_discard(
-            self.notification_group_name, self.channel_name
-        )
+        try:
+            if self.notification_group_name:
+                await self.channel_layer.group_discard(
+                    self.notification_group_name, self.channel_name
+                )
+            logger.info(f"Notification connection closed for user {self.user_id}")
+        except Exception as e:
+            logger.error(f"Error in notification disconnection: {str(e)}")
 
     async def receive(self, text_data):
-        """Handle messages received from the WebSocket client."""
+        """Handle incoming WebSocket messages."""
         try:
             data = json.loads(text_data)
-            action = data.get("action")
+            message_type = data.get("type")
 
-            if action == "mark_read":
-                # Mark notification as read
-                notification_id = data.get("notification_id")
-                if notification_id:
-                    await database_sync_to_async(self.mark_notification_read)(
-                        notification_id
-                    )
+            if message_type == "mark_read":
+                await self.handle_mark_read(data)
+            elif message_type == "ping":
+                await self.send(text_data=json.dumps({"type": "pong"}))
+            else:
+                logger.warning(f"Received unknown message type: {message_type}")
 
-                    # Send updated unread count
-                    await self.send_unread_count()
-            elif action == "mark_all_read":
-                # Mark all notifications as read
-                await database_sync_to_async(self.mark_all_read)()
+        except json.JSONDecodeError:
+            logger.warning("Received invalid JSON data")
+        except Exception as e:
+            logger.error(f"Error processing message: {str(e)}")
 
+    async def handle_mark_read(self, data: Dict[str, Any]):
+        """Handle mark notification as read request."""
+        try:
+            notification_id = data.get("notification_id")
+            if not notification_id:
+                return
+
+            # Mark notification as read
+            success = await database_sync_to_async(
+                NotificationService.mark_notification_read
+            )(notification_id, self.user_id)
+
+            if success:
                 # Send updated unread count
                 await self.send_unread_count()
-            elif action == "get_unread_count":
-                # Send unread notification count
-                await self.send_unread_count()
-            elif action == "heartbeat":
-                # Respond to heartbeat to keep connection alive
-                await self.send(text_data=json.dumps({"type": "heartbeat_response"}))
-        except json.JSONDecodeError:
-            # Invalid JSON, ignore
-            pass
 
-    async def notification_event(self, event):
-        """Handle notification events."""
-        # Send notification to WebSocket
-        await self.send(
-            text_data=json.dumps(
-                {"type": "notification", "notification": event["notification"]},
-                cls=DjangoJSONEncoder,
+        except Exception as e:
+            logger.error(f"Error marking notification as read: {str(e)}")
+
+    async def notification_message(self, event):
+        """Handle notification message events."""
+        try:
+            await self.send(
+                text_data=json.dumps(
+                    {"type": "notification", "data": event["data"]},
+                    cls=DjangoJSONEncoder,
+                )
             )
-        )
-
-        # Send updated unread count
-        await self.send_unread_count()
-
-    async def unread_count(self, event):
-        """Handle unread count updates."""
-        # Send unread count to WebSocket
-        await self.send(
-            text_data=json.dumps({"type": "unread_count", "count": event["count"]})
-        )
+        except Exception as e:
+            logger.error(f"Error sending notification message: {str(e)}")
 
     async def send_unread_count(self):
-        """Send current unread notification count to the client."""
-        # Get unread count
-        count = await database_sync_to_async(self.get_unread_count)()
-
-        # Send unread count to client
-        await self.send(text_data=json.dumps({"type": "unread_count", "count": count}))
-
-    def mark_notification_read(self, notification_id):
-        """Mark a notification as read."""
-        from django.utils import timezone
-
+        """Send unread notification count to the client."""
         try:
-            notification = Notification.objects.get(
-                id=notification_id,
-                user_id=self.user_id,
-                status__in=["pending", "sent", "delivered"],
+            count = await database_sync_to_async(
+                NotificationService.get_unread_count
+            )(self.user_id)
+
+            await self.send(
+                text_data=json.dumps(
+                    {"type": "unread_count", "count": count}
+                )
             )
-
-            notification.status = "read"
-            notification.read_at = timezone.now()
-            notification.save()
-
-            return True
-        except Notification.DoesNotExist:
-            return False
-
-    def mark_all_read(self):
-        """Mark all notifications for the user as read."""
-        from django.utils import timezone
-
-        # Get unread notifications
-        notifications = Notification.objects.filter(
-            user_id=self.user_id, status__in=["pending", "sent", "delivered"]
-        )
-
-        # Mark all as read
-        count = notifications.count()
-        now = timezone.now()
-
-        notifications.update(status="read", read_at=now)
-
-        return count
-
-    def get_unread_count(self):
-        """Get count of unread notifications for the user."""
-        return Notification.objects.filter(
-            user_id=self.user_id, status__in=["pending", "sent", "delivered"]
-        ).count()
+        except Exception as e:
+            logger.error(f"Error sending unread count: {str(e)}")

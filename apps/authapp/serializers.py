@@ -69,7 +69,7 @@ class OTPRequestSerializer(serializers.Serializer):
         """
         try:
             return normalize_phone_number(value)
-        except:
+        except Exception:
             raise serializers.ValidationError(_("Enter a valid phone number."))
 
 
@@ -87,7 +87,7 @@ class OTPVerifySerializer(serializers.Serializer):
         """
         try:
             return normalize_phone_number(value)
-        except:
+        except Exception:
             raise serializers.ValidationError(_("Enter a valid phone number."))
 
 
@@ -105,7 +105,7 @@ class LoginSerializer(serializers.Serializer):
         """
         try:
             return normalize_phone_number(value)
-        except:
+        except Exception:
             raise serializers.ValidationError(_("Enter a valid phone number."))
 
 
@@ -129,6 +129,7 @@ class UserLightSerializer(serializers.ModelSerializer):
     """
     Lightweight serializer for User model, used for basic user information.
     """
+
     class Meta:
         model = User
         fields = (
@@ -140,6 +141,7 @@ class UserLightSerializer(serializers.ModelSerializer):
             "user_type",
         )
         read_only_fields = fields
+
 
 UserSimpleSerializer = UserSerializer
 UserBasicSerializer = UserSimpleSerializer

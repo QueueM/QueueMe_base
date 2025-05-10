@@ -18,7 +18,7 @@ class PreferenceExtractor:
         # Get customer profile
         try:
             customer = appointment.customer.customer_profile
-        except:
+        except Exception:
             # Customer profile doesn't exist
             return
 
@@ -77,7 +77,7 @@ class PreferenceExtractor:
 
                         category_id = service_categories[0]["category"]
                         category = Category.objects.get(id=category_id)
-            except:
+            except Exception:
                 pass
 
         elif content_type == "service":
@@ -86,7 +86,7 @@ class PreferenceExtractor:
             try:
                 service = Service.objects.get(id=content_id)
                 category = service.category
-            except:
+            except Exception:
                 pass
 
         # Update category affinity if found

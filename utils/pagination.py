@@ -5,7 +5,6 @@ This module defines custom pagination classes for use in API views,
 allowing for consistent and configurable pagination across the platform.
 """
 
-
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 

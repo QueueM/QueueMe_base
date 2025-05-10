@@ -19,6 +19,7 @@ from .constants import (
     AUDIT_ACTION_REJECT,
     AUDIT_ACTION_UPDATE,
     AUDIT_ACTION_VERIFY,
+    TICKET_STATUS_CHOICES,
 )
 from .filters import (
     AdminNotificationFilter,

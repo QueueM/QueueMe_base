@@ -1,6 +1,5 @@
 import logging
 
-
 from apps.authapp.models import User
 from apps.authapp.services.otp_service import OTPService
 from apps.authapp.validators import normalize_phone_number

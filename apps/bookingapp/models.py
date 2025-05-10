@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from model_utils import FieldTracker
 
 from apps.authapp.models import User
 from apps.serviceapp.models import Service
@@ -57,10 +58,10 @@ class Appointment(models.Model):
         related_name="appointments",
         verbose_name=_("Shop"),
     )
-    start_time = models.DateTimeField(_("Start Time"))
-    end_time = models.DateTimeField(_("End Time"))
+    start_time = models.DateTimeField(_("Start Time"), db_index=True)
+    end_time = models.DateTimeField(_("End Time"), db_index=True)
     status = models.CharField(
-        _("Status"), max_length=20, choices=STATUS_CHOICES, default="scheduled"
+        _("Status"), max_length=20, choices=STATUS_CHOICES, default="scheduled", db_index=True
     )
     notes = models.TextField(_("Notes"), blank=True)
     transaction_id = models.CharField(
@@ -71,6 +72,7 @@ class Appointment(models.Model):
         max_length=20,
         choices=PAYMENT_STATUS_CHOICES,
         default="pending",
+        db_index=True
     )
     is_reminder_sent = models.BooleanField(_("Reminder Sent"), default=False)
     cancelled_by = models.ForeignKey(
@@ -82,7 +84,7 @@ class Appointment(models.Model):
         blank=True,
     )
     cancellation_reason = models.TextField(_("Cancellation Reason"), blank=True)
-    created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
+    created_at = models.DateTimeField(_("Created At"), auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
     total_price = models.DecimalField(
         _("Total Price"), max_digits=10, decimal_places=2, default=0
@@ -91,6 +93,9 @@ class Appointment(models.Model):
     buffer_after = models.PositiveIntegerField(_("Buffer After (minutes)"), default=0)
     duration = models.PositiveIntegerField(_("Duration (minutes)"), default=0)
     is_reviewed = models.BooleanField(_("Reviewed"), default=False)
+    
+    # Track field changes for signals
+    tracker = FieldTracker(fields=['status', 'payment_status', 'start_time', 'end_time', 'specialist_id'])
 
     class Meta:
         verbose_name = _("Appointment")
@@ -104,6 +109,12 @@ class Appointment(models.Model):
             models.Index(fields=["shop"]),
             models.Index(fields=["created_at"]),
             models.Index(fields=["payment_status"]),
+            # Add more powerful composite indexes for common queries
+            models.Index(fields=["shop", "start_time", "status"]),
+            models.Index(fields=["specialist", "start_time", "status"]),
+            models.Index(fields=["customer", "start_time", "status"]),
+            models.Index(fields=["shop", "payment_status"]),
+            models.Index(fields=["service", "start_time"]),
         ]
 
     def __str__(self):
@@ -158,41 +169,41 @@ class Appointment(models.Model):
     def mark_confirmed(self):
         """Mark appointment as confirmed"""
         self.status = "confirmed"
-        self.save()
+        self.save(update_fields=["status", "updated_at"])
 
     def mark_in_progress(self):
         """Mark appointment as in progress"""
         self.status = "in_progress"
-        self.save()
+        self.save(update_fields=["status", "updated_at"])
 
     def mark_completed(self):
         """Mark appointment as completed"""
         self.status = "completed"
-        self.save()
+        self.save(update_fields=["status", "updated_at"])
 
     def mark_cancelled(self, cancelled_by, reason=""):
         """Mark appointment as cancelled with user who cancelled and reason"""
         self.status = "cancelled"
         self.cancelled_by = cancelled_by
         self.cancellation_reason = reason
-        self.save()
+        self.save(update_fields=["status", "cancelled_by", "cancellation_reason", "updated_at"])
 
     def mark_no_show(self):
         """Mark appointment as no-show"""
         self.status = "no_show"
-        self.save()
+        self.save(update_fields=["status", "updated_at"])
 
     def mark_paid(self, transaction_id=None):
         """Mark appointment as paid"""
         self.payment_status = "paid"
         if transaction_id:
             self.transaction_id = transaction_id
-        self.save()
+        self.save(update_fields=["payment_status", "transaction_id", "updated_at"])
 
     def mark_reminder_sent(self):
         """Mark that a reminder has been sent"""
         self.is_reminder_sent = True
-        self.save()
+        self.save(update_fields=["is_reminder_sent", "updated_at"])
 
 
 class AppointmentReminder(models.Model):
@@ -274,11 +285,20 @@ class MultiServiceBooking(models.Model):
     )
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
+    
+    # Track field changes for signals
+    tracker = FieldTracker(fields=['payment_status', 'transaction_id'])
 
     class Meta:
         verbose_name = _("Multi-Service Booking")
         verbose_name_plural = _("Multi-Service Bookings")
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["customer"]),
+            models.Index(fields=["shop"]),
+            models.Index(fields=["payment_status"]),
+            models.Index(fields=["created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.customer.phone_number} - {self.shop.name} - {self.created_at.strftime('%Y-%m-%d')}"
@@ -288,14 +308,14 @@ class MultiServiceBooking(models.Model):
         self.total_price = sum(
             appointment.total_price for appointment in self.appointments.all()
         )
-        self.save()
+        self.save(update_fields=['total_price', 'updated_at'])
 
     def mark_paid(self, transaction_id=None):
         """Mark booking and all appointments as paid"""
         self.payment_status = "paid"
         if transaction_id:
             self.transaction_id = transaction_id
-        self.save()
+        self.save(update_fields=['payment_status', 'transaction_id', 'updated_at'])
 
         # Also mark all appointments as paid
         for appointment in self.appointments.all():

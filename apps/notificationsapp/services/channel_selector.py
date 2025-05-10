@@ -1,5 +1,6 @@
 import logging
 
+from django.utils import timezone
 
 from apps.authapp.models import User
 from apps.notificationsapp.models import DeviceToken, Notification
@@ -224,8 +225,6 @@ class ChannelSelector:
     def _calculate_time_appropriateness(channel, user):
         """Calculate how appropriate a channel is at current time of day"""
         # Get user's local time (if timezone set, otherwise use default)
-        from django.utils import timezone
-
         user_timezone = getattr(user, "timezone", timezone.get_current_timezone())
         current_time = timezone.now().astimezone(user_timezone)
         hour = current_time.hour

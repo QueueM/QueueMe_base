@@ -1,8 +1,8 @@
-from django.db.models import Q
+from django.db.models import Avg, Count, Q
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
-from apps.queueapp.models import QueueTicket
+from apps.queueapp.models import Queue, QueueTicket
 
 
 class HybridQueueManager:
@@ -116,7 +116,7 @@ class HybridQueueManager:
             )
 
         # Calculate estimated times for queue tickets
-        current_time = now
+        unused_unused_current_time = now
         avg_service_time_minutes = 15  # Default if no data
 
         # Try to get a better estimate from recent service times

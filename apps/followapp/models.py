@@ -22,7 +22,10 @@ class Follow(models.Model):
         verbose_name=_("Customer"),
     )
     shop = models.ForeignKey(
-        Shop, on_delete=models.CASCADE, related_name="follow_relationships", verbose_name=_("Shop")
+        Shop,
+        on_delete=models.CASCADE,
+        related_name="follow_relationships",
+        verbose_name=_("Shop"),
     )
     created_at = models.DateTimeField(_("Followed At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)

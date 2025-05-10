@@ -111,7 +111,7 @@ class FollowViewSet(viewsets.ModelViewSet):
 
         try:
             follower_count = shop.follow_stats.follower_count
-        except:
+        except Exception:
             follower_count = 0
 
         serializer = FollowStatusSerializer(

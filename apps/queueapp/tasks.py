@@ -16,7 +16,7 @@ def process_queue_notifications():
     """Process queue notifications for customers who are about to be called"""
     try:
         # Get active tickets in "waiting" status
-        now = timezone.now()
+        unused_unused_now = timezone.now()
         waiting_tickets = QueueTicket.objects.filter(status="waiting").select_related(
             "queue", "customer"
         )

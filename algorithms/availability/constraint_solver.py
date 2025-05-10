@@ -236,7 +236,7 @@ class ConstraintSolver:
 
         # 3. Set up the constraint satisfaction problem
         self.assignments = []
-        solution_count = 0
+        unused_unused_unused_solution_count = 0  # Kept for potential future use
         all_solutions = []
 
         # 4. Sort variables by most constrained first (MRV heuristic)

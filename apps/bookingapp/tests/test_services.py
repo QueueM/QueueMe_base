@@ -15,6 +15,7 @@ from apps.bookingapp.services.reminder_service import ReminderService
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop, ShopHours
 from apps.specialistsapp.models import Specialist, SpecialistService
+from .test_fix import create_test_shop
 
 
 class AvailabilityServiceTest(TestCase):
@@ -22,9 +23,10 @@ class AvailabilityServiceTest(TestCase):
 
     def setUp(self):
         """Set up test data"""
-        # Create test shop
-        self.shop = Shop.objects.create(
-            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        # Create test shop using the helper
+        self.shop = create_test_shop(
+            name="Test Shop",
+            username="testshop"
         )
 
         # Create shop hours (open 9 AM to 5 PM all days)
@@ -74,6 +76,14 @@ class AvailabilityServiceTest(TestCase):
 
         # Set up test date (tomorrow)
         self.test_date = timezone.now().date() + timedelta(days=1)
+
+        # Appointment time range for tests
+        self.start_time = datetime.combine(self.test_date, time(10, 0))
+        self.end_time = datetime.combine(self.test_date, time(11, 0))
+
+        # Make timezone aware
+        self.start_time = timezone.make_aware(self.start_time)
+        self.end_time = timezone.make_aware(self.end_time)
 
     def test_get_service_availability(self):
         """Test getting service availability"""
@@ -190,8 +200,9 @@ class BookingServiceTest(TestCase):
         """Set up test data"""
         # Similar setup as AvailabilityServiceTest
         # Create test shop
-        self.shop = Shop.objects.create(
-            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        self.shop = create_test_shop(
+            name="Test Shop", 
+            username="testshop"
         )
 
         # Create shop hours
@@ -345,8 +356,9 @@ class ConflictServiceTest(TestCase):
         """Set up test data"""
         # Similar setup as previous tests
         # Create test shop
-        self.shop = Shop.objects.create(
-            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        self.shop = create_test_shop(
+            name="Test Shop", 
+            username="testshop"
         )
 
         # Create test service
@@ -501,8 +513,9 @@ class ReminderServiceTest(TestCase):
         self.user = User.objects.create(phone_number="1234567890", user_type="customer")
 
         # Create test shop
-        self.shop = Shop.objects.create(
-            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        self.shop = create_test_shop(
+            name="Test Shop", 
+            username="testshop"
         )
 
         # Create test service

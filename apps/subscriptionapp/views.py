@@ -240,7 +240,7 @@ class SubscriptionInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         invoice = self.get_object()
 
         try:
-            pdf_file = InvoiceService.generate_invoice_pdf(invoice.id)
+            unused_unused_pdf_file = InvoiceService.generate_invoice_pdf(invoice.id)
 
             # Return PDF file (in a real implementation, this would return the file)
             return Response(

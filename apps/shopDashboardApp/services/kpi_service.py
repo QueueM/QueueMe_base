@@ -22,7 +22,7 @@ class KPIService:
         try:
             from apps.shopapp.models import Shop
 
-            shop = Shop.objects.get(id=shop_id)
+            unused_unused_shop = Shop.objects.get(id=shop_id)
 
             # If no specific KPIs requested, use all default KPIs
             if not kpi_keys:

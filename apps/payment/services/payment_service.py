@@ -3,7 +3,6 @@ import logging
 from django.db import transaction
 from django.utils import timezone
 
-
 from ..models import PaymentMethod, Refund, Transaction
 from ..transaction import TransactionManager
 

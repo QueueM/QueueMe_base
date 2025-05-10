@@ -8,8 +8,11 @@ role-based access control, and security features like rate limiting.
 import logging
 import re
 import time
+from collections import defaultdict
+from datetime import datetime, timedelta
 
 from django.conf import settings
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 
@@ -25,6 +28,15 @@ class JWTAuthMiddleware(MiddlewareMixin):
     Authenticates users via JWT tokens and sets the user on the request object.
     Exempt paths (like authentication endpoints) do not require authentication.
     """
+
+    # Rate limiting settings
+    RATE_LIMIT_WINDOW = 60  # 1 minute
+    MAX_REQUESTS_PER_WINDOW = 100
+    RATE_LIMIT_CACHE_PREFIX = "rate_limit:"
+
+    def __init__(self, get_response=None):
+        super().__init__(get_response)
+        self.rate_limit_cache = defaultdict(list)
 
     def process_request(self, request):
         # Performance tracking
@@ -50,6 +62,16 @@ class JWTAuthMiddleware(MiddlewareMixin):
             if re.match(pattern, request.path):
                 return None
 
+        # Check rate limiting
+        if not self._check_rate_limit(request):
+            return JsonResponse(
+                {
+                    "detail": "Too many requests. Please try again later.",
+                    "retry_after": self.RATE_LIMIT_WINDOW,
+                },
+                status=429,
+            )
+
         # Check for token in Authorization header
         auth_header = request.headers.get("Authorization", "")
 
@@ -74,6 +96,10 @@ class JWTAuthMiddleware(MiddlewareMixin):
         if not user:
             return JsonResponse({"detail": "Invalid or expired token."}, status=401)
 
+        # Check if user is active
+        if not user.is_active:
+            return JsonResponse({"detail": "User account is disabled."}, status=401)
+
         # Set authenticated user on request
         request.user = user
 
@@ -96,3 +122,38 @@ class JWTAuthMiddleware(MiddlewareMixin):
                 )
 
         return response
+
+    def _check_rate_limit(self, request):
+        """
+        Check if the request should be rate limited.
+        
+        Args:
+            request: The HTTP request
+            
+        Returns:
+            bool: True if request should be allowed, False if rate limited
+        """
+        # Get client identifier (IP address or user ID if authenticated)
+        client_id = request.META.get("REMOTE_ADDR")
+        if hasattr(request, "user") and request.user.is_authenticated:
+            client_id = f"user_{request.user.id}"
+
+        # Get current timestamp
+        now = datetime.now()
+
+        # Get existing requests for this client
+        cache_key = f"{self.RATE_LIMIT_CACHE_PREFIX}{client_id}"
+        requests = cache.get(cache_key, [])
+
+        # Remove old requests outside the window
+        requests = [ts for ts in requests if now - ts < timedelta(seconds=self.RATE_LIMIT_WINDOW)]
+
+        # Check if we're over the limit
+        if len(requests) >= self.MAX_REQUESTS_PER_WINDOW:
+            return False
+
+        # Add current request
+        requests.append(now)
+        cache.set(cache_key, requests, self.RATE_LIMIT_WINDOW)
+
+        return True

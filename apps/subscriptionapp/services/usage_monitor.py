@@ -7,6 +7,7 @@ from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
 from apps.specialistsapp.models import Specialist
 from apps.subscriptionapp.constants import (
+    FEATURE_CATEGORY_CHOICES,
     FEATURE_CATEGORY_SERVICES,
     FEATURE_CATEGORY_SHOPS,
     FEATURE_CATEGORY_SPECIALISTS,

@@ -18,6 +18,7 @@ from datetime import datetime
 
 import django
 import psycopg2
+from django.apps import apps
 
 # Setup Django environment
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,7 +26,6 @@ sys.path.append(BASE_DIR)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "queueme.settings.production")
 django.setup()
 
-from django.apps import apps
 
 # Setup logging
 logging.basicConfig(
@@ -332,8 +332,8 @@ class DBMigrator:
         # Get all sequences
         cursor.execute(
             """
-            SELECT sequence_name 
-            FROM information_schema.sequences 
+            SELECT sequence_name
+            FROM information_schema.sequences
             WHERE sequence_schema='public'
         """
         )
