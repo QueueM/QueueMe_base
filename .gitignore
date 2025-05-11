@@ -89,3 +89,4 @@ generated_docs/
 production_env.sh
 production_env.sh
 *.env*
+*.sh.bak
