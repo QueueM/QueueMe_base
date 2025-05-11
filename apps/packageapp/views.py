@@ -1,3 +1,8 @@
+"""
+Package app views for QueueMe platform
+Handles endpoints related to service packages, pricing, and FAQs
+"""
+
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,8 +22,14 @@ from .serializers import (
 )
 from .services.package_availability import PackageAvailabilityService
 from .services.package_service import PackageService
+from ..api_doc_decorators import document_api_endpoint, document_api_viewset
 
 
+@document_api_viewset(
+    summary="Package",
+    description="API endpoints for managing service packages including CRUD operations, availability, and recommendations",
+    tags=["Packages"]
+)
 class PackageViewSet(viewsets.ModelViewSet):
     """
     API endpoint for packages management.
@@ -95,6 +106,120 @@ class PackageViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @document_api_endpoint(
+        summary="List packages",
+        description="Retrieve packages filtered based on user role",
+        responses={
+            200: "Success - Returns list of packages"
+        },
+        tags=["Packages"]
+    )
+    def list(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().list(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Create package",
+        description="Create a new service package",
+        responses={
+            201: "Created - Package created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission"
+        },
+        tags=["Packages"]
+    )
+    def create(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().create(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Retrieve package",
+        description="Get detailed information about a specific package",
+        responses={
+            200: "Success - Returns package details",
+            404: "Not Found - Package not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Package ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Packages"]
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Update package",
+        description="Update an existing service package",
+        responses={
+            200: "Success - Package updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Package not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Package ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Packages"]
+    )
+    def update(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().update(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Delete package",
+        description="Delete a service package",
+        responses={
+            204: "No Content - Package deleted successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Package not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Package ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Packages"]
+    )
+    def destroy(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().destroy(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Get package availability",
+        description="Get available time slots for a package on a specific date",
+        responses={
+            200: "Success - Returns available time slots",
+            400: "Bad Request - Missing or invalid date parameter",
+            404: "Not Found - Package not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Package ID', 
+                'type': 'string'
+            }
+        ],
+        query_params=[
+            {
+                'name': 'date', 
+                'description': 'Date to check availability (YYYY-MM-DD)', 
+                'required': True, 
+                'type': 'string'
+            }
+        ],
+        tags=["Packages", "Availability"]
+    )
     @action(detail=True, methods=["get"])
     def availability(self, request, pk=None):
         """
@@ -120,6 +245,14 @@ class PackageViewSet(viewsets.ModelViewSet):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @document_api_endpoint(
+        summary="Get recommended packages",
+        description="Get personalized package recommendations for the current user",
+        responses={
+            200: "Success - Returns list of recommended packages"
+        },
+        tags=["Packages", "Recommendations"]
+    )
     @action(detail=False, methods=["get"])
     def recommended(self, request):
         """
@@ -137,6 +270,34 @@ class PackageViewSet(viewsets.ModelViewSet):
         serializer = PackageListSerializer(recommended_packages, many=True)
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Get popular packages",
+        description="Get most popular packages based on booking frequency and ratings",
+        responses={
+            200: "Success - Returns list of popular packages"
+        },
+        query_params=[
+            {
+                'name': 'shop_id', 
+                'description': 'Optional shop ID to filter by', 
+                'required': False, 
+                'type': 'string'
+            },
+            {
+                'name': 'category_id', 
+                'description': 'Optional category ID to filter by', 
+                'required': False, 
+                'type': 'string'
+            },
+            {
+                'name': 'limit', 
+                'description': 'Maximum number of packages to return (default: 10)', 
+                'required': False, 
+                'type': 'integer'
+            }
+        ],
+        tags=["Packages", "Popular"]
+    )
     @action(detail=False, methods=["get"])
     def popular(self, request):
         """
@@ -161,6 +322,11 @@ class PackageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@document_api_viewset(
+    summary="Package FAQ",
+    description="API endpoints for managing frequently asked questions for packages",
+    tags=["Packages", "FAQs"]
+)
 class PackageFAQViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing package FAQs.
@@ -170,6 +336,22 @@ class PackageFAQViewSet(viewsets.ModelViewSet):
     serializer_class = PackageFAQSerializer
     permission_classes = [IsAuthenticated, PackageFAQPermission]
 
+    @document_api_endpoint(
+        summary="List package FAQs",
+        description="Retrieve FAQs, optionally filtered by package",
+        responses={
+            200: "Success - Returns list of package FAQs"
+        },
+        query_params=[
+            {
+                'name': 'package_id', 
+                'description': 'Package ID to filter FAQs by', 
+                'required': False, 
+                'type': 'string'
+            }
+        ],
+        tags=["Packages", "FAQs"]
+    )
     def get_queryset(self):
         """Filter FAQs by package"""
         queryset = super().get_queryset()
@@ -179,3 +361,80 @@ class PackageFAQViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(package_id=package_id)
 
         return queryset
+
+    @document_api_endpoint(
+        summary="Create package FAQ",
+        description="Create a new FAQ for a package",
+        responses={
+            201: "Created - FAQ created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission"
+        },
+        tags=["Packages", "FAQs"]
+    )
+    def create(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().create(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Retrieve package FAQ",
+        description="Get a specific package FAQ by ID",
+        responses={
+            200: "Success - Returns FAQ details",
+            404: "Not Found - FAQ not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'FAQ ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Packages", "FAQs"]
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Update package FAQ",
+        description="Update an existing package FAQ",
+        responses={
+            200: "Success - FAQ updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - FAQ not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'FAQ ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Packages", "FAQs"]
+    )
+    def update(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().update(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Delete package FAQ",
+        description="Delete a package FAQ",
+        responses={
+            204: "No Content - FAQ deleted successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - FAQ not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'FAQ ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Packages", "FAQs"]
+    )
+    def destroy(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().destroy(request, *args, **kwargs)

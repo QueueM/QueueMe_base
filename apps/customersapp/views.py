@@ -1,3 +1,8 @@
+"""
+Customers app views for QueueMe platform
+Handles endpoints related to customer profiles, payment methods, and favorites.
+"""
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.http import Http404
@@ -36,12 +41,42 @@ from apps.customersapp.services.personalization_engine import PersonalizationEng
 class CustomerViewSet(viewsets.ModelViewSet):
     """
     API endpoint for customer profile management
+    
+    Provides CRUD operations for customer profiles with different
+    permissions for customers vs. administrators.
+    
+    Endpoints:
+    - GET /api/customers/ - List customers (admins can see all, customers see only their own)
+    - POST /api/customers/ - Create a customer profile
+    - GET /api/customers/{id}/ - Get a specific customer profile
+    - PUT/PATCH /api/customers/{id}/ - Update a customer profile
+    - DELETE /api/customers/{id}/ - Delete a customer profile
+    - GET /api/customers/me/ - Get current user's profile
+    - PATCH /api/customers/update_preferences/ - Update customer preferences
+    - GET /api/customers/recommended_content/ - Get personalized recommendations
+    
+    Permissions:
+    - Customer users can only access and modify their own profiles
+    - Admin users can access and modify all customer profiles
+    
+    Filtering (admin only):
+    - city: Filter by city
+    - search: Search by name or phone number
     """
 
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated, IsCustomerOrAdmin]
 
     def get_queryset(self):
+        """
+        Filter customers based on user type and query parameters
+        
+        - Customers can only access their own profile
+        - Admins can access all profiles with optional filtering
+        
+        Returns:
+            QuerySet: Filtered queryset of customers
+        """
         if self.request.user.user_type == "customer":
             # Customers can only access their own profile
             return Customer.objects.filter(user=self.request.user)
@@ -65,16 +100,44 @@ class CustomerViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
+        """
+        Use appropriate serializer based on action
+        
+        Returns detailed serializer for retrieving a specific profile,
+        standard serializer for other actions.
+        
+        Returns:
+            Serializer class: The appropriate serializer
+        """
         if self.action == "retrieve":
             return CustomerDetailSerializer
         return CustomerSerializer
 
     def perform_create(self, serializer):
+        """
+        Set the user when creating a customer profile
+        
+        Args:
+            serializer: The customer serializer instance
+        """
         serializer.save(user=self.request.user)
 
     @action(detail=False, methods=["get"])
     def me(self, request):
-        """Get current user's profile"""
+        """
+        Get current user's profile
+        
+        Returns the customer profile for the authenticated user.
+        If the profile doesn't exist, it creates one automatically.
+        
+        Returns:
+            Response: Customer profile data
+            
+        Status codes:
+            200: Profile retrieved successfully
+            201: Profile created successfully
+            403: User is not a customer
+        """
         if request.user.user_type != "customer":
             return Response(
                 {"detail": "Only customers can access this endpoint"},
@@ -93,7 +156,26 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["patch"])
     def update_preferences(self, request):
-        """Update customer preferences"""
+        """
+        Update customer preferences
+        
+        Updates specific preferences for the customer such as:
+        - Notification settings
+        - Privacy settings
+        - Display preferences
+        - Language/locale preferences
+        
+        Request body:
+            Key-value pairs of preferences to update
+            
+        Returns:
+            Response: Success message
+            
+        Status codes:
+            200: Preferences updated successfully
+            403: User is not a customer
+            404: Customer profile not found
+        """
         if request.user.user_type != "customer":
             return Response(
                 {"detail": "Only customers can update preferences"},
@@ -119,7 +201,24 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def recommended_content(self, request):
-        """Get personalized recommended content"""
+        """
+        Get personalized recommended content
+        
+        Returns personalized recommendations based on the customer's
+        browsing history, preferences, and past bookings.
+        
+        Query parameters:
+            type (optional): Type of content to recommend 
+                  (all, shops, specialists, services)
+                  
+        Returns:
+            Response: JSON object with recommended content
+            
+        Status codes:
+            200: Recommendations retrieved successfully
+            403: User is not a customer
+            404: Customer profile not found
+        """
         if request.user.user_type != "customer":
             return Response(
                 {"detail": "Only customers can access recommendations"},
@@ -148,12 +247,33 @@ class CustomerViewSet(viewsets.ModelViewSet):
 class PaymentMethodViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing saved payment methods
+    
+    Allows customers to manage their saved payment methods for future bookings.
+    Integrates with Moyasar payment gateway for tokenization and secure storage.
+    
+    Endpoints:
+    - GET /api/payment-methods/ - List saved payment methods
+    - POST /api/payment-methods/ - Add a new payment method
+    - GET /api/payment-methods/{id}/ - Get a specific payment method
+    - PUT/PATCH /api/payment-methods/{id}/ - Update a payment method
+    - DELETE /api/payment-methods/{id}/ - Delete a payment method
+    - POST /api/payment-methods/{id}/set_default/ - Set a payment method as default
+    
+    Permissions:
+    - User must be authenticated as a customer
+    - Customers can only access their own payment methods
     """
 
     serializer_class = SavedPaymentMethodSerializer
     permission_classes = [IsAuthenticated, IsCustomerOwner]
 
     def get_queryset(self):
+        """
+        Filter payment methods to show only those belonging to the customer
+        
+        Returns:
+            QuerySet: Filtered queryset of payment methods
+        """
         if self.request.user.user_type != "customer":
             return SavedPaymentMethod.objects.none()
 
@@ -164,12 +284,44 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
             return SavedPaymentMethod.objects.none()
 
     def get_serializer_class(self):
+        """
+        Use appropriate serializer based on action
+        
+        Create/update operations use a different serializer that handles
+        card tokenization and validation.
+        
+        Returns:
+            Serializer class: The appropriate serializer
+        """
         if self.action in ["create", "update", "partial_update"]:
             return SavedPaymentMethodCreateSerializer
         return SavedPaymentMethodSerializer
 
     def create(self, request, *args, **kwargs):
-        """Create a new payment method with Moyasar tokenization"""
+        """
+        Create a new payment method with Moyasar tokenization
+        
+        Validates payment information and stores a tokenized version of the
+        card for future use. The actual card details are not stored in the database.
+        
+        Request body:
+            {
+                "card_number": "4111111111111111", (required - not stored)
+                "cardholder_name": "John Doe", (required)
+                "expiry_month": "12", (required)
+                "expiry_year": "2025", (required)
+                "cvc": "123", (required - not stored)
+                "is_default": true/false (optional)
+            }
+            
+        Returns:
+            Response: Created payment method object
+            
+        Status codes:
+            201: Payment method created successfully
+            400: Invalid payment information
+            404: Customer profile not found
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -193,7 +345,19 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def set_default(self, request, pk=None):
-        """Set a payment method as default"""
+        """
+        Set a payment method as default
+        
+        Marks the specified payment method as the default for future payments
+        and removes the default status from all other payment methods.
+        
+        Returns:
+            Response: Success message
+            
+        Status codes:
+            200: Payment method set as default
+            400: Error setting as default
+        """
         try:
             payment_method = self.get_object()
             PaymentMethodService.set_as_default(payment_method)
@@ -206,12 +370,36 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
 class FavoritesViewSet(viewsets.GenericViewSet):
     """
     API endpoint for managing customer favorites (shops, specialists, services)
+    
+    Allows customers to save and manage their favorite entities for quick access.
+    
+    Endpoints:
+    - GET /api/favorites/shops/ - Get favorite shops
+    - POST /api/favorites/add_shop/ - Add a shop to favorites
+    - POST /api/favorites/remove_shop/ - Remove a shop from favorites
+    - GET /api/favorites/specialists/ - Get favorite specialists
+    - POST /api/favorites/add_specialist/ - Add a specialist to favorites
+    - POST /api/favorites/remove_specialist/ - Remove a specialist from favorites
+    - GET /api/favorites/services/ - Get favorite services
+    - POST /api/favorites/add_service/ - Add a service to favorites
+    - POST /api/favorites/remove_service/ - Remove a service from favorites
+    
+    Permissions:
+    - User must be authenticated as a customer
     """
 
     permission_classes = [IsAuthenticated]
 
     def get_customer(self):
-        """Helper to get customer profile or raise exception"""
+        """
+        Helper to get customer profile or raise exception
+        
+        Returns:
+            Customer: The customer profile
+            
+        Raises:
+            ValueError: If user is not a customer or profile not found
+        """
         if self.request.user.user_type != "customer":
             raise ValueError("Only customers can access favorites")
 
@@ -222,7 +410,18 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["get"])
     def shops(self, request):
-        """Get customer's favorite shops"""
+        """
+        Get customer's favorite shops
+        
+        Returns a list of shops that the customer has marked as favorites.
+        
+        Returns:
+            Response: List of favorite shops
+            
+        Status codes:
+            200: Shops retrieved successfully
+            403: User is not a customer or profile not found
+        """
         try:
             customer = self.get_customer()
             favorites = FavoriteShop.objects.filter(customer=customer)
@@ -233,7 +432,27 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["post"])
     def add_shop(self, request):
-        """Add a shop to favorites"""
+        """
+        Add a shop to favorites
+        
+        Adds the specified shop to the customer's favorites.
+        If the shop is already in favorites, returns success without duplication.
+        
+        Request body:
+            {
+                "shop_id": "uuid" (required)
+            }
+            
+        Returns:
+            Response: Success message
+            
+        Status codes:
+            201: Shop added to favorites
+            200: Shop already in favorites
+            400: Missing shop_id parameter
+            403: User is not a customer or profile not found
+            404: Shop not found
+        """
         try:
             customer = self.get_customer()
             shop_id = request.data.get("shop_id")
@@ -268,7 +487,25 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["post"])
     def remove_shop(self, request):
-        """Remove a shop from favorites"""
+        """
+        Remove a shop from favorites
+        
+        Removes the specified shop from the customer's favorites.
+        
+        Request body:
+            {
+                "shop_id": "uuid" (required)
+            }
+            
+        Returns:
+            Response: Success message
+            
+        Status codes:
+            200: Shop removed from favorites
+            400: Missing shop_id parameter
+            403: User is not a customer or profile not found
+            404: Shop not found in favorites
+        """
         try:
             customer = self.get_customer()
             shop_id = request.data.get("shop_id")
@@ -298,7 +535,18 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["get"])
     def specialists(self, request):
-        """Get customer's favorite specialists"""
+        """
+        Get customer's favorite specialists
+        
+        Returns a list of specialists that the customer has marked as favorites.
+        
+        Returns:
+            Response: List of favorite specialists
+            
+        Status codes:
+            200: Specialists retrieved successfully
+            403: User is not a customer or profile not found
+        """
         try:
             customer = self.get_customer()
             favorites = FavoriteSpecialist.objects.filter(customer=customer)
@@ -309,7 +557,27 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["post"])
     def add_specialist(self, request):
-        """Add a specialist to favorites"""
+        """
+        Add a specialist to favorites
+        
+        Adds the specified specialist to the customer's favorites.
+        If the specialist is already in favorites, returns success without duplication.
+        
+        Request body:
+            {
+                "specialist_id": "uuid" (required)
+            }
+            
+        Returns:
+            Response: Success message
+            
+        Status codes:
+            201: Specialist added to favorites
+            200: Specialist already in favorites
+            400: Missing specialist_id parameter
+            403: User is not a customer or profile not found
+            404: Specialist not found
+        """
         try:
             customer = self.get_customer()
             specialist_id = request.data.get("specialist_id")
@@ -345,7 +613,25 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["post"])
     def remove_specialist(self, request):
-        """Remove a specialist from favorites"""
+        """
+        Remove a specialist from favorites
+        
+        Removes the specified specialist from the customer's favorites.
+        
+        Request body:
+            {
+                "specialist_id": "uuid" (required)
+            }
+            
+        Returns:
+            Response: Success message
+            
+        Status codes:
+            200: Specialist removed from favorites
+            400: Missing specialist_id parameter
+            403: User is not a customer or profile not found
+            404: Specialist not found in favorites
+        """
         try:
             customer = self.get_customer()
             specialist_id = request.data.get("specialist_id")
@@ -376,7 +662,18 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["get"])
     def services(self, request):
-        """Get customer's favorite services"""
+        """
+        Get customer's favorite services
+        
+        Returns a list of services that the customer has marked as favorites.
+        
+        Returns:
+            Response: List of favorite services
+            
+        Status codes:
+            200: Services retrieved successfully
+            403: User is not a customer or profile not found
+        """
         try:
             customer = self.get_customer()
             favorites = FavoriteService.objects.filter(customer=customer)
@@ -387,7 +684,27 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["post"])
     def add_service(self, request):
-        """Add a service to favorites"""
+        """
+        Add a service to favorites
+        
+        Adds the specified service to the customer's favorites.
+        If the service is already in favorites, returns success without duplication.
+        
+        Request body:
+            {
+                "service_id": "uuid" (required)
+            }
+            
+        Returns:
+            Response: Success message
+            
+        Status codes:
+            201: Service added to favorites
+            200: Service already in favorites
+            400: Missing service_id parameter
+            403: User is not a customer or profile not found
+            404: Service not found
+        """
         try:
             customer = self.get_customer()
             service_id = request.data.get("service_id")
@@ -423,7 +740,25 @@ class FavoritesViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["post"])
     def remove_service(self, request):
-        """Remove a service from favorites"""
+        """
+        Remove a service from favorites
+        
+        Removes the specified service from the customer's favorites.
+        
+        Request body:
+            {
+                "service_id": "uuid" (required)
+            }
+            
+        Returns:
+            Response: Success message
+            
+        Status codes:
+            200: Service removed from favorites
+            400: Missing service_id parameter
+            403: User is not a customer or profile not found
+            404: Service not found in favorites
+        """
         try:
             customer = self.get_customer()
             service_id = request.data.get("service_id")

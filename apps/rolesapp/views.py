@@ -1,4 +1,10 @@
-# apps/rolesapp/views.py
+"""
+Roles app views for QueueMe platform
+Handles endpoints related to user roles, permissions, and user-role assignments.
+This module implements a full RBAC (Role-Based Access Control) system for the QueueMe platform,
+allowing fine-grained control over what actions users can perform in different contexts.
+"""
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
@@ -31,9 +37,27 @@ from apps.rolesapp.services.role_service import RoleService
 
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint for permissions
-
-    Permissions are read-only as they are system-defined.
+    API endpoint for system permissions
+    
+    Permissions are read-only as they are system-defined capabilities that users can be granted.
+    Each permission represents a specific action on a specific resource.
+    
+    Permissions:
+    - Requires authentication
+    - User must have 'view' permission on the 'roles' resource
+    
+    Filters:
+    - resource: Filter by resource name
+    - action: Filter by action type (view, manage, etc.)
+    
+    Search:
+    - code_name: Permission code name
+    - description: Permission description
+    
+    Ordering:
+    - resource: Resource name
+    - action: Action type
+    - code_name: Permission code name
     """
 
     queryset = Permission.objects.all()
@@ -55,7 +79,16 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=["get"])
     @has_permission("roles", "view")
     def grouped(self, request):
-        """Get permissions grouped by resource"""
+        """
+        Get permissions grouped by resource
+        
+        Returns a list of resources, each with its associated permissions.
+        This endpoint is useful for UI representations of permissions where
+        they are grouped by resource for easier management.
+        
+        Returns:
+            Response: JSON array of resource objects, each containing a list of permissions
+        """
         permissions = PermissionService.get_permissions_by_resource()
         serializer = PermissionGroupSerializer(permissions, many=True)
         return Response(serializer.data)
@@ -64,8 +97,13 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
 class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for content types
-
+    
+    Content types represent the different entity types in the system that can have roles.
     This is used for selecting entity types when creating roles.
+    
+    Permissions:
+    - Requires authentication
+    - User must have 'view' permission on the 'roles' resource
     """
 
     queryset = ContentType.objects.filter(app_label="apps")
@@ -77,7 +115,16 @@ class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"])
     def for_roles(self, request):
-        """Get content types that can be assigned roles"""
+        """
+        Get content types that can be assigned roles
+        
+        Returns only the subset of content types that support role assignment,
+        such as shops and companies. This filters out content types that don't
+        make sense in the context of role assignment.
+        
+        Returns:
+            Response: JSON array of valid content types for role assignment
+        """
         # Only include models that support roles (e.g., shop, company)
         allowed_models = ["shop", "company"]
         queryset = self.queryset.filter(model__in=allowed_models)
@@ -88,8 +135,29 @@ class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
 class RoleViewSet(viewsets.ModelViewSet):
     """
     API endpoint for roles
-
-    Roles define sets of permissions that can be assigned to users.
+    
+    Roles define sets of permissions that can be assigned to users. Each role can
+    be associated with a specific entity (like a shop or company) to provide
+    context-specific permissions.
+    
+    Permissions:
+    - Requires authentication
+    - 'view' permission for listing and retrieving
+    - 'manage' permission for creating, updating and deleting
+    
+    Filters:
+    - role_type: Filter by role type (e.g., shop, company)
+    - is_active: Filter by active status
+    - is_system: Filter by system role status
+    
+    Search:
+    - name: Role name
+    - description: Role description
+    
+    Ordering:
+    - name: Role name
+    - weight: Role priority weight
+    - created_at: Role creation date
     """
 
     queryset = Role.objects.all()
@@ -109,7 +177,18 @@ class RoleViewSet(viewsets.ModelViewSet):
     ordering = ["-weight", "name"]
 
     def get_queryset(self):
-        """Filter roles based on user permissions"""
+        """
+        Filter roles based on user permissions
+        
+        Returns different subsets of roles based on the user's permissions:
+        - Admins can see all roles
+        - Company owners see roles for their companies and associated shops
+        - Shop managers see roles for their shops
+        - Others see no roles by default
+        
+        Returns:
+            QuerySet: Filtered queryset of roles the user can access
+        """
         user = self.request.user
 
         # Admins can see all roles
@@ -181,13 +260,25 @@ class RoleViewSet(viewsets.ModelViewSet):
         return self.queryset.none()
 
     def get_serializer_class(self):
-        """Use detailed serializer for retrieve action"""
+        """
+        Use detailed serializer for retrieve action
+        
+        Returns:
+            Serializer class: The appropriate serializer for the current action
+        """
         if self.action == "retrieve":
             return RoleDetailSerializer
         return super().get_serializer_class()
 
     def get_permissions(self):
-        """Set permissions based on action"""
+        """
+        Set permissions based on action
+        
+        Requires higher permissions (manage) for modifying actions.
+        
+        Returns:
+            list: List of permission classes
+        """
         if self.action in ["create", "update", "partial_update", "destroy"]:
             return [
                 permissions.IsAuthenticated(),
@@ -196,11 +287,28 @@ class RoleViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        """Record the user who created the role"""
+        """
+        Record the user who created the role
+        
+        Args:
+            serializer: The role serializer instance
+        """
         serializer.save()
 
     def perform_destroy(self, instance):
-        """Prevent deletion of system roles"""
+        """
+        Prevent deletion of system roles
+        
+        Validates that:
+        1. The role is not a system role
+        2. The current user has permission to manage the role
+        
+        Args:
+            instance: The role instance to delete
+            
+        Returns:
+            Response: Error response if deletion is not allowed
+        """
         if instance.is_system:
             return Response(
                 {"detail": _("System roles cannot be deleted.")},
@@ -219,7 +327,21 @@ class RoleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     @has_permission("roles", "manage")
     def clone(self, request, pk=None):
-        """Clone a role with its permissions"""
+        """
+        Clone a role with its permissions
+        
+        Creates a new role with the same permissions as the source role,
+        but with a new name and optionally a new description.
+        
+        Request body:
+            {
+                "name": "New Role Name", (required)
+                "description": "New role description" (optional)
+            }
+            
+        Returns:
+            Response: The newly created role
+        """
         role = self.get_object()
 
         # Check if this user can manage this role
@@ -249,7 +371,17 @@ class RoleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     @has_permission("roles", "manage")
     def add_users(self, request, pk=None):
-        """Add multiple users to a role"""
+        """
+        Add multiple users to a role
+        
+        Request body:
+            {
+                "user_ids": ["uuid1", "uuid2", ...] (required)
+            }
+            
+        Returns:
+            Response: Success message with the number of users added
+        """
         role = self.get_object()
 
         # Check if this user can manage this role
@@ -288,7 +420,19 @@ class RoleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     @has_permission("roles", "manage")
     def transfer_users(self, request, pk=None):
-        """Transfer users from this role to another role"""
+        """
+        Transfer users from this role to another role
+        
+        Moves all users from the current role to another role.
+        
+        Request body:
+            {
+                "to_role_id": "uuid" (required)
+            }
+            
+        Returns:
+            Response: Success message with the number of users transferred
+        """
         from_role = self.get_object()
 
         # Check if this user can manage this role
@@ -344,8 +488,27 @@ class RoleViewSet(viewsets.ModelViewSet):
 class UserRoleViewSet(viewsets.ModelViewSet):
     """
     API endpoint for user role assignments
-
-    This manages the many-to-many relationship between users and roles.
+    
+    This manages the many-to-many relationship between users and roles,
+    allowing users to be assigned to roles and given specific permissions.
+    
+    Permissions:
+    - Requires authentication
+    - 'view' permission for listing and retrieving
+    - 'manage' permission for creating, updating and deleting
+    
+    Filters:
+    - user: Filter by user ID
+    - role: Filter by role ID
+    - is_primary: Filter by primary role status
+    
+    Search:
+    - user__phone_number: User's phone number
+    - role__name: Role name
+    
+    Ordering:
+    - assigned_at: Assignment date
+    - is_primary: Primary role status
     """
 
     queryset = UserRole.objects.all()
@@ -365,7 +528,16 @@ class UserRoleViewSet(viewsets.ModelViewSet):
     ordering = ["-assigned_at"]
 
     def get_queryset(self):
-        """Filter user roles based on user permissions"""
+        """
+        Filter user roles based on user permissions
+        
+        Returns different subsets of user roles based on the user's permissions:
+        - Admins can see all user roles
+        - Others see only user roles for roles they can manage
+        
+        Returns:
+            QuerySet: Filtered queryset of user roles the user can access
+        """
         user = self.request.user
 
         # Admins can see all user roles
@@ -382,7 +554,14 @@ class UserRoleViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(role__id__in=managed_roles)
 
     def get_permissions(self):
-        """Set permissions based on action"""
+        """
+        Set permissions based on action
+        
+        Requires higher permissions (manage) for modifying actions.
+        
+        Returns:
+            list: List of permission classes
+        """
         if self.action in ["create", "update", "partial_update", "destroy"]:
             return [
                 permissions.IsAuthenticated(),
@@ -391,11 +570,24 @@ class UserRoleViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        """Record the user who made the assignment"""
+        """
+        Record the user who made the assignment
+        
+        Args:
+            serializer: The user role serializer instance
+        """
         serializer.save(assigned_by=self.request.user)
 
     def perform_destroy(self, instance):
-        """Check if user can manage this role before deleting"""
+        """
+        Check if user can manage this role before deleting
+        
+        Args:
+            instance: The user role instance to delete
+            
+        Returns:
+            Response: Error response if deletion is not allowed
+        """
         if not RoleService.can_user_manage_role(self.request.user, instance.role):
             return Response(
                 {"detail": _("You don't have permission to manage this role.")},
@@ -406,14 +598,29 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def my_roles(self, request):
-        """Get roles for the current user"""
+        """
+        Get roles for the current user
+        
+        Returns all active roles assigned to the current authenticated user.
+        
+        Returns:
+            Response: List of role assignments for the current user
+        """
         user_roles = UserRole.objects.filter(user=request.user, role__is_active=True)
         serializer = self.get_serializer(user_roles, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def by_user(self, request):
-        """Get roles for a specific user"""
+        """
+        Get roles for a specific user
+        
+        Query parameters:
+            user_id: UUID of the user (required)
+            
+        Returns:
+            Response: List of role assignments for the specified user
+        """
         user_id = request.query_params.get("user_id")
 
         if not user_id:
@@ -456,7 +663,15 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def by_role(self, request):
-        """Get users for a specific role"""
+        """
+        Get users for a specific role
+        
+        Query parameters:
+            role_id: UUID of the role (required)
+            
+        Returns:
+            Response: List of user assignments for the specified role
+        """
         role_id = request.query_params.get("role_id")
 
         if not role_id:
@@ -486,7 +701,16 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def by_entity(self, request):
-        """Get roles for a specific entity (e.g., shop, company)"""
+        """
+        Get roles for a specific entity (e.g., shop, company)
+        
+        Query parameters:
+            entity_type: Type of entity (e.g., 'shop', 'company') (required)
+            entity_id: UUID of the entity (required)
+            
+        Returns:
+            Response: List of user role assignments for the specified entity
+        """
         entity_type = request.query_params.get("entity_type")
         entity_id = request.query_params.get("entity_id")
 
@@ -550,8 +774,16 @@ class UserRoleViewSet(viewsets.ModelViewSet):
     def _can_manage_user(self, manager, user):
         """
         Check if a manager can manage a user
-
-        This is a simplified check that would need to be expanded in a real app.
+        
+        This is a helper method to determine if a manager has permission
+        to view or manage a specific user's roles.
+        
+        Args:
+            manager: The user who is trying to manage another user
+            user: The user being managed
+            
+        Returns:
+            bool: True if the manager can manage the user, False otherwise
         """
         # Get entities (shops, companies) manager can manage
         manager_shops = []
@@ -637,8 +869,26 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 class RolePermissionLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for role permission audit logs
-
-    These are read-only records of changes to role permissions.
+    
+    These are read-only records of changes to role permissions,
+    providing an audit trail of who changed what permissions and when.
+    
+    Permissions:
+    - Requires authentication
+    - User must have 'view' permission on the 'roles' resource
+    
+    Filters:
+    - role: Filter by role ID
+    - permission: Filter by permission ID
+    - action_type: Filter by action type (add, remove)
+    - performed_by: Filter by the user who performed the action
+    
+    Search:
+    - role__name: Role name
+    - permission__code_name: Permission code name
+    
+    Ordering:
+    - timestamp: When the action occurred
     """
 
     queryset = RolePermissionLog.objects.all()
@@ -658,7 +908,16 @@ class RolePermissionLogViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ["-timestamp"]
 
     def get_queryset(self):
-        """Filter logs based on user permissions"""
+        """
+        Filter logs based on user permissions
+        
+        Returns different subsets of logs based on the user's permissions:
+        - Admins can see all logs
+        - Others see only logs for roles they can manage
+        
+        Returns:
+            QuerySet: Filtered queryset of logs the user can access
+        """
         user = self.request.user
 
         # Admins can see all logs

@@ -1,3 +1,8 @@
+"""
+Payment app views for QueueMe platform
+Handles endpoints related to payments, transactions, and payment methods
+"""
+
 import logging
 
 from django.contrib.contenttypes.models import ContentType
@@ -20,10 +25,16 @@ from .serializers import (
 )
 from .services.payment_method_recommender import PaymentMethodRecommender
 from .services.payment_service import PaymentService
+from ..api_doc_decorators import document_api_endpoint, document_api_viewset
 
 logger = logging.getLogger(__name__)
 
 
+@document_api_viewset(
+    summary="Payment",
+    description="API endpoints for payment-related operations including payment methods, transactions, and refunds",
+    tags=["Payments"]
+)
 class PaymentViewSet(viewsets.ViewSet):
     """
     ViewSet for payment-related operations
@@ -31,6 +42,14 @@ class PaymentViewSet(viewsets.ViewSet):
 
     permission_classes = [permissions.IsAuthenticated, PaymentPermission]
 
+    @document_api_endpoint(
+        summary="Get payment methods",
+        description="Retrieve all saved payment methods for the current user",
+        responses={
+            200: "Success - Returns list of payment methods"
+        },
+        tags=["Payments", "Payment Methods"]
+    )
     @action(detail=False, methods=["get"])
     def payment_methods(self, request):
         """Get user's saved payment methods"""
@@ -38,6 +57,15 @@ class PaymentViewSet(viewsets.ViewSet):
         serializer = PaymentMethodSerializer(payment_methods, many=True)
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Add payment method",
+        description="Add a new payment method for the current user",
+        responses={
+            201: "Created - Payment method added successfully",
+            400: "Bad Request - Invalid data or unable to add payment method"
+        },
+        tags=["Payments", "Payment Methods"]
+    )
     @action(detail=False, methods=["post"])
     def add_payment_method(self, request):
         """Add a new payment method"""
@@ -62,6 +90,15 @@ class PaymentViewSet(viewsets.ViewSet):
                 {"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST
             )
 
+    @document_api_endpoint(
+        summary="Set default payment method",
+        description="Set a specific payment method as the default for the current user",
+        responses={
+            200: "Success - Default payment method updated",
+            400: "Bad Request - Invalid data or payment method not found"
+        },
+        tags=["Payments", "Payment Methods"]
+    )
     @action(detail=False, methods=["post"])
     def set_default_payment_method(self, request):
         """Set payment method as default"""
@@ -80,6 +117,15 @@ class PaymentViewSet(viewsets.ViewSet):
                 {"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST
             )
 
+    @document_api_endpoint(
+        summary="Create payment",
+        description="Create a new payment transaction for an object",
+        responses={
+            201: "Created - Payment created successfully, returns transaction details",
+            400: "Bad Request - Invalid data or payment processing error"
+        },
+        tags=["Payments", "Transactions"]
+    )
     @action(detail=False, methods=["post"])
     def create_payment(self, request):
         """Create a new payment transaction"""
@@ -122,6 +168,15 @@ class PaymentViewSet(viewsets.ViewSet):
                 {"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST
             )
 
+    @document_api_endpoint(
+        summary="Check payment status",
+        description="Check the current status of a payment transaction",
+        responses={
+            200: "Success - Returns current transaction status",
+            404: "Not Found - Transaction not found"
+        },
+        tags=["Payments", "Transactions"]
+    )
     @action(detail=False, methods=["post"])
     def check_payment_status(self, request):
         """Check the status of a payment transaction"""
@@ -142,6 +197,28 @@ class PaymentViewSet(viewsets.ViewSet):
             }
         )
 
+    @document_api_endpoint(
+        summary="List transactions",
+        description="Retrieve transactions with optional filtering",
+        responses={
+            200: "Success - Returns list of transactions"
+        },
+        query_params=[
+            {
+                'name': 'content_type_id', 
+                'description': 'Content type ID to filter transactions by', 
+                'required': False, 
+                'type': 'integer'
+            },
+            {
+                'name': 'object_id', 
+                'description': 'Object ID to filter transactions by', 
+                'required': False, 
+                'type': 'string'
+            }
+        ],
+        tags=["Payments", "Transactions"]
+    )
     @action(detail=False, methods=["get"])
     def transactions(self, request):
         """Get user's transactions"""
@@ -170,6 +247,16 @@ class PaymentViewSet(viewsets.ViewSet):
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Create refund",
+        description="Create a refund for a specific transaction",
+        responses={
+            200: "Success - Refund created successfully, returns refund details",
+            400: "Bad Request - Invalid data or unable to process refund",
+            404: "Not Found - Transaction not found"
+        },
+        tags=["Payments", "Refunds"]
+    )
     @action(detail=False, methods=["post"])
     def create_refund(self, request):
         """Create a refund for a transaction"""
@@ -204,6 +291,28 @@ class PaymentViewSet(viewsets.ViewSet):
                 {"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST
             )
 
+    @document_api_endpoint(
+        summary="Recommend payment method",
+        description="Get recommended payment methods for the current user",
+        responses={
+            200: "Success - Returns list of recommended payment methods"
+        },
+        query_params=[
+            {
+                'name': 'amount', 
+                'description': 'Amount for the potential transaction (default: 100)', 
+                'required': False, 
+                'type': 'number'
+            },
+            {
+                'name': 'transaction_type', 
+                'description': 'Type of transaction for the recommendation', 
+                'required': False, 
+                'type': 'string'
+            }
+        ],
+        tags=["Payments", "Payment Methods", "Recommendations"]
+    )
     @action(detail=False, methods=["get"])
     def recommend_payment_method(self, request):
         """Get recommended payment method for user"""

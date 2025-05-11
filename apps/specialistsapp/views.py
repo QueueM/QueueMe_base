@@ -1,3 +1,9 @@
+"""
+Specialists app views for QueueMe platform
+Handles endpoints related to service specialists, their services, working hours, portfolio,
+availability, and verification. Specialists are employees who provide services to customers.
+"""
+
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -43,24 +49,34 @@ from apps.specialistsapp.services.specialist_recommender import SpecialistRecomm
 class SpecialistViewSet(viewsets.ModelViewSet):
     """
     ViewSet for specialists.
-
-    list:
-    Return a list of all specialists.
-
-    retrieve:
-    Return a specific specialist.
-
-    create:
-    Create a new specialist.
-
-    update:
-    Update an existing specialist.
-
-    partial_update:
-    Partially update an existing specialist.
-
-    destroy:
-    Delete a specialist.
+    
+    Provides CRUD operations for specialists, who are shop employees that provide services
+    to customers. Specialists have skills, working hours, and portfolio items.
+    
+    Endpoints:
+    - GET /api/specialists/ - List all specialists
+    - POST /api/specialists/ - Create a new specialist
+    - GET /api/specialists/{id}/ - Get a specific specialist
+    - PUT/PATCH /api/specialists/{id}/ - Update a specialist
+    - DELETE /api/specialists/{id}/ - Delete a specialist
+    
+    Permissions:
+    - List/Retrieve: Anyone can view specialists
+    - Create/Update/Delete: Requires appropriate permissions to manage specialists
+    
+    Filtering:
+    - Multiple filters available via SpecialistFilter
+    
+    Search fields:
+    - employee__first_name: Specialist's first name
+    - employee__last_name: Specialist's last name
+    - bio: Specialist's biography
+    
+    Ordering:
+    - avg_rating: Average rating
+    - total_bookings: Total number of bookings
+    - experience_years: Years of experience
+    - created_at: Creation date
     """
 
     filterset_class = SpecialistFilter
@@ -69,7 +85,15 @@ class SpecialistViewSet(viewsets.ModelViewSet):
     ordering = ["-avg_rating", "-total_bookings"]
 
     def get_queryset(self):
-        """Get the queryset for specialists"""
+        """
+        Get the queryset for specialists
+        
+        Returns specialists with related objects preloaded for performance,
+        filtering only active specialists from active shops.
+        
+        Returns:
+            QuerySet: Filtered specialists with related objects
+        """
         queryset = (
             Specialist.objects.select_related(
                 "employee", "employee__shop", "employee__user"
@@ -88,7 +112,17 @@ class SpecialistViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        """Get the appropriate serializer for the action"""
+        """
+        Get the appropriate serializer for the action
+        
+        - list: SpecialistListSerializer (simplified for lists)
+        - retrieve: SpecialistDetailSerializer (full details)
+        - create: SpecialistCreateSerializer (for creation)
+        - update: SpecialistUpdateSerializer (for updates)
+        
+        Returns:
+            Serializer class: The appropriate serializer for the current action
+        """
         if self.action == "list":
             return SpecialistListSerializer
         elif self.action == "retrieve":
@@ -101,7 +135,16 @@ class SpecialistViewSet(viewsets.ModelViewSet):
         return SpecialistDetailSerializer
 
     def get_permissions(self):
-        """Get the permissions for the action"""
+        """
+        Get the permissions for the action
+        
+        - list/retrieve: Can view specialist permission
+        - create/update/delete: Authenticated + Can manage specialist permission
+        - other actions: Authenticated
+        
+        Returns:
+            list: Permission classes for the current action
+        """
         if self.action in ["list", "retrieve"]:
             permission_classes = [CanViewSpecialist]
         elif self.action in ["create", "update", "partial_update", "destroy"]:
@@ -112,7 +155,17 @@ class SpecialistViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_destroy(self, instance):
-        """Check if specialist can be deleted"""
+        """
+        Check if specialist can be deleted
+        
+        Prevents deletion of specialists who have bookings to maintain data integrity.
+        
+        Args:
+            instance: The specialist instance to delete
+            
+        Raises:
+            ValidationError: If specialist has bookings
+        """
         if instance.total_bookings > 0:
             from rest_framework.exceptions import ValidationError
 
@@ -122,13 +175,37 @@ class SpecialistViewSet(viewsets.ModelViewSet):
 
 
 class ShopSpecialistsView(generics.ListAPIView):
-    """View for listing specialists by shop"""
+    """
+    View for listing specialists by shop
+    
+    Returns all specialists for a specific shop.
+    
+    Endpoint:
+    - GET /api/shops/{shop_id}/specialists/ - List specialists for a shop
+    
+    URL parameters:
+        shop_id: UUID of the shop
+        
+    Filtering:
+    - Multiple filters available via SpecialistFilter
+    
+    Ordering:
+    - Default: By average rating and total bookings (descending)
+    """
 
     serializer_class = SpecialistListSerializer
     filterset_class = SpecialistFilter
 
     def get_queryset(self):
-        """Get specialists for a specific shop"""
+        """
+        Get specialists for a specific shop
+        
+        Returns only active specialists from the specified shop,
+        with related objects preloaded for performance.
+        
+        Returns:
+            QuerySet: Filtered specialists for the shop
+        """
         shop_id = self.kwargs.get("shop_id")
         return (
             Specialist.objects.filter(
@@ -146,13 +223,37 @@ class ShopSpecialistsView(generics.ListAPIView):
 
 
 class ServiceSpecialistsView(generics.ListAPIView):
-    """View for listing specialists by service"""
+    """
+    View for listing specialists by service
+    
+    Returns all specialists that provide a specific service.
+    
+    Endpoint:
+    - GET /api/services/{service_id}/specialists/ - List specialists for a service
+    
+    URL parameters:
+        service_id: UUID of the service
+        
+    Filtering:
+    - Multiple filters available via SpecialistFilter
+    
+    Ordering:
+    - Default: By average rating and total bookings (descending)
+    """
 
     serializer_class = SpecialistListSerializer
     filterset_class = SpecialistFilter
 
     def get_queryset(self):
-        """Get specialists for a specific service"""
+        """
+        Get specialists for a specific service
+        
+        Returns only active specialists from active shops that provide
+        the specified service, with related objects preloaded for performance.
+        
+        Returns:
+            QuerySet: Filtered specialists for the service
+        """
         service_id = self.kwargs.get("service_id")
         return (
             Specialist.objects.filter(
@@ -172,13 +273,36 @@ class ServiceSpecialistsView(generics.ListAPIView):
 
 
 class TopRatedSpecialistsView(generics.ListAPIView):
-    """View for listing top rated specialists"""
+    """
+    View for listing top rated specialists
+    
+    Returns the top-rated specialists based on ratings, booking counts,
+    and other factors. Results are cached for performance.
+    
+    Endpoint:
+    - GET /api/specialists/top-rated/ - List top rated specialists
+    
+    Query parameters:
+        shop_id: Filter by shop (optional)
+        limit: Maximum number of specialists to return (default: 10)
+        
+    Permissions:
+    - Can view specialist permission
+    """
 
     serializer_class = SpecialistListSerializer
     permission_classes = [CanViewSpecialist]
 
     def get_queryset(self):
-        """Get top rated specialists"""
+        """
+        Get top rated specialists
+        
+        Uses caching to improve performance. Returns only verified specialists
+        from active shops, optionally filtered by shop ID.
+        
+        Returns:
+            QuerySet: Top rated specialists
+        """
         shop_id = self.request.query_params.get("shop_id")
         limit = int(self.request.query_params.get("limit", 10))
 
@@ -210,13 +334,36 @@ class TopRatedSpecialistsView(generics.ListAPIView):
 
 
 class SpecialistRecommendationsView(generics.ListAPIView):
-    """View for getting specialist recommendations for a customer"""
+    """
+    View for getting specialist recommendations for a customer
+    
+    Returns personalized specialist recommendations for the current user,
+    based on their preferences, booking history, and other factors.
+    
+    Endpoint:
+    - GET /api/specialists/recommendations/ - Get specialist recommendations
+    
+    Query parameters:
+        category_id: Filter by service category (optional)
+        limit: Maximum number of specialists to return (default: 5)
+        
+    Permissions:
+    - Authentication required
+    """
 
     serializer_class = SpecialistListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Get specialist recommendations"""
+        """
+        Get specialist recommendations
+        
+        Uses the SpecialistRecommender service to generate personalized
+        recommendations for the current user.
+        
+        Returns:
+            QuerySet: Recommended specialists
+        """
         category_id = self.request.query_params.get("category_id")
         limit = int(self.request.query_params.get("limit", 5))
 
@@ -228,13 +375,37 @@ class SpecialistRecommendationsView(generics.ListAPIView):
 
 
 class SpecialistServicesView(generics.ListCreateAPIView):
-    """View for listing and creating specialist services"""
+    """
+    View for listing and creating specialist services
+    
+    Manages the services that a specialist provides, including pricing,
+    duration, and other service details.
+    
+    Endpoints:
+    - GET /api/specialists/{specialist_id}/services/ - List services for a specialist
+    - POST /api/specialists/{specialist_id}/services/ - Add a service to a specialist
+    
+    URL parameters:
+        specialist_id: UUID of the specialist
+        
+    Permissions:
+    - GET: Can view specialist permission
+    - POST: Authenticated + Can manage specialist permission
+    """
 
     serializer_class = SpecialistServiceSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Get services for a specific specialist"""
+        """
+        Get services for a specific specialist
+        
+        Returns services provided by the specialist, ordered by primary status
+        and booking count, with related objects preloaded for performance.
+        
+        Returns:
+            QuerySet: Services provided by the specialist
+        """
         specialist_id = self.kwargs.get("specialist_id")
         return (
             SpecialistService.objects.filter(specialist_id=specialist_id)
@@ -243,19 +414,43 @@ class SpecialistServicesView(generics.ListCreateAPIView):
         )
 
     def get_permissions(self):
-        """Get the permissions based on method"""
+        """
+        Get the permissions based on method
+        
+        - GET: Can view specialist permission
+        - Other methods: Authenticated + Can manage specialist permission
+        
+        Returns:
+            list: Permission classes for the current method
+        """
         if self.request.method == "GET":
             return [CanViewSpecialist()]
         return [IsAuthenticated(), CanManageSpecialist()]
 
     def get_serializer_class(self):
-        """Get the serializer class based on method"""
+        """
+        Get the serializer class based on method
+        
+        - POST: SpecialistServiceCreateSerializer (for creation)
+        - Other methods: SpecialistServiceSerializer (standard representation)
+        
+        Returns:
+            Serializer class: The appropriate serializer for the current method
+        """
         if self.request.method == "POST":
             return SpecialistServiceCreateSerializer
         return SpecialistServiceSerializer
 
     def get_serializer_context(self):
-        """Add specialist to serializer context"""
+        """
+        Add specialist to serializer context
+        
+        Includes the specialist object in the serializer context for validation
+        and association purposes.
+        
+        Returns:
+            dict: Serializer context with specialist included
+        """
         context = super().get_serializer_context()
         specialist_id = self.kwargs.get("specialist_id")
         if specialist_id:
@@ -263,7 +458,18 @@ class SpecialistServicesView(generics.ListCreateAPIView):
         return context
 
     def perform_create(self, serializer):
-        """Create the specialist service"""
+        """
+        Create the specialist service
+        
+        Verifies the user has permission to manage the specialist before
+        creating the service association.
+        
+        Args:
+            serializer: The specialist service serializer instance
+            
+        Raises:
+            PermissionDenied: If user doesn't have permission to manage this specialist
+        """
         specialist_id = self.kwargs.get("specialist_id")
         specialist = get_object_or_404(Specialist, id=specialist_id)
 
@@ -281,32 +487,84 @@ class SpecialistServicesView(generics.ListCreateAPIView):
 
 
 class SpecialistServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """View for retrieving, updating and deleting specialist services"""
+    """
+    View for retrieving, updating and deleting specialist services
+    
+    Manages individual service associations for a specialist.
+    
+    Endpoints:
+    - GET /api/specialists/{specialist_id}/services/{id}/ - Get a specialist service
+    - PUT/PATCH /api/specialists/{specialist_id}/services/{id}/ - Update a specialist service
+    - DELETE /api/specialists/{specialist_id}/services/{id}/ - Remove a service from a specialist
+    
+    URL parameters:
+        specialist_id: UUID of the specialist
+        id: UUID of the specialist service
+        
+    Permissions:
+    - GET: Can view specialist permission
+    - Other methods: Authenticated + Can manage specialist permission
+    """
 
     serializer_class = SpecialistServiceSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Get specialist service queryset"""
+        """
+        Get specialist service queryset
+        
+        Returns services for the specified specialist with related
+        objects preloaded for performance.
+        
+        Returns:
+            QuerySet: Services for the specialist
+        """
         specialist_id = self.kwargs.get("specialist_id")
         return SpecialistService.objects.filter(
             specialist_id=specialist_id
         ).select_related("service", "service__category")
 
     def get_permissions(self):
-        """Get the permissions based on method"""
+        """
+        Get the permissions based on method
+        
+        - GET: Can view specialist permission
+        - Other methods: Authenticated + Can manage specialist permission
+        
+        Returns:
+            list: Permission classes for the current method
+        """
         if self.request.method == "GET":
             return [CanViewSpecialist()]
         return [IsAuthenticated(), CanManageSpecialist()]
 
     def get_serializer_class(self):
-        """Get the serializer class based on method"""
+        """
+        Get the serializer class based on method
+        
+        - PUT/PATCH: SpecialistServiceUpdateSerializer (for updates)
+        - Other methods: SpecialistServiceSerializer (standard representation)
+        
+        Returns:
+            Serializer class: The appropriate serializer for the current method
+        """
         if self.request.method in ["PUT", "PATCH"]:
             return SpecialistServiceUpdateSerializer
         return SpecialistServiceSerializer
 
     def perform_update(self, serializer):
-        """Update the specialist service"""
+        """
+        Update the specialist service
+        
+        Verifies the user has permission to manage the specialist before
+        updating the service association.
+        
+        Args:
+            serializer: The specialist service serializer instance
+            
+        Raises:
+            PermissionDenied: If user doesn't have permission to manage this specialist
+        """
         specialist = serializer.instance.specialist
 
         # Check if user has permission to manage this specialist
@@ -323,32 +581,78 @@ class SpecialistServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class SpecialistWorkingHoursView(generics.ListCreateAPIView):
-    """View for listing and creating specialist working hours"""
+    """
+    View for listing and creating specialist working hours
+    
+    Manages the working hours for a specialist on different days of the week.
+    
+    Endpoints:
+    - GET /api/specialists/{specialist_id}/working-hours/ - List working hours for a specialist
+    - POST /api/specialists/{specialist_id}/working-hours/ - Add working hours for a specialist
+    
+    URL parameters:
+        specialist_id: UUID of the specialist
+        
+    Permissions:
+    - GET: Can view specialist permission
+    - POST: Authenticated + Can manage specialist permission
+    """
 
     serializer_class = SpecialistWorkingHoursSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Get working hours for a specific specialist"""
+        """
+        Get working hours for a specific specialist
+        
+        Returns working hours for the specialist, ordered by weekday and start time.
+        
+        Returns:
+            QuerySet: Working hours for the specialist
+        """
         specialist_id = self.kwargs.get("specialist_id")
         return SpecialistWorkingHours.objects.filter(
             specialist_id=specialist_id
         ).order_by("weekday", "from_hour")
 
     def get_permissions(self):
-        """Get the permissions based on method"""
+        """
+        Get the permissions based on method
+        
+        - GET: Can view specialist permission
+        - Other methods: Authenticated + Can manage specialist permission
+        
+        Returns:
+            list: Permission classes for the current method
+        """
         if self.request.method == "GET":
             return [CanViewSpecialist()]
         return [IsAuthenticated(), CanManageSpecialist()]
 
     def get_serializer_class(self):
-        """Get the serializer class based on method"""
+        """
+        Get the serializer class based on method
+        
+        - POST: SpecialistWorkingHoursCreateUpdateSerializer (for creation)
+        - Other methods: SpecialistWorkingHoursSerializer (standard representation)
+        
+        Returns:
+            Serializer class: The appropriate serializer for the current method
+        """
         if self.request.method == "POST":
             return SpecialistWorkingHoursCreateUpdateSerializer
         return SpecialistWorkingHoursSerializer
 
     def get_serializer_context(self):
-        """Add specialist to serializer context"""
+        """
+        Add specialist to serializer context
+        
+        Includes the specialist object in the serializer context for validation
+        and association purposes.
+        
+        Returns:
+            dict: Serializer context with specialist included
+        """
         context = super().get_serializer_context()
         specialist_id = self.kwargs.get("specialist_id")
         if specialist_id:
@@ -356,7 +660,18 @@ class SpecialistWorkingHoursView(generics.ListCreateAPIView):
         return context
 
     def perform_create(self, serializer):
-        """Create the specialist working hours"""
+        """
+        Create the specialist working hours
+        
+        Verifies the user has permission to manage the specialist. If working hours
+        already exist for the weekday, updates them instead of creating new ones.
+        
+        Args:
+            serializer: The working hours serializer instance
+            
+        Raises:
+            PermissionDenied: If user doesn't have permission to manage this specialist
+        """
         specialist_id = self.kwargs.get("specialist_id")
         specialist = get_object_or_404(Specialist, id=specialist_id)
 
@@ -388,30 +703,78 @@ class SpecialistWorkingHoursView(generics.ListCreateAPIView):
 
 
 class SpecialistWorkingHoursDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """View for retrieving, updating and deleting specialist working hours"""
+    """
+    View for retrieving, updating and deleting specialist working hours
+    
+    Manages individual working hour records for a specialist.
+    
+    Endpoints:
+    - GET /api/specialists/{specialist_id}/working-hours/{id}/ - Get specific working hours
+    - PUT/PATCH /api/specialists/{specialist_id}/working-hours/{id}/ - Update working hours
+    - DELETE /api/specialists/{specialist_id}/working-hours/{id}/ - Delete working hours
+    
+    URL parameters:
+        specialist_id: UUID of the specialist
+        id: UUID of the working hours record
+        
+    Permissions:
+    - GET: Can view specialist permission
+    - Other methods: Authenticated + Can manage specialist permission
+    """
 
     serializer_class = SpecialistWorkingHoursSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Get specialist working hours queryset"""
+        """
+        Get specialist working hours queryset
+        
+        Returns working hours for the specified specialist.
+        
+        Returns:
+            QuerySet: Working hours for the specialist
+        """
         specialist_id = self.kwargs.get("specialist_id")
         return SpecialistWorkingHours.objects.filter(specialist_id=specialist_id)
 
     def get_permissions(self):
-        """Get the permissions based on method"""
+        """
+        Get the permissions based on method
+        
+        - GET: Can view specialist permission
+        - Other methods: Authenticated + Can manage specialist permission
+        
+        Returns:
+            list: Permission classes for the current method
+        """
         if self.request.method == "GET":
             return [CanViewSpecialist()]
         return [IsAuthenticated(), CanManageSpecialist()]
 
     def get_serializer_class(self):
-        """Get the serializer class based on method"""
+        """
+        Get the serializer class based on method
+        
+        - PUT/PATCH: SpecialistWorkingHoursCreateUpdateSerializer (for updates)
+        - Other methods: SpecialistWorkingHoursSerializer (standard representation)
+        
+        Returns:
+            Serializer class: The appropriate serializer for the current method
+        """
         if self.request.method in ["PUT", "PATCH"]:
             return SpecialistWorkingHoursCreateUpdateSerializer
         return SpecialistWorkingHoursSerializer
 
     def get_serializer_context(self):
-        """Add specialist to serializer context"""
+        """
+        Add specialist to serializer context
+        
+        Includes the specialist object in the serializer context for validation
+        and association purposes.
+        
+        Returns:
+            dict: Serializer context with specialist included
+        """
         context = super().get_serializer_context()
         specialist_id = self.kwargs.get("specialist_id")
         if specialist_id:
@@ -419,7 +782,18 @@ class SpecialistWorkingHoursDetailView(generics.RetrieveUpdateDestroyAPIView):
         return context
 
     def perform_update(self, serializer):
-        """Update the specialist working hours"""
+        """
+        Update the specialist working hours
+        
+        Verifies the user has permission to manage the specialist before
+        updating the working hours.
+        
+        Args:
+            serializer: The working hours serializer instance
+            
+        Raises:
+            PermissionDenied: If user doesn't have permission to manage this specialist
+        """
         specialist = serializer.instance.specialist
 
         # Check if user has permission to manage this specialist
@@ -436,13 +810,37 @@ class SpecialistWorkingHoursDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class SpecialistPortfolioView(generics.ListCreateAPIView):
-    """View for listing and creating specialist portfolio items"""
+    """
+    View for listing and creating specialist portfolio items
+    
+    Manages the portfolio of work samples for a specialist, showcasing
+    their skills and previous work.
+    
+    Endpoints:
+    - GET /api/specialists/{specialist_id}/portfolio/ - List portfolio items for a specialist
+    - POST /api/specialists/{specialist_id}/portfolio/ - Add a portfolio item
+    
+    URL parameters:
+        specialist_id: UUID of the specialist
+        
+    Permissions:
+    - GET: Can view specialist permission
+    - POST: Authenticated + Can manage portfolio permission
+    """
 
     serializer_class = PortfolioItemSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Get portfolio items for a specific specialist"""
+        """
+        Get portfolio items for a specific specialist
+        
+        Returns portfolio items for the specialist, ordered by featured status
+        and creation date, with related objects preloaded for performance.
+        
+        Returns:
+            QuerySet: Portfolio items for the specialist
+        """
         specialist_id = self.kwargs.get("specialist_id")
         return (
             PortfolioItem.objects.filter(specialist_id=specialist_id)
@@ -451,19 +849,43 @@ class SpecialistPortfolioView(generics.ListCreateAPIView):
         )
 
     def get_permissions(self):
-        """Get the permissions based on method"""
+        """
+        Get the permissions based on method
+        
+        - GET: Can view specialist permission
+        - Other methods: Authenticated + Can manage portfolio permission
+        
+        Returns:
+            list: Permission classes for the current method
+        """
         if self.request.method == "GET":
             return [CanViewSpecialist()]
         return [IsAuthenticated(), CanManagePortfolio()]
 
     def get_serializer_class(self):
-        """Get the serializer class based on method"""
+        """
+        Get the serializer class based on method
+        
+        - POST: PortfolioItemCreateSerializer (for creation)
+        - Other methods: PortfolioItemSerializer (standard representation)
+        
+        Returns:
+            Serializer class: The appropriate serializer for the current method
+        """
         if self.request.method == "POST":
             return PortfolioItemCreateSerializer
         return PortfolioItemSerializer
 
     def get_serializer_context(self):
-        """Add specialist to serializer context"""
+        """
+        Add specialist to serializer context
+        
+        Includes the specialist object in the serializer context for validation
+        and association purposes.
+        
+        Returns:
+            dict: Serializer context with specialist included
+        """
         context = super().get_serializer_context()
         specialist_id = self.kwargs.get("specialist_id")
         if specialist_id:
@@ -471,7 +893,18 @@ class SpecialistPortfolioView(generics.ListCreateAPIView):
         return context
 
     def perform_create(self, serializer):
-        """Create the portfolio item"""
+        """
+        Create the portfolio item
+        
+        Verifies the user has permission to manage the specialist's portfolio
+        before creating the item.
+        
+        Args:
+            serializer: The portfolio item serializer instance
+            
+        Raises:
+            PermissionDenied: If user doesn't have permission to manage this portfolio
+        """
         specialist_id = self.kwargs.get("specialist_id")
         specialist = get_object_or_404(Specialist, id=specialist_id)
 
@@ -488,38 +921,120 @@ class SpecialistPortfolioView(generics.ListCreateAPIView):
 
 
 class SpecialistPortfolioItemDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """View for retrieving, updating and deleting specialist portfolio items"""
+    """
+    View for retrieving, updating and deleting specialist portfolio items
+    
+    Manages individual portfolio items for a specialist.
+    
+    Endpoints:
+    - GET /api/specialists/{specialist_id}/portfolio/{id}/ - Get a portfolio item
+    - PUT/PATCH /api/specialists/{specialist_id}/portfolio/{id}/ - Update a portfolio item
+    - DELETE /api/specialists/{specialist_id}/portfolio/{id}/ - Delete a portfolio item
+    
+    URL parameters:
+        specialist_id: UUID of the specialist
+        id: UUID of the portfolio item
+        
+    Permissions:
+    - GET: Can view specialist permission
+    - Other methods: Authenticated + Can manage portfolio permission
+    """
 
     serializer_class = PortfolioItemSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Get specialist portfolio item queryset"""
+        """
+        Get specialist portfolio item queryset
+        
+        Returns portfolio items for the specified specialist with related
+        objects preloaded for performance.
+        
+        Returns:
+            QuerySet: Portfolio items for the specialist
+        """
         specialist_id = self.kwargs.get("specialist_id")
         return PortfolioItem.objects.filter(specialist_id=specialist_id).select_related(
             "service", "category"
         )
 
     def get_permissions(self):
-        """Get the permissions based on method"""
+        """
+        Get the permissions based on method
+        
+        - GET: Can view specialist permission
+        - Other methods: Authenticated + Can manage portfolio permission
+        
+        Returns:
+            list: Permission classes for the current method
+        """
         if self.request.method == "GET":
             return [CanViewSpecialist()]
         return [IsAuthenticated(), CanManagePortfolio()]
 
     def get_serializer_class(self):
-        """Get the serializer class based on method"""
+        """
+        Get the serializer class based on method
+        
+        - PUT/PATCH: PortfolioItemUpdateSerializer (for updates)
+        - Other methods: PortfolioItemSerializer (standard representation)
+        
+        Returns:
+            Serializer class: The appropriate serializer for the current method
+        """
         if self.request.method in ["PUT", "PATCH"]:
             return PortfolioItemUpdateSerializer
         return PortfolioItemSerializer
 
 
 class SpecialistAvailabilityView(APIView):
-    """View for checking specialist availability on a specific date"""
+    """
+    View for checking specialist availability on a specific date
+    
+    Returns the available time slots for a specialist on a given date,
+    taking into account working hours, existing bookings, and leaves.
+    
+    Endpoint:
+    - GET /api/specialists/{specialist_id}/availability/{date}/ - Get availability
+    
+    URL parameters:
+        specialist_id: UUID of the specialist
+        date: Date in YYYY-MM-DD or YYYYMMDD format
+        
+    Permissions:
+    - Can view specialist permission
+    """
 
     permission_classes = [CanViewSpecialist]
 
     def get(self, request, specialist_id, date):
-        """Get specialist availability for a date"""
+        """
+        Get specialist availability for a date
+        
+        Parses the date parameter and uses the AvailabilityService to
+        calculate available time slots for the specialist.
+        
+        Args:
+            request: The HTTP request
+            specialist_id: UUID of the specialist
+            date: Date string
+            
+        Returns:
+            Response: List of available time slots
+                [
+                    {
+                        "start_time": "HH:MM:SS",
+                        "end_time": "HH:MM:SS",
+                        "duration_minutes": integer
+                    },
+                    ...
+                ]
+                
+        Status codes:
+            200: Availability retrieved successfully
+            400: Invalid date format
+            404: Specialist not found
+        """
         from datetime import datetime
 
         try:
@@ -554,12 +1069,45 @@ class SpecialistAvailabilityView(APIView):
 
 
 class SpecialistVerificationView(APIView):
-    """View for verifying a specialist"""
+    """
+    View for verifying a specialist
+    
+    Allows authorized users to mark a specialist as verified,
+    indicating they have been reviewed and approved.
+    
+    Endpoint:
+    - POST /api/specialists/{pk}/verify/ - Verify a specialist
+    
+    URL parameters:
+        pk: UUID of the specialist
+        
+    Permissions:
+    - Authenticated + Can verify specialist permission
+    """
 
     permission_classes = [IsAuthenticated, CanVerifySpecialist]
 
     def post(self, request, pk):
-        """Verify a specialist"""
+        """
+        Verify a specialist
+        
+        Updates the specialist's verification status and sends a
+        notification to the specialist.
+        
+        Args:
+            request: The HTTP request
+            pk: UUID of the specialist
+            
+        Returns:
+            Response: Success message
+                {
+                    "message": "Specialist has been verified."
+                }
+                
+        Status codes:
+            200: Specialist verified successfully
+            404: Specialist not found
+        """
         specialist = get_object_or_404(Specialist, id=pk)
 
         # Update verification status

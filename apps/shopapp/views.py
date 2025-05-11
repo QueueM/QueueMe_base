@@ -1,3 +1,8 @@
+"""
+Shop app views for QueueMe platform
+Handles endpoints related to shops, branches, followers, hours, and verifications
+"""
+
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -35,6 +40,7 @@ from .services.hours_service import HoursService
 from .services.shop_service import ShopService
 from .services.shop_visibility import ShopVisibilityService
 from .services.verification_service import VerificationService
+from ..api_doc_decorators import document_api_endpoint, document_api_viewset
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -43,6 +49,11 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 100
 
 
+@document_api_viewset(
+    summary="Shop",
+    description="API endpoints for managing shops, their settings, hours, and verifications",
+    tags=["Shops"]
+)
 class ShopViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing shops.
@@ -91,6 +102,16 @@ class ShopViewSet(viewsets.ModelViewSet):
             return ShopMinimalSerializer
         return ShopSerializer
 
+    @document_api_endpoint(
+        summary="Create a new shop",
+        description="Create a new shop with default working hours",
+        responses={
+            201: "Created - Shop created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission to create shops"
+        },
+        tags=["Shops"]
+    )
     def perform_create(self, serializer):
         unused_unused_company = self.request.data.get("company")
         from apps.rolesapp.services.permission_resolver import PermissionResolver
@@ -104,6 +125,24 @@ class ShopViewSet(viewsets.ModelViewSet):
         # Create default working hours
         HoursService.create_default_hours(shop.id)
 
+    @document_api_endpoint(
+        summary="Request shop verification",
+        description="Submit a verification request for a shop",
+        responses={
+            201: "Created - Verification request submitted successfully",
+            400: "Bad Request - Verification already pending",
+            403: "Forbidden - User doesn't have permission to request verification",
+            404: "Not Found - Shop not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Shop ID', 
+                'type': 'integer'
+            }
+        ],
+        tags=["Shops", "Verification"]
+    )
     @action(
         detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
     )
@@ -139,6 +178,22 @@ class ShopViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @document_api_endpoint(
+        summary="Get shop hours",
+        description="Retrieve the operating hours for a shop",
+        responses={
+            200: "Success - Returns shop hours",
+            404: "Not Found - Shop not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Shop ID', 
+                'type': 'integer'
+            }
+        ],
+        tags=["Shops", "Hours"]
+    )
     @action(
         detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated]
     )
@@ -151,6 +206,22 @@ class ShopViewSet(viewsets.ModelViewSet):
         serializer = ShopHoursSerializer(hours, many=True)
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Get shop settings",
+        description="Retrieve the settings for a shop",
+        responses={
+            200: "Success - Returns shop settings",
+            404: "Not Found - Shop not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Shop ID', 
+                'type': 'integer'
+            }
+        ],
+        tags=["Shops", "Settings"]
+    )
     @action(
         detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated]
     )
@@ -163,6 +234,24 @@ class ShopViewSet(viewsets.ModelViewSet):
         serializer = ShopSettingsSerializer(settings)
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Update shop settings",
+        description="Update the settings for a shop",
+        responses={
+            200: "Success - Settings updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Shop not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Shop ID', 
+                'type': 'integer'
+            }
+        ],
+        tags=["Shops", "Settings"]
+    )
     @action(
         detail=True,
         methods=["patch"],
@@ -179,6 +268,22 @@ class ShopViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Get shop statistics",
+        description="Retrieve statistical data about a shop including bookings, services, and specialists",
+        responses={
+            200: "Success - Returns shop statistics",
+            404: "Not Found - Shop not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Shop ID', 
+                'type': 'integer'
+            }
+        ],
+        tags=["Shops", "Statistics"]
+    )
     @action(
         detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated]
     )
@@ -281,6 +386,11 @@ class ShopViewSet(viewsets.ModelViewSet):
         return Response(stats)
 
 
+@document_api_viewset(
+    summary="Shop Hours",
+    description="API endpoints for managing shop operating hours",
+    tags=["Shops", "Hours"]
+)
 class ShopHoursViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing shop hours.
@@ -292,6 +402,16 @@ class ShopHoursViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = ShopHoursFilter
 
+    @document_api_endpoint(
+        summary="Create shop hours",
+        description="Create new operating hours for a shop",
+        responses={
+            201: "Created - Hours created successfully",
+            400: "Bad Request - Hours already exist for this day",
+            403: "Forbidden - User doesn't have permission"
+        },
+        tags=["Shops", "Hours"]
+    )
     def perform_create(self, serializer):
         shop = serializer.validated_data.get("shop")
         weekday = serializer.validated_data.get("weekday")
@@ -308,6 +428,25 @@ class ShopHoursViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 
+@document_api_endpoint(
+    summary="List and create shop hours",
+    description="Retrieve all hours for a shop or create new hours",
+    responses={
+        200: "Success - Returns shop hours",
+        201: "Created - Hours created successfully",
+        400: "Bad Request - Hours already exist for this day",
+        403: "Forbidden - User doesn't have permission",
+        404: "Not Found - Shop not found"
+    },
+    path_params=[
+        {
+            'name': 'shop_id', 
+            'description': 'Shop ID', 
+            'type': 'integer'
+        }
+    ],
+    tags=["Shops", "Hours"]
+)
 class ShopHoursListView(generics.ListCreateAPIView):
     """
     API endpoint for listing and creating shop hours for a specific shop.
@@ -338,6 +477,11 @@ class ShopHoursListView(generics.ListCreateAPIView):
         serializer.save(shop_id=shop_id)
 
 
+@document_api_viewset(
+    summary="Shop Follower",
+    description="API endpoints for managing shop followers",
+    tags=["Shops", "Followers"]
+)
 class FollowerViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing shop followers.
@@ -366,6 +510,16 @@ class FollowerViewSet(viewsets.ModelViewSet):
         # Admins can see all
         return ShopFollower.objects.all()
 
+    @document_api_endpoint(
+        summary="Create shop follower",
+        description="Follow a shop as a customer",
+        responses={
+            201: "Created - Now following the shop",
+            400: "Bad Request - Already following this shop",
+            403: "Forbidden - Only customers can follow shops"
+        },
+        tags=["Shops", "Followers"]
+    )
     def perform_create(self, serializer):
         # Only allow customers to follow shops
         if self.request.user.user_type != "customer":
@@ -384,6 +538,23 @@ class FollowerViewSet(viewsets.ModelViewSet):
         serializer.save(customer=self.request.user)
 
 
+@document_api_endpoint(
+    summary="List shop followers",
+    description="Retrieve all followers for a specific shop",
+    responses={
+        200: "Success - Returns list of followers",
+        403: "Forbidden - User doesn't have permission to view followers",
+        404: "Not Found - Shop not found"
+    },
+    path_params=[
+        {
+            'name': 'shop_id', 
+            'description': 'Shop ID', 
+            'type': 'integer'
+        }
+    ],
+    tags=["Shops", "Followers"]
+)
 class ShopFollowersListView(generics.ListAPIView):
     """
     API endpoint for listing followers of a specific shop.
@@ -398,6 +569,11 @@ class ShopFollowersListView(generics.ListAPIView):
         return ShopFollower.objects.filter(shop_id=shop_id).order_by("-created_at")
 
 
+@document_api_viewset(
+    summary="Shop Location",
+    description="API endpoints for retrieving shop locations",
+    tags=["Shops", "Locations"]
+)
 class ShopLocationViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for shop locations.
@@ -424,6 +600,11 @@ class ShopLocationViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
+@document_api_viewset(
+    summary="Shop Settings",
+    description="API endpoints for managing shop settings",
+    tags=["Shops", "Settings"]
+)
 class ShopSettingsViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing shop settings.
@@ -451,6 +632,11 @@ class ShopSettingsViewSet(viewsets.ModelViewSet):
         return ShopSettings.objects.none()
 
 
+@document_api_viewset(
+    summary="Shop Verification",
+    description="API endpoints for managing shop verification requests",
+    tags=["Shops", "Verification"]
+)
 class ShopVerificationViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing shop verifications.
@@ -479,6 +665,24 @@ class ShopVerificationViewSet(viewsets.ModelViewSet):
         # Customers can't see verifications
         return ShopVerification.objects.none()
 
+    @document_api_endpoint(
+        summary="Approve shop verification",
+        description="Approve a pending shop verification request",
+        responses={
+            200: "Success - Verification approved successfully",
+            400: "Bad Request - Only pending verifications can be approved",
+            403: "Forbidden - User doesn't have permission to verify shops",
+            404: "Not Found - Verification not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Verification ID', 
+                'type': 'integer'
+            }
+        ],
+        tags=["Shops", "Verification", "Admin"]
+    )
     @action(
         detail=True,
         methods=["post"],
@@ -499,6 +703,24 @@ class ShopVerificationViewSet(viewsets.ModelViewSet):
             {"status": "success", "message": _("Verification approved successfully.")}
         )
 
+    @document_api_endpoint(
+        summary="Reject shop verification",
+        description="Reject a pending shop verification request with a reason",
+        responses={
+            200: "Success - Verification rejected successfully",
+            400: "Bad Request - Only pending verifications can be rejected or reason required",
+            403: "Forbidden - User doesn't have permission to verify shops",
+            404: "Not Found - Verification not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Verification ID', 
+                'type': 'integer'
+            }
+        ],
+        tags=["Shops", "Verification", "Admin"]
+    )
     @action(
         detail=True,
         methods=["post"],
@@ -526,6 +748,23 @@ class ShopVerificationViewSet(viewsets.ModelViewSet):
         )
 
 
+@document_api_endpoint(
+    summary="Verify shop directly",
+    description="Verify a shop directly (admin only)",
+    responses={
+        200: "Success - Shop verified successfully",
+        403: "Forbidden - User doesn't have permission to verify shops",
+        404: "Not Found - Shop not found"
+    },
+    path_params=[
+        {
+            'name': 'shop_id', 
+            'description': 'Shop ID', 
+            'type': 'integer'
+        }
+    ],
+    tags=["Shops", "Verification", "Admin"]
+)
 class VerifyShopView(APIView):
     """
     API endpoint for verifying a shop directly (admin only).
@@ -544,6 +783,23 @@ class VerifyShopView(APIView):
         )
 
 
+@document_api_endpoint(
+    summary="Follow a shop",
+    description="Follow a shop as a customer",
+    responses={
+        200: "Success - Now following the shop or already following",
+        403: "Forbidden - Only customers can follow shops",
+        404: "Not Found - Shop not found"
+    },
+    path_params=[
+        {
+            'name': 'shop_id', 
+            'description': 'Shop ID', 
+            'type': 'integer'
+        }
+    ],
+    tags=["Shops", "Followers"]
+)
 class FollowShopView(APIView):
     """
     API endpoint for following a shop.
@@ -576,6 +832,23 @@ class FollowShopView(APIView):
         )
 
 
+@document_api_endpoint(
+    summary="Unfollow a shop",
+    description="Unfollow a shop as a customer",
+    responses={
+        200: "Success - Unfollowed the shop or wasn't following",
+        403: "Forbidden - Only customers can unfollow shops",
+        404: "Not Found - Shop not found"
+    },
+    path_params=[
+        {
+            'name': 'shop_id', 
+            'description': 'Shop ID', 
+            'type': 'integer'
+        }
+    ],
+    tags=["Shops", "Followers"]
+)
 class UnfollowShopView(APIView):
     """
     API endpoint for unfollowing a shop.
@@ -608,6 +881,40 @@ class UnfollowShopView(APIView):
         )
 
 
+@document_api_endpoint(
+    summary="List nearby shops",
+    description="Find shops near a geographical location or in user's city",
+    responses={
+        200: "Success - Returns list of nearby shops"
+    },
+    query_params=[
+        {
+            'name': 'lat', 
+            'description': 'Latitude coordinate', 
+            'required': False, 
+            'type': 'number'
+        },
+        {
+            'name': 'lng', 
+            'description': 'Longitude coordinate', 
+            'required': False, 
+            'type': 'number'
+        },
+        {
+            'name': 'radius', 
+            'description': 'Search radius in kilometers (default: 10)', 
+            'required': False, 
+            'type': 'number'
+        },
+        {
+            'name': 'category_id', 
+            'description': 'Filter by service category ID', 
+            'required': False, 
+            'type': 'integer'
+        }
+    ],
+    tags=["Shops", "Locations"]
+)
 class NearbyShopsView(generics.ListAPIView):
     """
     API endpoint for listing nearby shops.
@@ -655,6 +962,22 @@ class NearbyShopsView(generics.ListAPIView):
         return ShopVisibilityService.sort_shops_by_relevance(queryset, user)
 
 
+@document_api_endpoint(
+    summary="List top rated shops",
+    description="Get top shops based on ratings and bookings, optionally filtered by city or category",
+    responses={
+        200: "Success - Returns list of top shops"
+    },
+    query_params=[
+        {
+            'name': 'category_id', 
+            'description': 'Filter by service category ID', 
+            'required': False, 
+            'type': 'integer'
+        }
+    ],
+    tags=["Shops"]
+)
 class TopShopsView(generics.ListAPIView):
     """
     API endpoint for listing top shops based on ratings and bookings.
@@ -723,6 +1046,14 @@ class TopShopsView(generics.ListAPIView):
         return queryset.order_by("-weighted_score")
 
 
+@document_api_endpoint(
+    summary="List followed shops",
+    description="Get all shops followed by the current customer",
+    responses={
+        200: "Success - Returns list of followed shops"
+    },
+    tags=["Shops", "Followers"]
+)
 class FollowedShopsView(generics.ListAPIView):
     """
     API endpoint for listing shops followed by the customer.

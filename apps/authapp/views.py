@@ -1,3 +1,8 @@
+"""
+Authentication app views for QueueMe platform
+Handles user authentication, OTP verification, and profile management
+"""
+
 import logging
 
 from django.contrib.auth import authenticate
@@ -21,10 +26,16 @@ from apps.authapp.services.otp_service import OTPService
 from apps.authapp.services.phone_verification import PhoneVerificationService
 from apps.authapp.services.security_service import SecurityService
 from apps.authapp.services.token_service import TokenService
+from ..api_doc_decorators import document_api_endpoint, document_api_viewset
 
 logger = logging.getLogger(__name__)
 
 
+@document_api_viewset(
+    summary="Authentication",
+    description="API endpoints for handling user authentication including OTP, login, and token operations",
+    tags=["Authentication"]
+)
 class AuthViewSet(viewsets.GenericViewSet):
     """
     Authentication viewset handling OTP, login, and token operations.
@@ -34,6 +45,17 @@ class AuthViewSet(viewsets.GenericViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
+    @document_api_endpoint(
+        summary="Request OTP",
+        description="Request a one-time password to be sent to the provided phone number",
+        responses={
+            200: "Success - OTP sent successfully",
+            400: "Bad Request - Invalid data",
+            429: "Too Many Requests - Rate limited",
+            500: "Internal Server Error - Failed to send OTP"
+        },
+        tags=["Authentication", "OTP"]
+    )
     @action(detail=False, methods=["post"])
     def request_otp(self, request):
         """
@@ -68,6 +90,15 @@ class AuthViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @document_api_endpoint(
+        summary="Verify OTP",
+        description="Verify OTP code and return authentication tokens",
+        responses={
+            200: "Success - OTP verified successfully, returns tokens and user info",
+            400: "Bad Request - Invalid OTP code or data"
+        },
+        tags=["Authentication", "OTP"]
+    )
     @action(detail=False, methods=["post"])
     def verify_otp(self, request):
         """
@@ -107,6 +138,16 @@ class AuthViewSet(viewsets.GenericViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+    @document_api_endpoint(
+        summary="Login",
+        description="Login with phone number and password",
+        responses={
+            200: "Success - Login successful, returns tokens and user info",
+            401: "Unauthorized - Invalid credentials or account disabled",
+            429: "Too Many Requests - Rate limited"
+        },
+        tags=["Authentication", "Login"]
+    )
     @action(detail=False, methods=["post"])
     def login(self, request):
         """
@@ -173,6 +214,14 @@ class AuthViewSet(viewsets.GenericViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+    @document_api_endpoint(
+        summary="Logout",
+        description="Logout current user by invalidating tokens",
+        responses={
+            200: "Success - User logged out successfully"
+        },
+        tags=["Authentication", "Login"]
+    )
     @action(
         detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated]
     )
@@ -192,6 +241,15 @@ class AuthViewSet(viewsets.GenericViewSet):
 
         return Response({"detail": _("Successfully logged out")})
 
+    @document_api_endpoint(
+        summary="Refresh token",
+        description="Get new access token using refresh token",
+        responses={
+            200: "Success - Returns new token pair",
+            401: "Unauthorized - Invalid refresh token"
+        },
+        tags=["Authentication", "Tokens"]
+    )
     @action(detail=False, methods=["post"])
     def refresh_token(self, request):
         """
@@ -214,6 +272,14 @@ class AuthViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+    @document_api_endpoint(
+        summary="Change language",
+        description="Update user language preference",
+        responses={
+            200: "Success - Language preference updated successfully"
+        },
+        tags=["User Settings"]
+    )
     @action(
         detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated]
     )
@@ -238,6 +304,11 @@ class AuthViewSet(viewsets.GenericViewSet):
         )
 
 
+@document_api_viewset(
+    summary="User Profile",
+    description="API endpoints for managing user profile and account settings",
+    tags=["Users", "Profile"]
+)
 class UserProfileViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin, mixins.UpdateModelMixin
 ):
@@ -260,6 +331,42 @@ class UserProfileViewSet(
         """
         return self.request.user
 
+    @document_api_endpoint(
+        summary="Get user profile",
+        description="Retrieve current user profile information",
+        responses={
+            200: "Success - Returns user profile details"
+        },
+        tags=["Users", "Profile"]
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Update user profile",
+        description="Update current user profile information",
+        responses={
+            200: "Success - User profile updated successfully",
+            400: "Bad Request - Invalid data"
+        },
+        tags=["Users", "Profile"]
+    )
+    def update(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().update(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Change phone number",
+        description="Request a phone number change and start verification process",
+        responses={
+            200: "Success - Verification code sent to new phone number",
+            400: "Bad Request - Phone number is required or already in use",
+            429: "Too Many Requests - Rate limited",
+            500: "Internal Server Error - Failed to send verification"
+        },
+        tags=["Users", "Profile"]
+    )
     @action(detail=False, methods=["post"])
     def change_phone(self, request):
         """
@@ -295,6 +402,15 @@ class UserProfileViewSet(
             status=status.HTTP_200_OK,
         )
 
+    @document_api_endpoint(
+        summary="Verify new phone number",
+        description="Verify new phone number with OTP code",
+        responses={
+            200: "Success - Phone number updated successfully, returns new tokens",
+            400: "Bad Request - Invalid code or phone already in use"
+        },
+        tags=["Users", "Profile"]
+    )
     @action(detail=False, methods=["post"])
     def verify_new_phone(self, request):
         """

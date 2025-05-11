@@ -1,4 +1,8 @@
-# apps/bookingapp/views.py
+"""
+Booking app views for QueueMe platform
+Handles endpoints related to appointments, multi-service bookings, and scheduling
+"""
+
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets, generics
@@ -35,6 +39,7 @@ from utils.request_validators import validate_request_schema, InputSanitizer, Re
 from django.db import transaction
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
+from ..api_doc_decorators import document_api_endpoint, document_api_viewset
 
 
 # Define JSON Schema for appointment creation
@@ -86,6 +91,11 @@ CANCEL_APPOINTMENT_SCHEMA = {
 }
 
 
+@document_api_viewset(
+    summary="Appointment",
+    description="API endpoints for managing appointments with additional actions for canceling, rescheduling, adding notes, and checking availability",
+    tags=["Bookings", "Appointments"]
+)
 class AppointmentViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing appointments.
@@ -116,6 +126,14 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     ordering_fields = ["start_time", "created_at", "status", "total_price"]
     ordering = ["-start_time"]
 
+    @document_api_endpoint(
+        summary="List appointments",
+        description="Retrieve appointments filtered based on user role",
+        responses={
+            200: "Success - Returns list of appointments"
+        },
+        tags=["Bookings", "Appointments"]
+    )
     def get_queryset(self):
         """Filter appointments based on user role"""
         user = self.request.user
@@ -136,6 +154,16 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         # Admins can see all appointments
         return super().get_queryset()
 
+    @document_api_endpoint(
+        summary="Create an appointment",
+        description="Book a new appointment with JSON schema validation",
+        responses={
+            201: "Created - Appointment booked successfully",
+            400: "Bad Request - Invalid data or validation error",
+            500: "Internal Server Error - Unexpected error"
+        },
+        tags=["Bookings", "Appointments"]
+    )
     @validate_request_schema(CREATE_APPOINTMENT_SCHEMA, schema_id="create_appointment")
     def create(self, request, *args, **kwargs):
         """Create appointment with JSON schema validation"""
@@ -177,6 +205,23 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @document_api_endpoint(
+        summary="Cancel an appointment",
+        description="Cancel an existing appointment with an optional reason",
+        responses={
+            200: "Success - Appointment cancelled successfully",
+            400: "Bad Request - Invalid data or cannot cancel",
+            404: "Not Found - Appointment not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Appointment ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Bookings", "Appointments"]
+    )
     @action(detail=True, methods=["post"])
     @validate_request_schema(CANCEL_APPOINTMENT_SCHEMA, schema_id="cancel_appointment")
     def cancel(self, request, pk=None):
@@ -197,6 +242,23 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @document_api_endpoint(
+        summary="Reschedule an appointment",
+        description="Change the date, time, or specialist for an existing appointment",
+        responses={
+            200: "Success - Appointment rescheduled successfully",
+            400: "Bad Request - Invalid data or cannot reschedule",
+            404: "Not Found - Appointment not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Appointment ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Bookings", "Appointments"]
+    )
     @action(detail=True, methods=["post"])
     def reschedule(self, request, pk=None):
         """Reschedule an appointment"""
@@ -228,6 +290,23 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @document_api_endpoint(
+        summary="Add a note to an appointment",
+        description="Add a note or comment to an existing appointment",
+        responses={
+            201: "Created - Note added successfully",
+            400: "Bad Request - Invalid data",
+            404: "Not Found - Appointment not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Appointment ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Bookings", "Appointments", "Notes"]
+    )
     @action(detail=True, methods=["post"])
     def add_note(self, request, pk=None):
         """Add a note to an appointment"""
@@ -252,6 +331,29 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @document_api_endpoint(
+        summary="Check service availability",
+        description="Get available time slots for a service on a specific date",
+        responses={
+            200: "Success - Returns available time slots",
+            400: "Bad Request - Missing parameters or invalid date"
+        },
+        query_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID to check availability for', 
+                'required': True, 
+                'type': 'string'
+            },
+            {
+                'name': 'date', 
+                'description': 'Date to check availability for (YYYY-MM-DD)', 
+                'required': True, 
+                'type': 'string'
+            }
+        ],
+        tags=["Bookings", "Availability"]
+    )
     @action(detail=False, methods=["get"])
     def availability(self, request):
         """Get service availability for a date"""
@@ -279,6 +381,41 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @document_api_endpoint(
+        summary="Get available specialists",
+        description="Find specialists available for a specific service, date and time range",
+        responses={
+            200: "Success - Returns list of available specialists",
+            400: "Bad Request - Missing parameters or invalid date/time"
+        },
+        query_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID to find specialists for', 
+                'required': True, 
+                'type': 'string'
+            },
+            {
+                'name': 'date', 
+                'description': 'Date to check availability for (YYYY-MM-DD)', 
+                'required': True, 
+                'type': 'string'
+            },
+            {
+                'name': 'start_time', 
+                'description': 'Start time (HH:MM)', 
+                'required': True, 
+                'type': 'string'
+            },
+            {
+                'name': 'end_time', 
+                'description': 'End time (HH:MM)', 
+                'required': True, 
+                'type': 'string'
+            }
+        ],
+        tags=["Bookings", "Specialists", "Availability"]
+    )
     @action(detail=False, methods=["get"])
     def specialists(self, request):
         """Get available specialists for a service/time"""
@@ -314,6 +451,16 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @document_api_endpoint(
+        summary="Recommend a specialist",
+        description="Get recommended specialist for a service and time slot based on preferences and availability",
+        responses={
+            200: "Success - Returns recommended specialist",
+            400: "Bad Request - Invalid data",
+            404: "Not Found - No specialists available"
+        },
+        tags=["Bookings", "Specialists", "Recommendations"]
+    )
     @action(detail=False, methods=["post"])
     def recommend_specialist(self, request):
         """Get recommended specialist for a service/time"""
@@ -356,6 +503,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@document_api_viewset(
+    summary="Multi-Service Booking",
+    description="API endpoints for managing bookings with multiple services",
+    tags=["Bookings", "Multi-Service"]
+)
 class MultiServiceBookingViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -379,6 +531,14 @@ class MultiServiceBookingViewSet(
     ordering_fields = ["created_at", "total_price"]
     ordering = ["-created_at"]
 
+    @document_api_endpoint(
+        summary="List multi-service bookings",
+        description="Retrieve multi-service bookings filtered based on user role",
+        responses={
+            200: "Success - Returns list of multi-service bookings"
+        },
+        tags=["Bookings", "Multi-Service"]
+    )
     def get_queryset(self):
         """Filter bookings based on user role"""
         user = self.request.user
@@ -399,6 +559,15 @@ class MultiServiceBookingViewSet(
         # Admins can see all bookings
         return super().get_queryset()
 
+    @document_api_endpoint(
+        summary="Create a multi-service booking",
+        description="Book multiple services in a single transaction",
+        responses={
+            201: "Created - Multi-service booking created successfully",
+            400: "Bad Request - Invalid data"
+        },
+        tags=["Bookings", "Multi-Service"]
+    )
     def create(self, request, *args, **kwargs):
         """Create multi-service booking"""
         serializer = MultiServiceBookingCreateSerializer(data=request.data)
@@ -424,6 +593,16 @@ class MultiServiceBookingViewSet(
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @document_api_endpoint(
+        summary="Suggest optimal sequence",
+        description="Suggest optimal sequence for multiple services based on availability",
+        responses={
+            200: "Success - Returns suggested booking sequence",
+            400: "Bad Request - Missing parameters or invalid data",
+            404: "Not Found - Could not find suitable slots"
+        },
+        tags=["Bookings", "Multi-Service", "Recommendations"]
+    )
     @action(detail=False, methods=["post"])
     def suggest_sequence(self, request):
         """Suggest optimal sequence for multiple services"""
@@ -463,6 +642,16 @@ class MultiServiceBookingViewSet(
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@document_api_endpoint(
+    summary="Create appointment with conflict detection",
+    description="Create a new appointment with atomic transaction and conflict detection to prevent double-bookings",
+    responses={
+        201: "Created - Appointment created successfully",
+        400: "Bad Request - Invalid data",
+        409: "Conflict - Time slot no longer available"
+    },
+    tags=["Bookings", "Appointments"]
+)
 class AppointmentCreateView(generics.CreateAPIView):
     """Create a new appointment with conflict detection"""
     
@@ -511,6 +700,16 @@ class AppointmentCreateView(generics.CreateAPIView):
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
 
+@document_api_endpoint(
+    summary="Create multi-service booking with conflict detection",
+    description="Create a booking with multiple appointments in a single atomic transaction",
+    responses={
+        201: "Created - Multi-service booking created successfully",
+        400: "Bad Request - Invalid data",
+        409: "Conflict - One or more time slots no longer available"
+    },
+    tags=["Bookings", "Multi-Service"]
+)
 class MultiServiceBookingCreateView(generics.CreateAPIView):
     """Create a multi-service booking with multiple appointments"""
     

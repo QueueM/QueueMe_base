@@ -1,3 +1,8 @@
+"""
+Queue app views for QueueMe platform
+Handles endpoints related to queue management and ticket processing
+"""
+
 from django.db.models import Avg, Count, F
 from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
@@ -6,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.rolesapp.decorators import has_permission, has_shop_permission
+from ..api_doc_decorators import document_api_endpoint, document_api_viewset
 
 from .models import Queue, QueueTicket
 from .serializers import (
@@ -19,6 +25,16 @@ from .serializers import (
 from .services.queue_service import QueueService
 
 
+@document_api_endpoint(
+    summary="List or create queues",
+    description="Retrieve all queues or create a new queue",
+    responses={
+        200: "Success - Returns list of queues",
+        201: "Created - Queue created successfully",
+        403: "Forbidden - User doesn't have permission"
+    },
+    tags=["Queues"]
+)
 class QueueListView(generics.ListCreateAPIView):
     """List all queues or create a new queue"""
 
@@ -34,6 +50,24 @@ class QueueListView(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
+@document_api_endpoint(
+    summary="Retrieve, update or delete a queue",
+    description="Get details of a specific queue, update it, or delete it",
+    responses={
+        200: "Success - Returns queue details or updated queue",
+        204: "No Content - Queue deleted successfully",
+        403: "Forbidden - User doesn't have permission",
+        404: "Not Found - Queue not found"
+    },
+    path_params=[
+        {
+            'name': 'pk', 
+            'description': 'Queue ID', 
+            'type': 'string'
+        }
+    ],
+    tags=["Queues"]
+)
 class QueueDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Retrieve, update or delete a queue"""
 
@@ -57,6 +91,23 @@ class QueueDetailView(generics.RetrieveUpdateDestroyAPIView):
         return super().delete(request, *args, **kwargs)
 
 
+@document_api_endpoint(
+    summary="List queues for a shop",
+    description="Retrieve all queues for a specific shop",
+    responses={
+        200: "Success - Returns list of queues for the shop",
+        403: "Forbidden - User doesn't have permission",
+        404: "Not Found - Shop not found"
+    },
+    path_params=[
+        {
+            'name': 'shop_id', 
+            'description': 'Shop ID', 
+            'type': 'string'
+        }
+    ],
+    tags=["Queues", "Shops"]
+)
 class ShopQueueListView(generics.ListAPIView):
     """List all queues for a specific shop"""
 
@@ -71,6 +122,35 @@ class ShopQueueListView(generics.ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
+@document_api_endpoint(
+    summary="List queue tickets",
+    description="Retrieve all queue tickets with optional filtering",
+    responses={
+        200: "Success - Returns list of queue tickets",
+        403: "Forbidden - User doesn't have permission"
+    },
+    query_params=[
+        {
+            'name': 'queue', 
+            'description': 'Filter by queue ID', 
+            'required': False, 
+            'type': 'string'
+        },
+        {
+            'name': 'status', 
+            'description': 'Filter by ticket status', 
+            'required': False, 
+            'type': 'string'
+        },
+        {
+            'name': 'customer', 
+            'description': 'Filter by customer ID', 
+            'required': False, 
+            'type': 'string'
+        }
+    ],
+    tags=["Queue Tickets"]
+)
 class QueueTicketListView(generics.ListAPIView):
     """List all queue tickets"""
 
@@ -83,6 +163,23 @@ class QueueTicketListView(generics.ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
+@document_api_endpoint(
+    summary="Retrieve a queue ticket",
+    description="Get details of a specific queue ticket",
+    responses={
+        200: "Success - Returns queue ticket details",
+        403: "Forbidden - User doesn't have permission",
+        404: "Not Found - Queue ticket not found"
+    },
+    path_params=[
+        {
+            'name': 'pk', 
+            'description': 'Queue Ticket ID', 
+            'type': 'string'
+        }
+    ],
+    tags=["Queue Tickets"]
+)
 class QueueTicketDetailView(generics.RetrieveAPIView):
     """Retrieve a queue ticket"""
 
@@ -94,6 +191,16 @@ class QueueTicketDetailView(generics.RetrieveAPIView):
         return super().get(request, *args, **kwargs)
 
 
+@document_api_endpoint(
+    summary="Join a queue",
+    description="Add a customer to a queue and create a queue ticket",
+    responses={
+        201: "Created - Customer successfully joined the queue",
+        400: "Bad Request - Invalid data or unable to join queue",
+        401: "Unauthorized - Authentication required"
+    },
+    tags=["Queue Tickets", "Queue Operations"]
+)
 class JoinQueueView(APIView):
     """Add customer to queue"""
 
@@ -121,6 +228,17 @@ class JoinQueueView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@document_api_endpoint(
+    summary="Call next customer",
+    description="Call the next customer in the queue",
+    responses={
+        200: "Success - Next customer called successfully",
+        400: "Bad Request - Invalid data or no customers in queue",
+        401: "Unauthorized - Authentication required",
+        403: "Forbidden - User doesn't have permission"
+    },
+    tags=["Queue Operations"]
+)
 class CallNextView(APIView):
     """Call next customer in queue"""
 
@@ -146,6 +264,17 @@ class CallNextView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@document_api_endpoint(
+    summary="Mark customer as being served",
+    description="Update a ticket status to indicate customer is currently being served",
+    responses={
+        200: "Success - Customer marked as being served",
+        400: "Bad Request - Invalid data or ticket status",
+        401: "Unauthorized - Authentication required",
+        403: "Forbidden - User doesn't have permission"
+    },
+    tags=["Queue Operations"]
+)
 class MarkServingView(APIView):
     """Mark customer as being served"""
 
@@ -171,6 +300,17 @@ class MarkServingView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@document_api_endpoint(
+    summary="Mark customer as served",
+    description="Update a ticket status to indicate service is completed",
+    responses={
+        200: "Success - Customer marked as served",
+        400: "Bad Request - Invalid data or ticket status",
+        401: "Unauthorized - Authentication required",
+        403: "Forbidden - User doesn't have permission"
+    },
+    tags=["Queue Operations"]
+)
 class MarkServedView(APIView):
     """Mark customer as served (completed)"""
 
@@ -195,6 +335,18 @@ class MarkServedView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@document_api_endpoint(
+    summary="Cancel a queue ticket",
+    description="Cancel a customer's place in the queue",
+    responses={
+        200: "Success - Ticket canceled successfully",
+        400: "Bad Request - Invalid data or ticket status",
+        401: "Unauthorized - Authentication required",
+        403: "Forbidden - User doesn't have permission",
+        404: "Not Found - Ticket not found"
+    },
+    tags=["Queue Operations", "Queue Tickets"]
+)
 class CancelTicketView(APIView):
     """Cancel a queue ticket"""
 
@@ -237,6 +389,23 @@ class CancelTicketView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@document_api_endpoint(
+    summary="Get queue status",
+    description="Get current status of a queue including active tickets and wait times",
+    responses={
+        200: "Success - Returns queue status information",
+        401: "Unauthorized - Authentication required",
+        404: "Not Found - Queue not found"
+    },
+    path_params=[
+        {
+            'name': 'queue_id', 
+            'description': 'Queue ID', 
+            'type': 'string'
+        }
+    ],
+    tags=["Queues", "Queue Status"]
+)
 class QueueStatusView(APIView):
     """Get current status of a queue"""
 
@@ -289,6 +458,17 @@ class QueueStatusView(APIView):
             )
 
 
+@document_api_endpoint(
+    summary="Check queue position",
+    description="Check a customer's position in the queue",
+    responses={
+        200: "Success - Returns position information",
+        400: "Bad Request - Invalid data",
+        401: "Unauthorized - Authentication required",
+        404: "Not Found - Ticket not found or not active"
+    },
+    tags=["Queue Tickets", "Queue Status"]
+)
 class CheckPositionView(APIView):
     """Check a customer's position in queue"""
 
@@ -332,6 +512,23 @@ class CheckPositionView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@document_api_endpoint(
+    summary="Get customer's active tickets",
+    description="Get all active queue tickets for a specific customer",
+    responses={
+        200: "Success - Returns list of active tickets",
+        401: "Unauthorized - Authentication required",
+        403: "Forbidden - User doesn't have permission"
+    },
+    path_params=[
+        {
+            'name': 'customer_id', 
+            'description': 'Customer ID', 
+            'type': 'string'
+        }
+    ],
+    tags=["Queue Tickets", "Customers"]
+)
 class CustomerActiveTicketsView(APIView):
     """Get active tickets for a customer"""
 
@@ -360,6 +557,38 @@ class CustomerActiveTicketsView(APIView):
         return Response(QueueTicketSerializer(active_tickets, many=True).data)
 
 
+@document_api_endpoint(
+    summary="Get queue statistics",
+    description="Get statistics for a queue including metrics and distribution data",
+    responses={
+        200: "Success - Returns queue statistics",
+        401: "Unauthorized - Authentication required",
+        403: "Forbidden - User doesn't have permission",
+        404: "Not Found - Queue not found"
+    },
+    path_params=[
+        {
+            'name': 'queue_id', 
+            'description': 'Queue ID', 
+            'type': 'string'
+        }
+    ],
+    query_params=[
+        {
+            'name': 'start_date', 
+            'description': 'Start date for statistics (YYYY-MM-DD), defaults to today', 
+            'required': False, 
+            'type': 'string'
+        },
+        {
+            'name': 'end_date', 
+            'description': 'End date for statistics (YYYY-MM-DD), defaults to start_date', 
+            'required': False, 
+            'type': 'string'
+        }
+    ],
+    tags=["Queues", "Analytics"]
+)
 class QueueStatsView(APIView):
     """Get statistics for a queue"""
 
@@ -461,7 +690,11 @@ class QueueStatsView(APIView):
             )
 
 
-# Create ViewSet for QueueTicket that combines functionality of existing views
+@document_api_viewset(
+    summary="Queue Ticket",
+    description="API endpoints for managing queue tickets with CRUD operations",
+    tags=["Queue Tickets"]
+)
 class QueueTicketViewSet(viewsets.ModelViewSet):
     """
     ViewSet for queue tickets.
@@ -487,8 +720,122 @@ class QueueTicketViewSet(viewsets.ModelViewSet):
 
         return [permission]
 
+    @document_api_endpoint(
+        summary="List queue tickets",
+        description="Retrieve all queue tickets with optional filtering",
+        responses={
+            200: "Success - Returns list of queue tickets",
+            403: "Forbidden - User doesn't have permission"
+        },
+        query_params=[
+            {
+                'name': 'queue', 
+                'description': 'Filter by queue ID', 
+                'required': False, 
+                'type': 'string'
+            },
+            {
+                'name': 'status', 
+                'description': 'Filter by ticket status', 
+                'required': False, 
+                'type': 'string'
+            },
+            {
+                'name': 'customer', 
+                'description': 'Filter by customer ID', 
+                'required': False, 
+                'type': 'string'
+            }
+        ],
+        tags=["Queue Tickets"]
+    )
+    def list(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().list(request, *args, **kwargs)
 
-# Also add QueueViewSet
+    @document_api_endpoint(
+        summary="Create queue ticket",
+        description="Create a new queue ticket",
+        responses={
+            201: "Created - Queue ticket created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission"
+        },
+        tags=["Queue Tickets"]
+    )
+    def create(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().create(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Retrieve queue ticket",
+        description="Get details of a specific queue ticket",
+        responses={
+            200: "Success - Returns queue ticket details",
+            404: "Not Found - Queue ticket not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Queue Ticket ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Queue Tickets"]
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Update queue ticket",
+        description="Update an existing queue ticket",
+        responses={
+            200: "Success - Queue ticket updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Queue ticket not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Queue Ticket ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Queue Tickets"]
+    )
+    def update(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().update(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Delete queue ticket",
+        description="Delete a queue ticket",
+        responses={
+            204: "No Content - Queue ticket deleted successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Queue ticket not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Queue Ticket ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Queue Tickets"]
+    )
+    def destroy(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().destroy(request, *args, **kwargs)
+
+
+@document_api_viewset(
+    summary="Queue",
+    description="API endpoints for managing queues with CRUD operations",
+    tags=["Queues"]
+)
 class QueueViewSet(viewsets.ModelViewSet):
     """
     ViewSet for queues.
@@ -512,3 +859,93 @@ class QueueViewSet(viewsets.ModelViewSet):
             permission = IsAuthenticated()
 
         return [permission]
+
+    @document_api_endpoint(
+        summary="List queues",
+        description="Retrieve all queues",
+        responses={
+            200: "Success - Returns list of queues",
+            403: "Forbidden - User doesn't have permission"
+        },
+        tags=["Queues"]
+    )
+    def list(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().list(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Create queue",
+        description="Create a new queue",
+        responses={
+            201: "Created - Queue created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission"
+        },
+        tags=["Queues"]
+    )
+    def create(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().create(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Retrieve queue",
+        description="Get details of a specific queue",
+        responses={
+            200: "Success - Returns queue details",
+            404: "Not Found - Queue not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Queue ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Queues"]
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Update queue",
+        description="Update an existing queue",
+        responses={
+            200: "Success - Queue updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Queue not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Queue ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Queues"]
+    )
+    def update(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().update(request, *args, **kwargs)
+
+    @document_api_endpoint(
+        summary="Delete queue",
+        description="Delete a queue",
+        responses={
+            204: "No Content - Queue deleted successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Queue not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Queue ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Queues"]
+    )
+    def destroy(self, request, *args, **kwargs):
+        """Override to add documentation"""
+        return super().destroy(request, *args, **kwargs)

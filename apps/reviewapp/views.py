@@ -1,3 +1,8 @@
+"""
+Review app views for QueueMe platform
+Handles endpoints related to reviews, ratings, and moderation
+"""
+
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -39,8 +44,14 @@ from apps.reviewapp.serializers import (
 )
 from apps.reviewapp.services.rating_service import RatingService
 from apps.rolesapp.services.permission_resolver import PermissionResolver
+from ..api_doc_decorators import document_api_endpoint, document_api_viewset
 
 
+@document_api_viewset(
+    summary="Review",
+    description="Main API endpoint for reviews - routes to specialized review types based on the review type parameter",
+    tags=["Reviews"]
+)
 class ReviewViewSet(viewsets.ViewSet):
     """
     Main ViewSet for reviews - routes to appropriate specialized review ViewSets
@@ -61,6 +72,23 @@ class ReviewViewSet(viewsets.ViewSet):
     def get_platform_review_viewset(self):
         return PlatformReviewViewSet.as_view({"get": "list", "post": "create"})
 
+    @document_api_endpoint(
+        summary="List reviews",
+        description="Return reviews based on the review_type parameter",
+        responses={
+            200: "Success - Returns list of reviews",
+            400: "Bad Request - Invalid review type"
+        },
+        query_params=[
+            {
+                'name': 'review_type', 
+                'description': 'Type of reviews to list (shop, specialist, service, platform)', 
+                'required': False, 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews"]
+    )
     def list(self, request):
         """Return reviews based on the review_type parameter"""
         review_type = request.query_params.get("review_type", "shop")
@@ -78,6 +106,16 @@ class ReviewViewSet(viewsets.ViewSet):
                 {"error": _("Invalid review type")}, status=status.HTTP_400_BAD_REQUEST
             )
 
+    @document_api_endpoint(
+        summary="Create review",
+        description="Create a review based on the review_type parameter",
+        responses={
+            201: "Created - Review created successfully",
+            400: "Bad Request - Invalid review type or data",
+            401: "Unauthorized - Authentication required"
+        },
+        tags=["Reviews"]
+    )
     def create(self, request):
         """Create a review based on the review_type parameter"""
         review_type = request.data.get("review_type", "shop")
@@ -100,6 +138,11 @@ class ReviewViewSet(viewsets.ViewSet):
     queryset = ShopReview.objects.none()  # Empty queryset as a fallback
 
 
+@document_api_viewset(
+    summary="Shop Review",
+    description="API endpoints for managing shop reviews",
+    tags=["Reviews", "Shops"]
+)
 class ShopReviewViewSet(viewsets.ModelViewSet):
     """ViewSet for shop reviews"""
 
@@ -130,6 +173,23 @@ class ShopReviewViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @document_api_endpoint(
+        summary="Mark review as helpful",
+        description="Vote on whether a review was helpful or not",
+        responses={
+            200: "Success - Vote recorded successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Shops", "Helpfulness"]
+    )
     @action(
         detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness]
     )
@@ -151,6 +211,24 @@ class ShopReviewViewSet(viewsets.ModelViewSet):
 
         return Response({"status": "success"})
 
+    @document_api_endpoint(
+        summary="Report review",
+        description="Report a review for inappropriate content",
+        responses={
+            200: "Success - Report submitted successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Shops", "Moderation"]
+    )
     @action(detail=True, methods=["post"], permission_classes=[CanReportReviews])
     def report(self, request, pk=None):
         """Report inappropriate review"""
@@ -171,13 +249,31 @@ class ShopReviewViewSet(viewsets.ModelViewSet):
 
         return Response({"status": "report submitted"})
 
+    @document_api_endpoint(
+        summary="Moderate review",
+        description="Approve or reject a review (admin/moderator only)",
+        responses={
+            200: "Success - Review moderated successfully",
+            400: "Bad Request - Invalid status",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Shops", "Moderation", "Admin"]
+    )
     @action(detail=True, methods=["post"], permission_classes=[CanModerateReviews])
     def moderate(self, request, pk=None):
         """Moderate a review (approve/reject)"""
         review = self.get_object()
 
-        status = request.data.get("status")
-        if status not in ["approved", "rejected"]:
+        status_val = request.data.get("status")
+        if status_val not in ["approved", "rejected"]:
             return Response(
                 {"error": _('Invalid status. Use "approved" or "rejected".')},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -186,13 +282,13 @@ class ShopReviewViewSet(viewsets.ModelViewSet):
         comment = request.data.get("comment", "")
 
         # Update review status
-        review.status = status
+        review.status = status_val
         review.moderation_comment = comment
         review.moderated_by = request.user
         review.save()
 
         # If status changed, update metrics
-        if status == "approved" or status == "rejected":
+        if status_val == "approved" or status_val == "rejected":
             entity_model_name = "shopapp.Shop"
             entity_id = review.shop_id
             RatingService.update_entity_metrics(entity_model_name, entity_id)
@@ -200,6 +296,11 @@ class ShopReviewViewSet(viewsets.ModelViewSet):
         return Response({"status": "review moderated"})
 
 
+@document_api_viewset(
+    summary="Specialist Review",
+    description="API endpoints for managing specialist reviews",
+    tags=["Reviews", "Specialists"]
+)
 class SpecialistReviewViewSet(viewsets.ModelViewSet):
     """ViewSet for specialist reviews"""
 
@@ -230,6 +331,23 @@ class SpecialistReviewViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @document_api_endpoint(
+        summary="Mark review as helpful",
+        description="Vote on whether a review was helpful or not",
+        responses={
+            200: "Success - Vote recorded successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Specialists", "Helpfulness"]
+    )
     @action(
         detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness]
     )
@@ -251,6 +369,24 @@ class SpecialistReviewViewSet(viewsets.ModelViewSet):
 
         return Response({"status": "success"})
 
+    @document_api_endpoint(
+        summary="Report review",
+        description="Report a review for inappropriate content",
+        responses={
+            200: "Success - Report submitted successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Specialists", "Moderation"]
+    )
     @action(detail=True, methods=["post"], permission_classes=[CanReportReviews])
     def report(self, request, pk=None):
         """Report inappropriate review"""
@@ -271,13 +407,31 @@ class SpecialistReviewViewSet(viewsets.ModelViewSet):
 
         return Response({"status": "report submitted"})
 
+    @document_api_endpoint(
+        summary="Moderate review",
+        description="Approve or reject a review (admin/moderator only)",
+        responses={
+            200: "Success - Review moderated successfully",
+            400: "Bad Request - Invalid status",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Specialists", "Moderation", "Admin"]
+    )
     @action(detail=True, methods=["post"], permission_classes=[CanModerateReviews])
     def moderate(self, request, pk=None):
         """Moderate a review (approve/reject)"""
         review = self.get_object()
 
-        status = request.data.get("status")
-        if status not in ["approved", "rejected"]:
+        status_val = request.data.get("status")
+        if status_val not in ["approved", "rejected"]:
             return Response(
                 {"error": _('Invalid status. Use "approved" or "rejected".')},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -286,13 +440,13 @@ class SpecialistReviewViewSet(viewsets.ModelViewSet):
         comment = request.data.get("comment", "")
 
         # Update review status
-        review.status = status
+        review.status = status_val
         review.moderation_comment = comment
         review.moderated_by = request.user
         review.save()
 
         # If status changed, update metrics
-        if status == "approved" or status == "rejected":
+        if status_val == "approved" or status_val == "rejected":
             entity_model_name = "specialistsapp.Specialist"
             entity_id = review.specialist_id
             RatingService.update_entity_metrics(entity_model_name, entity_id)
@@ -300,6 +454,11 @@ class SpecialistReviewViewSet(viewsets.ModelViewSet):
         return Response({"status": "review moderated"})
 
 
+@document_api_viewset(
+    summary="Service Review",
+    description="API endpoints for managing service reviews",
+    tags=["Reviews", "Services"]
+)
 class ServiceReviewViewSet(viewsets.ModelViewSet):
     """ViewSet for service reviews"""
 
@@ -330,6 +489,23 @@ class ServiceReviewViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @document_api_endpoint(
+        summary="Mark review as helpful",
+        description="Vote on whether a review was helpful or not",
+        responses={
+            200: "Success - Vote recorded successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Services", "Helpfulness"]
+    )
     @action(
         detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness]
     )
@@ -351,6 +527,24 @@ class ServiceReviewViewSet(viewsets.ModelViewSet):
 
         return Response({"status": "success"})
 
+    @document_api_endpoint(
+        summary="Report review",
+        description="Report a review for inappropriate content",
+        responses={
+            200: "Success - Report submitted successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Services", "Moderation"]
+    )
     @action(detail=True, methods=["post"], permission_classes=[CanReportReviews])
     def report(self, request, pk=None):
         """Report inappropriate review"""
@@ -371,13 +565,31 @@ class ServiceReviewViewSet(viewsets.ModelViewSet):
 
         return Response({"status": "report submitted"})
 
+    @document_api_endpoint(
+        summary="Moderate review",
+        description="Approve or reject a review (admin/moderator only)",
+        responses={
+            200: "Success - Review moderated successfully",
+            400: "Bad Request - Invalid status",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Services", "Moderation", "Admin"]
+    )
     @action(detail=True, methods=["post"], permission_classes=[CanModerateReviews])
     def moderate(self, request, pk=None):
         """Moderate a review (approve/reject)"""
         review = self.get_object()
 
-        status = request.data.get("status")
-        if status not in ["approved", "rejected"]:
+        status_val = request.data.get("status")
+        if status_val not in ["approved", "rejected"]:
             return Response(
                 {"error": _('Invalid status. Use "approved" or "rejected".')},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -386,13 +598,13 @@ class ServiceReviewViewSet(viewsets.ModelViewSet):
         comment = request.data.get("comment", "")
 
         # Update review status
-        review.status = status
+        review.status = status_val
         review.moderation_comment = comment
         review.moderated_by = request.user
         review.save()
 
         # If status changed, update metrics
-        if status == "approved" or status == "rejected":
+        if status_val == "approved" or status_val == "rejected":
             entity_model_name = "serviceapp.Service"
             entity_id = review.service_id
             RatingService.update_entity_metrics(entity_model_name, entity_id)
@@ -400,6 +612,11 @@ class ServiceReviewViewSet(viewsets.ModelViewSet):
         return Response({"status": "review moderated"})
 
 
+@document_api_viewset(
+    summary="Platform Review",
+    description="API endpoints for managing platform reviews by shops",
+    tags=["Reviews", "Platform"]
+)
 class PlatformReviewViewSet(viewsets.ModelViewSet):
     """ViewSet for platform reviews by shops"""
 
@@ -449,13 +666,31 @@ class PlatformReviewViewSet(viewsets.ModelViewSet):
         # No platform reviews for unauthenticated users
         return queryset.none()
 
+    @document_api_endpoint(
+        summary="Moderate platform review",
+        description="Approve or reject a platform review (admin/moderator only)",
+        responses={
+            200: "Success - Review moderated successfully",
+            400: "Bad Request - Invalid status",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Review not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Review ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Platform", "Moderation", "Admin"]
+    )
     @action(detail=True, methods=["post"], permission_classes=[CanModerateReviews])
     def moderate(self, request, pk=None):
         """Moderate a platform review (approve/reject)"""
         review = self.get_object()
 
-        status = request.data.get("status")
-        if status not in ["approved", "rejected"]:
+        status_val = request.data.get("status")
+        if status_val not in ["approved", "rejected"]:
             return Response(
                 {"error": _('Invalid status. Use "approved" or "rejected".')},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -464,7 +699,7 @@ class PlatformReviewViewSet(viewsets.ModelViewSet):
         comment = request.data.get("comment", "")
 
         # Update review status
-        review.status = status
+        review.status = status_val
         review.moderation_comment = comment
         review.moderated_by = request.user
         review.save()
@@ -474,6 +709,11 @@ class PlatformReviewViewSet(viewsets.ModelViewSet):
         return Response({"status": "review moderated"})
 
 
+@document_api_viewset(
+    summary="Review Report",
+    description="API endpoints for managing reports of reviews",
+    tags=["Reviews", "Moderation", "Admin"]
+)
 class ReviewReportViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for managing review reports"""
 
@@ -485,23 +725,41 @@ class ReviewReportViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ["created_at", "status"]
     ordering = ["-created_at"]
 
+    @document_api_endpoint(
+        summary="Resolve report",
+        description="Resolve a review report with a specific status",
+        responses={
+            200: "Success - Report resolved successfully",
+            400: "Bad Request - Invalid status",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Report not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Report ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Moderation", "Admin"]
+    )
     @action(detail=True, methods=["post"])
     def resolve(self, request, pk=None):
         """Resolve a report"""
         report = self.get_object()
 
-        status = request.data.get("status")
-        if status not in ["reviewed", "resolved", "rejected"]:
+        status_val = request.data.get("status")
+        if status_val not in ["reviewed", "resolved", "rejected"]:
             return Response(
                 {"error": _("Invalid status.")}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Update report status
-        report.status = status
+        report.status = status_val
         report.save()
 
         # If resolving as valid, we might want to take action on the review
-        if status == "resolved":
+        if status_val == "resolved":
             review_action = request.data.get("review_action")
             if review_action in ["reject", "remove"]:
                 # Get the review
@@ -531,6 +789,11 @@ class ReviewReportViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({"status": "report updated"})
 
 
+@document_api_viewset(
+    summary="Review Metric",
+    description="API endpoints for retrieving review metrics and statistics",
+    tags=["Reviews", "Metrics"]
+)
 class ReviewMetricViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for review metrics"""
 
@@ -538,6 +801,29 @@ class ReviewMetricViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ReviewMetricSerializer
     permission_classes = [permissions.AllowAny]
 
+    @document_api_endpoint(
+        summary="Get entity metrics",
+        description="Get review metrics for a specific entity (shop, specialist, or service)",
+        responses={
+            200: "Success - Returns entity metrics",
+            400: "Bad Request - Missing parameters or invalid entity type"
+        },
+        query_params=[
+            {
+                'name': 'entity_type', 
+                'description': 'Entity type (e.g., shopapp.Shop)', 
+                'required': True, 
+                'type': 'string'
+            },
+            {
+                'name': 'entity_id', 
+                'description': 'Entity ID', 
+                'required': True, 
+                'type': 'string'
+            }
+        ],
+        tags=["Reviews", "Metrics"]
+    )
     @action(detail=False, methods=["get"])
     def entity(self, request):
         """Get metrics for a specific entity"""
@@ -573,6 +859,16 @@ class ReviewMetricViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(metrics)
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Recalculate metrics",
+        description="Recalculate review metrics for a specific entity (admin only)",
+        responses={
+            200: "Success - Metrics recalculated",
+            400: "Bad Request - Missing parameters or invalid entity type",
+            403: "Forbidden - User doesn't have permission"
+        },
+        tags=["Reviews", "Metrics", "Admin"]
+    )
     @action(detail=False, methods=["post"])
     def recalculate(self, request):
         """Recalculate metrics for an entity"""

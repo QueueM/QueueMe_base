@@ -27,7 +27,7 @@ class SpecialistWorkingHoursSerializer(serializers.ModelSerializer):
 class PortfolioItemSerializer(serializers.ModelSerializer):
     service_name = serializers.ReadOnlyField(source="service.name", default="")
     category_name = serializers.ReadOnlyField(source="category.name", default="")
-    thumbnail_url = serializers.ReadOnlyField(source="thumbnail_url")
+    thumbnail_url = serializers.ReadOnlyField()
 
     class Meta:
         model = PortfolioItem

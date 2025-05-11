@@ -1,3 +1,8 @@
+"""
+Service app views for QueueMe platform
+Handles endpoints related to services, categories, packages, and pricing
+"""
+
 import datetime
 
 from django.db import models, transaction
@@ -10,6 +15,7 @@ from rest_framework.response import Response
 
 from apps.rolesapp.decorators import has_permission, has_shop_permission
 from apps.rolesapp.permissions import IsAuthenticated, IsShopStaffOrAdmin
+from ..api_doc_decorators import document_api_endpoint, document_api_viewset
 
 from .filters import ServiceFilter
 from .models import (
@@ -45,6 +51,11 @@ from .services.duration_refiner import DurationRefiner
 from .services.service_matcher import ServiceMatcher
 
 
+@document_api_viewset(
+    summary="Service",
+    description="API endpoints for managing services including availability, specialists, and service details",
+    tags=["Services"]
+)
 class ServiceViewSet(viewsets.ModelViewSet):
     """API endpoint for services"""
 
@@ -58,6 +69,14 @@ class ServiceViewSet(viewsets.ModelViewSet):
     ordering_fields = ["name", "price", "duration", "order", "created_at"]
     ordering = ["order", "name"]
 
+    @document_api_endpoint(
+        summary="List services",
+        description="Retrieve services filtered based on user role and permissions",
+        responses={
+            200: "Success - Returns list of services"
+        },
+        tags=["Services"]
+    )
     def get_queryset(self):
         """Filter queryset based on user role and permissions"""
         queryset = Service.objects.all()
@@ -112,6 +131,16 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
+    @document_api_endpoint(
+        summary="Create a service",
+        description="Create a new service with detailed information",
+        responses={
+            201: "Created - Service created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission"
+        },
+        tags=["Services"]
+    )
     @transaction.atomic
     @has_permission("service", "add")
     def create(self, request, *args, **kwargs):
@@ -124,6 +153,24 @@ class ServiceViewSet(viewsets.ModelViewSet):
         detail_serializer = ServiceDetailSerializer(serializer.instance)
         return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
 
+    @document_api_endpoint(
+        summary="Update a service",
+        description="Update an existing service's details",
+        responses={
+            200: "Success - Service updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services"]
+    )
     @transaction.atomic
     @has_shop_permission("service", "edit")
     def update(self, request, *args, **kwargs):
@@ -138,6 +185,24 @@ class ServiceViewSet(viewsets.ModelViewSet):
         detail_serializer = ServiceDetailSerializer(instance)
         return Response(detail_serializer.data)
 
+    @document_api_endpoint(
+        summary="Delete a service",
+        description="Delete a service or archive it if it has appointments",
+        responses={
+            204: "No Content - Service deleted successfully",
+            200: "Success - Service archived instead of deleted",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services"]
+    )
     @transaction.atomic
     @has_shop_permission("service", "delete")
     def destroy(self, request, *args, **kwargs):
@@ -165,6 +230,31 @@ class ServiceViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @document_api_endpoint(
+        summary="Get availability slots",
+        description="Get available time slots for a service on a specific date",
+        responses={
+            200: "Success - Returns available time slots",
+            400: "Bad Request - Missing or invalid date parameter",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        query_params=[
+            {
+                'name': 'date', 
+                'description': 'Date to check (YYYY-MM-DD)', 
+                'required': True, 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Availability"]
+    )
     @action(detail=True, methods=["get"])
     def availability_slots(self, request, pk=None):
         """
@@ -195,6 +285,43 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Get available specialists",
+        description="Get specialists available for a service at a specific time",
+        responses={
+            200: "Success - Returns list of available specialists",
+            400: "Bad Request - Missing or invalid parameters",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        query_params=[
+            {
+                'name': 'date', 
+                'description': 'Date to check (YYYY-MM-DD)', 
+                'required': True, 
+                'type': 'string'
+            },
+            {
+                'name': 'start_time', 
+                'description': 'Start time (HH:MM)', 
+                'required': True, 
+                'type': 'string'
+            },
+            {
+                'name': 'end_time', 
+                'description': 'End time (HH:MM), optional if using service duration', 
+                'required': False, 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Specialists", "Availability"]
+    )
     @action(detail=True, methods=["get"])
     def available_specialists(self, request, pk=None):
         """
@@ -248,6 +375,43 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Get recommended specialists",
+        description="Get recommended specialists for a service, ranked by suitability",
+        responses={
+            200: "Success - Returns list of recommended specialists",
+            400: "Bad Request - Invalid parameters",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        query_params=[
+            {
+                'name': 'date', 
+                'description': 'Optional date for specific time slot (YYYY-MM-DD)', 
+                'required': False, 
+                'type': 'string'
+            },
+            {
+                'name': 'start_time', 
+                'description': 'Optional start time (HH:MM)', 
+                'required': False, 
+                'type': 'string'
+            },
+            {
+                'name': 'end_time', 
+                'description': 'Optional end time (HH:MM)', 
+                'required': False, 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Specialists", "Recommendations"]
+    )
     @action(detail=True, methods=["get"])
     def recommended_specialists(self, request, pk=None):
         """
@@ -299,6 +463,22 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response(specialists)
 
+    @document_api_endpoint(
+        summary="Get complementary services",
+        description="Get services that complement this service based on booking patterns and logical relations",
+        responses={
+            200: "Success - Returns list of complementary services",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Recommendations"]
+    )
     @action(detail=True, methods=["get"])
     def complementary_services(self, request, pk=None):
         """
@@ -319,6 +499,31 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response(complementary)
 
+    @document_api_endpoint(
+        summary="Analyze service duration",
+        description="Analyze historical service durations to suggest optimizations",
+        responses={
+            200: "Success - Returns analysis of service duration",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        query_params=[
+            {
+                'name': 'lookback_days', 
+                'description': 'Number of days to analyze (default: 30)', 
+                'required': False, 
+                'type': 'integer'
+            }
+        ],
+        tags=["Services", "Analytics"]
+    )
     @action(detail=True, methods=["get"])
     @has_shop_permission("service", "view")
     def analyze_duration(self, request, pk=None):
@@ -337,6 +542,31 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response(analysis)
 
+    @document_api_endpoint(
+        summary="Analyze buffer times",
+        description="Analyze buffer times before and after service to suggest optimizations",
+        responses={
+            200: "Success - Returns analysis of buffer times",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        query_params=[
+            {
+                'name': 'lookback_days', 
+                'description': 'Number of days to analyze (default: 30)', 
+                'required': False, 
+                'type': 'integer'
+            }
+        ],
+        tags=["Services", "Analytics"]
+    )
     @action(detail=True, methods=["get"])
     @has_shop_permission("service", "view")
     def analyze_buffers(self, request, pk=None):
@@ -355,6 +585,24 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response(analysis)
 
+    @document_api_endpoint(
+        summary="Apply recommended duration",
+        description="Apply a recommended duration to the service",
+        responses={
+            200: "Success - Returns updated service details",
+            400: "Bad Request - Invalid duration",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Analytics"]
+    )
     @action(detail=True, methods=["post"])
     @has_shop_permission("service", "edit")
     def apply_recommended_duration(self, request, pk=None):
@@ -388,6 +636,24 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Apply recommended buffer times",
+        description="Apply recommended buffer times before and after service",
+        responses={
+            200: "Success - Returns updated service details",
+            400: "Bad Request - Invalid buffer times",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Analytics"]
+    )
     @action(detail=True, methods=["post"])
     @has_shop_permission("service", "edit")
     def apply_recommended_buffers(self, request, pk=None):
@@ -435,6 +701,23 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+    @document_api_endpoint(
+        summary="Duplicate service",
+        description="Create a duplicate of a service with all its associated data",
+        responses={
+            201: "Created - Service duplicated successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services"]
+    )
     @action(detail=True, methods=["post"])
     @has_shop_permission("service", "edit")
     def duplicate(self, request, pk=None):
@@ -458,6 +741,24 @@ class ServiceViewSet(viewsets.ModelViewSet):
         serializer = ServiceDetailSerializer(duplicated)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @document_api_endpoint(
+        summary="Assign specialists to service",
+        description="Assign specialists to provide this service",
+        responses={
+            200: "Success - Specialists assigned successfully",
+            400: "Bad Request - No specialists provided",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Specialists"]
+    )
     @action(detail=True, methods=["post"], url_path="assign-specialists")
     @has_shop_permission("service", "edit")
     def assign_specialists(self, request, pk=None):
@@ -486,6 +787,37 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return Response({"detail": _("Specialists assigned successfully")})
 
+    @document_api_endpoint(
+        summary="Get available days",
+        description="Get a list of dates when the service has at least one available slot",
+        responses={
+            200: "Success - Returns list of available dates",
+            400: "Bad Request - Invalid date format",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'pk', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        query_params=[
+            {
+                'name': 'start_date', 
+                'description': 'Start date (YYYY-MM-DD, default: today)', 
+                'required': False, 
+                'type': 'string'
+            },
+            {
+                'name': 'end_date', 
+                'description': 'End date (YYYY-MM-DD, default: 30 days from start)', 
+                'required': False, 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Availability"]
+    )
     @action(detail=True, methods=["get"], url_path="available-days")
     def available_days(self, request, pk=None):
         """
@@ -529,12 +861,32 @@ class ServiceViewSet(viewsets.ModelViewSet):
         return Response(available_days_str)
 
 
+@document_api_viewset(
+    summary="Service Availability",
+    description="API endpoints for managing service availability settings",
+    tags=["Services", "Availability"]
+)
 class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
     """API endpoint for service availability"""
 
     serializer_class = ServiceAvailabilitySerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
+    @document_api_endpoint(
+        summary="List service availability settings",
+        description="Retrieve availability settings for a specific service",
+        responses={
+            200: "Success - Returns list of availability settings"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Availability"]
+    )
     def get_queryset(self):
         service_id = self.kwargs.get("service_id")
         return ServiceAvailability.objects.filter(service_id=service_id)
@@ -555,6 +907,24 @@ class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
         ):
             self.permission_denied(request)
 
+    @document_api_endpoint(
+        summary="Create service availability",
+        description="Create a new availability setting for a service",
+        responses={
+            201: "Created - Availability setting created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Availability"]
+    )
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         service = self.get_service()
@@ -575,6 +945,29 @@ class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @document_api_endpoint(
+        summary="Update service availability",
+        description="Update an existing availability setting for a service",
+        responses={
+            200: "Success - Availability setting updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Availability setting not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            },
+            {
+                'name': 'pk', 
+                'description': 'Availability ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Availability"]
+    )
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         availability = self.get_object()
@@ -589,6 +982,28 @@ class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
 
         return Response(ServiceAvailabilitySerializer(availability).data)
 
+    @document_api_endpoint(
+        summary="Delete service availability",
+        description="Delete an availability setting for a service",
+        responses={
+            204: "No Content - Availability setting deleted successfully",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Availability setting not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            },
+            {
+                'name': 'pk', 
+                'description': 'Availability ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Availability"]
+    )
     @transaction.atomic
     def destroy(self, request, *args, **kwargs):
         availability = self.get_object()
@@ -603,12 +1018,32 @@ class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@document_api_viewset(
+    summary="Service Exception",
+    description="API endpoints for managing service exceptions like holidays and special days",
+    tags=["Services", "Exceptions"]
+)
 class ServiceExceptionViewSet(viewsets.ModelViewSet):
     """API endpoint for service exceptions (holidays, special days)"""
 
     serializer_class = ServiceExceptionSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
+    @document_api_endpoint(
+        summary="List service exceptions",
+        description="Retrieve exceptions for a specific service",
+        responses={
+            200: "Success - Returns list of service exceptions"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Exceptions"]
+    )
     def get_queryset(self):
         service_id = self.kwargs.get("service_id")
         return ServiceException.objects.filter(service_id=service_id)
@@ -629,6 +1064,25 @@ class ServiceExceptionViewSet(viewsets.ModelViewSet):
         ):
             self.permission_denied(request)
 
+    @document_api_endpoint(
+        summary="Create service exception",
+        description="Create a new exception for a service (e.g., holiday)",
+        responses={
+            201: "Created - Exception created successfully",
+            200: "Success - Existing exception updated instead",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Exceptions"]
+    )
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         service = self.get_service()
@@ -656,6 +1110,29 @@ class ServiceExceptionViewSet(viewsets.ModelViewSet):
             ServiceExceptionSerializer(exception).data, status=status.HTTP_201_CREATED
         )
 
+    @document_api_endpoint(
+        summary="Update service exception",
+        description="Update an existing exception for a service",
+        responses={
+            200: "Success - Exception updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Exception not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            },
+            {
+                'name': 'pk', 
+                'description': 'Exception ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Exceptions"]
+    )
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         exception = self.get_object()
@@ -671,12 +1148,32 @@ class ServiceExceptionViewSet(viewsets.ModelViewSet):
         return Response(ServiceExceptionSerializer(exception).data)
 
 
+@document_api_viewset(
+    summary="Service FAQ",
+    description="API endpoints for managing frequently asked questions for services",
+    tags=["Services", "FAQs"]
+)
 class ServiceFAQViewSet(viewsets.ModelViewSet):
     """API endpoint for service FAQs"""
 
     serializer_class = ServiceFAQSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
+    @document_api_endpoint(
+        summary="List service FAQs",
+        description="Retrieve FAQs for a specific service",
+        responses={
+            200: "Success - Returns list of service FAQs"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "FAQs"]
+    )
     def get_queryset(self):
         service_id = self.kwargs.get("service_id")
         return ServiceFAQ.objects.filter(service_id=service_id)
@@ -697,6 +1194,24 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
         ):
             self.permission_denied(request)
 
+    @document_api_endpoint(
+        summary="Create service FAQ",
+        description="Create a new FAQ for a service",
+        responses={
+            201: "Created - FAQ created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "FAQs"]
+    )
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         service = self.get_service()
@@ -719,6 +1234,29 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
 
         return Response(ServiceFAQSerializer(faq).data, status=status.HTTP_201_CREATED)
 
+    @document_api_endpoint(
+        summary="Update service FAQ",
+        description="Update an existing FAQ for a service",
+        responses={
+            200: "Success - FAQ updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - FAQ not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            },
+            {
+                'name': 'pk', 
+                'description': 'FAQ ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "FAQs"]
+    )
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         faq = self.get_object()
@@ -733,6 +1271,24 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
 
         return Response(ServiceFAQSerializer(faq).data)
 
+    @document_api_endpoint(
+        summary="Reorder FAQs",
+        description="Change the order of FAQs for a service",
+        responses={
+            200: "Success - FAQs reordered successfully",
+            400: "Bad Request - Invalid FAQ order or IDs",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "FAQs"]
+    )
     @action(detail=False, methods=["post"], url_path="reorder")
     @transaction.atomic
     def reorder(self, request, service_id=None):
@@ -774,13 +1330,33 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@document_api_viewset(
+    summary="Service Overview",
+    description="API endpoints for managing service overview items",
+    tags=["Services", "Overviews"]
+)
 class ServiceOverviewViewSet(viewsets.ModelViewSet):
     """API endpoint for service overviews"""
 
     serializer_class = ServiceOverviewSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
-    def get_queryset(self):
+    @document_api_endpoint(
+        summary="List service overviews",
+        description="Retrieve overview items for a specific service",
+        responses={
+            200: "Success - Returns list of service overviews"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Overviews"]
+    )
+        def get_queryset(self):
         service_id = self.kwargs.get("service_id")
         return ServiceOverview.objects.filter(service_id=service_id)
 
@@ -800,6 +1376,24 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
         ):
             self.permission_denied(request)
 
+    @document_api_endpoint(
+        summary="Create service overview",
+        description="Create a new overview item for a service",
+        responses={
+            201: "Created - Overview created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Overviews"]
+    )
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         service = self.get_service()
@@ -824,6 +1418,29 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
             ServiceOverviewSerializer(overview).data, status=status.HTTP_201_CREATED
         )
 
+    @document_api_endpoint(
+        summary="Update service overview",
+        description="Update an existing overview item for a service",
+        responses={
+            200: "Success - Overview updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Overview not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            },
+            {
+                'name': 'pk', 
+                'description': 'Overview ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Overviews"]
+    )
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         overview = self.get_object()
@@ -838,6 +1455,24 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
 
         return Response(ServiceOverviewSerializer(overview).data)
 
+    @document_api_endpoint(
+        summary="Reorder overviews",
+        description="Change the order of overview items for a service",
+        responses={
+            200: "Success - Overviews reordered successfully",
+            400: "Bad Request - Invalid overview order or IDs",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Overviews"]
+    )
     @action(detail=False, methods=["post"], url_path="reorder")
     @transaction.atomic
     def reorder(self, request, service_id=None):
@@ -881,12 +1516,32 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@document_api_viewset(
+    summary="Service Step",
+    description="API endpoints for managing service steps (How It Works)",
+    tags=["Services", "Steps"]
+)
 class ServiceStepViewSet(viewsets.ModelViewSet):
     """API endpoint for service steps (How It Works)"""
 
     serializer_class = ServiceStepSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
+    @document_api_endpoint(
+        summary="List service steps",
+        description="Retrieve steps for a specific service",
+        responses={
+            200: "Success - Returns list of service steps"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Steps"]
+    )
     def get_queryset(self):
         service_id = self.kwargs.get("service_id")
         return ServiceStep.objects.filter(service_id=service_id)
@@ -907,6 +1562,24 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
         ):
             self.permission_denied(request)
 
+    @document_api_endpoint(
+        summary="Create service step",
+        description="Create a new step for a service",
+        responses={
+            201: "Created - Step created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Steps"]
+    )
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         service = self.get_service()
@@ -931,6 +1604,29 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
             ServiceStepSerializer(step).data, status=status.HTTP_201_CREATED
         )
 
+    @document_api_endpoint(
+        summary="Update service step",
+        description="Update an existing step for a service",
+        responses={
+            200: "Success - Step updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Step not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            },
+            {
+                'name': 'pk', 
+                'description': 'Step ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Steps"]
+    )
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         step = self.get_object()
@@ -945,6 +1641,24 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
 
         return Response(ServiceStepSerializer(step).data)
 
+    @document_api_endpoint(
+        summary="Reorder steps",
+        description="Change the order of steps for a service",
+        responses={
+            200: "Success - Steps reordered successfully",
+            400: "Bad Request - Invalid step order or IDs",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Steps"]
+    )
     @action(detail=False, methods=["post"], url_path="reorder")
     @transaction.atomic
     def reorder(self, request, service_id=None):
@@ -986,12 +1700,32 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@document_api_viewset(
+    summary="Service Aftercare",
+    description="API endpoints for managing service aftercare tips",
+    tags=["Services", "Aftercare"]
+)
 class ServiceAftercareViewSet(viewsets.ModelViewSet):
     """API endpoint for service aftercare tips"""
 
     serializer_class = ServiceAftercareSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
+    @document_api_endpoint(
+        summary="List service aftercare tips",
+        description="Retrieve aftercare tips for a specific service",
+        responses={
+            200: "Success - Returns list of service aftercare tips"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Aftercare"]
+    )
     def get_queryset(self):
         service_id = self.kwargs.get("service_id")
         return ServiceAftercare.objects.filter(service_id=service_id)
@@ -1012,6 +1746,24 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
         ):
             self.permission_denied(request)
 
+    @document_api_endpoint(
+        summary="Create service aftercare tip",
+        description="Create a new aftercare tip for a service",
+        responses={
+            201: "Created - Aftercare tip created successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Aftercare"]
+    )
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         service = self.get_service()
@@ -1036,6 +1788,29 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
             ServiceAftercareSerializer(tip).data, status=status.HTTP_201_CREATED
         )
 
+    @document_api_endpoint(
+        summary="Update service aftercare tip",
+        description="Update an existing aftercare tip for a service",
+        responses={
+            200: "Success - Aftercare tip updated successfully",
+            400: "Bad Request - Invalid data",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Aftercare tip not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            },
+            {
+                'name': 'pk', 
+                'description': 'Aftercare tip ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Aftercare"]
+    )
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         tip = self.get_object()
@@ -1050,6 +1825,24 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
 
         return Response(ServiceAftercareSerializer(tip).data)
 
+    @document_api_endpoint(
+        summary="Reorder aftercare tips",
+        description="Change the order of aftercare tips for a service",
+        responses={
+            200: "Success - Aftercare tips reordered successfully",
+            400: "Bad Request - Invalid tip order or IDs",
+            403: "Forbidden - User doesn't have permission",
+            404: "Not Found - Service not found"
+        },
+        path_params=[
+            {
+                'name': 'service_id', 
+                'description': 'Service ID', 
+                'type': 'string'
+            }
+        ],
+        tags=["Services", "Aftercare"]
+    )
     @action(detail=False, methods=["post"], url_path="reorder")
     @transaction.atomic
     def reorder(self, request, service_id=None):
