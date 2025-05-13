@@ -1,0 +1,202 @@
+{
+  "critical": [
+    {
+      "system": "authentication",
+      "title": "SECRET_KEY might be hardcoded in base.py",
+      "details": "Your SECRET_KEY might be hardcoded in base.py",
+      "recommendation": "Move SECRET_KEY to an environment variable or .env file"
+    },
+    {
+      "system": "authentication",
+      "title": "SECRET_KEY might be hardcoded in development.py",
+      "details": "Your SECRET_KEY might be hardcoded in development.py",
+      "recommendation": "Move SECRET_KEY to an environment variable or .env file"
+    },
+    {
+      "system": "authentication",
+      "title": "SECRET_KEY might be hardcoded in production.py",
+      "details": "Your SECRET_KEY might be hardcoded in production.py",
+      "recommendation": "Move SECRET_KEY to an environment variable or .env file"
+    }
+  ],
+  "high": [
+    {
+      "system": "authentication",
+      "title": "SECURE_SSL_REDIRECT is disabled",
+      "details": "Your site is not configured to redirect HTTP traffic to HTTPS",
+      "recommendation": "Enable SECURE_SSL_REDIRECT in settings.py"
+    },
+    {
+      "system": "authentication",
+      "title": "SESSION_COOKIE_SECURE is disabled",
+      "details": "Your session cookies are not set with the 'secure' flag",
+      "recommendation": "Enable SESSION_COOKIE_SECURE in settings.py"
+    },
+    {
+      "system": "authentication",
+      "title": "CSRF_COOKIE_SECURE is disabled",
+      "details": "Your CSRF cookies are not set with the 'secure' flag",
+      "recommendation": "Enable CSRF_COOKIE_SECURE in settings.py"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: urllib3 version 2.0.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: twilio version 8.9.1\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: twilio version 8.9.1\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: twilio version 8.9.1\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: twilio version 8.9.1\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: scikit-learn version 1.3.2\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: pyjwt version 2.9.0\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: djangorestframework-simplejwt version 5.5.0\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: djangorestframework version 3.14.0\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    },
+    {
+      "system": "dependencies",
+      "title": "Vulnerable package: django version 4.2.7\u001b[0m",
+      "details": "Run 'safety check -r requirements.txt' for details",
+      "recommendation": "Upgrade the affected package to a non-vulnerable version"
+    }
+  ],
+  "medium": [
+    {
+      "system": "authentication",
+      "title": "SECURE_HSTS_SECONDS is not set",
+      "details": "HTTP Strict Transport Security (HSTS) is not enabled",
+      "recommendation": "Set SECURE_HSTS_SECONDS to at least 31536000 (1 year)"
+    },
+    {
+      "system": "authentication",
+      "title": "SECURE_BROWSER_XSS_FILTER is disabled",
+      "details": "XSS browser protection is not enabled",
+      "recommendation": "Enable SECURE_BROWSER_XSS_FILTER in settings.py"
+    }
+  ],
+  "low": [],
+  "info": []
+}

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Queue Me Analytics Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+        }
+        .logo {
+            max-width: 120px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #4a4a4a;
+            margin-bottom: 10px;
+        }
+        .report-period {
+            color: #777;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .summary {
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        .summary h2 {
+            color: #2196F3;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            width: 23%;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .metric-card h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #777;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .chart-container {
+            margin-bottom: 40px;
+        }
+        .chart-container h2 {
+            color: #2196F3;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .chart {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: 40px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://queueme.net/logo.png" alt="Queue Me Logo" class="logo">
+        <h1>Analytics Report</h1>
+        <div class="report-period">{{ report_period.start_date }} to {{ report_period.end_date }}</div>
+    </div>
+
+    <div class="summary">
+        <h2>Executive Summary</h2>
+        <p>This report provides a comprehensive overview of platform performance for the period from {{ report_period.start_date }} to {{ report_period.end_date }}. Key highlights include:</p>
+        <ul>
+            <li><strong>{{ total_new_users }}</strong> new users joined the platform</li>
+            <li><strong>{{ total_new_shops }}</strong> new shops were registered</li>
+            <li><strong>{{ total_bookings }}</strong> bookings were made with a {{ booking_growth_percent }}% {{ booking_growth_direction }} from the previous period</li>
+            <li><strong>{{ total_revenue }} SAR</strong> in transaction volume processed</li>
+        </ul>
+    </div>
+
+    <div class="metrics">
+        <div class="metric-card">
+            <h3>Total Users</h3>
+            <div class="metric-value">{{ total_users }}</div>
+            <div class="metric-change">{{ user_growth_percent }}% {{ user_growth_direction }}</div>
+        </div>
+        <div class="metric-card">
+            <h3>Total Shops</h3>
+            <div class="metric-value">{{ total_shops }}</div>
+            <div class="metric-change">{{ shop_growth_percent }}% {{ shop_growth_direction }}</div>
+        </div>
+        <div class="metric-card">
+            <h3>Total Bookings</h3>
+            <div class="metric-value">{{ total_bookings }}</div>
+            <div class="metric-change">{{ booking_growth_percent }}% {{ booking_growth_direction }}</div>
+        </div>
+        <div class="metric-card">
+            <h3>Revenue</h3>
+            <div class="metric-value">{{ total_revenue }} SAR</div>
+            <div class="metric-change">{{ revenue_growth_percent }}% {{ revenue_growth_direction }}</div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h2>User Growth</h2>
+        <div class="chart">
+            <!-- Chart image would be embedded here -->
+            <img src="{{ user_growth_chart_url }}" alt="User Growth Chart" style="width: 100%; max-height: 300px;">
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h2>Booking Activity</h2>
+        <div class="chart">
+            <!-- Chart image would be embedded here -->
+            <img src="{{ booking_activity_chart_url }}" alt="Booking Activity Chart" style="width: 100%; max-height: 300px;">
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>Top Performing Shops</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Shop Name</th>
+                <th>Bookings</th>
+                <th>Revenue</th>
+                <th>Avg. Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shop in top_shops %}
+            <tr>
+                <td>{{ shop.name }}</td>
+                <td>{{ shop.bookings }}</td>
+                <td>{{ shop.revenue }} SAR</td>
+                <td>{{ shop.avg_rating }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Top Services</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Service Name</th>
+                <th>Bookings</th>
+                <th>Revenue</th>
+                <th>Avg. Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for service in top_services %}
+            <tr>
+                <td>{{ service.name }}</td>
+                <td>{{ service.bookings }}</td>
+                <td>{{ service.revenue }} SAR</td>
+                <td>{{ service.avg_rating }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>Regional Activity</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>City</th>
+                <th>Users</th>
+                <th>Shops</th>
+                <th>Bookings</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for region in regional_activity %}
+            <tr>
+                <td>{{ region.city }}</td>
+                <td>{{ region.users }}</td>
+                <td>{{ region.shops }}</td>
+                <td>{{ region.bookings }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="chart-container">
+        <h2>Customer Satisfaction</h2>
+        <div class="chart">
+            <!-- Chart image would be embedded here -->
+            <img src="{{ satisfaction_chart_url }}" alt="Customer Satisfaction Chart" style="width: 100%; max-height: 300px;">
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>This report was automatically generated on {{ generation_date }} by Queue Me Analytics.</p>
+        <p>&copy; {{ report_year }} Queue Me. All rights reserved.</p>
+    </div>
+</body>
+</html>

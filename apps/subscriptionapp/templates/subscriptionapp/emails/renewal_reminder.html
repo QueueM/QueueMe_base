@@ -1,0 +1,95 @@
+<!-- apps/subscriptionapp/templates/subscriptionapp/emails/renewal_reminder.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Queue Me - Subscription Renewal Reminder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #f4f4f4;
+        }
+        .logo {
+            max-width: 150px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .subscription-details {
+            margin: 20px 0;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .warning {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .footer {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://queueme.net/logo.png" alt="Queue Me Logo" class="logo">
+        <h2>Subscription Renewal Reminder</h2>
+    </div>
+
+    <div class="content">
+        <p>Dear {{ company_name }},</p>
+
+        {% if auto_renew %}
+        <p>This is a friendly reminder that your Queue Me subscription will be automatically renewed in <strong>{{ days_remaining }} days</strong> on {{ expiry_date|date:"F d, Y" }}.</p>
+        {% else %}
+        <p class="warning">Your Queue Me subscription will expire in <strong>{{ days_remaining }} days</strong> on {{ expiry_date|date:"F d, Y" }}.</p>
+        {% endif %}
+
+        <div class="subscription-details">
+            <p><strong>Subscription Plan:</strong> {{ plan_name }}</p>
+            <p><strong>Expiry Date:</strong> {{ expiry_date|date:"F d, Y" }}</p>
+            <p><strong>Auto-Renewal:</strong> {% if auto_renew %}Enabled{% else %}Disabled{% endif %}</p>
+        </div>
+
+        {% if auto_renew %}
+        <p>To ensure uninterrupted service, please make sure your payment method is up to date. You can update your payment details or manage your subscription from your account dashboard.</p>
+        {% else %}
+        <p>To continue using Queue Me services without interruption, please renew your subscription before the expiry date. You can renew your subscription from your account dashboard.</p>
+
+        <a href="https://shop.queueme.net/subscriptions/{{ subscription_id }}/renew" class="button">Renew Now</a>
+        {% endif %}
+
+        <p>If you have any questions or need assistance, please contact our support team at support@queueme.net.</p>
+
+        <p>Thank you for choosing Queue Me!</p>
+
+        <p>Best regards,<br>The Queue Me Team</p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{ expiry_date|date:"Y" }} Queue Me. All rights reserved.</p>
+        <p>Queue Me Platform Ltd., Riyadh, Saudi Arabia</p>
+    </div>
+</body>
+</html>

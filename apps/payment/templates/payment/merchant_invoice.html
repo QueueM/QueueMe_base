@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .invoice-header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .invoice-header img {
+            max-height: 60px;
+        }
+        .invoice-to {
+            margin-bottom: 20px;
+        }
+        .invoice-details {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .invoice-table th, .invoice-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        .invoice-table th {
+            background-color: #f8f8f8;
+        }
+        .invoice-total {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .invoice-total table {
+            width: 300px;
+            margin-left: auto;
+        }
+        .invoice-total table td {
+            padding: 5px;
+        }
+        .invoice-total table tr:last-child {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .invoice-footer {
+            margin-top: 30px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+        .appointment-details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container{% if is_arabic %} rtl{% endif %}">
+        <div class="invoice-header">
+            <div>
+                <h1>{{ _("INVOICE") }}</h1>
+                <p>{{ shop.name }}</p>
+            </div>
+            <div>
+                {% if shop.avatar %}
+                <img src="{{ shop.avatar.url }}" alt="{{ shop.name }} Logo">
+                {% else %}
+                <img src="https://queue-me-assets.s3.me-south-1.amazonaws.com/logo.png" alt="Queue Me Logo">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="invoice-to">
+            <h3>{{ _("INVOICE TO") }}</h3>
+            <p>{{ appointment.customer.get_full_name }}</p>
+            <p>{{ appointment.customer.phone_number }}</p>
+            {% if appointment.customer.email %}
+            <p>{{ appointment.customer.email }}</p>
+            {% endif %}
+        </div>
+
+        <div class="invoice-details">
+            <div>
+                <p><strong>{{ _("Invoice Number") }}:</strong> {{ transaction.id|truncatechars:8 }}</p>
+                <p><strong>{{ _("Transaction ID") }}:</strong> {{ transaction.moyasar_id }}</p>
+            </div>
+            <div>
+                <p><strong>{{ _("Date") }}:</strong> {{ transaction.created_at|date:"d M, Y" }}</p>
+                <p><strong>{{ _("Payment Status") }}:</strong>
+                    {% if transaction.status == 'succeeded' %}
+                    <span style="color: red;">{{ _("Unpaid") }}</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="appointment-details">
+            <h3>{{ _("Appointment Details") }}</h3>
+            <p><strong>{{ _("Service") }}:</strong> {{ appointment.service.name }}</p>
+            <p><strong>{{ _("Date & Time") }}:</strong> {{ appointment.start_time|date:"d M, Y" }} at {{ appointment.start_time|date:"h:i A" }}</p>
+            <p><strong>{{ _("Specialist") }}:</strong> {{ appointment.specialist.employee.first_name }} {{ appointment.specialist.employee.last_name }}</p>
+            <p><strong>{{ _("Location") }}:</strong> {{ shop.location.address }}</p>
+        </div>
+
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>{{ _("Description") }}</th>
+                    <th>{{ _("Duration") }}</th>
+                    <th>{{ _("Quantity") }}</th>
+                    <th class="text-right">{{ _("Amount") }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ appointment.service.name }}</td>
+                    <td>{{ appointment.service.duration }} {{ _("minutes") }}</td>
+                    <td>1</td>
+                    <td class="text-right">{{ transaction.amount|floatformat:2 }} SAR</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="invoice-total">
+            <table>
+                <tr>
+                    <td>{{ _("Subtotal") }}:</td>
+                    <td class="text-right">{{ transaction.amount|floatformat:2 }} SAR</td>
+                </tr>
+                <tr>
+                    <td>{{ _("Tax") }} (0%):</td>
+                    <td class="text-right">0.00 SAR</td>
+                </tr>
+                <tr>
+                    <td>{{ _("Total") }}:</td>
+                    <td class="text-right">{{ transaction.amount|floatformat:2 }} SAR</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="invoice-footer">
+            <p>{{ _("Thank you for your business. For questions regarding this invoice, please contact") }} {{ shop.phone_number }}</p>
+            <p>{{ shop.name }} - {{ shop.location.address }}</p>
+        </div>
+    </div>
+</body>
+</html>

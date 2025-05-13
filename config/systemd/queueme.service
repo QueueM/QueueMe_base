@@ -1,0 +1,41 @@
+[Unit]
+Description=QueueMe Django Application
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+User=queueme
+Group=queueme
+WorkingDirectory=/opt/queueme/current
+Environment="PATH=/opt/queueme/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="DJANGO_SETTINGS_MODULE=queueme.settings.production"
+EnvironmentFile=/opt/queueme/.env
+
+ExecStart=/opt/queueme/venv/bin/gunicorn \
+    --workers 4 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 127.0.0.1:8000 \
+    --timeout 120 \
+    --access-logfile /var/log/queueme/access.log \
+    --error-logfile /var/log/queueme/error.log \
+    --capture-output \
+    --enable-stdio-inheritance \
+    queueme.asgi:application
+
+# Restart on crash
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Security measures
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

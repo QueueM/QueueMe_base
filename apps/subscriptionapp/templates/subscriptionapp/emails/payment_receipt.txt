@@ -1,0 +1,28 @@
+<!-- apps/subscriptionapp/templates/subscriptionapp/emails/payment_receipt.txt -->
+Queue Me - Payment Receipt
+
+Dear {{ company_name }},
+
+Thank you for your payment to Queue Me. Below are the details of your transaction:
+
+Invoice Number: {{ invoice_number }}
+Date: {{ invoice_date|date:"F d, Y" }}
+Due Date: {{ due_date|date:"F d, Y" }}
+Status: {{ status|title }}
+Subscription Plan: {{ plan_name }}
+Period: {{ period_start|date:"F d, Y" }} to {{ period_end|date:"F d, Y" }}
+Amount: {{ amount }} SAR
+
+Description: {{ plan_name }} Subscription
+
+You can view your subscription details and invoices in your account dashboard.
+
+If you have any questions or need assistance, please contact our support team at support@queueme.net.
+
+Thank you for choosing Queue Me!
+
+Best regards,
+The Queue Me Team
+
+© {{ invoice_date|date:"Y" }} Queue Me. All rights reserved.
+Queue Me Platform Ltd., Riyadh, Saudi Arabia

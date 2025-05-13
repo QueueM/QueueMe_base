@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }}</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #5f2eea;
+            padding: 20px;
+            text-align: center;
+        }
+        .logo {
+            max-width: 150px;
+            height: auto;
+        }
+        .footer {
+            background-color: #f8f8f8;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 5px;
+            text-decoration: none;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f2f2f2">
+        <tr>
+            <td style="padding: 20px 0;">
+                <table class="container" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" align="center" style="border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header">
+                            <img src="{{ base_url }}/static/img/logo-white.png" alt="Queue Me" class="logo">
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    {% block content %}{% endblock %}
+
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer">
+                            <p>© {% now "Y" %} Queue Me. All rights reserved.</p>
+                            <p>
+                                <a href="{{ base_url }}/privacy-policy" style="color: #5f2eea; text-decoration: none;">Privacy Policy</a> |
+                                <a href="{{ base_url }}/terms-of-service" style="color: #5f2eea; text-decoration: none;">Terms of Service</a>
+                            </p>
+                            <div class="social-links">
+                                <a href="https://facebook.com/queueme"><img src="{{ base_url }}/static/img/facebook-icon.png" alt="Facebook" width="24" height="24"></a>
+                                <a href="https://twitter.com/queueme"><img src="{{ base_url }}/static/img/twitter-icon.png" alt="Twitter" width="24" height="24"></a>
+                                <a href="https://instagram.com/queueme"><img src="{{ base_url }}/static/img/instagram-icon.png" alt="Instagram" width="24" height="24"></a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" dir="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Queue Me{% endblock %}</title>
+    <style>
+        /* Reset styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #3B82F6; /* Primary color */
+        }
+
+        .header img {
+            max-height: 60px;
+            width: auto;
+        }
+
+        /* Content */
+        .content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Headings */
+        h1, h2, h3, h4 {
+            color: #2563EB; /* Primary dark */
+            margin-top: 0;
+        }
+
+        /* Links */
+        a {
+            color: #3B82F6;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Button */
+        .button {
+            display: inline-block;
+            background-color: #3B82F6;
+            color: #ffffff !important;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-decoration: none !important;
+            margin: 20px 0;
+        }
+
+        .button:hover {
+            background-color: #2563EB;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .social-links {
+            margin: 15px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 5px;
+        }
+
+        /* RTL Overrides */
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+
+        .rtl .button {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 600px) {
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+
+        /* Customizations for specific email types */
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body {% if LANGUAGE_CODE == 'ar' %}class="rtl"{% endif %}>
+    <div class="container">
+        <div class="header">
+            <img src="{{ logo_url|default:'https://queueme.net/static/img/logo-white.png' }}" alt="Queue Me">
+        </div>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <div class="footer">
+            <div class="social-links">
+                <a href="https://twitter.com/queueme" target="_blank">
+                    <img src="{{ twitter_icon|default:'https://queueme.net/static/img/twitter-icon.png' }}" alt="Twitter" width="24">
+                </a>
+                <a href="https://facebook.com/queueme" target="_blank">
+                    <img src="{{ facebook_icon|default:'https://queueme.net/static/img/facebook-icon.png' }}" alt="Facebook" width="24">
+                </a>
+                <a href="https://instagram.com/queueme" target="_blank">
+                    <img src="{{ instagram_icon|default:'https://queueme.net/static/img/instagram-icon.png' }}" alt="Instagram" width="24">
+                </a>
+            </div>
+
+            <p>
+                {% if LANGUAGE_CODE == 'ar' %}
+                جميع الحقوق محفوظة © {% now "Y" %} كيو مي<br>
+                إذا كنت بحاجة إلى مساعدة، يرجى التواصل مع <a href="mailto:support@queueme.net">support@queueme.net</a>
+                {% else %}
+                &copy; {% now "Y" %} Queue Me. All rights reserved.<br>
+                If you need any assistance, please contact <a href="mailto:support@queueme.net">support@queueme.net</a>
+                {% endif %}
+            </p>
+
+            <p>
+                {% if LANGUAGE_CODE == 'ar' %}
+                لقد استلمت هذا البريد الإلكتروني لأنك مسجل في كيو مي.<br>
+                <a href="{{ unsubscribe_url|default:'#' }}">إلغاء الاشتراك</a> من الإشعارات.
+                {% else %}
+                You're receiving this email because you're registered with Queue Me.<br>
+                <a href="{{ unsubscribe_url|default:'#' }}">Unsubscribe</a> from notifications.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

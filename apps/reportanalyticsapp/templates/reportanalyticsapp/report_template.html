@@ -1,0 +1,371 @@
+<!-- apps/reportanalyticsapp/templates/reportanalyticsapp/report_template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report.metadata.report_name }} - Queue Me Analytics</title>
+    <style>
+        :root {
+            --primary-color: #5a55ca;
+            --secondary-color: #867ae9;
+            --text-color: #333;
+            --bg-color: #ffffff;
+            --card-bg: #f7f7fc;
+            --border-color: #e0e0e8;
+            --highlight-bg: #f0f0f8;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo {
+            max-width: 180px;
+            margin-bottom: 15px;
+        }
+        h1 {
+            color: var(--primary-color);
+            margin: 10px 0;
+            font-size: 28px;
+        }
+        .report-meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .meta-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .meta-title {
+            margin: 0 0 10px 0;
+            color: var(--secondary-color);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .meta-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .section-title {
+            color: var(--primary-color);
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .metric-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .metric-title {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+            font-size: 15px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .growth {
+            font-size: 14px;
+            margin-left: 10px;
+            padding: 2px 8px;
+            border-radius: 50px;
+        }
+        .growth-positive {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: var(--success-color);
+        }
+        .growth-negative {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: var(--danger-color);
+        }
+        .insight-list {
+            background-color: var(--highlight-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .insight-item {
+            margin-bottom: 12px;
+            padding-left: 25px;
+            position: relative;
+        }
+        .insight-item:before {
+            content: "•";
+            color: var(--primary-color);
+            font-size: 22px;
+            position: absolute;
+            left: 5px;
+            top: -2px;
+        }
+        .recommendation-list {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .recommendation-title {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 18px;
+        }
+        .recommendation-item {
+            margin-bottom: 12px;
+            padding-left: 25px;
+            position: relative;
+        }
+        .recommendation-item:before {
+            content: "✓";
+            color: var(--success-color);
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--highlight-bg);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: var(--highlight-bg);
+        }
+        tr:hover {
+            background-color: rgba(134, 122, 233, 0.1);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: #777;
+            font-size: 14px;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .metric-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img class="logo" src="https://queueme.net/logo.png" alt="Queue Me Logo">
+            <h1>{{ report.metadata.report_name }}</h1>
+            <p>{{ report.metadata.time_period_name }} Report | {{ report.metadata.start_date|date:"F j, Y" }} - {{ report.metadata.end_date|date:"F j, Y" }}</p>
+        </div>
+
+        <div class="report-meta">
+            {% if report.metadata.entity_type != 'platform' %}
+            <div class="meta-card">
+                <h3 class="meta-title">{{ report.metadata.entity_type|title }}</h3>
+                <div class="meta-value">{{ report.entity_name }}</div>
+            </div>
+            {% endif %}
+            <div class="meta-card">
+                <!-- Continuing apps/reportanalyticsapp/templates/reportanalyticsapp/report_template.html -->
+                <h3 class="meta-title">Generated On</h3>
+                <div class="meta-value">{{ report.metadata.generated_at|date:"F j, Y" }}</div>
+            </div>
+            <div class="meta-card">
+                <h3 class="meta-title">Report Format</h3>
+                <div class="meta-value">{{ report.format|upper }}</div>
+            </div>
+        </div>
+
+        {% if report.insights %}
+        <div class="section">
+            <h2 class="section-title">Key Insights</h2>
+            <div class="insight-list">
+                {% for insight in report.insights %}
+                <div class="insight-item">{{ insight }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if report.recommendations %}
+        <div class="section">
+            <h2 class="section-title">Recommendations</h2>
+            <div class="recommendation-list">
+                <h3 class="recommendation-title">Suggested Actions</h3>
+                {% for recommendation in report.recommendations %}
+                <div class="recommendation-item">{{ recommendation }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="section">
+            <h2 class="section-title">Key Metrics</h2>
+            <div class="metric-grid">
+                {% for key, value in report.metrics.items %}
+                <div class="metric-card">
+                    <h3 class="metric-title">{{ key|title|replace:'_:' }}</h3>
+                    <div class="metric-value">
+                        {{ value }}
+                        {% if report.growth_metrics and key in report.growth_metrics %}
+                            {% if report.growth_metrics|get:key > 0 %}
+                            <span class="growth growth-positive">+{{ report.growth_metrics|get:key }}%</span>
+                            {% else %}
+                            <span class="growth growth-negative">{{ report.growth_metrics|get:key }}%</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if report.service_data %}
+        <div class="section">
+            <h2 class="section-title">Service Performance</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service Name</th>
+                            <th>Bookings</th>
+                            <th>Completed</th>
+                            <th>Cancelled</th>
+                            <th>Revenue</th>
+                            <th>Completion Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in report.service_data %}
+                        <tr>
+                            <td>{{ service.name }}</td>
+                            <td>{{ service.bookings }}</td>
+                            <td>{{ service.completed }}</td>
+                            <td>{{ service.cancelled }}</td>
+                            <td>{{ service.revenue }} SAR</td>
+                            <td>{{ service.completion_rate }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if report.specialist_data %}
+        <div class="section">
+            <h2 class="section-title">Specialist Performance</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Specialist Name</th>
+                            <th>Bookings</th>
+                            <th>Completed</th>
+                            <th>Revenue</th>
+                            <th>Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for specialist in report.specialist_data %}
+                        <tr>
+                            <td>{{ specialist.name }}</td>
+                            <td>{{ specialist.bookings }}</td>
+                            <td>{{ specialist.completed }}</td>
+                            <td>{{ specialist.revenue }} SAR</td>
+                            <td>{{ specialist.avg_rating }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if report.benchmarks %}
+        <div class="section">
+            <h2 class="section-title">Performance Benchmarks</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Your Value</th>
+                            <th>Industry Average</th>
+                            <th>Percentile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, benchmark in report.benchmarks.items %}
+                        <tr>
+                            <td>{{ key|title|replace:'_:' }}</td>
+                            <td>{{ benchmark.entity_value }}</td>
+                            <td>{{ benchmark.industry_avg }}</td>
+                            <td>{{ benchmark.percentile }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p>This report was generated automatically by Queue Me Analytics.</p>
+            <p>&copy; {% now "Y" %} Queue Me. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

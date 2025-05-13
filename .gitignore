@@ -1,0 +1,92 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Environment variables
+.env
+.venv
+env/
+venv/
+ENV/
+.env.production
+# Database migrations (except __init__.py)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Static files - might be created during collectstatic
+staticfiles/
+
+# celery beat schedule file
+celerybeat-schedule
+celerybeat.pid
+
+# Celery worker logs
+celery.log*
+
+# VS Code files
+.vscode/
+.idea/
+
+# MacOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Node (for frontend dependencies)
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Project specific
+.secrets/
+.media/
+generated_docs/
+production_env.sh
+production_env.sh
+*.env*
+*.sh.bak

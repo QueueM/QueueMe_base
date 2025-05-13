@@ -1,0 +1,75 @@
+[DEFAULT]
+# Ban hosts for 10 hours
+bantime = 36000
+# Check for matches in the last 10 minutes
+findtime = 600
+# Ban after 5 failures
+maxretry = 5
+# Use iptables-multiport for banning
+banaction = iptables-multiport
+# Email notifications
+destemail = admin@example.com
+sendername = Fail2Ban
+sender = fail2ban@example.com
+mta = sendmail
+action = %(action_mwl)s
+
+# SSH protection
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+
+# Block repeated login attempts to Django admin
+[django-admin]
+enabled = true
+port = http,https
+filter = django-admin
+logpath = /opt/queueme/repo/logs/django-admin.log
+maxretry = 5
+bantime = 72000  # 20 hours
+
+# Filter for Django admin
+[django-admin-auth]
+enabled = true
+port = http,https
+filter = django-admin-auth
+logpath = /opt/queueme/repo/logs/django-auth.log
+maxretry = 5
+bantime = 72000  # 20 hours
+
+# Protect against password guessing on the login API
+[queueme-api-auth]
+enabled = true
+port = http,https
+filter = queueme-api-auth
+logpath = /var/log/nginx/queueme-api.access.log
+maxretry = 10
+findtime = 300  # 5 minutes
+bantime = 7200  # 2 hours
+
+# Protect against various HTTP attacks
+[nginx-http-auth]
+enabled = true
+filter = nginx-http-auth
+port = http,https
+logpath = /var/log/nginx/error.log
+maxretry = 3
+
+[nginx-botsearch]
+enabled = true
+filter = nginx-botsearch
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 2
+findtime = 60
+bantime = 86400  # 24 hours
+
+[nginx-badbots]
+enabled = true
+filter = nginx-badbots
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 2

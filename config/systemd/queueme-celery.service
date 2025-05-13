@@ -1,0 +1,36 @@
+[Unit]
+Description=QueueMe Celery Worker
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+User=queueme
+Group=queueme
+WorkingDirectory=/opt/queueme/current
+Environment="PATH=/opt/queueme/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="DJANGO_SETTINGS_MODULE=queueme.settings.production"
+EnvironmentFile=/opt/queueme/.env
+
+ExecStart=/opt/queueme/venv/bin/celery -A queueme worker \
+    --loglevel=INFO \
+    --logfile=/var/log/queueme/celery.log \
+    --concurrency=4 \
+    --pool=prefork
+
+# Restart on crash
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Security measures
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

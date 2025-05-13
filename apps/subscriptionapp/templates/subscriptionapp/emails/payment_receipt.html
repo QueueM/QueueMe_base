@@ -1,0 +1,104 @@
+<!-- apps/subscriptionapp/templates/subscriptionapp/emails/payment_receipt.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Queue Me - Payment Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #f4f4f4;
+        }
+        .logo {
+            max-width: 150px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .invoice-details {
+            margin: 20px 0;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .table th, .table td {
+            border: 1px solid #eee;
+            padding: 8px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #f8f8f8;
+        }
+        .footer {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://queueme.net/logo.png" alt="Queue Me Logo" class="logo">
+        <h2>Payment Receipt</h2>
+    </div>
+
+    <div class="content">
+        <p>Dear {{ company_name }},</p>
+
+        <p>Thank you for your payment to Queue Me. Below are the details of your transaction:</p>
+
+        <div class="invoice-details">
+            <p><strong>Invoice Number:</strong> {{ invoice_number }}</p>
+            <p><strong>Date:</strong> {{ invoice_date|date:"F d, Y" }}</p>
+            <p><strong>Due Date:</strong> {{ due_date|date:"F d, Y" }}</p>
+            <p><strong>Status:</strong> {{ status|title }}</p>
+            <p><strong>Subscription Plan:</strong> {{ plan_name }}</p>
+            <p><strong>Period:</strong> {{ period_start|date:"F d, Y" }} to {{ period_end|date:"F d, Y" }}</p>
+            <p><strong>Amount:</strong> {{ amount }} SAR</p>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ plan_name }} Subscription</td>
+                    <td>{{ amount }} SAR</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>You can view your subscription details and invoices in your account dashboard.</p>
+
+        <p>If you have any questions or need assistance, please contact our support team at support@queueme.net.</p>
+
+        <p>Thank you for choosing Queue Me!</p>
+
+        <p>Best regards,<br>The Queue Me Team</p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{ invoice_date|date:"Y" }} Queue Me. All rights reserved.</p>
+        <p>Queue Me Platform Ltd., Riyadh, Saudi Arabia</p>
+    </div>
+</body>
+</html>

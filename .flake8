@@ -1,0 +1,89 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    venv/,
+    venv311/,
+    env/,
+    .venv/,
+    .env/,
+    build/,
+    dist/,
+    */migrations/*
+ignore =
+    # Whitespace issues
+    E203,  # whitespace before ':'
+    W291,  # trailing whitespace
+    W293,  # blank line contains whitespace
+    W503,  # line break before binary operator
+
+    # Code style
+    E302,  # expected 2 blank lines
+    E305,  # expected 2 blank lines after class or function
+    E402,  # module level import not at top of file
+    E501,  # line too long
+    E722,  # bare except
+    Q000,  # Double quotes found but single quotes preferred
+
+    # Unused imports/variables
+    F401,  # module imported but unused
+    F403,  # 'from module import *' used
+    F405,  # name may be undefined from star imports
+    F541,  # f-string without placeholders
+    F811,  # redefinition of unused name
+    F821,  # undefined name
+    F823,  # local variable defined earlier as global/non-local
+    F841,  # local variable is assigned to but never used
+
+max-line-length = 100
+
+per-file-ignores =
+    # Django files
+    */settings/*.py:E402,F403,F405,F821
+    */asgi.py:E402
+    */wsgi.py:E402
+    manage.py:E402
+
+    # API and documentation
+    api/documentation/*.py:E501,F401
+    api/v1/views/*.py:E501,F401,F403,F405
+
+    # App files
+    apps/*/views.py:F823,E501,F401
+    apps/*/services/*.py:F401,F402,E501,F821
+    apps/*/utils/*.py:F401,E501
+    apps/*/tests/*.py:F401,E501,F811
+
+    # WebSockets
+    websockets/*.py:Q000,F401,E501
+    websockets/consumers/*.py:Q000,F401,F841,E501
+    websockets/middleware/*.py:Q000,F401
+
+    # Integration tests
+    integration_tests/*.py:E402,F401,F403,F405,F821,F823
+    tests/integration/*.py:E402,F401,F403,F405,F821,F823
+
+    # Load tests
+    load_tests/*.py:E402,E501,F401
+
+    # Scripts
+    scripts/*.py:E402,F401,F821,F841
+
+    # Specific files
+    api/documentation/openapi.py:E501
+    apps/notificationsapp/views.py:F823
+    apps/payment/services/payment_service.py:F401,F402,E501
+    queueme/settings/base.py:E501
+    scripts/database_backup.py:F841
+    load_tests/booking_load_test.py:E501
+    queueme/asgi.py:E402
+    scripts/migrate_sqlite_to_postgres.py:E402
+    scripts/seed_data.py:F821
+    security/api_security_test.py:F541
+    api_docs_fix.py:E402,F401
+    api_docs_generator.py:E402,F401
+    generate_api_docs.py:E402,F401
+    urls_fix.py:E402,F401
+    fix_worker.py:E402,F401,F821
+    run_daphne.py:E402
+    run_django_daphne.py:E402

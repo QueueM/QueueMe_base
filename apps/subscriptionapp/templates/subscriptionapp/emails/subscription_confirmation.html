@@ -1,0 +1,85 @@
+<!-- apps/subscriptionapp/templates/subscriptionapp/emails/subscription_confirmation.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Queue Me - Subscription Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #f4f4f4;
+        }
+        .logo {
+            max-width: 150px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .subscription-details {
+            margin: 20px 0;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .footer {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://queueme.net/logo.png" alt="Queue Me Logo" class="logo">
+        <h2>Subscription Confirmation</h2>
+    </div>
+
+    <div class="content">
+        <p>Dear {{ company_name }},</p>
+
+        <p>Thank you for subscribing to Queue Me! Your subscription has been activated successfully.</p>
+
+        <div class="subscription-details">
+            <p><strong>Subscription Plan:</strong> {{ plan_name }}</p>
+            <p><strong>Billing Period:</strong> {{ period|title }}</p>
+            <p><strong>Start Date:</strong> {{ start_date|date:"F d, Y" }}</p>
+            <p><strong>Next Billing Date:</strong> {{ end_date|date:"F d, Y" }}</p>
+            <p><strong>Auto-Renewal:</strong> {% if auto_renew %}Enabled{% else %}Disabled{% endif %}</p>
+        </div>
+
+        <p>You now have access to all the features and benefits of your subscription plan. You can manage your subscription, access invoices, and update payment details from your account dashboard.</p>
+
+        <a href="https://shop.queueme.net/subscriptions/{{ subscription_id }}" class="button">View Subscription</a>
+
+        <p>If you have any questions or need assistance, please contact our support team at support@queueme.net.</p>
+
+        <p>We're excited to have you on board and look forward to helping you grow your business!</p>
+
+        <p>Best regards,<br>The Queue Me Team</p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{ start_date|date:"Y" }} Queue Me. All rights reserved.</p>
+        <p>Queue Me Platform Ltd., Riyadh, Saudi Arabia</p>
+    </div>
+</body>
+</html>

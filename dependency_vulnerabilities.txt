@@ -1,0 +1,358 @@
+
+
+[33m[1m+===========================================================================================================================================================================================+[0m
+
+
+[31m[1mDEPRECATED: [0m[33m[1mthis command (`check`) has been DEPRECATED, and will be unsupported beyond 01 June 2024.[0m
+
+
+[32mWe highly encourage switching to the new [0m[32m[1m`scan`[0m[32m command which is easier to use, more powerful, and can be set up to mimic the deprecated command if required.[0m
+
+
+[33m[1m+===========================================================================================================================================================================================+[0m
+
+
++==============================================================================+
+
+                               /$$$$$$            /$$
+                              /$$__  $$          | $$
+           /$$$$$$$  /$$$$$$ | $$  \__//$$$$$$  /$$$$$$   /$$   /$$
+          /$$_____/ |____  $$| $$$$   /$$__  $$|_  $$_/  | $$  | $$
+         |  $$$$$$   /$$$$$$$| $$_/  | $$$$$$$$  | $$    | $$  | $$
+          \____  $$ /$$__  $$| $$    | $$_____/  | $$ /$$| $$  | $$
+          /$$$$$$$/|  $$$$$$$| $$    |  $$$$$$$  |  $$$$/|  $$$$$$$
+         |_______/  \_______/|__/     \_______/   \___/   \____  $$
+                                                          /$$  | $$
+                                                         |  $$$$$$/
+  by safetycli.com                                        \______/
+
++==============================================================================+
+
+ [1mREPORT[0m
+
+  Safety [1mv3.5.0[0m is scanning for [1mVulnerabilities[0m[1m...[0m
+[1m  Scanning dependencies[0m in your [1mfiles:[0m
+
+  -> requirements.txt
+
+  Using [1mopen-source vulnerability database[0m
+[1m  Found and scanned 203 packages[0m
+  Timestamp [1m2025-05-13 02:31:17[0m
+[1m  24[0m[1m vulnerabilities reported[0m
+[1m  0[0m[1m vulnerabilities ignored[0m
+
++==============================================================================+
+ [1mVULNERABILITIES REPORTED[0m
++==============================================================================+
+
+[31m-> Vulnerability found in urllib3 version 2.0.7[0m
+[1m   Vulnerability ID: [0m71608
+[1m   Affected spec: [0m>=2.0.0a1,<=2.2.1
+[1m   ADVISORY: [0mUrllib3's ProxyManager ensures that the Proxy-
+   Authorization header is correctly directed only to configured proxies....
+[1m   CVE-2024-37891[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/71608/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 71608 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in twilio version 8.9.1[0m
+[1m   Vulnerability ID: [0m71167
+[1m   Affected spec: [0m<9.1.0
+[1m   ADVISORY: [0mTwilio version 9.1.0 includes a security upgrade for the
+   aiohttp dependency, updating it from version 3.8.6 to 3.9.4. This...
+[1m   CVE-2024-27306[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/71167/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 71167 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in twilio version 8.9.1[0m
+[1m   Vulnerability ID: [0m68034
+[1m   Affected spec: [0m<9.0.5
+[1m   ADVISORY: [0mTwilio version 9.0.5 has updated its certifi library
+   from version 2021.10.8 to 2023.7.22 in response to the security...
+[1m   CVE-2023-32681[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/68034/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 68034 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in twilio version 8.9.1[0m
+[1m   Vulnerability ID: [0m68033
+[1m   Affected spec: [0m<9.0.5
+[1m   ADVISORY: [0mTwilio version 9.0.5 has upgraded its certifi library
+   from version 2021.10.8 to 2023.7.22 in response to the security issue...
+[1m   CVE-2023-37920[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/68033/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 68033 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in twilio version 8.9.1[0m
+[1m   Vulnerability ID: [0m67976
+[1m   Affected spec: [0m<9.0.5
+[1m   ADVISORY: [0mTwilio version 9.0.5 has updated its certifi library
+   from version 2021.10.8 to 2023.7.22 to address the security...
+[1m   CVE-2022-23491[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/67976/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 67976 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in scikit-learn version 1.3.2[0m
+[1m   Vulnerability ID: [0m71596
+[1m   Affected spec: [0m<1.5.0
+[1m   ADVISORY: [0mA sensitive data leakage vulnerability was identified in
+   affected versions of scikit-learn TfidfVectorizer. The vulnerability...
+[1m   CVE-2024-5206[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/71596/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 71596 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in pyjwt version 2.9.0[0m
+[1m   Vulnerability ID: [0m74429
+[1m   Affected spec: [0m<2.10.1
+[1m   ADVISORY: [0mAffected versions of pyjwt are vulnerable to Partial
+   Comparison (CWE-187). This flaw allows attackers to bypass issuer (iss)...
+[1m   CVE-2024-53861[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/74429/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 74429 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in djangorestframework-simplejwt version 5.5.0[0m
+[1m   Vulnerability ID: [0m66963
+[1m   Affected spec: [0m>=0
+[1m   ADVISORY: [0mAffected versions of Djangorestframework-simplejwt are
+   vulnerable to information disclosure. A user can access web application...
+[1m   CVE-2024-22513[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/66963/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 66963 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in djangorestframework version 3.14.0[0m
+[1m   Vulnerability ID: [0m71849
+[1m   Affected spec: [0m<3.15.2
+[1m   ADVISORY: [0mAffected versions of the package djangorestframework are
+   vulnerable to Cross-site Scripting (XSS) via the break_long_headers...
+[1m   CVE-2024-21520[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/71849/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 71849 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m72515
+[1m   Affected spec: [0m<4.2.15
+[1m   ADVISORY: [0mDjango addresses a memory exhaustion issue in
+   django.utils.numberformat.floatformat(). When floatformat receives a...
+[1m   CVE-2024-41990[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/72515/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 72515 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m72521
+[1m   Affected spec: [0m<4.2.15
+[1m   ADVISORY: [0mAffected versions of Django has a potential SQL
+   injection vulnerability in the QuerySet.values() and...
+[1m   CVE-2024-42005[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/72521/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 72521 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m72520
+[1m   Affected spec: [0m<4.2.15
+[1m   ADVISORY: [0mDjango has a potential denial-of-service vulnerability
+   in django.utils.html.urlize() and AdminURLFieldWidget. The urlize and...
+[1m   CVE-2024-41991[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/72520/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 72520 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m75744
+[1m   Affected spec: [0m<4.2.20
+[1m   ADVISORY: [0mAffected versions of Django are vulnerable to a
+   potential denial-of-service in django.utils.text.wrap(). The...
+[1m   CVE-2025-26699[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/75744/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 75744 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m65771
+[1m   Affected spec: [0m>=4.0a1,<4.2.11
+[1m   ADVISORY: [0mAffected versions of Django are vulnerable to potential
+   regular expression denial-of-service (REDoS)....
+[1m   CVE-2024-27351[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/65771/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 65771 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m72109
+[1m   Affected spec: [0m<4.2.14
+[1m   ADVISORY: [0mAffected versions of Django are affected by a username
+   enumeration vulnerability caused by timing differences in the...
+[1m   CVE-2024-39329[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/72109/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 72109 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m72095
+[1m   Affected spec: [0m<4.2.14
+[1m   ADVISORY: [0mAffected versions of Django are affected by a potential
+   denial-of-service vulnerability in the django.utils.html.urlize()...
+[1m   CVE-2024-38875[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/72095/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 72095 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m72110
+[1m   Affected spec: [0m<4.2.14
+[1m   ADVISORY: [0mAffected versions of Django are affected by a directory-
+   traversal vulnerability in the Storage.save() method. Derived classes...
+[1m   CVE-2024-39330[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/72110/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 72110 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m72111
+[1m   Affected spec: [0m<4.2.14
+[1m   ADVISORY: [0mAffected versions of Django are potentially vulnerable
+   to denial-of-service via the get_supported_language_variant() method....
+[1m   CVE-2024-39614[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/72111/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 72111 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m64976
+[1m   Affected spec: [0m>=4.0a1,<4.2.10
+[1m   ADVISORY: [0mAffected versions of Django are vulnerable to potential
+   denial-of-service in intcomma template filter when used with very long...
+[1m   CVE-2024-24680[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/64976/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 64976 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m74396
+[1m   Affected spec: [0m<4.2.17
+[1m   ADVISORY: [0mDjango affected versions are vulnerable to a potential
+   SQL injection in the HasKey(lhs, rhs) lookup on Oracle databases. The...
+[1m   CVE-2024-53908[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/74396/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 74396 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m74395
+[1m   Affected spec: [0m<4.2.17
+[1m   ADVISORY: [0mAffected versions of Django are vulnerable to a
+   potential denial-of-service (DoS) attack in the...
+[1m   CVE-2024-53907[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/74395/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 74395 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m74985
+[1m   Affected spec: [0m<4.2.18
+[1m   ADVISORY: [0mAffected versions of Django are vulnerable to a
+   potential denial-of-service attack due to improper IPv6 validation. The...
+[1m   CVE-2024-56374[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/74985/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 74985 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m73028
+[1m   Affected spec: [0m<4.2.16
+[1m   ADVISORY: [0mA security vulnerability has been discovered in certain
+   versions of Django, affecting the password reset functionality. The...
+[1m   CVE-2024-45231[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/73028/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 73028 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+[31m-> Vulnerability found in django version 4.2.7[0m
+[1m   Vulnerability ID: [0m73023
+[1m   Affected spec: [0m<4.2.16
+[1m   ADVISORY: [0mA potential denial-of-service vulnerability has been
+   identified in Django's urlize() and urlizetrunc() functions in...
+[1m   CVE-2024-45230[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/73023/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 73023 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
++==============================================================================+
+   [32m[1mREMEDIATIONS[0m
+
+  24 vulnerabilities were reported in 7 packages. For detailed remediation &
+  fix recommendations, upgrade to a commercial license.
+
++==============================================================================+
+
+ Scan was completed. 24 vulnerabilities were reported.
+
++==============================================================================+[0m
+
+
+[33m[1m+===========================================================================================================================================================================================+[0m
+
+
+[31m[1mDEPRECATED: [0m[33m[1mthis command (`check`) has been DEPRECATED, and will be unsupported beyond 01 June 2024.[0m
+
+
+[32mWe highly encourage switching to the new [0m[32m[1m`scan`[0m[32m command which is easier to use, more powerful, and can be set up to mimic the deprecated command if required.[0m
+
+
+[33m[1m+===========================================================================================================================================================================================+[0m

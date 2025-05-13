@@ -1,0 +1,1227 @@
+{% extends "api_docs/base.html" %}
+
+{% block title %}QueueMe Developer Portal{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Hero section */
+        .hero {
+            background: linear-gradient(135deg, #4338ca, var(--tertiary));
+            color: white;
+            padding: 8rem 0 6rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: 60px;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 150%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero-logo i {
+            font-size: 3rem;
+            margin-right: 1rem;
+            color: var(--quaternary);
+        }
+
+        .hero-logo-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            background: linear-gradient(to right, white, rgba(255, 255, 255, 0.85));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            line-height: 1.5;
+        }
+
+        /* Main content styles */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .section {
+            padding: 8rem 0;
+        }
+
+        .section.light {
+            background-color: var(--background-color);
+        }
+
+        .section.dark {
+            background-color: var(--gray-50);
+        }
+
+        [data-theme="dark"] .section.dark {
+            background-color: rgba(15, 23, 42, 0.5);
+        }
+
+        .section-heading {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-heading h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: var(--tertiary);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-heading h2::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 5px;
+            background: linear-gradient(to right, var(--tertiary), var(--quaternary));
+            border-radius: 2px;
+        }
+
+        .section-heading p {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            max-width: 800px;
+            margin: 2rem auto 0;
+            line-height: 1.6;
+        }
+
+        [data-theme="dark"] .section-heading p {
+            color: var(--gray-400);
+        }
+
+        /* Getting started steps */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            margin-bottom: 5rem;
+            position: relative;
+        }
+
+        .step:last-child {
+            margin-bottom: 0;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 80px;
+            left: 40px;
+            bottom: -80px;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--tertiary), var(--quaternary));
+        }
+
+        .step-number {
+            min-width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--tertiary), var(--quaternary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-right: 2rem;
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-content {
+            flex: 1;
+            padding-top: 0.75rem;
+        }
+
+        .step-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--tertiary);
+        }
+
+        .step-description {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            color: var(--gray-600);
+        }
+
+        [data-theme="dark"] .step-description {
+            color: var(--gray-400);
+        }
+
+        .step-code {
+            background-color: var(--code-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .step-code pre {
+            margin: 0;
+            font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.9375rem;
+            line-height: 1.6;
+            color: var(--code-text);
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--gray-600);
+        }
+
+        .copy-btn:hover {
+            background-color: var(--tertiary-light);
+            color: white;
+            border-color: var(--tertiary-light);
+        }
+
+        /* SDK section */
+        .sdk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+        }
+
+        .sdk-card {
+            background-color: var(--card-background);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sdk-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            border-color: var(--tertiary);
+        }
+
+        .sdk-header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .sdk-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--tertiary), var(--quaternary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-right: 1.5rem;
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .sdk-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sdk-body {
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sdk-description {
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--gray-600);
+            flex: 1;
+        }
+
+        [data-theme="dark"] .sdk-description {
+            color: var(--gray-400);
+        }
+
+        .sdk-features {
+            margin: 1.5rem 0;
+        }
+
+        .sdk-feature {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            font-size: 0.9375rem;
+        }
+
+        .sdk-feature i {
+            color: var(--tertiary);
+            margin-right: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .sdk-footer {
+            padding: 0 2rem 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Resources section */
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .resource-card {
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--tertiary);
+        }
+
+        .resource-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--tertiary), var(--quaternary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .resource-content {
+            padding: 2rem;
+        }
+
+        .resource-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
+        }
+
+        .resource-description {
+            font-size: 0.9375rem;
+            line-height: 1.6;
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+        }
+
+        [data-theme="dark"] .resource-description {
+            color: var(--gray-400);
+        }
+
+        .resource-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--tertiary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .resource-link:hover {
+            gap: 0.75rem;
+        }
+
+        /* Showcase section */
+        .showcase-slider {
+            position: relative;
+            padding: 2rem 0 4rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .showcase-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .showcase-slide {
+            min-width: 100%;
+            padding: 1rem;
+        }
+
+        .showcase-card {
+            background-color: var(--card-background);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .showcase-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 2rem;
+        }
+
+        .showcase-quote {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            color: var(--text-color);
+            font-weight: 600;
+            font-style: italic;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .showcase-quote::before,
+        .showcase-quote::after {
+            content: '"';
+            color: var(--tertiary);
+            font-size: 3rem;
+            position: absolute;
+            opacity: 0.2;
+        }
+
+        .showcase-quote::before {
+            top: -20px;
+            left: -10px;
+        }
+
+        .showcase-quote::after {
+            bottom: -30px;
+            right: -10px;
+        }
+
+        .showcase-author {
+            font-weight: 600;
+            color: var(--tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .showcase-position {
+            font-size: 0.9375rem;
+            color: var(--gray-600);
+        }
+
+        .showcase-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .showcase-control {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            color: var(--tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .showcase-control:hover {
+            background-color: var(--tertiary);
+            color: white;
+        }
+
+        .showcase-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .showcase-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--gray-300);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .showcase-dot.active {
+            background-color: var(--tertiary);
+            transform: scale(1.2);
+        }
+
+        /* CTA section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--tertiary), var(--quaternary));
+            color: white;
+            padding: 6rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        }
+
+        .cta-container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .cta-section h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-section p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 1024px) {
+            .hero h1,
+            .cta-section h2 {
+                font-size: 3rem;
+            }
+
+            .section-heading h2 {
+                font-size: 2.5rem;
+            }
+
+            .step {
+                flex-direction: column;
+                padding-left: 40px;
+                position: relative;
+            }
+
+            .step-number {
+                position: absolute;
+                top: 0;
+                left: 0;
+                transform: scale(0.7);
+                margin-right: 0;
+            }
+
+            .step-content {
+                padding-top: 0;
+            }
+
+            .step:not(:last-child)::after {
+                left: 40px;
+                top: 60px;
+            }
+
+            .sdk-grid,
+            .resources-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 6rem 0 4rem;
+            }
+
+            .hero h1,
+            .cta-section h2 {
+                font-size: 2.5rem;
+            }
+
+            .section-heading h2 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 5rem 0;
+            }
+
+            .step-title {
+                font-size: 1.5rem;
+            }
+
+            .showcase-card {
+                padding: 2rem;
+            }
+
+            .showcase-quote {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1,
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+
+            .section-heading h2 {
+                font-size: 1.75rem;
+            }
+
+            .hero p,
+            .cta-section p,
+            .section-heading p {
+                font-size: 1.1rem;
+            }
+
+            .step-title {
+                font-size: 1.25rem;
+            }
+
+            .step-description,
+            .sdk-description {
+                font-size: 1rem;
+            }
+
+            .showcase-card {
+                padding: 1.5rem;
+            }
+
+            .showcase-quote {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-logo" data-animate="fade-in">
+                <i class="fas fa-code"></i>
+                <span class="hero-logo-text">Developer Portal</span>
+            </div>
+            <h1 data-animate="slide-up">Build Amazing Applications with QueueMe</h1>
+            <p data-animate="slide-up">Access tools, resources, SDKs, and documentation to integrate QueueMe's powerful queue management and booking features into your applications.</p>
+            <div class="cta-buttons" data-animate="slide-up">
+                <a href="{% url 'api-guide' %}" class="btn btn-light">
+                    <i class="fas fa-book"></i>
+                    Read the Docs
+                </a>
+                <a href="{% url 'support' %}" class="btn btn-ghost">
+                    <i class="fas fa-headset"></i>
+                    Get Support
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Getting Started Section -->
+    <section class="section light">
+        <div class="container">
+            <div class="section-heading">
+                <h2 data-animate="fade-in">Getting Started</h2>
+                <p data-animate="slide-up">Follow these steps to quickly integrate QueueMe API into your application</p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step" data-animate="slide-up">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Register for API Access</h3>
+                        <p class="step-description">
+                            Sign up for a QueueMe developer account to receive your API credentials. You'll get a set of development keys to start building and testing your integration.
+                        </p>
+                        <a href="https://queueme.net/register" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i>
+                            Register Now
+                        </a>
+                    </div>
+                </div>
+
+                <div class="step" data-animate="slide-up">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Authenticate with the API</h3>
+                        <p class="step-description">
+                            Use your API credentials to obtain an access token. This token will be used to authenticate all your API requests.
+                        </p>
+                        <div class="step-code">
+                            <button class="copy-btn" data-code="authentication">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                            <pre>curl -X POST "https://api.queueme.net/api/v1/auth/token" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "client_id": "YOUR_CLIENT_ID",
+       "client_secret": "YOUR_CLIENT_SECRET"
+     }'</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-animate="slide-up">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Make Your First API Call</h3>
+                        <p class="step-description">
+                            With your access token, you can now make API calls. Let's start by retrieving a list of shops.
+                        </p>
+                        <div class="step-code">
+                            <button class="copy-btn" data-code="list-shops">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                            <pre>curl -X GET "https://api.queueme.net/api/v1/shops" \
+     -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+     -H "Content-Type: application/json"</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-animate="slide-up">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Implement Key Features</h3>
+                        <p class="step-description">
+                            Start implementing key features like bookings, queues, and notifications. Here's an example of creating a booking:
+                        </p>
+                        <div class="step-code">
+                            <button class="copy-btn" data-code="create-booking">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                            <pre>curl -X POST "https://api.queueme.net/api/v1/bookings" \
+     -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "service_id": 123,
+       "specialist_id": 456,
+       "date": "2025-06-15",
+       "time_slot": "14:30",
+       "customer_id": 789
+     }'</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-animate="slide-up">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Go Live</h3>
+                        <p class="step-description">
+                            Once you've thoroughly tested your integration, request production API keys and deploy your application. Our team will review your integration and provide feedback if needed.
+                        </p>
+                        <a href="{% url 'support' %}" class="btn btn-primary">
+                            <i class="fas fa-rocket"></i>
+                            Request Production Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SDKs Section -->
+    <section class="section dark">
+        <div class="container">
+            <div class="section-heading">
+                <h2 data-animate="fade-in">SDKs & Client Libraries</h2>
+                <p data-animate="slide-up">Use our official client libraries to integrate QueueMe API faster and more reliably</p>
+            </div>
+
+            <div class="sdk-grid">
+                <div class="sdk-card" data-animate="slide-up">
+                    <div class="sdk-header">
+                        <div class="sdk-icon">
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <h3 class="sdk-title">Python SDK</h3>
+                    </div>
+                    <div class="sdk-body">
+                        <p class="sdk-description">
+                            Official Python client library for QueueMe API. Perfect for backend systems, data analysis, and AI integrations.
+                        </p>
+                        <div class="step-code">
+                            <pre>pip install queueme-sdk</pre>
+                        </div>
+                        <div class="sdk-features">
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Async support with asyncio</span>
+                            </div>
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Comprehensive type hints</span>
+                            </div>
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Django & Flask integration</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sdk-footer">
+                        <a href="https://github.com/queueme/python-sdk" class="btn btn-outline">
+                            <i class="fab fa-github"></i>
+                            GitHub
+                        </a>
+                        <a href="https://queueme.net/docs/python" class="btn btn-primary">
+                            <i class="fas fa-book"></i>
+                            Documentation
+                        </a>
+                    </div>
+                </div>
+
+                <div class="sdk-card" data-animate="slide-up">
+                    <div class="sdk-header">
+                        <div class="sdk-icon">
+                            <i class="fab fa-js"></i>
+                        </div>
+                        <h3 class="sdk-title">JavaScript SDK</h3>
+                    </div>
+                    <div class="sdk-body">
+                        <p class="sdk-description">
+                            JavaScript client library for browser and Node.js applications. Easily integrate QueueMe into your web apps.
+                        </p>
+                        <div class="step-code">
+                            <pre>npm install queueme-sdk</pre>
+                        </div>
+                        <div class="sdk-features">
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Browser & Node.js compatible</span>
+                            </div>
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Promise-based API</span>
+                            </div>
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>TypeScript support</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sdk-footer">
+                        <a href="https://github.com/queueme/js-sdk" class="btn btn-outline">
+                            <i class="fab fa-github"></i>
+                            GitHub
+                        </a>
+                        <a href="https://queueme.net/docs/javascript" class="btn btn-primary">
+                            <i class="fas fa-book"></i>
+                            Documentation
+                        </a>
+                    </div>
+                </div>
+
+                <div class="sdk-card" data-animate="slide-up">
+                    <div class="sdk-header">
+                        <div class="sdk-icon">
+                            <i class="fab fa-php"></i>
+                        </div>
+                        <h3 class="sdk-title">PHP SDK</h3>
+                    </div>
+                    <div class="sdk-body">
+                        <p class="sdk-description">
+                            PHP client library for QueueMe API. Seamlessly integrate with Laravel, Symfony, and other PHP frameworks.
+                        </p>
+                        <div class="step-code">
+                            <pre>composer require queueme/php-sdk</pre>
+                        </div>
+                        <div class="sdk-features">
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Laravel integration package</span>
+                            </div>
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>PSR-18 HTTP client support</span>
+                            </div>
+                            <div class="sdk-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>PHP 8.0+ compatible</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sdk-footer">
+                        <a href="https://github.com/queueme/php-sdk" class="btn btn-outline">
+                            <i class="fab fa-github"></i>
+                            GitHub
+                        </a>
+                        <a href="https://queueme.net/docs/php" class="btn btn-primary">
+                            <i class="fas fa-book"></i>
+                            Documentation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section class="section light">
+        <div class="container">
+            <div class="section-heading">
+                <h2 data-animate="fade-in">Developer Resources</h2>
+                <p data-animate="slide-up">Explore guides, tutorials, and examples to help you build with QueueMe API</p>
+            </div>
+
+            <div class="resources-grid">
+                <div class="resource-card" data-animate="slide-up">
+                    <div class="resource-content">
+                        <div class="resource-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3 class="resource-title">API Reference</h3>
+                        <p class="resource-description">
+                            Comprehensive documentation of all API endpoints, parameters, and response formats.
+                        </p>
+                        <a href="{% url 'swagger-ui' %}" class="resource-link">
+                            View Reference <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="resource-card" data-animate="slide-up">
+                    <div class="resource-content">
+                        <div class="resource-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="resource-title">Tutorials</h3>
+                        <p class="resource-description">
+                            Step-by-step guides for implementing common features and use cases with QueueMe API.
+                        </p>
+                        <a href="https://queueme.net/tutorials" class="resource-link">
+                            Browse Tutorials <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="resource-card" data-animate="slide-up">
+                    <div class="resource-content">
+                        <div class="resource-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3 class="resource-title">Code Examples</h3>
+                        <p class="resource-description">
+                            Ready-to-use code samples for common operations in multiple programming languages.
+                        </p>
+                        <a href="https://github.com/queueme/examples" class="resource-link">
+                            View Examples <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="resource-card" data-animate="slide-up">
+                    <div class="resource-content">
+                        <div class="resource-icon">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <h3 class="resource-title">Demo Applications</h3>
+                        <p class="resource-description">
+                            Open-source applications showcasing real-world QueueMe API integrations.
+                        </p>
+                        <a href="https://github.com/queueme/demos" class="resource-link">
+                            Explore Demos <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="resource-card" data-animate="slide-up">
+                    <div class="resource-content">
+                        <div class="resource-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3 class="resource-title">Best Practices</h3>
+                        <p class="resource-description">
+                            Learn recommended patterns and practices for efficient QueueMe API integration.
+                        </p>
+                        <a href="https://queueme.net/docs/best-practices" class="resource-link">
+                            Read Guide <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="resource-card" data-animate="slide-up">
+                    <div class="resource-content">
+                        <div class="resource-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3 class="resource-title">Video Tutorials</h3>
+                        <p class="resource-description">
+                            Watch step-by-step video tutorials on implementing QueueMe features.
+                        </p>
+                        <a href="https://youtube.com/queueme" class="resource-link">
+                            Watch Videos <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customer Showcase Section -->
+    <section class="section dark">
+        <div class="container">
+            <div class="section-heading">
+                <h2 data-animate="fade-in">Developer Success Stories</h2>
+                <p data-animate="slide-up">See how developers are using QueueMe API to build innovative solutions</p>
+            </div>
+
+            <div class="showcase-slider" data-animate="fade-in">
+                <div class="showcase-track" id="showcase-track">
+                    <div class="showcase-slide">
+                        <div class="showcase-card">
+                            <img src="https://via.placeholder.com/100" alt="Salon Chain Logo" class="showcase-logo">
+                            <p class="showcase-quote">
+                                QueueMe API helped us reduce no-shows by 75% and increase customer satisfaction by 40% across our 28 salon locations.
+                            </p>
+                            <p class="showcase-author">Sarah Johnson</p>
+                            <p class="showcase-position">CTO, BeautyChain Inc.</p>
+                        </div>
+                    </div>
+                    <div class="showcase-slide">
+                        <div class="showcase-card">
+                            <img src="https://via.placeholder.com/100" alt="Medical Clinic Logo" class="showcase-logo">
+                            <p class="showcase-quote">
+                                Integrating QueueMe with our electronic health records system streamlined our patient flow and reduced wait times by 65%.
+                            </p>
+                            <p class="showcase-author">Dr. Michael Chen</p>
+                            <p class="showcase-position">Director of Technology, HealthFirst Clinics</p>
+                        </div>
+                    </div>
+                    <div class="showcase-slide">
+                        <div class="showcase-card">
+                            <img src="https://via.placeholder.com/100" alt="Restaurant Chain Logo" class="showcase-logo">
+                            <p class="showcase-quote">
+                                We built our entire reservation system on QueueMe API. Its reliability and feature set are exceptional, and we've increased our table turnover by 30%.
+                            </p>
+                            <p class="showcase-author">James Rodriguez</p>
+                            <p class="showcase-position">Lead Developer, FoodWorks Group</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="showcase-controls">
+                    <div class="showcase-control" id="prev-btn">
+                        <i class="fas fa-chevron-left"></i>
+                    </div>
+                    <div class="showcase-control" id="next-btn">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <div class="showcase-dots" id="showcase-dots">
+                    <div class="showcase-dot active" data-index="0"></div>
+                    <div class="showcase-dot" data-index="1"></div>
+                    <div class="showcase-dot" data-index="2"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-container">
+            <h2 data-animate="fade-in">Ready to Build with QueueMe?</h2>
+            <p data-animate="slide-up">Join thousands of developers creating exceptional queue management and booking solutions with QueueMe API.</p>
+            <div class="cta-buttons" data-animate="slide-up">
+                <a href="https://queueme.net/register" class="btn btn-light">
+                    <i class="fas fa-user-plus"></i>
+                    Create Developer Account
+                </a>
+                <a href="{% url 'api-guide' %}" class="btn btn-ghost">
+                    <i class="fas fa-book"></i>
+                    Read API Guide
+                </a>
+                <a href="{% url 'support' %}" class="btn btn-ghost">
+                    <i class="fas fa-headset"></i>
+                    Contact Support
+                </a>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        // Copy button functionality
+        const copyButtons = document.querySelectorAll('.copy-btn');
+
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const codeType = button.getAttribute('data-code');
+                const codeBlock = button.nextElementSibling;
+
+                // Copy to clipboard
+                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                    // Show toast
+                    showToast(`${codeType} code copied to clipboard!`);
+
+                    // Update button text
+                    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        button.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                    }, 2000);
+                });
+            });
+        });
+
+        // Showcase slider functionality
+        const track = document.getElementById('showcase-track');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const dots = document.querySelectorAll('.showcase-dot');
+        let currentIndex = 0;
+        const slideCount = document.querySelectorAll('.showcase-slide').length;
+
+        function updateSlider() {
+            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+            // Update dots
+            dots.forEach((dot, index) => {
+                if (index === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + slideCount) % slideCount;
+            updateSlider();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % slideCount;
+            updateSlider();
+        });
+
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                currentIndex = parseInt(dot.getAttribute('data-index'));
+                updateSlider();
+            });
+        });
+
+        // Auto slide
+        let slideInterval = setInterval(() => {
+            currentIndex = (currentIndex + 1) % slideCount;
+            updateSlider();
+        }, 5000);
+
+        // Pause on hover
+        const showcaseSlider = document.querySelector('.showcase-slider');
+        showcaseSlider.addEventListener('mouseenter', () => {
+            clearInterval(slideInterval);
+        });
+
+        showcaseSlider.addEventListener('mouseleave', () => {
+            slideInterval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % slideCount;
+                updateSlider();
+            }, 5000);
+        });
+    </script>
+{% endblock %}

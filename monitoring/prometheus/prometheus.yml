@@ -1,0 +1,133 @@
+# QueueMe Prometheus Configuration File
+
+global:
+  scrape_interval: 15s # How frequently to scrape targets by default
+  evaluation_interval: 15s # How frequently to evaluate rules
+  scrape_timeout: 10s # How long until a scrape times out
+
+  # Labels to add to all time series and alerts when communicating with
+  # external systems (federation, remote storage, AlertManager)
+  external_labels:
+    monitor: "queueme-monitor"
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "alertmanager:9093"
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape
+scrape_configs:
+  # Main QueueMe API application instances
+  - job_name: "queueme-api"
+    metrics_path: "/metrics"
+    scrape_interval: 10s
+
+    # Service discovery for API instances
+    dns_sd_configs:
+      - names:
+          - "queueme-api"
+        type: "A"
+        port: 8000
+
+    # Static fallback configuration
+    static_configs:
+      - targets: ["queueme-api:8000"]
+        labels:
+          env: "production"
+          service: "api"
+
+  # Redis monitoring
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+        labels:
+          env: "production"
+          service: "redis"
+
+  # PostgreSQL monitoring
+  - job_name: "postgresql"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+        labels:
+          env: "production"
+          service: "postgresql"
+
+  # Node exporter for server metrics
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels:
+          env: "production"
+          service: "node"
+
+  # NGINX monitoring
+  - job_name: "nginx"
+    static_configs:
+      - targets: ["nginx-exporter:9113"]
+        labels:
+          env: "production"
+          service: "nginx"
+
+  # Celery monitoring
+  - job_name: "celery"
+    static_configs:
+      - targets: ["celery-exporter:9808"]
+        labels:
+          env: "production"
+          service: "celery"
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          env: "production"
+          service: "prometheus"
+
+  # Blackbox exporter for probing endpoints
+  - job_name: "blackbox"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["blackbox-exporter:9115"]
+        labels:
+          env: "production"
+          service: "blackbox"
+
+  # API endpoint probing
+  - job_name: "api-probe"
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - "https://api.queueme.net/health/"
+          - "https://api.queueme.net/api/v1/"
+          - "https://queueme.net/"
+          - "https://shop.queueme.net/"
+          - "https://admin.queueme.net/"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+# Remote write configuration for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-remote.company.com/receive"
+#     basic_auth:
+#       username: "remote_write_user"
+#       password: "remote_write_password"
+
+# Remote read configuration for long-term queries (optional)
+# remote_read:
+#   - url: "https://prometheus-remote.company.com/read"
+#     basic_auth:
+#       username: "remote_read_user"
+#       password: "remote_read_password"

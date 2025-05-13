@@ -1,0 +1,227 @@
+## docs/api/openapi.yaml
+
+```yaml
+openapi: 3.0.0
+info:
+  title: Queue Me API
+  description: |
+    The Queue Me API provides access to all functionality of the Queue Me platform,
+    including authentication, booking management, queue operations, and content discovery.
+  version: 1.0.0
+  contact:
+    name: Queue Me Support
+    email: support@queueme.net
+servers:
+  - url: https://api.queueme.net/api/v1
+    description: Production API server
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+
+paths:
+  /auth/request-otp:
+    post:
+      summary: Request OTP code
+      description: Request a one-time password to be sent to the provided phone number
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone_number:
+                  type: string
+                  example: "966512345678"
+              required:
+                - phone_number
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: OTP sent successfully
+        '400':
+          description: Invalid phone number
+        '429':
+          description: Too many requests, rate limited
+
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP code
+      description: Verify the OTP code and get authentication tokens
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone_number:
+                  type: string
+                  example: "966512345678"
+                code:
+                  type: string
+                  example: "123456"
+              required:
+                - phone_number
+                - code
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    type: object
+                    properties:
+                      access:
+                        type: string
+                      refresh:
+                        type: string
+                  profile_completed:
+                    type: boolean
+                  user_type:
+                    type: string
+                    enum: [customer, employee, admin]
+        '400':
+          description: Invalid or expired OTP code
+
+  /bookings:
+    get:
+      summary: List user bookings
+      tags:
+        - Bookings
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, confirmed, in_progress, completed, cancelled, no_show]
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of bookings
+    post:
+      summary: Create a new booking
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                service_id:
+                  type: string
+                  format: uuid
+                specialist_id:
+                  type: string
+                  format: uuid
+                date:
+                  type: string
+                  format: date
+                start_time:
+                  type: string
+                  example: "14:30"
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Booking created successfully
+        '400':
+          description: Invalid input data
+        '409':
+          description: Conflict - slot not available
+
+  /services/{service_id}/availability:
+    get:
+      summary: Get service availability
+      tags:
+        - Services
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Available time slots for the service on the specified date
+
+  /queues/{queue_id}/join:
+    post:
+      summary: Join a queue
+      tags:
+        - Queues
+      parameters:
+        - name: queue_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                service_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Successfully joined queue
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket_number:
+                    type: string
+                  position:
+                    type: integer
+                  estimated_wait_time:
+                    type: integer
+                    description: Estimated wait time in minutes
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

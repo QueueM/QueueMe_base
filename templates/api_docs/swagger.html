@@ -1,0 +1,1196 @@
+{% extends "api_docs/base.html" %}
+
+{% block title %}QueueMe API - Swagger UI{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Main content styles */
+        .swagger-container {
+            margin-top: 60px;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 60px - 350px); /* Viewport height minus header and approximate footer */
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .swagger-header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .swagger-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 150%, rgba(16, 185, 129, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+            z-index: 0;
+            animation: gradientShift 15s ease infinite alternate;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .swagger-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 2;
+            transform-style: preserve-3d;
+        }
+
+        .swagger-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateZ(40px);
+            transition: transform 0.3s var(--animation-timing);
+        }
+
+        .swagger-header:hover h1 {
+            transform: translateZ(50px);
+        }
+
+        .swagger-header p {
+            font-size: 1.25rem;
+            opacity: 0.95;
+            max-width: 800px;
+            margin: 0 auto;
+            transform: translateZ(20px);
+            transition: transform 0.3s var(--animation-timing);
+        }
+
+        .swagger-header:hover p {
+            transform: translateZ(30px);
+        }
+
+        .swagger-ui-container {
+            flex: 1;
+            padding: 0;
+            position: relative;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* Floating API elements background */
+        .floating-api-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            opacity: 0.02;
+            pointer-events: none;
+        }
+
+        .api-element {
+            position: absolute;
+            font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+            color: var(--primary);
+            opacity: 0;
+            animation: floatApiElement 20s linear infinite;
+            font-size: 5rem;
+            font-weight: bold;
+            will-change: transform, opacity;
+        }
+
+        [data-theme="dark"] .api-element {
+            color: var(--primary-light);
+        }
+
+        @keyframes floatApiElement {
+            0% {
+                transform: translate(-50px, 100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translate(-50px, -100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Custom swagger UI styles */
+        #swagger-ui {
+            margin: 0 auto;
+            max-width: 1300px;
+            padding: 0 1.5rem;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Make sure swagger-ui works with dark mode */
+        [data-theme="dark"] .swagger-ui .info .title,
+        [data-theme="dark"] .swagger-ui .info p,
+        [data-theme="dark"] .swagger-ui .info li,
+        [data-theme="dark"] .swagger-ui .opblock-tag,
+        [data-theme="dark"] .swagger-ui .opblock .opblock-summary-description,
+        [data-theme="dark"] .swagger-ui .opblock-summary-method,
+        [data-theme="dark"] .swagger-ui table thead tr th,
+        [data-theme="dark"] .swagger-ui .response-col_status,
+        [data-theme="dark"] .swagger-ui .parameter__name,
+        [data-theme="dark"] .swagger-ui .parameter__type,
+        [data-theme="dark"] .swagger-ui .parameter__deprecated,
+        [data-theme="dark"] .swagger-ui .parameter__in {
+            color: var(--text-color) !important;
+        }
+
+        [data-theme="dark"] .swagger-ui,
+        [data-theme="dark"] .swagger-ui .scheme-container,
+        [data-theme="dark"] .swagger-ui section.models,
+        [data-theme="dark"] .swagger-ui .models-control,
+        [data-theme="dark"] .swagger-ui section.models .model-container,
+        [data-theme="dark"] .swagger-ui .opblock-body pre.microlight,
+        [data-theme="dark"] .swagger-ui table tbody tr td {
+            background-color: var(--card-background) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] .swagger-ui input,
+        [data-theme="dark"] .swagger-ui select {
+            background-color: var(--background-color) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-color) !important;
+        }
+
+        [data-theme="dark"] .swagger-ui .btn {
+            background-color: var(--card-background) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-color) !important;
+        }
+
+        [data-theme="dark"] .swagger-ui .opblock {
+            background-color: var(--background-color) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        /* Advanced Loading spinner */
+        .swagger-spinner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--card-background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .spinner-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .spinner-icon {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .spinner-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: var(--primary);
+            animation: spinnerRotate 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        .spinner-circle:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .spinner-circle:nth-child(2) {
+            width: 70%;
+            height: 70%;
+            top: 15%;
+            left: 15%;
+            border-top-color: var(--secondary);
+            animation-duration: 2s;
+            animation-direction: reverse;
+        }
+
+        .spinner-circle:nth-child(3) {
+            width: 40%;
+            height: 40%;
+            top: 30%;
+            left: 30%;
+            border-top-color: var(--tertiary);
+            animation-duration: 1s;
+        }
+
+        .spinner-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            animation: spinnerPulse 1.5s ease-in-out infinite alternate;
+            letter-spacing: 1px;
+        }
+
+        @keyframes spinnerRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spinnerPulse {
+            0% { opacity: 0.7; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* Tips section with enhanced 3D cards */
+        .tips-section {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 3.5rem 0;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .tips-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 150%, rgba(16, 185, 129, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
+            z-index: 0;
+            animation: gradientFloat 20s ease infinite alternate;
+        }
+
+        @keyframes gradientFloat {
+            0% {
+                background-position: 0% 0%;
+            }
+            50% {
+                background-position: 100% 100%;
+            }
+            100% {
+                background-position: 0% 0%;
+            }
+        }
+
+        .tips-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tips-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateZ(30px);
+        }
+
+        .tips-title i {
+            font-size: 1.75rem;
+            animation: tipIconGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes tipIconGlow {
+            0% {
+                text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+                transform: scale(1);
+            }
+            100% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+                transform: scale(1.2);
+            }
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            transform-style: preserve-3d;
+        }
+
+        .tip-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.5s var(--animation-bounce);
+            transform-style: preserve-3d;
+            transform: translateZ(0) perspective(1000px) rotateX(0deg) rotateY(0deg);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+            will-change: transform, box-shadow;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        .tip-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent 20%,
+                rgba(255, 255, 255, 0.1) 40%,
+                rgba(255, 255, 255, 0.1) 60%,
+                transparent 80%
+            );
+            transform: translateX(-100%);
+            transition: transform 1s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .tip-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .tip-card:hover {
+            transform: translateZ(30px) perspective(1000px) rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .tip-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            transform: translateZ(10px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .tip-card:hover .tip-title {
+            transform: translateZ(40px);
+        }
+
+        .tip-title i {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            transition: all 0.5s var(--animation-bounce);
+        }
+
+        .tip-card:hover .tip-title i {
+            transform: scale(1.3) rotate(10deg);
+            color: rgba(255, 255, 255, 1);
+        }
+
+        .tip-content {
+            font-size: 1rem;
+            line-height: 1.7;
+            opacity: 0.9;
+            transform: translateZ(5px);
+            position: relative;
+            z-index: 2;
+            transition: transform 0.5s var(--animation-timing);
+        }
+
+        .tip-card:hover .tip-content {
+            transform: translateZ(20px);
+        }
+
+        .tip-content code {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.875rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .tip-card:hover .tip-content code {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Swagger UI Overrides with enhanced styling */
+        #swagger-ui {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 1.5rem;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transform: translateZ(0);
+        }
+
+        /* Dark mode adjustments */
+        [data-theme="dark"] .tips-section {
+            background: linear-gradient(to right, #1e293b, #334155);
+        }
+
+        [data-theme="dark"] .tip-card {
+            background-color: rgba(30, 41, 59, 0.5);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="dark"] .tip-card:hover {
+            background-color: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Swagger UI theme overrides with enhanced animations */
+        .swagger-ui .opblock-tag {
+            font-size: 1.5rem !important;
+            font-weight: 700 !important;
+            font-family: 'Inter', sans-serif !important;
+            margin: 2rem 0 1rem !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            padding-left: 0.5rem !important;
+        }
+
+        .swagger-ui .opblock-tag:hover {
+            color: var(--primary) !important;
+            transform: translateX(5px) !important;
+        }
+
+        .swagger-ui .opblock-tag::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            border-radius: 3px;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+            transform-origin: top;
+        }
+
+        .swagger-ui .opblock-tag:hover::before {
+            transform: scaleY(1);
+        }
+
+        .swagger-ui .opblock {
+            border-radius: 1rem !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+            margin-bottom: 1.5rem !important;
+            overflow: hidden !important;
+            transition: all 0.4s var(--animation-timing) !important;
+            border: 1px solid var(--border-color) !important;
+            transform: translateZ(0);
+        }
+
+        .swagger-ui .opblock:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+            transform: translateY(-5px) !important;
+        }
+
+        .swagger-ui .opblock-summary {
+            transition: background-color 0.3s ease !important;
+        }
+
+        .swagger-ui .opblock-summary:hover {
+            background-color: rgba(0, 0, 0, 0.02) !important;
+        }
+
+        [data-theme="dark"] .swagger-ui .opblock-summary:hover {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        .swagger-ui .opblock-summary-method {
+            border-radius: 0.5rem !important;
+            font-weight: 700 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .swagger-ui .opblock:hover .opblock-summary-method {
+            transform: scale(1.05) !important;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .swagger-ui .btn {
+            border-radius: 0.5rem !important;
+            font-family: 'Inter', sans-serif !important;
+            transition: all 0.3s var(--animation-bounce) !important;
+            transform: translateZ(0);
+        }
+
+        .swagger-ui .btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .swagger-ui .btn.execute {
+            animation: buttonPulse 2s infinite alternate !important;
+        }
+
+        @keyframes buttonPulse {
+            0% {
+                box-shadow: 0 0 0 rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            }
+        }
+
+        .swagger-ui input[type=text],
+        .swagger-ui textarea {
+            border-radius: 0.5rem !important;
+            font-family: 'Inter', sans-serif !important;
+            padding: 0.75rem 1rem !important;
+            transition: all 0.3s ease !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        .swagger-ui input[type=text]:focus,
+        .swagger-ui textarea:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+            border-color: var(--primary) !important;
+        }
+
+        /* Make code samples more readable */
+        .swagger-ui .highlight-code {
+            font-family: 'Menlo', 'Monaco', 'Consolas', monospace !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .swagger-ui .highlight-code:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        /* Custom authorize button */
+        .swagger-ui .auth-wrapper .authorize {
+            border-radius: 0.5rem !important;
+            transition: all 0.3s var(--animation-bounce) !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        .swagger-ui .auth-wrapper .authorize:hover {
+            transform: translateY(-2px) scale(1.03) !important;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .swagger-ui .auth-wrapper .authorize svg {
+            transition: transform 0.3s var(--animation-bounce) !important;
+        }
+
+        .swagger-ui .auth-wrapper .authorize:hover svg {
+            transform: rotate(15deg) !important;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .tips-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tips-title {
+                font-size: 1.75rem;
+            }
+
+            .swagger-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .swagger-header p {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .swagger-header h1 {
+                font-size: 2rem;
+            }
+
+            .swagger-header p {
+                font-size: 1rem;
+            }
+
+            .tips-title {
+                font-size: 1.5rem;
+            }
+
+            .tip-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Shimmer effect for tip cards */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .tip-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.2) 25%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            background-size: 1000px 100%;
+            z-index: 1;
+            opacity: 0;
+            pointer-events: none;
+            animation: shimmer 2s infinite;
+            transition: opacity 0.3s ease;
+            border-radius: 1.25rem;
+        }
+
+        .tip-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Download buttons with icon */
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            transform: translateZ(30px);
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            transition: all 0.3s var(--animation-timing);
+            backdrop-filter: blur(4px);
+            text-decoration: none;
+            will-change: transform;
+        }
+
+        .download-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn i {
+            font-size: 1rem;
+            transition: transform 0.3s var(--animation-bounce);
+        }
+
+        .download-btn:hover i {
+            transform: translateY(-2px);
+        }
+    </style>
+    <!-- Swagger UI CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.3/swagger-ui.min.css" />
+{% endblock %}
+
+{% block content %}
+    <div class="swagger-container">
+        <!-- Advanced Swagger Loading Spinner -->
+        <div class="swagger-spinner" id="swagger-spinner">
+            <div class="spinner-content">
+                <div class="spinner-icon">
+                    <div class="spinner-circle"></div>
+                    <div class="spinner-circle"></div>
+                    <div class="spinner-circle"></div>
+                </div>
+                <div class="spinner-text">Loading API Documentation...</div>
+            </div>
+        </div>
+
+        <!-- Swagger Header with 3D Effects -->
+        <div class="swagger-header" data-animate="fade-in">
+            <div class="swagger-header-content">
+                <h1 data-animate="fade-in">Interactive API Documentation</h1>
+                <p data-animate="slide-up">Explore and test the QueueMe API endpoints directly in your browser</p>
+
+                <!-- Download OpenAPI Spec Buttons -->
+                <div class="download-buttons">
+                    <a href="/api/docs/schema.json" download="openapi-schema.json" class="download-btn">
+                        <i class="fas fa-download"></i>
+                        Download JSON Spec
+                    </a>
+                    <a href="/api/docs/schema.yaml" download="openapi-schema.yaml" class="download-btn">
+                        <i class="fas fa-download"></i>
+                        Download YAML Spec
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced API Tips Section -->
+        <section class="tips-section" data-animate="fade-in">
+            <div class="tips-container">
+                <h2 class="tips-title" data-animate="slide-up">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Swagger UI Tips</span>
+                </h2>
+                <div class="tips-grid">
+                    <div class="tip-card" data-animate="slide-up" data-delay="0">
+                        <div class="tip-title">
+                            <i class="fas fa-lock"></i>
+                            <span>Authentication</span>
+                        </div>
+                        <div class="tip-content">
+                            To authenticate, click the "Authorize" button and enter your Bearer token in the format: <code>Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code>
+                        </div>
+                    </div>
+
+                    <div class="tip-card" data-animate="slide-up" data-delay="0.2">
+                        <div class="tip-title">
+                            <i class="fas fa-code"></i>
+                            <span>Try It Out</span>
+                        </div>
+                        <div class="tip-content">
+                            You can test endpoints directly by clicking the "Try it out" button. Fill in required parameters and execute the request to see live responses.
+                        </div>
+                    </div>
+
+                    <div class="tip-card" data-animate="slide-up" data-delay="0.4">
+                        <div class="tip-title">
+                            <i class="fas fa-filter"></i>
+                            <span>Filter</span>
+                        </div>
+                        <div class="tip-content">
+                            Use the filter box at the top to quickly find specific endpoints by name, tag, or description. It supports partial matches for faster navigation.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Swagger UI with Floating Background Elements -->
+        <div class="swagger-ui-container">
+            <div class="floating-api-elements" id="floating-api-elements"></div>
+            <div id="swagger-ui" data-animate="fade-in"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <!-- Swagger UI Bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.3/swagger-ui-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.3/swagger-ui-standalone-preset.min.js"></script>
+
+    <script>
+        window.onload = function() {
+            // Hide spinner with animation when UI loads
+            function hideSpinner() {
+                const spinner = document.getElementById('swagger-spinner');
+                spinner.style.opacity = '0';
+                setTimeout(() => {
+                    spinner.style.visibility = 'hidden';
+                }, 800);
+            }
+
+            // Create floating API elements in the background - optimized version
+            function createFloatingElements() {
+                const container = document.getElementById('floating-api-elements');
+                if (!container) return;
+
+                const apiElements = ['{', '}', '[', ']', ':', '/', '<', '>', '()', '{}', '[]', '200', '404', '500', 'GET', 'POST', 'PUT', 'DELETE'];
+
+                // Clear existing elements
+                container.innerHTML = '';
+
+                // Detect if device is low-powered
+                const isLowPoweredDevice = () => {
+                    return window.innerWidth < 768 ||
+                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                };
+
+                // Adjust number of elements based on device power
+                const elementCount = isLowPoweredDevice() ? 5 : 10;
+
+                // Create floating elements
+                for (let i = 0; i < elementCount; i++) {
+                    const element = document.createElement('div');
+                    element.className = 'api-element';
+                    element.textContent = apiElements[Math.floor(Math.random() * apiElements.length)];
+
+                    // Random position
+                    const left = Math.random() * 100;
+                    element.style.left = `${left}%`;
+
+                    // Random delay
+                    const delay = Math.random() * 20;
+                    element.style.animationDelay = `${delay}s`;
+
+                    // Random duration - increased for smoother feel
+                    const duration = Math.random() * 30 + 20;
+                    element.style.animationDuration = `${duration}s`;
+
+                    // Random size
+                    const size = Math.random() * 2.5 + 2; // Slightly reduced size
+                    element.style.fontSize = `${size}rem`;
+
+                    // Random rotation
+                    const rotation = Math.random() * 360;
+                    element.style.transform = `rotate(${rotation}deg)`;
+
+                    // Add to container
+                    container.appendChild(element);
+                }
+            }
+
+            // Initialize Swagger UI with enhanced configuration
+            const ui = SwaggerUIBundle({
+                url: "/api/docs/schema.json",
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "BaseLayout",
+                onComplete: function() {
+                    hideSpinner();
+                    createFloatingElements();
+
+                    // Apply optimized card effects after UI loads
+                    setTimeout(applyOptimizedCardEffects, 1000);
+                },
+                docExpansion: "list",
+                defaultModelsExpandDepth: 1,
+                defaultModelExpandDepth: 1,
+                displayRequestDuration: true,
+                filter: true,
+                syntaxHighlight: {
+                    activate: true,
+                    theme: "agate"
+                },
+                tagsSorter: "alpha",
+                operationsSorter: "alpha",
+                persistAuthorization: true,
+                responseInterceptor: function(response) {
+                    // Add visual feedback for responses
+                    if (response.status >= 200 && response.status < 300) {
+                        showToast('Request successful!', 'success');
+                    } else if (response.status >= 400) {
+                        showToast('Request failed: ' + response.statusText, 'error');
+                    }
+                    return response;
+                },
+                onFailure: function(data) {
+                    console.error("Unable to load schema from primary source", data);
+                    showToast('Schema loading failed, trying fallback...', 'warning');
+
+                    // Try loading from static schema as fallback
+                    ui.specActions.updateUrl("/api/docs/static-schema.json");
+                    ui.specActions.download();
+                }
+            });
+
+            // Apply optimized card effects with improved performance
+            function applyOptimizedCardEffects() {
+                // Better throttle function
+                function throttle(func, limit) {
+                    let lastRan;
+                    return function() {
+                        const context = this;
+                        const args = arguments;
+                        if (!lastRan || (Date.now() - lastRan) >= limit) {
+                            func.apply(context, args);
+                            lastRan = Date.now();
+                        }
+                    };
+                }
+
+                // Check for low-powered devices
+                const isLowPoweredDevice = () => {
+                    return window.innerWidth < 768 ||
+                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                };
+
+                // Skip intensive effects on low-powered devices
+                if (isLowPoweredDevice()) {
+                    // Apply simplified hover effects
+                    const tipCards = document.querySelectorAll('.tip-card');
+                    tipCards.forEach(card => {
+                        card.style.transform = 'none';
+                        card.style.transition = 'all 0.3s ease';
+
+                        card.addEventListener('mouseenter', function() {
+                            this.style.transform = 'translateY(-10px)';
+                            this.style.boxShadow = '0 15px 30px rgba(0, 0, 0, 0.2)';
+                            this.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                        });
+
+                        card.addEventListener('mouseleave', function() {
+                            this.style.transform = 'none';
+                            this.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.15)';
+                            this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                        });
+                    });
+
+                    // Apply simplified hover to opblocks
+                    const opblocks = document.querySelectorAll('.opblock');
+                    opblocks.forEach(block => {
+                        block.addEventListener('mouseenter', function() {
+                            this.style.transform = 'translateY(-5px)';
+                            this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
+                        });
+
+                        block.addEventListener('mouseleave', function() {
+                            this.style.transform = 'none';
+                            this.style.boxShadow = '';
+                            this.style.background = '';
+                        });
+                    });
+
+                    return;
+                }
+
+                // Optimized 3D card effect for tip cards with pre-calculated transforms
+                const tipCards = document.querySelectorAll('.tip-card');
+
+                // Pre-calculate transform values for better performance
+                const transformCache = {};
+                const rotationSteps = 10; // Number of rotation steps to pre-calculate
+
+                for (let i = 0; i < rotationSteps; i++) {
+                    for (let j = 0; j < rotationSteps; j++) {
+                        const rotateX = (i - rotationSteps/2) / (rotationSteps/2) * 5; // -5 to 5 degrees
+                        const rotateY = (j - rotationSteps/2) / (rotationSteps/2) * 5; // -5 to 5 degrees
+                        const key = `${i}-${j}`;
+                        transformCache[key] = `translate3d(0, 0, 30px) perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    }
+                }
+
+                tipCards.forEach(card => {
+                    card.addEventListener('mousemove', throttle(function(e) {
+                        const rect = this.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        // Map to discrete steps for using cached transforms
+                        const xStep = Math.floor((x / rect.width) * rotationSteps);
+                        const yStep = Math.floor((y / rect.height) * rotationSteps);
+                        const key = `${Math.min(Math.max(yStep, 0), rotationSteps-1)}-${Math.min(Math.max(xStep, 0), rotationSteps-1)}`;
+
+                        // Apply the pre-calculated transform with requestAnimationFrame
+                        requestAnimationFrame(() => {
+                            this.style.transform = transformCache[key];
+                            this.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
+                            this.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                            this.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                        });
+                    }, 16)); // ~60fps
+
+                    card.addEventListener('mouseleave', function() {
+                        requestAnimationFrame(() => {
+                            this.style.transform = 'translateZ(0) perspective(1000px) rotateX(0deg) rotateY(0deg)';
+                            this.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.15)';
+                            this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                            this.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        });
+                    });
+                });
+
+                // Add simplified hover effect to opblocks
+                const opblocks = document.querySelectorAll('.opblock');
+                opblocks.forEach(block => {
+                    // Add optimized mousemove effect
+                    block.addEventListener('mousemove', throttle(function(e) {
+                        const rect = this.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        requestAnimationFrame(() => {
+                            this.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(59, 130, 246, 0.03) 0%, transparent 80%)`;
+                            this.style.transform = 'translateY(-5px)';
+                            this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
+                        });
+                    }, 32)); // Lower rate for opblocks since they're larger in number
+
+                    block.addEventListener('mouseleave', function() {
+                        requestAnimationFrame(() => {
+                            this.style.background = '';
+                            this.style.transform = 'translateY(0)';
+                            this.style.boxShadow = '';
+                        });
+                    });
+                });
+            }
+
+            // Apply theme-specific customizations
+            function applyThemeToSwagger() {
+                const theme = document.documentElement.getAttribute('data-theme');
+                const swaggerUI = document.getElementById('swagger-ui');
+
+                if (swaggerUI) {
+                    if (theme === 'dark') {
+                        swaggerUI.classList.add('swagger-ui-dark');
+                    } else {
+                        swaggerUI.classList.remove('swagger-ui-dark');
+                    }
+                }
+            }
+
+            // Call initially and when theme changes
+            applyThemeToSwagger();
+
+            // Listen for theme changes
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    setTimeout(applyThemeToSwagger, 50);
+
+                    // Regenerate floating elements for the new theme
+                    createFloatingElements();
+                });
+            }
+
+            // Optimized 3D perspective effect for the header
+            const swaggerHeader = document.querySelector('.swagger-header');
+            if (swaggerHeader) {
+                // Check for low-powered devices
+                const isLowPoweredDevice = () => {
+                    return window.innerWidth < 768 ||
+                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                };
+
+                // Skip effect on low-powered devices
+                if (isLowPoweredDevice()) {
+                    return;
+                }
+
+                function throttle(func, limit) {
+                    let lastRan;
+                    return function() {
+                        const context = this;
+                        const args = arguments;
+                        if (!lastRan || (Date.now() - lastRan) >= limit) {
+                            func.apply(context, args);
+                            lastRan = Date.now();
+                        }
+                    };
+                }
+
+                let ticking = false;
+                let lastMouseX = 0;
+                let lastMouseY = 0;
+
+                swaggerHeader.addEventListener('mousemove', throttle(function(e) {
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+
+                    if (!ticking) {
+                        requestAnimationFrame(() => {
+                            const rect = this.getBoundingClientRect();
+                            const mouseX = lastMouseX - rect.left;
+                            const mouseY = lastMouseY - rect.top;
+
+                            const centerX = rect.width / 2;
+                            const centerY = rect.height / 2;
+
+                            // Use smaller movement for smoother experience
+                            const moveX = (mouseX - centerX) / 50;
+                            const moveY = (mouseY - centerY) / 50;
+
+                            const elements = this.querySelectorAll('h1, p');
+                            elements.forEach(el => {
+                                const depth = parseFloat(el.style.transform.match(/translateZ\((\d+)px\)/)?.[1] || 0);
+                                el.style.transform = `translateZ(${depth}px) translate3d(${moveX}px, ${moveY}px, 0)`;
+                            });
+
+                            ticking = false;
+                        });
+
+                        ticking = true;
+                    }
+                }, 16)); // ~60fps
+
+                swaggerHeader.addEventListener('mouseleave', function() {
+                    requestAnimationFrame(() => {
+                        const elements = this.querySelectorAll('h1, p');
+                        elements.forEach(el => {
+                            const depth = parseFloat(el.style.transform.match(/translateZ\((\d+)px\)/)?.[1] || 0);
+                            el.style.transform = `translateZ(${depth}px) translate3d(0, 0, 0)`;
+                        });
+                    });
+                });
+            }
+
+            window.ui = ui;
+        }
+    </script>
+{% endblock %}
