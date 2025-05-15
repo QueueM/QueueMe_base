@@ -139,6 +139,7 @@ class MoyasarService:
             # Add metadata if provided
             if metadata:
                 payment_data["metadata"] = metadata
+
             # Add transaction ID to metadata
             if "metadata" not in payment_data:
                 payment_data["metadata"] = {}

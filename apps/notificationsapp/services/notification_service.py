@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -7,7 +8,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.core.cache import cache
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.template import Context, Template
 from django.utils import timezone
 
@@ -128,34 +129,11 @@ class NotificationService:
                         channels.remove("email")
                         logger.warning(f"Email rate limit exceeded for recipient {recipient_id}")
 
-                # If all channels were removed due to rate limiting
-                if not channels:
-                    return {
-                        "success": False,
-                        "message": "All notification channels exceeded rate limits",
-                    }
-
-            # Create notification record
-            notification = Notification.objects.create(
-                recipient_id=recipient_id,
-                notification_type=notification_type,
-                title=title or "",
-                message=message,
-                data=data or {},
-                channels=channels,
-                scheduled_for=scheduled_for,
-                status="pending",
-                priority=priority,
-                metadata=metadata or {},
-                idempotency_key=idempotency_key,
-            )
-
-            # If scheduled for future, the task scheduler will pick it up
-            if scheduled_for and scheduled_for > timezone.now():
+            # If all channels were removed due to rate limiting
+            if not channels:
                 return {
-                    "success": True,
-                    "notification_id": str(notification.id),
-                    "scheduled_for": scheduled_for.isoformat(),
+                    "success": False,
+                    "message": "All notification channels exceeded rate limits",
                 }
 
             # Process notification immediately
@@ -238,9 +216,23 @@ class NotificationService:
             Boolean indicating success
         """
         try:
+            # Use select_for_update with nowait to prevent concurrent updates
+            # The nowait option will raise an error if the row is locked
             try:
                 with transaction.atomic():
-                    notification = Notification.objects.select_for_update().get(id=notification_id)
+                    try:
+                        notification = Notification.objects.select_for_update(nowait=True).get(
+                            id=notification_id
+                        )
+                    except Notification.DoesNotExist:
+                        logger.error(f"Notification not found with ID: {notification_id}")
+                        return False
+
+                    # Add a small delay before proceeding if we're retrying
+                    # This helps spread out retries and reduce contention
+                    retry_count = notification.retry_count.get(channel, 0)
+                    if retry_count > 0 and status == "retrying":
+                        time.sleep(0.1 * min(retry_count, 5))  # Max 0.5 seconds
 
                     # Update channel status
                     channel_status = notification.channel_status or {}
@@ -277,14 +269,18 @@ class NotificationService:
 
                         if retry_count < MAX_RETRY_ATTEMPTS:
                             # Calculate exponential backoff delay (1min, 2min, 4min, 8min, etc.)
-                            delay_seconds = RETRY_DELAY_BASE * (2**retry_count)
+                            # Add a small random jitter to prevent thundering herd
+                            import random
+
+                            jitter = random.uniform(0.8, 1.2)
+                            delay_seconds = int(RETRY_DELAY_BASE * (2**retry_count) * jitter)
 
                             # Update retry count
                             retry_data = notification.retry_count or {}
                             retry_data[channel] = retry_count + 1
                             notification.retry_count = retry_data
 
-                            # Schedule retry
+                            # Schedule retry with the calculated delay
                             retry_failed_notification_task.apply_async(
                                 args=[notification_id, channel], countdown=delay_seconds
                             )
@@ -309,12 +305,32 @@ class NotificationService:
                     notification.save()
                     return True
 
-            except Notification.DoesNotExist:
-                logger.error(f"Notification not found with ID: {notification_id}")
-                return False
+            except DatabaseError as e:
+                # This catches lock wait timeout and deadlocks
+                logger.warning(f"Database error updating notification {notification_id}: {str(e)}")
+                # Add a small delay and retry once
+                time.sleep(0.5)
+                with transaction.atomic():
+                    notification = Notification.objects.select_for_update().get(id=notification_id)
+                    # Perform minimal update to avoid race conditions
+                    if status == "error":
+                        # Just increment retry count if we're handling an error
+                        retry_data = notification.retry_count or {}
+                        retry_count = retry_data.get(channel, 0) + 1
+                        retry_data[channel] = retry_count
+                        notification.retry_count = retry_data
+                        notification.save(update_fields=["retry_count"])
+
+                        # Schedule retry outside transaction
+                        delay_seconds = RETRY_DELAY_BASE * (2**retry_count)
+                        retry_failed_notification_task.apply_async(
+                            args=[notification_id, channel], countdown=delay_seconds
+                        )
+
+                    return True
 
         except Exception as e:
-            logger.error(f"Error updating notification status: {str(e)}")
+            logger.error(f"Error updating notification status: {str(e)}", exc_info=True)
             return False
 
     @classmethod

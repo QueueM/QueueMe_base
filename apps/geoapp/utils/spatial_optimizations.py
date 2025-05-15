@@ -286,35 +286,79 @@ def batch_geocode_locations(
     return results
 
 
-def optimize_spatial_index(table_name: str, geometry_column: str) -> bool:
+def optimize_spatial_index(model_class, location_field="location", batch_size=1000):
     """
-    Optimize a spatial index for better query performance
+    Optimize PostGIS spatial indexes for a model containing geographical data.
 
-    Args:
-        table_name: Database table name
-        geometry_column: Name of the geometry column
-
-    Returns:
-        Boolean indicating success
+    This function clusters geographical data to improve query performance.
     """
+    model_meta = model_class._meta
+    table_name = model_meta.db_table
+
+    # Get the right field name in the database
+    location_db_column = None
+    for field in model_meta.fields:
+        if field.name == location_field:
+            location_db_column = field.column
+            break
+
+    if not location_db_column:
+        return False, f"Field {location_field} not found on model {model_class.__name__}"
+
     try:
         with connection.cursor() as cursor:
-            # Update PostgreSQL statistics for this table
-            cursor.execute(f"VACUUM ANALYZE {table_name}")
+            # Django's cursor.execute properly escapes table_name and location_db_column
+            # using cursor.execute's parameter substitution
+            cursor.execute(
+                "SELECT COUNT(*) FROM %s WHERE %s IS NOT NULL", [table_name, location_db_column]
+            )
+            count = cursor.fetchone()[0]
 
-            # Set appropriate fillfactor for spatial index
-            index_name = f"{table_name}_{geometry_column}_id"
-            cursor.execute(f"ALTER INDEX {index_name} SET (fillfactor = 80)")
+            if count == 0:
+                return True, f"No data with location in {model_class.__name__}"
 
-            # Create a spatial clustering index if needed
-            cursor.execute(f"CLUSTER {table_name} USING {index_name}")
+            # Create a spatial index with GIST if it doesn't exist
+            index_name = f"{table_name}_{location_db_column}_gist"
 
-            return True
+            # Check if index exists
+            cursor.execute(
+                """
+                SELECT COUNT(*) FROM pg_indexes
+                WHERE indexname = %s
+                """,
+                [index_name],
+            )
+
+            index_exists = cursor.fetchone()[0] > 0
+
+            if not index_exists:
+                # Create spatial index
+                cursor.execute(
+                    """
+                    CREATE INDEX %s ON %s USING GIST (%s)
+                    """,
+                    [index_name, table_name, location_db_column],
+                )
+
+            # Cluster the data based on spatial proximity
+            cursor.execute(
+                """
+                CLUSTER %s USING %s
+                """,
+                [table_name, index_name],
+            )
+
+            # Analyze the table to update statistics
+            cursor.execute(
+                """
+                ANALYZE %s
+                """,
+                [table_name],
+            )
+
+            return True, f"Successfully optimized spatial index for {model_class.__name__}"
     except Exception as e:
-        from django.db import connections
-
-        connections.close_all()
-        return False
+        return False, f"Error optimizing spatial index: {str(e)}"
 
 
 def has_postgis_geocoding() -> bool:

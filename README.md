@@ -175,3 +175,14 @@ For support or inquiries, contact support@queueme.net
 - **Message Compression**: Automatic compression for large messages to reduce bandwidth
 - **Rate Limiting**: Flood protection to prevent system overload
 - **Connection Pooling**: Redis connection pooling for WebSockets to handle thousands of concurrent connections
+
+### Advanced Admin Panel Features
+
+- **Role Management System**: Comprehensive role-based access control with visual permission assignment
+- **System Health Monitoring**: Real-time metrics dashboard for monitoring server performance, database connections, and API endpoints
+- **Communications Hub**: Centralized interface for managing all customer and shop communications with filtering and search
+- **Audit Logging System**: Detailed tracking of all administrative actions for security compliance and accountability
+
+For detailed documentation on these features, see:
+- [ADMIN_FEATURES_SUMMARY.md](ADMIN_FEATURES_SUMMARY.md)
+- [AUDIT_LOGGING_DOCUMENTATION.md](AUDIT_LOGGING_DOCUMENTATION.md)

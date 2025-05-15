@@ -231,9 +231,9 @@ class ReviewValidator:
                     status__in=["completed", "served"],
                 ).exists()
             elif entity_type == "service":
-                from apps.bookingapp.models import Booking
+                from apps.bookingapp.models import Appointment
 
-                return Booking.objects.filter(
+                return Appointment.objects.filter(
                     service_id=entity_id, user=user, status="completed"
                 ).exists()
             elif entity_type == "platform":

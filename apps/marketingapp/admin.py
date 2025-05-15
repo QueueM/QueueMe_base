@@ -124,44 +124,40 @@ class AdvertisementAdmin(admin.ModelAdmin):
 @admin.register(AdView)
 class AdViewAdmin(admin.ModelAdmin):
     list_display = [
-        "advertisement",
+        "ad",
         "user",
         "viewed_at",
-        "view_duration",
-        "viewed_in",
-        "city",
+        "ip_address",
     ]
-    list_filter = ["viewed_at", "viewed_in", "city"]
-    search_fields = ["advertisement__title", "user__phone"]
+    list_filter = ["viewed_at", "user"]
+    search_fields = ["ad__title", "user__email", "ip_address"]
     date_hierarchy = "viewed_at"
     readonly_fields = [
-        "advertisement",
+        "ad",
         "user",
-        "session_id",
         "ip_address",
-        "city",
+        "user_agent",
         "viewed_at",
-        "view_duration",
-        "viewed_in",
+        "location",
     ]
 
 
 @admin.register(AdClick)
 class AdClickAdmin(admin.ModelAdmin):
-    list_display = ["advertisement", "user", "clicked_at", "led_to_booking", "city"]
-    list_filter = ["clicked_at", "led_to_booking", "city"]
-    search_fields = ["advertisement__title", "user__phone"]
+    list_display = ["ad", "user", "clicked_at", "led_to_booking", "ip_address"]
+    list_filter = ["clicked_at", "led_to_booking", "user"]
+    search_fields = ["ad__title", "user__email", "ip_address"]
     date_hierarchy = "clicked_at"
     readonly_fields = [
-        "advertisement",
+        "ad",
         "user",
-        "session_id",
         "ip_address",
-        "city",
+        "user_agent",
         "clicked_at",
         "referrer",
         "led_to_booking",
-        "booking",
+        "conversion_value",
+        "location",
     ]
 
 

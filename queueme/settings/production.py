@@ -13,6 +13,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from .base import *
+from .base import env
 
 # Create fake module implementations to bypass the problematic imports
 dummy_worker = types.ModuleType("core.tasks.worker")
@@ -27,7 +28,7 @@ sys.modules["core.tasks.worker"] = dummy_worker
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+DEBUG = False
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -154,7 +155,7 @@ MIDDLEWARE += [
 ]
 
 # Enhanced security settings
-SECURE_SSL_REDIRECT = bool(os.environ.get("SECURE_SSL_REDIRECT", "True") == "True")
+SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
@@ -295,7 +296,10 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@queueme.net")
+DEFAULT_FROM_EMAIL = env(
+    "DJANGO_DEFAULT_FROM_EMAIL",
+    default="QueueMe <noreply@example.com>",
+)
 
 # Firebase settings for notifications and SMS
 FIREBASE_CREDENTIALS_PATH = os.environ.get("FIREBASE_CREDENTIALS_PATH")

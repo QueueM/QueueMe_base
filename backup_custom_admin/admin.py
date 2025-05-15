@@ -1,0 +1,74 @@
+from django.contrib import admin
+from django.contrib.admin import AdminSite
+from django.utils.translation import gettext_lazy as _
+
+# Import necessary models
+from apps.authapp.models import User
+from apps.bookingapp.models import Booking
+from apps.serviceapp.models import Service
+from apps.shopapp.models import Shop
+
+
+class QueueMeAdminSite(AdminSite):
+    """Custom QueueMe Admin Site"""
+
+    site_title = _("QueueMe Admin")
+    site_header = _("QueueMe Administration")
+    index_title = _("Dashboard")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enable_nav_sidebar = True
+
+    def each_context(self, request):
+        """Add extra context variables to each admin template"""
+        context = super().each_context(request)
+
+        # Add extra context variables here if needed
+        context.update(
+            {
+                "unread_notifications_count": 0,  # Replace with actual data in production
+                "notifications": [],  # Replace with actual data in production
+            }
+        )
+
+        return context
+
+
+# Create an instance of the custom admin site
+admin_site = QueueMeAdminSite(name="queueme_admin")
+
+# Model Admin classes
+class UserAdmin(admin.ModelAdmin):
+    list_display = ("id", "username", "email", "phone_number", "date_joined")
+    search_fields = ("username", "email", "phone_number")
+    list_filter = ("is_active", "is_staff", "date_joined")
+
+
+class ShopAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "owner", "location", "created_at")
+    search_fields = ("name", "owner__username", "location")
+    list_filter = ("is_active", "created_at")
+
+
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "shop", "price", "duration")
+    search_fields = ("name", "shop__name")
+    list_filter = ("shop", "is_active")
+
+
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ("id", "service", "customer", "status", "created_at")
+    search_fields = ("service__name", "customer__username")
+    list_filter = ("status", "created_at")
+
+
+# Register models with the custom admin site
+try:
+    admin_site.register(User, UserAdmin)
+    admin_site.register(Shop, ShopAdmin)
+    admin_site.register(Service, ServiceAdmin)
+    admin_site.register(Booking, BookingAdmin)
+except Exception as e:
+    # Handle registration errors gracefully in case models haven't been imported correctly
+    print(f"Error registering models with admin: {e}")

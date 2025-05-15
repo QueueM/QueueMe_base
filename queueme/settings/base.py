@@ -13,6 +13,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Optional
 
+from decouple import config  # Use python-decouple for env vars
 from django.utils.translation import gettext_lazy as _  # noqa: F401 - Used in LANGUAGES setting
 from dotenv import load_dotenv
 
@@ -43,9 +44,17 @@ def env(key: str, default: Optional[str] = None, *, required: bool = False) -> s
 # ---------------------------------------------------------------------------
 # Core toggles
 # ---------------------------------------------------------------------------
-SECRET_KEY: str = env("SECRET_KEY", required=True)
-DEBUG: bool = env("DEBUG", "False").lower() in {"1", "true", "yes"}
-ALLOWED_HOSTS: list[str] = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+# SECURITY WARNING: keep the secret key used in production secret!
+# Load SECRET_KEY from environment variable. Use a default ONLY for local dev if necessary,
+# but ideally, set it in your .env file.
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-fallback-key-change-me-in-env")
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = config("DEBUG", default=False, cast=bool)
+
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS", default="127.0.0.1,localhost", cast=lambda v: [s.strip() for s in v.split(",")]
+)
 
 # ---------------------------------------------------------------------------
 # Database – PostgreSQL everywhere
@@ -76,10 +85,12 @@ if os.environ.get("USE_CONNECTION_POOLING", "False").lower() == "true":
         # Dynamically import and configure connection pooling
         DATABASES["default"]["ENGINE"] = "dj_db_conn_pool.backends.postgresql"
         DATABASES["default"]["POOL_OPTIONS"] = {
-            "POOL_SIZE": int(os.environ.get("DB_POOL_SIZE", 10)),
-            "MAX_OVERFLOW": int(os.environ.get("DB_MAX_OVERFLOW", 10)),
+            "POOL_SIZE": int(os.environ.get("DB_POOL_SIZE", 20)),
+            "MAX_OVERFLOW": int(os.environ.get("DB_MAX_OVERFLOW", 15)),
             "RECYCLE": 300,  # Recycle connections after 5 minutes
-            "TIMEOUT": 30,  # 30 seconds acquisition timeou
+            "TIMEOUT": 20,  # 20 seconds acquisition timeout
+            "MAX_LIFETIME": 1800,  # 30 minutes maximum lifetime
+            "POOL_PRE_PING": True,  # Enable connection health checks
         }
         print("Database connection pooling enabled.")
     except ImportError:
@@ -122,6 +133,8 @@ INSTALLED_APPS = [
     "core",
     "algorithms",
     "websockets",
+    "utils",  # Utility components including admin audit logs
+    # Custom admin panel
     # Queue Me domain apps  (order matters for FK / signals)
     "apps.authapp",
     "apps.rolesapp",
@@ -146,7 +159,6 @@ INSTALLED_APPS = [
     "apps.reelsapp",
     "apps.storiesapp",
     "apps.reportanalyticsapp",
-    "apps.queueMeAdminApp",
     "apps.shopDashboardApp",
     "apps.marketingapp",
 ]
@@ -159,6 +171,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # "utils.admin.middleware.AdminAuditMiddleware",  # Admin audit logging - disabled temporarily
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -218,7 +231,7 @@ AUTHENTICATION_BACKENDS = [
 # ---------------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.authapp.backends.QueueMeJWTAuthentication",
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
@@ -437,7 +450,6 @@ SECURE_HSTS_PRELOAD = env("SECURE_HSTS_PRELOAD", "0") == "1"
 # Default PK
 # ---------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 
 # ---------------------------------------------------------------------------
 # Logging

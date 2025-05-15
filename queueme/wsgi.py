@@ -59,7 +59,7 @@ try:
     print("WSGI application loaded successfully")
 except Exception as e:
     # Log errors for debugging
-    with open("/home/arise/queueme/wsgi_error.log", "a") as f:
+    with open("./wsgi_error.log", "a") as f:
         import traceback
 
         f.write(f"\n{'-'*80}\n")

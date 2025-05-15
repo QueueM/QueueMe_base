@@ -1,452 +1,215 @@
-{% extends 'base.html' %}
-{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueMe - Advanced Queue Management</title>
 
-{% block title %}{% trans "Queue Me - Simplified Scheduling and Queue Management" %}{% endblock %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-{% block content %}
-<div class="relative">
-    <!-- Hero Section -->
-    <section class="relative bg-gradient-to-r from-primary to-primary-dark text-white py-16 md:py-24">
-        <div class="container mx-auto px-4">
-            <div class="md:flex items-center">
-                <div class="md:w-1/2 mb-8 md:mb-0">
-                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            إدارة الحجوزات والمواعيد <span class="text-secondary">بطريقة ذكية</span>
-                        {% else %}
-                            Smart Scheduling & <span class="text-secondary">Queue Management</span>
-                        {% endif %}
-                    </h1>
-                    <p class="text-lg md:text-xl mb-8">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            كيو مي تساعد الشركات على إدارة الحجوزات والطوابير بكفاءة عالية. تحسين التجربة وتقليل وقت الانتظار.
-                        {% else %}
-                            Queue Me helps businesses efficiently manage bookings and queues. Improve the experience and reduce wait times.
-                        {% endif %}
-                    </p>
-                    <div class="flex flex-wrap gap-4">
-                        <a href="{% url 'register_business' %}" class="bg-secondary hover:bg-secondary-dark text-white font-bold py-3 px-6 rounded-lg transition duration-300">
-                            {% if LANGUAGE_CODE == 'ar' %}
-                                سجل شركتك الآن
-                            {% else %}
-                                Register Your Business
-                            {% endif %}
-                        </a>
-                        <a href="{{ app_store_url }}" class="bg-white hover:bg-gray-100 text-primary font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 0C4.477 0 0 4.477 0 10c0 5.523 4.477 10 10 10s10-4.477 10-10C20 4.477 15.523 0 10 0zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-1-5h2V7H9v6z"/>
-                            </svg>
-                            {% if LANGUAGE_CODE == 'ar' %}
-                                تحميل التطبيق
-                            {% else %}
-                                Download App
-                            {% endif %}
-                        </a>
-                    </div>
-                </div>
-                <div class="md:w-1/2 md:pl-8">
-                    <img src="{% static 'img/hero-image.png' %}" alt="Queue Me App" class="rounded-lg shadow-xl max-w-full mx-auto">
-                </div>
-            </div>
-        </div>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-        <!-- Wave SVG -->
-        <div class="absolute bottom-0 left-0 right-0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 200" class="w-full h-auto">
-                <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,106.7C672,85,768,75,864,90.7C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-            </svg>
-        </div>
-    </section>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Features Section -->
-    <section class="py-16 md:py-24 bg-white">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12">
-                {% if LANGUAGE_CODE == 'ar' %}
-                    ميزات المنصة
-                {% else %}
-                    Platform Features
-                {% endif %}
-            </h2>
+    <style>
+        :root {
+            --primary: #3a7bd5;
+            --primary-dark: #2d5ea1;
+            --secondary: #00d2ff;
+            --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
-                    <div class="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            إدارة المواعيد
-                        {% else %}
-                            Appointment Management
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            نظام حجز متطور مع تذكيرات تلقائية وإمكانية الإلغاء وإعادة الجدولة والدفع عبر الإنترنت.
-                        {% else %}
-                            Advanced booking system with automated reminders, cancellation, rescheduling, and online payment capabilities.
-                        {% endif %}
-                    </p>
-                </div>
+        html, body {
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+        }
 
-                <!-- Feature 2 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
-                    <div class="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            دردشة مباشرة
-                        {% else %}
-                            Live Chat
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            تواصل مباشر بين العملاء ومقدمي الخدمة مع إمكانية تبادل الصور والفيديو والمستندات.
-                        {% else %}
-                            Direct communication between customers and service providers with the ability to exchange images, videos, and documents.
-                        {% endif %}
-                    </p>
-                </div>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fd;
+            overflow: hidden;
+        }
 
-                <!-- Feature 3 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
-                    <div class="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            إدارة الطوابير
-                        {% else %}
-                            Queue Management
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            قائمة انتظار افتراضية مع تقديرات وقت الانتظار وإشعارات حالة الدور في الوقت الفعلي.
-                        {% else %}
-                            Virtual waiting list with wait time estimates and real-time status notifications for customers.
-                        {% endif %}
-                    </p>
-                </div>
+        .hero-container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            padding: 2rem;
+        }
 
-                <!-- Feature 4 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
-                    <div class="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            التحليلات والتقارير
-                        {% else %}
-                            Analytics & Reports
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            قم بتتبع أوقات الانتظار ومعدلات الحضور والخدمات الأكثر طلبًا وأوقات الذروة لتحسين عملك.
-                        {% else %}
-                            Track wait times, attendance rates, most requested services, and peak hours to optimize your business.
-                        {% endif %}
-                    </p>
-                </div>
+        .logo {
+            max-width: 180px;
+            margin-bottom: 2rem;
+        }
 
-                <!-- Feature 5 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
-                    <div class="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            ريلز وقصص
-                        {% else %}
-                            Reels & Stories
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            أنشئ محتوى ترويجي لخدماتك وتفاعل مع العملاء عبر منصتك الرقمية المخصصة.
-                        {% else %}
-                            Create promotional content for your services and engage with customers through your dedicated digital platform.
-                        {% endif %}
-                    </p>
-                </div>
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
 
-                <!-- Feature 6 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
-                    <div class="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            المدفوعات الإلكترونية
-                        {% else %}
-                            Online Payments
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            معالجة المدفوعات الآمنة عبر متعددة طرق الدفع بالتكامل مع بوابة مويسر للدفع.
-                        {% else %}
-                            Process secure payments via multiple payment methods with Moyassar payment gateway integration.
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
+        .subtitle {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 3rem;
+        }
 
-    <!-- How It Works Section -->
-    <section class="py-16 md:py-24 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12">
-                {% if LANGUAGE_CODE == 'ar' %}
-                    كيف يعمل كيو مي
-                {% else %}
-                    How Queue Me Works
-                {% endif %}
-            </h2>
+        .btn-hero {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+            box-shadow: 0 10px 20px rgba(58, 123, 213, 0.3);
+            transition: all 0.3s ease;
+        }
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Step 1 -->
-                <div class="text-center">
-                    <div class="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <span class="text-xl font-bold">1</span>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            إنشاء حساب
-                        {% else %}
-                            Create Account
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            سجل شركتك، وأضف الخدمات، وقم بتكوين جدول العمل والمتخصصين.
-                        {% else %}
-                            Register your business, add services, and configure operating hours and specialists.
-                        {% endif %}
-                    </p>
-                </div>
+        .btn-hero:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(58, 123, 213, 0.4);
+        }
 
-                <!-- Step 2 -->
-                <div class="text-center">
-                    <div class="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <span class="text-xl font-bold">2</span>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            إدارة الحجوزات
-                        {% else %}
-                            Manage Bookings
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            قبول الحجوزات عبر الإنترنت، وإدارة الطوابير، والاستفادة من التذكيرات التلقائية.
-                        {% else %}
-                            Accept online bookings, manage queues, and leverage automated reminders.
-                        {% endif %}
-                    </p>
-                </div>
+        .btn-hero i {
+            margin-left: 8px;
+        }
 
-                <!-- Step 3 -->
-                <div class="text-center">
-                    <div class="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <span class="text-xl font-bold">3</span>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            نمو الأعمال
-                        {% else %}
-                            Grow Business
-                        {% endif %}
-                    </h3>
-                    <p class="text-gray-600">
-                        {% if LANGUAGE_CODE == 'ar' %}
-                            عزز تجربة العملاء، وقلل أوقات الانتظار، وزد الإيرادات من خلال التحليلات الذكية.
-                        {% else %}
-                            Enhance customer experience, reduce wait times, and increase revenue through smart analytics.
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
+        .bg-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
 
-            <div class="mt-12 text-center">
-                <a href="{% url 'register_business' %}" class="inline-block bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition duration-300">
-                    {% if LANGUAGE_CODE == 'ar' %}
-                        ابدأ الآن مجانًا
-                    {% else %}
-                        Start Now for Free
-                    {% endif %}
-                </a>
-            </div>
-        </div>
-    </section>
+        .bg-animation span {
+            position: absolute;
+            display: block;
+            width: 20px;
+            height: 20px;
+            background: rgba(58, 123, 213, 0.1);
+            border-radius: 50%;
+            animation: animate 25s linear infinite;
+            bottom: -150px;
+        }
 
-    <!-- Testimonials Section -->
-    <section class="py-16 md:py-24 bg-white">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12">
-                {% if LANGUAGE_CODE == 'ar' %}
-                    آراء عملائنا
-                {% else %}
-                    What Our Customers Say
-                {% endif %}
-            </h2>
+        .bg-animation span:nth-child(1) {
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            animation-delay: 0s;
+        }
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Testimonial 1 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm">
-                    <div class="flex items-center mb-4">
-                        <div class="text-yellow-400 flex">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <p class="text-gray-600 mb-4">
-                        "Queue Me has revolutionized our salon. We've reduced no-shows by 70% and can now serve more customers with the same staff. The app is intuitive and our customers love it!"
-                    </p>
-                    <div class="flex items-center">
-                        <img class="h-10 w-10 rounded-full mr-4" src="{% static 'img/testimonial-1.jpg' %}" alt="Testimonial">
-                        <div>
-                            <h4 class="font-semibold">Ahmed Al-Salem</h4>
-                            <p class="text-gray-500 text-sm">Elegance Salon, Riyadh</p>
-                        </div>
-                    </div>
-                </div>
+        .bg-animation span:nth-child(2) {
+            left: 20%;
+            width: 40px;
+            height: 40px;
+            animation-delay: 2s;
+            animation-duration: 12s;
+        }
 
-                <!-- Testimonial 2 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm">
-                    <div class="flex items-center mb-4">
-                        <div class="text-yellow-400 flex">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <p class="text-gray-600 mb-4">
-                        "As a busy clinic, we needed a solution to manage our patient flow. Queue Me's hybrid system for appointments and walk-ins has transformed our operations. Patient satisfaction is up, and wait times are down!"
-                    </p>
-                    <div class="flex items-center">
-                        <img class="h-10 w-10 rounded-full mr-4" src="{% static 'img/testimonial-2.jpg' %}" alt="Testimonial">
-                        <div>
-                            <h4 class="font-semibold">Dr. Sara Al-Qahtani</h4>
-                            <p class="text-gray-500 text-sm">Wellness Medical Center, Jeddah</p>
-                        </div>
-                    </div>
-                </div>
+        .bg-animation span:nth-child(3) {
+            left: 35%;
+            width: 60px;
+            height: 60px;
+            animation-delay: 4s;
+        }
 
-                <!-- Testimonial 3 -->
-                <div class="bg-gray-50 rounded-lg p-6 shadow-sm">
-                    <div class="flex items-center mb-4">
-                        <div class="text-yellow-400 flex">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <p class="text-gray-600 mb-4">
-                        "Queue Me's marketing tools are outstanding. The reels and stories features have helped us showcase our services, and the analytics provide valuable insights. Best business decision we made this year!"
-                    </p>
-                    <div class="flex items-center">
-                        <img class="h-10 w-10 rounded-full mr-4" src="{% static 'img/testimonial-3.jpg' %}" alt="Testimonial">
-                        <div>
-                            <h4 class="font-semibold">Khalid Al-Harbi</h4>
-                            <p class="text-gray-500 text-sm">Urban Barber Shop, Dammam</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        .bg-animation span:nth-child(4) {
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            animation-delay: 0s;
+            animation-duration: 18s;
+        }
 
-    <!-- CTA Section -->
-    <section class="py-16 md:py-24 bg-primary text-white">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6">
-                {% if LANGUAGE_CODE == 'ar' %}
-                    جاهز لتحويل عملك؟
-                {% else %}
-                    Ready to Transform Your Business?
-                {% endif %}
-            </h2>
-            <p class="text-xl mb-8 max-w-3xl mx-auto">
-                {% if LANGUAGE_CODE == 'ar' %}
-                    انضم إلى الآلاف من الشركات التي تستخدم كيو مي لتبسيط العمليات وتحسين رضا العملاء وزيادة الإيرادات.
-                {% else %}
-                    Join thousands of businesses using Queue Me to streamline operations, boost customer satisfaction, and increase revenue.
-                {% endif %}
-            </p>
-            <div class="flex flex-wrap justify-center gap-4">
-                <a href="{% url 'register_business' %}" class="bg-white text-primary hover:bg-gray-100 font-bold py-3 px-6 rounded-lg transition duration-300">
-                    {% if LANGUAGE_CODE == 'ar' %}
-                        سجل شركتك
-                    {% else %}
-                        Register Your Business
-                    {% endif %}
-                </a>
-                <a href="{{ app_store_url }}" class="bg-secondary hover:bg-secondary-dark text-white font-bold py-3 px-6 rounded-lg transition duration-300">
-                    {% if LANGUAGE_CODE == 'ar' %}
-                        تحميل التطبيق
-                    {% else %}
-                        Download the App
-                    {% endif %}
-                </a>
-            </div>
-        </div>
-    </section>
-</div>
-{% endblock %}
+        .bg-animation span:nth-child(5) {
+            left: 65%;
+            width: 70px;
+            height: 70px;
+            animation-delay: 0s;
+        }
+
+        .bg-animation span:nth-child(6) {
+            left: 75%;
+            width: 50px;
+            height: 50px;
+            animation-delay: 3s;
+        }
+
+        .bg-animation span:nth-child(7) {
+            left: 85%;
+            width: 45px;
+            height: 45px;
+            animation-delay: 7s;
+        }
+
+        .bg-animation span:nth-child(8) {
+            left: 90%;
+            width: 100px;
+            height: 100px;
+            animation-delay: 15s;
+            animation-duration: 45s;
+        }
+
+        @keyframes animate {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+                border-radius: 0;
+            }
+            100% {
+                transform: translateY(-1000px) rotate(720deg);
+                opacity: 0;
+                border-radius: 50%;
+            }
+        }
+
+        .version {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="hero-container">
+        <img src="/static/img/logo.png" alt="QueueMe Logo" class="logo">
+        <h1>QueueMe</h1>
+        <p class="subtitle">Advanced Queue Management System</p>
+        <a href="/admin/dashboard/" class="btn btn-hero">
+            Go to Dashboard <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="version">Version 1.0</div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

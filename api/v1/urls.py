@@ -66,14 +66,15 @@ urlpatterns = [
     path("bookings/", include("apps.bookingapp.urls")),
     path("shops/", include("apps.shopapp.urls")),
     path("services/", include("apps.serviceapp.urls")),
-    path("queue/", include("apps.queueapp.urls")),
+    path("queue/", include("apps.queueapp.urls", namespace="api_queueapp")),
     path("chat/", include("apps.chatapp.urls")),
     path("geo/", include("apps.geoapp.urls")),
     path("payments/", include("apps.payment.urls")),
     path("subscriptions/", include("apps.subscriptionapp.urls")),
     path("dashboard/", include("apps.shopDashboardApp.urls")),
-    path("admin/", include("apps.queueMeAdminApp.urls")),
     path("analytics/", include("apps.reportanalyticsapp.urls")),
+    # path("verifications/", include("apps.shopapp.verification_urls")),  # Commented out due to missing module
+    path("roles/", include("apps.rolesapp.urls", namespace="api_rolesapp")),
     # Availability endpoints
     path(
         "availability/service/",

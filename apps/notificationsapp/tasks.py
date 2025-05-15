@@ -151,26 +151,40 @@ def cleanup_old_notifications():
     try:
         from django.db import connection
 
-        # Using raw SQL for efficiency with large datasets
-        with connection.cursor() as cursor:
-            # For each user, get IDs of read notifications to keep (most recent 100)
-            cursor.execute(
-                """
-                DELETE FROM notificationsapp_notification
-                WHERE id NOT IN (
-                    SELECT id FROM (
-                        SELECT id FROM notificationsapp_notification
-                        WHERE status = 'read' AND read_at < NOW() - INTERVAL '30 days'
-                        ORDER BY read_at DESC
-                        LIMIT 100
-                    ) AS to_keep
+        # Use Django ORM instead of raw SQL for this operation for better security
+        # First, find notifications to keep (latest 100 read notifications)
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+
+        # Find all read notifications older than 30 days
+        old_read_notifications = Notification.objects.filter(
+            status="read", read_at__lt=thirty_days_ago
+        )
+
+        # For each user, keep only the latest 100 notifications
+        users_with_notifications = User.objects.filter(
+            notifications__in=old_read_notifications
+        ).distinct()
+
+        deleted_count = 0
+
+        for user in users_with_notifications:
+            # Get IDs of notifications to keep for this user
+            keep_ids = (
+                Notification.objects.filter(
+                    recipient=user, status="read", read_at__lt=thirty_days_ago
                 )
-                AND status = 'read'
-                AND read_at < NOW() - INTERVAL '30 days'
-            """
+                .order_by("-read_at")[:100]
+                .values_list("id", flat=True)
             )
 
-            deleted_count = cursor.rowcount
+            # Delete old notifications for this user (excluding the kept ones)
+            to_delete = Notification.objects.filter(
+                recipient=user, status="read", read_at__lt=thirty_days_ago
+            ).exclude(id__in=keep_ids)
+
+            count = to_delete.count()
+            to_delete.delete()
+            deleted_count += count
 
         logger.info(f"Cleaned up {deleted_count} old notifications")
         return f"Cleaned up {deleted_count} old notifications"

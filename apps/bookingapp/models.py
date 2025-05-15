@@ -275,68 +275,86 @@ class AppointmentReminder(models.Model):
         self.appointment.mark_reminder_sent()
 
 
-class MultiServiceBooking(models.Model):
-    """Group multiple appointments into a single booking session"""
+class BookingStatus(models.Model):
+    """Status options for bookings"""
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    customer = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="multi_service_bookings",
-        verbose_name=_("Customer"),
+    name = models.CharField(_("Status Name"), max_length=50)
+    color = models.CharField(
+        _("Color"), max_length=20, help_text=_("Hex color code (e.g. #FF0000)")
     )
-    shop = models.ForeignKey(
-        Shop,
-        on_delete=models.CASCADE,
-        related_name="multi_service_bookings",
-        verbose_name=_("Shop"),
+    is_active = models.BooleanField(_("Active"), default=True)
+    description = models.TextField(_("Description"), blank=True)
+
+    class Meta:
+        verbose_name = _("Booking Status")
+        verbose_name_plural = _("Booking Statuses")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Booking(models.Model):
+    """Booking model for customer appointments"""
+
+    # Customer information
+    customer_name = models.CharField(_("Customer Name"), max_length=255)
+    customer_email = models.EmailField(_("Email"), blank=True)
+    customer_phone = models.CharField(_("Phone"), max_length=20, blank=True)
+
+    # Booking details
+    booking_date = models.DateField(_("Date"), default=timezone.now)
+    booking_time = models.TimeField(_("Time"), default=timezone.now)
+    duration = models.IntegerField(_("Duration (minutes)"), default=60)
+
+    # Service information
+    service = models.CharField(_("Service"), max_length=255)
+    specialist = models.CharField(_("Specialist"), max_length=255, blank=True)
+    price = models.DecimalField(_("Price"), max_digits=10, decimal_places=2, default=0)
+
+    # Status
+    status = models.ForeignKey(
+        BookingStatus, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Status")
     )
-    appointments = models.ManyToManyField(
-        Appointment, related_name="booking_group", verbose_name=_("Appointments")
-    )
-    total_price = models.DecimalField(_("Total Price"), max_digits=10, decimal_places=2, default=0)
-    transaction_id = models.CharField(_("Transaction ID"), max_length=100, null=True, blank=True)
-    payment_status = models.CharField(
-        _("Payment Status"),
-        max_length=20,
-        choices=Appointment.PAYMENT_STATUS_CHOICES,
-        default="pending",
-    )
+
+    # Additional information
+    notes = models.TextField(_("Notes"), blank=True)
+
+    # Metadata
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
 
-    # Track field changes for signals
-    tracker = FieldTracker(fields=["payment_status", "transaction_id"])
+    class Meta:
+        verbose_name = _("Booking")
+        verbose_name_plural = _("Bookings")
+        ordering = ["-booking_date", "-booking_time"]
+
+    def __str__(self):
+        return f"{self.customer_name} - {self.service} ({self.booking_date})"
+
+
+class MultiServiceBooking(models.Model):
+    """Booking that includes multiple services"""
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name="multi_services",
+        null=True,  # Allow null for existing records
+        verbose_name=_("Booking"),
+    )
+    service_name = models.CharField(_("Service Name"), max_length=255, default="Unknown Service")
+    duration = models.IntegerField(_("Duration (minutes)"), default=30)
+    price = models.DecimalField(_("Price"), max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         verbose_name = _("Multi-Service Booking")
         verbose_name_plural = _("Multi-Service Bookings")
-        ordering = ["-created_at"]
-        indexes = [
-            models.Index(fields=["customer"]),
-            models.Index(fields=["shop"]),
-            models.Index(fields=["payment_status"]),
-            models.Index(fields=["created_at"]),
-        ]
 
     def __str__(self):
-        return f"{self.customer.phone_number} - {self.shop.name} - {self.created_at.strftime('%Y-%m-%d')}"
-
-    def update_total_price(self):
-        """Calculate and update total price based on all appointments"""
-        self.total_price = sum(appointment.total_price for appointment in self.appointments.all())
-        self.save(update_fields=["total_price", "updated_at"])
-
-    def mark_paid(self, transaction_id=None):
-        """Mark booking and all appointments as paid"""
-        self.payment_status = "paid"
-        if transaction_id:
-            self.transaction_id = transaction_id
-        self.save(update_fields=["payment_status", "transaction_id", "updated_at"])
-
-        # Also mark all appointments as paid
-        for appointment in self.appointments.all():
-            appointment.mark_paid(transaction_id)
+        if self.booking:
+            return f"{self.booking.customer_name} - {self.service_name}"
+        return f"Unassigned - {self.service_name}"
 
 
 class AppointmentNote(models.Model):

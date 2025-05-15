@@ -1,4 +1,4 @@
-from django.db.models import Avg
+from django.db.models import Avg, Count, F, Q
 
 from apps.reviewapp.models import Review
 from apps.serviceapp.models import Service
@@ -262,6 +262,8 @@ class ServiceMatcher:
 
         This can be used to suggest additional services to customers
         """
+        from apps.bookingapp.models import Appointment
+
         service = Service.objects.get(id=service_id)
         shop = service.shop
 
@@ -284,57 +286,59 @@ class ServiceMatcher:
                 }
             )
 
-        # Strategy 2: Booking patterns
-        # Find services frequently booked together
-        from django.db import connection
+        # Strategy 2: Booking patterns - Use Django ORM instead of raw SQL
+        # Get customers who booked this service
+        customers_with_service = (
+            Appointment.objects.filter(service_id=service_id)
+            .values_list("customer_id", flat=True)
+            .distinct()
+        )
 
-        # Query for services commonly booked with this service
-        # This SQL finds pairs of services booked by the same customer
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT s2.id, s2.name, COUNT(*) as frequency
-                FROM bookingapp_appointment a1
-                JOIN bookingapp_appointment a2 ON a1.customer_id = a2.customer_id
-                JOIN serviceapp_service s2 ON a2.service_id = s2.id
-                WHERE a1.service_id = %s
-                AND a2.service_id != %s
-                AND a2.shop_id = %s
-                GROUP BY s2.id, s2.name
-                ORDER BY frequency DESC
-                LIMIT 5
-            """,
-                [service_id, service_id, shop.id],
+        # Find other services booked by these customers in the same shop
+        if customers_with_service:
+            # Count frequency of each service
+            service_frequencies = (
+                Appointment.objects.filter(customer_id__in=customers_with_service, shop_id=shop.id)
+                .exclude(service_id=service_id)
+                .values("service_id")
+                .annotate(frequency=Count("service_id"))
+                .order_by("-frequency")[:5]
             )
 
-            for row in cursor.fetchall():
-                complementary_id, name, frequency = row
+            for freq_item in service_frequencies:
+                complementary_id = freq_item["service_id"]
+                frequency = freq_item["frequency"]
 
-                # Check if already in results
-                existing = next(
-                    (s for s in complementary_services if s["service_id"] == complementary_id),
-                    None,
-                )
+                # Get service details
+                try:
+                    complementary_service = Service.objects.get(id=complementary_id)
 
-                if existing:
-                    # Boost score
-                    existing["score"] += min(5, frequency)  # Cap at +5 points
-                    existing["reason"] = "Frequently booked together by other customers"
-                else:
-                    complementary_services.append(
-                        {
-                            "service_id": complementary_id,
-                            "name": name,
-                            "reason": "Frequently booked together by other customers",
-                            "score": min(5, frequency) + 1,  # Base score + frequency (capped)
-                        }
+                    # Check if already in results
+                    existing = next(
+                        (s for s in complementary_services if s["service_id"] == complementary_id),
+                        None,
                     )
+
+                    if existing:
+                        # Boost score
+                        existing["score"] += min(5, frequency)  # Cap at +5 points
+                        existing["reason"] = "Frequently booked together by other customers"
+                    else:
+                        complementary_services.append(
+                            {
+                                "service_id": complementary_id,
+                                "name": complementary_service.name,
+                                "reason": "Frequently booked together by other customers",
+                                "score": min(5, frequency) + 1,  # Base score + frequency (capped)
+                            }
+                        )
+                except Service.DoesNotExist:
+                    # Skip if service no longer exists
+                    continue
 
         # Strategy 3: If customer provided, use their history/preferences
         if customer_id:
             # Find services this customer has booked before
-            from apps.bookingapp.models import Appointment
-
             customer_services = (
                 Appointment.objects.filter(customer_id=customer_id, shop=shop)
                 .exclude(service_id=service_id)

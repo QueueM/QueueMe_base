@@ -6,6 +6,7 @@ from apps.bookingapp.models import (
     Appointment,
     AppointmentNote,
     AppointmentReminder,
+    Booking,
     MultiServiceBooking,
 )
 
@@ -84,40 +85,58 @@ class AppointmentAdmin(admin.ModelAdmin):
     shop_name.short_description = _("Shop")
 
 
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+    """Admin configuration for bookings"""
+
+    list_display = [
+        "id",
+        "customer_name",
+        "service",
+        "booking_date",
+        "booking_time",
+        "price",
+    ]
+    list_filter = [
+        "booking_date",
+        "status",
+        "created_at",
+    ]
+    search_fields = [
+        "customer_name",
+        "customer_phone",
+        "service",
+    ]
+    readonly_fields = ["created_at", "updated_at"]
+    date_hierarchy = "booking_date"
+
+
 @admin.register(MultiServiceBooking)
 class MultiServiceBookingAdmin(admin.ModelAdmin):
     """Admin configuration for multi-service bookings"""
 
     list_display = [
         "id",
-        "customer_name",
-        "shop_name",
-        "appointment_count",
-        "total_price",
-        "payment_status",
+        "booking_customer",
+        "service_name",
+        "duration",
+        "price",
     ]
-    list_filter = ["payment_status", "created_at", "shop"]
-    search_fields = ["customer__phone_number", "shop__name"]
-    readonly_fields = ["created_at", "updated_at"]
-    filter_horizontal = ["appointments"]
+    list_filter = ["booking__booking_date", "booking__status"]
+    search_fields = [
+        "booking__customer_name",
+        "booking__customer_phone",
+        "service_name",
+    ]
+    readonly_fields = ["booking"]
 
-    def customer_name(self, obj):
-        """Get customer name/phone for display"""
-        return obj.customer.phone_number
+    def booking_customer(self, obj):
+        """Get customer name from the parent booking"""
+        if obj.booking:
+            return obj.booking.customer_name
+        return "Unassigned"
 
-    customer_name.short_description = _("Customer")
-
-    def shop_name(self, obj):
-        """Get shop name for display"""
-        return obj.shop.name
-
-    shop_name.short_description = _("Shop")
-
-    def appointment_count(self, obj):
-        """Get count of appointments in this booking"""
-        return obj.appointments.count()
-
-    appointment_count.short_description = _("# Appointments")
+    booking_customer.short_description = _("Customer")
 
 
 @admin.register(AppointmentReminder)

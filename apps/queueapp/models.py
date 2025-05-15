@@ -33,6 +33,11 @@ class Queue(models.Model):
     class Meta:
         verbose_name = _("Queue")
         verbose_name_plural = _("Queues")
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["shop", "status"]),
+            models.Index(fields=["created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.shop.name} - {self.name}"
@@ -101,6 +106,14 @@ class QueueTicket(models.Model):
         verbose_name = _("Queue Ticket")
         verbose_name_plural = _("Queue Tickets")
         ordering = ["position"]
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["position"]),
+            models.Index(fields=["queue", "status"]),
+            models.Index(fields=["customer", "status"]),
+            models.Index(fields=["join_time"]),
+            models.Index(fields=["specialist", "status"]),
+        ]
 
     def __str__(self):
         return f"{self.queue.shop.name} - {self.ticket_number} - {self.customer.phone_number}"

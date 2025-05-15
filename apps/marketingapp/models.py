@@ -7,6 +7,7 @@ ad views, clicks, and related analytics.
 
 import uuid
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -188,92 +189,88 @@ class Advertisement(models.Model):
 
 
 class AdView(models.Model):
-    """
-    Tracks when advertisements are viewed by users
-    """
+    """Model to track advertisement impressions/views"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    advertisement = models.ForeignKey(Advertisement, on_delete=models.CASCADE, related_name="views")
+    ad = models.ForeignKey(
+        "Advertisement",
+        on_delete=models.CASCADE,
+        related_name="views",
+        null=True,  # Make nullable
+        blank=True,
+    )
+    advertisement = models.ForeignKey(
+        "Advertisement",
+        on_delete=models.CASCADE,
+        related_name="advertisement_views",
+        null=True,
+        blank=True,
+        db_constraint=False,  # Prevents DB constraint errors
+    )
     user = models.ForeignKey(
-        "authapp.User",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="ad_views",
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+    location = models.ForeignKey(
+        "geoapp.Location", on_delete=models.SET_NULL, null=True, blank=True
     )
 
-    # Session tracking for anonymous users
-    session_id = models.CharField(max_length=100, blank=True, null=True)
+    def __str__(self):
+        return f"View of {self.ad.title if self.ad else 'unknown ad'} at {self.viewed_at}"
 
-    # Location data
-    ip_address = models.GenericIPAddressField(blank=True, null=True)
-    city = models.ForeignKey(
-        "geoapp.City",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="ad_views",
-    )
-
-    # Context
-    viewed_at = models.DateTimeField(default=timezone.now)
-    view_duration = models.PositiveIntegerField(default=0)  # In seconds
-    viewed_in = models.CharField(max_length=50, default="app")  # app, website, etc.
-
-    class Meta:
-        ordering = ["-viewed_at"]
-        verbose_name = "Ad View"
-        verbose_name_plural = "Ad Views"
+    def save(self, *args, **kwargs):
+        # Ensure advertisement field matches ad field
+        if self.ad and not self.advertisement:
+            self.advertisement = self.ad
+        elif self.advertisement and not self.ad:
+            self.ad = self.advertisement
+        super().save(*args, **kwargs)
 
 
 class AdClick(models.Model):
-    """
-    Tracks when advertisements are clicked by users
-    """
+    """Model to track advertisement clicks"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ad = models.ForeignKey(
+        "Advertisement",
+        on_delete=models.CASCADE,
+        related_name="clicks",
+        null=True,  # Make nullable
+        blank=True,
+    )
     advertisement = models.ForeignKey(
-        Advertisement, on_delete=models.CASCADE, related_name="clicks"
+        "Advertisement",
+        on_delete=models.CASCADE,
+        related_name="advertisement_clicks",
+        null=True,
+        blank=True,
+        db_constraint=False,  # Prevents DB constraint errors
     )
     user = models.ForeignKey(
-        "authapp.User",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="ad_clicks",
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
-
-    # Session tracking for anonymous users
-    session_id = models.CharField(max_length=100, blank=True, null=True)
-
-    # Location data
-    ip_address = models.GenericIPAddressField(blank=True, null=True)
-    city = models.ForeignKey(
-        "geoapp.City",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="ad_clicks",
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    clicked_at = models.DateTimeField(auto_now_add=True)
+    location = models.ForeignKey(
+        "geoapp.Location", on_delete=models.SET_NULL, null=True, blank=True
     )
-
-    # Context
-    clicked_at = models.DateTimeField(default=timezone.now)
-    referrer = models.CharField(max_length=255, blank=True, null=True)
-
-    # Conversion tracking
+    referrer = models.URLField(max_length=500, null=True, blank=True)
     led_to_booking = models.BooleanField(default=False)
-    booking = models.ForeignKey(
-        "bookingapp.Appointment",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="from_ad",
-    )
+    conversion_value = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
-    class Meta:
-        ordering = ["-clicked_at"]
-        verbose_name = "Ad Click"
-        verbose_name_plural = "Ad Clicks"
+    def __str__(self):
+        return f"Click on {self.ad.title if self.ad else 'unknown ad'} at {self.clicked_at}"
+
+    def save(self, *args, **kwargs):
+        # Ensure advertisement field matches ad field
+        if self.ad and not self.advertisement:
+            self.advertisement = self.ad
+        elif self.advertisement and not self.ad:
+            self.ad = self.advertisement
+        super().save(*args, **kwargs)
 
 
 class AdPayment(models.Model):

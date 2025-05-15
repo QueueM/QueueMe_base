@@ -86,6 +86,25 @@ try:
             "task": "apps.queueapp.tasks.check_stalled_queues",
             "schedule": 1800.0,  # Every 30 minutes
         },
+        # Cache management tasks
+        "clear-stale-caches": {
+            "task": "core.tasks.cache_management.clear_stale_caches",
+            "schedule": 3600.0 * 24,  # Daily
+            "kwargs": {},
+            "options": {"expires": 3600},  # Task expires after 1 hour if not executed
+        },
+        "monitor-cache-size": {
+            "task": "core.tasks.cache_management.monitor_cache_size",
+            "schedule": 1800.0,  # Every 30 minutes
+            "kwargs": {},
+            "options": {"expires": 900},  # Task expires after 15 minutes if not executed
+        },
+        "cleanup-expired-sessions": {
+            "task": "core.tasks.cache_management.cleanup_expired_sessions",
+            "schedule": 3600.0 * 12,  # Twice daily
+            "kwargs": {},
+            "options": {"expires": 3600},  # Task expires after 1 hour if not executed
+        },
     }
 except Exception as e:
     logger.error(f"Error setting beat schedule: {e}")

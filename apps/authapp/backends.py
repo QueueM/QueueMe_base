@@ -1,5 +1,7 @@
 from django.contrib.auth.backends import ModelBackend
 from django.db.models import Q
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import AuthenticationFailed, InvalidToken
 
 
 class PhoneNumberBackend(ModelBackend):
@@ -35,3 +37,31 @@ class PhoneNumberBackend(ModelBackend):
             User().set_password(password)
 
         return None
+
+
+class QueueMeJWTAuthentication(JWTAuthentication):
+    """
+    Custom JWT authentication that properly validates if a user is active.
+
+    This addresses CVE-2024-22513 in djangorestframework-simplejwt where
+    disabled user accounts could still access resources.
+    """
+
+    def get_user(self, validated_token):
+        """
+        Attempt to find and return a user using the given validated token.
+        Adds explicit check for user.is_active.
+        """
+        try:
+            user = super().get_user(validated_token)
+
+            # The critical fix: explicitly check if user is active
+            if not user.is_active:
+                raise AuthenticationFailed("User account is disabled")
+
+            return user
+
+        except AuthenticationFailed:
+            raise
+        except Exception as e:
+            raise InvalidToken(f"Token contained invalid user identification: {e}")

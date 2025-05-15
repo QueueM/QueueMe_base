@@ -71,7 +71,6 @@ apps_list=(
     "packageapp"
     "payment"
     "queueapp"
-    "queueMeAdminApp"
     "reelsapp"
     "reportanalyticsapp"
     "reviewapp"

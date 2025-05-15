@@ -1,0 +1,364 @@
+"""
+Moyasar payment service for handling multiple payment wallet integration.
+"""
+
+import logging
+import uuid
+from decimal import Decimal
+from enum import Enum
+from typing import Any, Dict, Optional
+
+import requests
+from django.conf import settings
+
+from apps.payment.models import PaymentWalletType
+
+logger = logging.getLogger(__name__)
+
+
+class MoyasarService:
+    """
+    Service for making requests to Moyasar payment gateway with support
+    for multiple wallet types (subscription, ads, merchant).
+    """
+
+    ENDPOINT = "https://api.moyasar.com/v1"
+
+    class PaymentStatus(str, Enum):
+        """Enum representing payment status values from Moyasar."""
+
+        INITIATED = "initiated"
+        PAID = "paid"
+        FAILED = "failed"
+        AUTHORIZED = "authorized"
+        CAPTURED = "captured"
+        REFUNDED = "refunded"
+        VOIDED = "voided"
+
+    @classmethod
+    def get_wallet_config(cls, wallet_type: str) -> Dict[str, str]:
+        """
+        Get the configuration for a specific wallet.
+
+        Args:
+            wallet_type: The wallet type to get configuration for
+                (subscription, ads, merchant)
+
+        Returns:
+            Dictionary with wallet configuration
+
+        Raises:
+            ValueError: If the wallet type is invalid
+        """
+        if wallet_type == PaymentWalletType.SUBSCRIPTION.value:
+            return {
+                "api_key": settings.MOYASAR_SUBSCRIPTION_API_KEY,
+                "publishable_key": settings.MOYASAR_SUBSCRIPTION_PUBLISHABLE_KEY,
+                "secret_key": settings.MOYASAR_SUBSCRIPTION_SECRET_KEY,
+                "webhook_secret": settings.MOYASAR_SUBSCRIPTION_WEBHOOK_SECRET,
+            }
+        elif wallet_type == PaymentWalletType.ADS.value:
+            return {
+                "api_key": settings.MOYASAR_ADS_API_KEY,
+                "publishable_key": settings.MOYASAR_ADS_PUBLISHABLE_KEY,
+                "secret_key": settings.MOYASAR_ADS_SECRET_KEY,
+                "webhook_secret": settings.MOYASAR_ADS_WEBHOOK_SECRET,
+            }
+        elif wallet_type == PaymentWalletType.MERCHANT.value:
+            return {
+                "api_key": settings.MOYASAR_MERCHANT_API_KEY,
+                "publishable_key": settings.MOYASAR_MERCHANT_PUBLISHABLE_KEY,
+                "secret_key": settings.MOYASAR_MERCHANT_SECRET_KEY,
+                "webhook_secret": settings.MOYASAR_MERCHANT_WEBHOOK_SECRET,
+            }
+        else:
+            raise ValueError(f"Invalid wallet type: {wallet_type}")
+
+    @classmethod
+    def validate_wallet_configs(cls) -> bool:
+        """
+        Validate that all wallet configurations are properly set up.
+
+        Returns:
+            Boolean indicating if all wallets are properly configured
+        """
+        wallet_types = [
+            PaymentWalletType.SUBSCRIPTION.value,
+            PaymentWalletType.ADS.value,
+            PaymentWalletType.MERCHANT.value,
+        ]
+
+        for wallet_type in wallet_types:
+            try:
+                config = cls.get_wallet_config(wallet_type)
+                if not all(config.values()):
+                    logger.warning(f"Incomplete configuration for wallet: {wallet_type}")
+                    return False
+            except (ValueError, AttributeError) as e:
+                logger.error(f"Error validating wallet {wallet_type}: {str(e)}")
+                return False
+
+        return True
+
+    @classmethod
+    def create_payment(
+        cls,
+        amount: Decimal,
+        description: str,
+        callback_url: str,
+        wallet_type: str = PaymentWalletType.MERCHANT.value,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Create a payment request through Moyasar.
+
+        Args:
+            amount: Payment amount in SAR
+            description: Payment description
+            callback_url: URL to redirect after payment
+            wallet_type: Wallet type to use for this payment
+            metadata: Additional metadata to include with the payment
+
+        Returns:
+            Dictionary with payment details including Moyasar's payment ID
+        """
+        try:
+            config = cls.get_wallet_config(wallet_type)
+            # Convert amount to halalas (× 100)
+            amount_halalas = int(amount * 100)
+
+            # Prepare payment data
+            payment_data = {
+                "amount": amount_halalas,
+                "currency": "SAR",
+                "description": description,
+                "callback_url": callback_url,
+                "source": {"type": "creditcard"},
+            }
+
+            # Add metadata if provided
+            if metadata:
+                payment_data["metadata"] = metadata
+            # Add transaction ID to metadata
+            if "metadata" not in payment_data:
+                payment_data["metadata"] = {}
+            payment_data["metadata"]["transaction_id"] = str(uuid.uuid4())
+            payment_data["metadata"]["wallet_type"] = wallet_type
+
+            # Make the API call
+            response = requests.post(
+                f"{cls.ENDPOINT}/payments",
+                json=payment_data,
+                auth=(config["api_key"], ""),
+                headers={"Content-Type": "application/json"},
+            )
+            response.raise_for_status()
+
+            # Parse and return the response
+            payment = response.json()
+            logger.info(f"Created {wallet_type} payment: {payment.get('id')} for {amount} SAR")
+            return payment
+
+        except requests.exceptions.RequestException as e:
+            error_message = str(e)
+            try:
+                error_json = e.response.json()
+                error_message = error_json.get("message", str(e))
+            except (ValueError, AttributeError):
+                pass
+
+            logger.error(f"Error creating {wallet_type} payment for {amount} SAR: {error_message}")
+            return {
+                "error": True,
+                "message": error_message,
+                "amount": amount,
+                "wallet_type": wallet_type,
+            }
+
+    @classmethod
+    def get_payment(
+        cls, payment_id: str, wallet_type: str = PaymentWalletType.MERCHANT.value
+    ) -> Dict[str, Any]:
+        """
+        Retrieve a payment by its ID.
+
+        Args:
+            payment_id: The Moyasar payment ID
+            wallet_type: Wallet type used for this payment
+
+        Returns:
+            Dictionary with payment details
+        """
+        try:
+            config = cls.get_wallet_config(wallet_type)
+            # Make the API call
+            response = requests.get(
+                f"{cls.ENDPOINT}/payments/{payment_id}",
+                auth=(config["api_key"], ""),
+            )
+            response.raise_for_status()
+
+            # Parse and return the response
+            payment = response.json()
+            return payment
+
+        except requests.exceptions.RequestException as e:
+            error_message = str(e)
+            try:
+                error_json = e.response.json()
+                error_message = error_json.get("message", str(e))
+            except (ValueError, AttributeError):
+                pass
+
+            logger.error(f"Error fetching {wallet_type} payment {payment_id}: {error_message}")
+            return {
+                "error": True,
+                "message": error_message,
+                "payment_id": payment_id,
+                "wallet_type": wallet_type,
+            }
+
+    @classmethod
+    def refund_payment(
+        cls,
+        payment_id: str,
+        amount: Optional[Decimal] = None,
+        reason: Optional[str] = None,
+        wallet_type: str = PaymentWalletType.MERCHANT.value,
+    ) -> Dict[str, Any]:
+        """
+        Refund a payment, either fully or partially.
+
+        Args:
+            payment_id: The Moyasar payment ID
+            amount: Refund amount (if None, full refund)
+            reason: Reason for the refund
+            wallet_type: Wallet type used for this payment
+
+        Returns:
+            Dictionary with refund details
+        """
+        try:
+            config = cls.get_wallet_config(wallet_type)
+            # Prepare refund data
+            refund_data = {}
+            if amount:
+                # Convert amount to halalas (× 100)
+                refund_data["amount"] = int(amount * 100)
+            if reason:
+                refund_data["reason"] = reason
+
+            # Make the API call
+            response = requests.post(
+                f"{cls.ENDPOINT}/payments/{payment_id}/refund",
+                json=refund_data,
+                auth=(config["api_key"], ""),
+                headers={"Content-Type": "application/json"},
+            )
+            response.raise_for_status()
+
+            # Parse and return the response
+            refund = response.json()
+            logger.info(
+                f"Refunded {wallet_type} payment: {payment_id} for {amount if amount else 'full amount'}"
+            )
+            return refund
+
+        except requests.exceptions.RequestException as e:
+            error_message = str(e)
+            try:
+                error_json = e.response.json()
+                error_message = error_json.get("message", str(e))
+            except (ValueError, AttributeError):
+                pass
+
+            logger.error(f"Error refunding {wallet_type} payment {payment_id}: {error_message}")
+            return {
+                "error": True,
+                "message": error_message,
+                "payment_id": payment_id,
+                "wallet_type": wallet_type,
+            }
+
+    @classmethod
+    def verify_webhook_signature(
+        cls,
+        payload: str,
+        signature: str,
+        wallet_type: str = PaymentWalletType.MERCHANT.value,
+    ) -> bool:
+        """
+        Verify a webhook signature from Moyasar.
+
+        Args:
+            payload: The webhook request body (raw string)
+            signature: The signature from the request headers
+            wallet_type: Wallet type to use for verification
+
+        Returns:
+            Boolean indicating if the signature is valid
+        """
+        import hashlib
+        import hmac
+
+        try:
+            config = cls.get_wallet_config(wallet_type)
+            secret = config["webhook_secret"].encode("utf-8")
+            # Calculate expected signature
+            expected_signature = hmac.new(
+                secret, payload.encode("utf-8"), hashlib.sha256
+            ).hexdigest()
+            # Compare signatures
+            return hmac.compare_digest(expected_signature, signature)
+        except Exception as e:
+            logger.error(f"Error verifying webhook signature: {str(e)}")
+            return False
+
+    @classmethod
+    def process_webhook(
+        cls,
+        payload: Dict[str, Any],
+        wallet_type: str = PaymentWalletType.MERCHANT.value,
+    ) -> Dict[str, Any]:
+        """
+        Process a webhook notification from Moyasar.
+
+        Args:
+            payload: The webhook payload
+            wallet_type: Wallet type for this webhook
+
+        Returns:
+            Dictionary with processed webhook data
+        """
+        try:
+            # Extract relevant data from the payload
+            event_type = payload.get("type")
+            payment_id = payload.get("id")
+            status = payload.get("status")
+            amount = Decimal(payload.get("amount", 0)) / 100  # Convert from halalas to SAR
+            # Extract metadata
+            metadata = payload.get("metadata", {})
+            transaction_id = metadata.get("transaction_id")
+            logger.info(
+                f"Processing {wallet_type} webhook: {event_type} for payment {payment_id} "
+                f"(status: {status}, amount: {amount})"
+            )
+            # Return processed data
+            return {
+                "success": True,
+                "event_type": event_type,
+                    "payment_id": payment_id,
+                "status": status,
+                "amount": amount,
+                "transaction_id": transaction_id,
+                "wallet_type": wallet_type,
+                "raw_payload": payload,
+            }
+        except Exception as e:
+            logger.error(f"Error processing {wallet_type} webhook: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "wallet_type": wallet_type,
+                "raw_payload": payload,
+            }

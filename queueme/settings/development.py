@@ -43,8 +43,42 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Use console backend for SMS in development
 SMS_BACKEND = "utils.sms.backends.console.ConsoleSMSBackend"
 
+# ---------------------------------------------------------------------------
 # CORS settings for development
-CORS_ALLOW_ALL_ORIGINS = True
+# ---------------------------------------------------------------------------
+# More restrictive CORS settings even for development
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+# Only allow credentials for our specific origins
+CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS security headers
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 
 # Disable SSL/HTTPS requirements
 SECURE_SSL_REDIRECT = False

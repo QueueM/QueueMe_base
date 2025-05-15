@@ -113,7 +113,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         elif self.user_type == "employee":
             # For employees, we might want to check if they have an employee profile
             try:
-                return bool(hasattr(self, "employee") and self.employee)
+                return bool(hasattr(self, "employee") and getattr(self, "employee", None))
             except BaseException:
                 return False
         else:
@@ -221,7 +221,11 @@ class SecurityEvent(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.event_type} - {self.user} - {self.created_at}"
+        # Use the related object correctly
+        user_identifier = "Unknown"
+        if self.user is not None:
+            user_identifier = getattr(self.user, "phone_number", "Unknown")
+        return f"{self.event_type} - {user_identifier} - {self.created_at}"
 
 
 class AuthToken(models.Model):
@@ -251,7 +255,11 @@ class AuthToken(models.Model):
         ]
 
     def __str__(self):
-        return f"Token for {self.user.phone_number} ({self.created_at})"
+        # Use the related object correctly
+        user_info = "Unknown"
+        if self.user is not None:
+            user_info = getattr(self.user, "phone_number", "Unknown")
+        return f"Token for {user_info} ({self.created_at})"
 
     @property
     def is_expired(self):
@@ -287,7 +295,11 @@ class PasswordResetToken(models.Model):
         ]
 
     def __str__(self):
-        return f"Reset token for {self.user.phone_number} ({self.created_at})"
+        # Use the related object correctly
+        user_info = "Unknown"
+        if self.user is not None:
+            user_info = getattr(self.user, "phone_number", "Unknown")
+        return f"Reset token for {user_info} ({self.created_at})"
 
     @property
     def is_expired(self):
@@ -332,6 +344,10 @@ class LoginAttempt(models.Model):
         ]
 
     def __str__(self):
-        user_str = self.user.phone_number if self.user else self.username_attempted or "Unknown"
+        # Use the related object correctly
+        if self.user is not None:
+            user_str = getattr(self.user, "phone_number", "Unknown")
+        else:
+            user_str = self.username_attempted or "Unknown"
         status = "Successful" if self.success else "Failed"
         return f"{status} login attempt for {user_str} ({self.created_at})"
