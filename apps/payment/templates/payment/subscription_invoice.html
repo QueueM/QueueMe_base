@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .invoice-header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .invoice-header img {
+            max-height: 60px;
+        }
+        .invoice-to {
+            margin-bottom: 20px;
+        }
+        .invoice-details {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .invoice-table th, .invoice-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        .invoice-table th {
+            background-color: #f8f8f8;
+        }
+        .invoice-total {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .invoice-total table {
+            width: 300px;
+            margin-left: auto;
+        }
+        .invoice-total table td {
+            padding: 5px;
+        }
+        .invoice-total table tr:last-child {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .invoice-footer {
+            margin-top: 30px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container{% if is_arabic %} rtl{% endif %}">
+        <div class="invoice-header">
+            <div>
+                <h1>{{ _("SUBSCRIPTION INVOICE") }}</h1>
+                <p>Queue Me</p>
+            </div>
+            <div>
+                <img src="https://queue-me-assets.s3.me-south-1.amazonaws.com/logo.png" alt="Queue Me Logo">
+            </div>
+        </div>
+
+        <div class="invoice-to">
+            <h3>{{ _("INVOICE TO") }}</h3>
+            <p>{{ subscription.company.name }}</p>
+            <p>{{ subscription.company.owner.phone_number }}</p>
+            <p>{{ subscription.company.contact_email|default:"" }}</p>
+        </div>
+
+        <div class="invoice-details">
+            <div>
+                <p><strong>{{ _("Invoice Number") }}:</strong> {{ transaction.id|truncatechars:8 }}</p>
+                <p><strong>{{ _("Transaction ID") }}:</strong> {{ transaction.moyasar_id }}</p>
+                <p><strong>{{ _("Subscription ID") }}:</strong> {{ subscription.id|truncatechars:8 }}</p>
+            </div>
+            <div>
+                <p><strong>{{ _("Date") }}:</strong> {{ transaction.created_at|date:"d M, Y" }}</p>
+                <p><strong>{{ _("Period Start") }}:</strong> {{ subscription.current_period_start|date:"d M, Y" }}</p>
+                <p><strong>{{ _("Period End") }}:</strong> {{ subscription.current_period_end|date:"d M, Y" }}</p>
+            </div>
+        </div>
+
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>{{ _("Plan") }}</th>
+                    <th>{{ _("Description") }}</th>
+                    <th>{{ _("Period") }}</th>
+                    <th class="text-right">{{ _("Amount") }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ subscription.plan.name }}</td>
+                    <td>{{ subscription.plan.description }}</td>
+                    <td>{{ subscription.plan.get_billing_cycle_display }}</td>
+                    <td class="text-right">{{ transaction.amount|floatformat:2 }} SAR</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="invoice-total">
+            <table>
+                <tr>
+                    <td>{{ _("Subtotal") }}:</td>
+                    <td class="text-right">{{ transaction.amount|floatformat:2 }} SAR</td>
+                </tr>
+                <tr>
+                    <td>{{ _("Tax") }} (0%):</td>
+                    <td class="text-right">0.00 SAR</td>
+                </tr>
+                <tr>
+                    <td>{{ _("Total") }}:</td>
+                    <td class="text-right">{{ transaction.amount|floatformat:2 }} SAR</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="invoice-footer">
+            <p>{{ _("Thank you for subscribing to Queue Me. For questions regarding this invoice, please contact support@queueme.net") }}</p>
+            <p>{{ _("Next billing date") }}: {{ subscription.current_period_end|date:"d M, Y" }}</p>
+        </div>
+    </div>
+</body>
+</html>

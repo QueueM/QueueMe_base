@@ -1,0 +1,26 @@
+<!-- apps/subscriptionapp/templates/subscriptionapp/emails/subscription_confirmation.txt -->
+Queue Me - Subscription Confirmation
+
+Dear {{ company_name }},
+
+Thank you for subscribing to Queue Me! Your subscription has been activated successfully.
+
+Subscription Plan: {{ plan_name }}
+Billing Period: {{ period|title }}
+Start Date: {{ start_date|date:"F d, Y" }}
+Next Billing Date: {{ end_date|date:"F d, Y" }}
+Auto-Renewal: {% if auto_renew %}Enabled{% else %}Disabled{% endif %}
+
+You now have access to all the features and benefits of your subscription plan. You can manage your subscription, access invoices, and update payment details from your account dashboard.
+
+View your subscription at: https://shop.queueme.net/subscriptions/{{ subscription_id }}
+
+If you have any questions or need assistance, please contact our support team at support@queueme.net.
+
+We're excited to have you on board and look forward to helping you grow your business!
+
+Best regards,
+The Queue Me Team
+
+© {{ start_date|date:"Y" }} Queue Me. All rights reserved.
+Queue Me Platform Ltd., Riyadh, Saudi Arabia

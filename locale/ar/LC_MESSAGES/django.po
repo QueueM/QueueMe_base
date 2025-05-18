@@ -1,0 +1,278 @@
+# Queue Me Arabic translation.
+# Copyright (C) 2023 Queue Me
+# This file is distributed under the same license as the Queue Me package.
+# Queue Me Team <info@queueme.net>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-01 10:00+0300\n"
+"PO-Revision-Date: 2023-09-01 10:00+0300\n"
+"Last-Translator: Queue Me Team <info@queueme.net>\n"
+"Language-Team: Arabic <ar@queueme.net>\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: apps/authapp/models.py:38
+msgid "Phone Number"
+msgstr "رقم الهاتف"
+
+#: apps/authapp/models.py:45
+msgid "User Type"
+msgstr "نوع المستخدم"
+
+#: apps/authapp/models.py:49
+msgid "Email Address"
+msgstr "البريد الإلكتروني"
+
+#: apps/authapp/models.py:50
+msgid "Staff Status"
+msgstr "حالة الموظف"
+
+#: apps/authapp/models.py:51
+msgid "Active"
+msgstr "نشط"
+
+#: apps/authapp/models.py:52
+msgid "Verified"
+msgstr "موثق"
+
+#: apps/authapp/models.py:53
+msgid "Profile Completed"
+msgstr "تم إكمال الملف الشخصي"
+
+#: apps/authapp/models.py:54
+msgid "Date Joined"
+msgstr "تاريخ الانضمام"
+
+#: apps/authapp/models.py:60
+msgid "User"
+msgstr "المستخدم"
+
+#: apps/authapp/models.py:61
+msgid "Users"
+msgstr "المستخدمين"
+
+#: apps/authapp/models.py:72
+msgid "OTP Code"
+msgstr "رمز التحقق"
+
+#: apps/authapp/models.py:73
+msgid "Is Used"
+msgstr "مستخدم"
+
+#: apps/authapp/models.py:74
+msgid "Created At"
+msgstr "تم الإنشاء في"
+
+#: apps/authapp/models.py:75
+msgid "Expires At"
+msgstr "ينتهي في"
+
+#: apps/authapp/models.py:78
+msgid "OTP"
+msgstr "رمز التحقق"
+
+#: apps/authapp/models.py:79
+msgid "OTPs"
+msgstr "رموز التحقق"
+
+#: apps/bookingapp/models.py:23
+msgid "Scheduled"
+msgstr "مجدول"
+
+#: apps/bookingapp/models.py:24
+msgid "Confirmed"
+msgstr "مؤكد"
+
+#: apps/bookingapp/models.py:25
+msgid "In Progress"
+msgstr "قيد التنفيذ"
+
+#: apps/bookingapp/models.py:26
+msgid "Completed"
+msgstr "مكتمل"
+
+#: apps/bookingapp/models.py:27
+msgid "Cancelled"
+msgstr "ملغي"
+
+#: apps/bookingapp/models.py:28
+msgid "No Show"
+msgstr "عدم الحضور"
+
+#: apps/bookingapp/models.py:37
+msgid "Customer"
+msgstr "العميل"
+
+#: apps/bookingapp/models.py:43
+msgid "Service"
+msgstr "الخدمة"
+
+#: apps/bookingapp/models.py:49
+msgid "Specialist"
+msgstr "الأخصائي"
+
+#: apps/bookingapp/models.py:55
+msgid "Shop"
+msgstr "المتجر"
+
+#: apps/bookingapp/models.py:61
+msgid "Start Time"
+msgstr "وقت البدء"
+
+#: apps/bookingapp/models.py:62
+msgid "End Time"
+msgstr "وقت الانتهاء"
+
+#: apps/bookingapp/models.py:63
+msgid "Status"
+msgstr "الحالة"
+
+#: apps/bookingapp/models.py:64
+msgid "Notes"
+msgstr "ملاحظات"
+
+#: apps/bookingapp/models.py:65
+msgid "Transaction ID"
+msgstr "رقم المعاملة"
+
+#: apps/bookingapp/models.py:66
+msgid "Payment Status"
+msgstr "حالة الدفع"
+
+#: apps/bookingapp/models.py:67
+msgid "Reminder Sent"
+msgstr "تم إرسال التذكير"
+
+#: apps/bookingapp/models.py:73
+msgid "Cancelled By"
+msgstr "ملغى بواسطة"
+
+#: apps/bookingapp/models.py:77
+msgid "Cancellation Reason"
+msgstr "سبب الإلغاء"
+
+#: apps/bookingapp/models.py:78
+msgid "Created At"
+msgstr "تم الإنشاء في"
+
+#: apps/bookingapp/models.py:79
+msgid "Updated At"
+msgstr "تم التحديث في"
+
+#: apps/bookingapp/models.py:88
+msgid "Appointment"
+msgstr "الموعد"
+
+#: apps/bookingapp/models.py:89
+msgid "Appointments"
+msgstr "المواعيد"
+
+#: apps/shopapp/models.py:39
+msgid "Company"
+msgstr "الشركة"
+
+#: apps/shopapp/models.py:44
+msgid "Name"
+msgstr "الاسم"
+
+#: apps/shopapp/models.py:45
+msgid "Description"
+msgstr "الوصف"
+
+#: apps/shopapp/models.py:46
+msgid "Avatar"
+msgstr "الصورة الرمزية"
+
+#: apps/shopapp/models.py:47
+msgid "Background Image"
+msgstr "صورة الخلفية"
+
+#: apps/shopapp/models.py:53
+msgid "Location"
+msgstr "الموقع"
+
+#: apps/shopapp/models.py:57
+msgid "Phone Number"
+msgstr "رقم الهاتف"
+
+#: apps/shopapp/models.py:58
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+#: apps/shopapp/models.py:64
+msgid "Manager"
+msgstr "المدير"
+
+#: apps/shopapp/models.py:68
+msgid "Verified"
+msgstr "موثق"
+
+#: apps/shopapp/models.py:69
+msgid "Verification Date"
+msgstr "تاريخ التوثيق"
+
+#: apps/shopapp/models.py:70
+msgid "Active"
+msgstr "نشط"
+
+#: apps/shopapp/models.py:71
+msgid "Created At"
+msgstr "تم الإنشاء في"
+
+#: apps/shopapp/models.py:72
+msgid "Updated At"
+msgstr "تم التحديث في"
+
+#: apps/shopapp/models.py:73
+msgid "Username"
+msgstr "اسم المستخدم"
+
+#: apps/shopapp/models.py:77
+msgid "Shop"
+msgstr "المتجر"
+
+#: apps/shopapp/models.py:78
+msgid "Shops"
+msgstr "المتاجر"
+
+#: apps/serviceapp/models.py:22
+msgid "In Shop"
+msgstr "في المتجر"
+
+#: apps/serviceapp/models.py:23
+msgid "In Home"
+msgstr "في المنزل"
+
+#: apps/serviceapp/models.py:24
+msgid "Both"
+msgstr "كلاهما"
+
+#: apps/serviceapp/models.py:43
+msgid "Price"
+msgstr "السعر"
+
+#: apps/serviceapp/models.py:44
+msgid "Duration (minutes)"
+msgstr "المدة (بالدقائق)"
+
+#: apps/serviceapp/models.py:45
+msgid "Slot Granularity (minutes)"
+msgstr "تقسيم الفترات (بالدقائق)"
+
+#: apps/serviceapp/models.py:46
+msgid "Buffer Before (minutes)"
+msgstr "وقت التحضير قبل (بالدقائق)"
+
+#: apps/serviceapp/models.py:47
+msgid "Buffer After (minutes)"
+msgstr "وقت التنظيف بعد (بالدقائق)"
+
+#: apps/serviceapp/models.py:48
+msgid "Service Location"
+msgstr "موقع الخدمة"

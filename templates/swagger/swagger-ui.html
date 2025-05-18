@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueMe API Documentation - Swagger UI</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.5.0/swagger-ui.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://queueme.net/favicon.ico" />
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1a365d;
+            --primary-light: #3b82f6;
+            --primary-hover: #1e40af;
+            --secondary: #10b981;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --text-color: var(--gray-900);
+            --background-color: #ffffff;
+            --card-background: #ffffff;
+            --header-bg: var(--primary-dark);
+            --header-text: #ffffff;
+            --border-color: var(--gray-200);
+
+            --code-bg: #f8fafc;
+            --code-text: var(--gray-800);
+            --code-border: var(--gray-200);
+        }
+
+        [data-theme="dark"] {
+            --text-color: #f3f4f6;
+            --background-color: #0f172a;
+            --card-background: #1e293b;
+            --header-bg: #0f172a;
+            --header-text: #f3f4f6;
+            --border-color: #334155;
+
+            --code-bg: #1e293b;
+            --code-text: #e2e8f0;
+            --code-border: #334155;
+        }
+
+        html {
+            box-sizing: border-box;
+            overflow-y: scroll;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Custom QueueMe Header */
+        .queueme-header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .queueme-logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-decoration: none;
+            color: var(--header-text);
+        }
+
+        .queueme-logo i {
+            margin-right: 0.5rem;
+            color: var(--secondary);
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            margin-right: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--header-text);
+            opacity: 0.8;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-links a.active {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--header-text);
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.25rem;
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--header-text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        /* Tabs area */
+        .tabs-container {
+            background-color: var(--card-background);
+            margin: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--card-background);
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-bottom: 2px solid transparent;
+            color: var(--gray-500);
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .tab:hover:not(.active) {
+            border-bottom: 2px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Code generator styles */
+        .code-generator {
+            padding: 1rem 0;
+        }
+
+        .language-selector {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .language-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+            background-color: var(--gray-100);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] .language-tab {
+            background-color: var(--gray-800);
+            color: var(--gray-400);
+            border: 1px solid var(--gray-700);
+        }
+
+        .language-tab.active {
+            background-color: var(--primary-light);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+
+        .code-sample {
+            display: none;
+            position: relative;
+        }
+
+        .code-sample.active {
+            display: block;
+        }
+
+        .code-block {
+            background-color: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin: 0;
+            overflow-x: auto;
+            color: var(--code-text);
+            font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            white-space: pre;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: var(--gray-200);
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] .copy-btn {
+            background-color: var(--gray-700);
+            color: var(--gray-300);
+        }
+
+        .copy-btn:hover {
+            background-color: var(--gray-300);
+        }
+
+        [data-theme="dark"] .copy-btn:hover {
+            background-color: var(--gray-600);
+        }
+
+        .copy-btn i {
+            margin-right: 0.25rem;
+        }
+
+        /* Auth info styles */
+        .api-info {
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            margin-bottom: 1rem;
+        }
+
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-title i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        .info-content {
+            padding-left: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        [data-theme="dark"] .info-content {
+            color: var(--gray-400);
+        }
+
+        /* Status badge */
+        .api-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .api-status.online {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .api-status.online::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success);
+            margin-right: 0.5rem;
+        }
+
+        /* Quick links */
+        .quick-links {
+            margin-top: 1rem;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .quick-link:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+        .quick-link i {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        /* Swagger UI overrides */
+        .swagger-ui {
+            margin-top: 1rem;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .swagger-ui .scheme-container {
+            background-color: var(--card-background);
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .swagger-ui .btn {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: none;
+        }
+
+        .swagger-ui .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .swagger-ui .opblock-tag {
+            border: none;
+            box-shadow: none;
+            background-color: var(--card-background);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .swagger-ui .opblock-tag:hover {
+            background-color: var(--code-bg);
+        }
+
+        .swagger-ui .opblock {
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .swagger-ui .opblock .opblock-summary {
+            padding: 0.75rem;
+        }
+
+        .swagger-ui table tbody tr td {
+            padding: 0.75rem;
+        }
+
+        /* Media queries for responsive design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .nav-links.open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: var(--header-bg);
+                padding: 1rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links.open a {
+                padding: 0.75rem 1rem;
+                width: 100%;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .tabs-container {
+                margin: 0.5rem;
+            }
+
+            .tab {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Dark mode overrides for Swagger UI */
+        [data-theme="dark"] .swagger-ui .info .title,
+        [data-theme="dark"] .swagger-ui .info h1,
+        [data-theme="dark"] .swagger-ui .info h2,
+        [data-theme="dark"] .swagger-ui .info h3,
+        [data-theme="dark"] .swagger-ui .info h4,
+        [data-theme="dark"] .swagger-ui .info h5,
+        [data-theme="dark"] .swagger-ui .info p,
+        [data-theme="dark"] .swagger-ui .info a,
+        [data-theme="dark"] .swagger-ui .opblock-tag,
+        [data-theme="dark"] .swagger-ui .opblock-tag span,
+        [data-theme="dark"] .swagger-ui .opblock-summary-description,
+        [data-theme="dark"] .swagger-ui label,
+        [data-theme="dark"] .swagger-ui table thead tr th,
+        [data-theme="dark"] .swagger-ui table tbody tr td,
+        [data-theme="dark"] .swagger-ui .parameter__name,
+        [data-theme="dark"] .swagger-ui .parameter__type,
+        [data-theme="dark"] .swagger-ui .response-col_description p,
+        [data-theme="dark"] .swagger-ui .tab li,
+        [data-theme="dark"] .swagger-ui .opblock-description-wrapper p,
+        [data-theme="dark"] .swagger-ui .model-title,
+        [data-theme="dark"] .swagger-ui .model {
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .swagger-ui .scheme-container,
+        [data-theme="dark"] .swagger-ui .opblock-tag,
+        [data-theme="dark"] .swagger-ui .model-container,
+        [data-theme="dark"] .swagger-ui section.models,
+        [data-theme="dark"] .swagger-ui section.models.is-open h4 {
+            background-color: var(--card-background);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .swagger-ui .opblock-body .opblock-section {
+            background-color: var(--card-background);
+        }
+
+        [data-theme="dark"] .swagger-ui .responses-inner {
+            background-color: var(--card-background);
+        }
+
+        [data-theme="dark"] .swagger-ui input,
+        [data-theme="dark"] .swagger-ui select,
+        [data-theme="dark"] .swagger-ui textarea {
+            background-color: var(--code-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: var(--card-background);
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 9999;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            margin-right: 0.5rem;
+        }
+
+        .toast.success i {
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom QueueMe Header -->
+    <header class="queueme-header">
+        <a href="/" class="queueme-logo">
+            <i class="fas fa-layer-group"></i>
+            QueueMe API
+        </a>
+
+        <div class="nav-container">
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <nav class="nav-links" id="nav-links">
+                <a href="/api/docs/" class="active">Documentation</a>
+                <a href="https://queueme.net/developers">Developers</a>
+                <a href="https://queueme.net/support">Support</a>
+            </nav>
+
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Custom Tabs Container -->
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <div class="tab active" data-tab="documentation">Documentation</div>
+            <div class="tab" data-tab="code-examples">Code Examples</div>
+            <div class="tab" data-tab="authentication">Authentication</div>
+            <div class="tab" data-tab="quick-start">Quick Start</div>
+        </div>
+
+        <!-- Documentation Tab -->
+        <div class="tab-content active" id="documentation-content">
+            <p>Use the interactive documentation below to explore the QueueMe API. You can try out API calls directly in your browser.</p>
+
+            <div class="api-status online">
+                API is online and operational
+            </div>
+        </div>
+
+        <!-- Code Examples Tab -->
+        <div class="tab-content" id="code-examples-content">
+            <div class="code-generator">
+                <div class="language-selector">
+                    <div class="language-tab active" data-language="curl">cURL</div>
+                    <div class="language-tab" data-language="python">Python</div>
+                    <div class="language-tab" data-language="javascript">JavaScript</div>
+                    <div class="language-tab" data-language="php">PHP</div>
+                    <div class="language-tab" data-language="go">Go</div>
+                </div>
+
+                <!-- Code Samples -->
+                <div class="code-samples">
+                    <!-- cURL Example -->
+                    <div class="code-sample active" data-sample="curl">
+                        <pre class="code-block">curl -X GET "https://api.queueme.net/api/v1/shops" \
+     -H "Authorization: Bearer YOUR_API_KEY" \
+     -H "Content-Type: application/json"</pre>
+                        <button class="copy-btn" data-code="curl">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+
+                    <!-- Python Example -->
+                    <div class="code-sample" data-sample="python">
+                        <pre class="code-block">import requests
+
+url = "https://api.queueme.net/api/v1/shops"
+headers = {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+}
+
+response = requests.get(url, headers=headers)
+data = response.json()
+print(data)</pre>
+                        <button class="copy-btn" data-code="python">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+
+                    <!-- JavaScript Example -->
+                    <div class="code-sample" data-sample="javascript">
+                        <pre class="code-block">fetch('https://api.queueme.net/api/v1/shops', {
+    method: 'GET',
+    headers: {
+        'Authorization': 'Bearer YOUR_API_KEY',
+        'Content-Type': 'application/json'
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));</pre>
+                        <button class="copy-btn" data-code="javascript">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+
+                    <!-- PHP Example -->
+                    <div class="code-sample" data-sample="php">
+                        <pre class="code-block"><?php
+$curl = curl_init();
+
+curl_setopt_array($curl, [
+    CURLOPT_URL => "https://api.queueme.net/api/v1/shops",
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer YOUR_API_KEY",
+        "Content-Type: application/json"
+    ],
+]);
+
+$response = curl_exec($curl);
+$err = curl_error($curl);
+
+curl_close($curl);
+
+if ($err) {
+    echo "cURL Error #:" . $err;
+} else {
+    echo $response;
+}</pre>
+                        <button class="copy-btn" data-code="php">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+
+                    <!-- Go Example -->
+                    <div class="code-sample" data-sample="go">
+                        <pre class="code-block">package main
+
+import (
+    "fmt"
+    "io/ioutil"
+    "net/http"
+)
+
+func main() {
+    client := &http.Client{}
+    req, _ := http.NewRequest("GET", "https://api.queueme.net/api/v1/shops", nil)
+
+    req.Header.Set("Authorization", "Bearer YOUR_API_KEY")
+    req.Header.Set("Content-Type", "application/json")
+
+    resp, err := client.Do(req)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
+    defer resp.Body.Close()
+
+    body, _ := ioutil.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}</pre>
+                        <button class="copy-btn" data-code="go">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication Tab -->
+        <div class="tab-content" id="authentication-content">
+            <div class="api-info">
+                <div class="info-item">
+                    <div class="info-title">
+                        <i class="fas fa-key"></i> Authentication
+                    </div>
+                    <div class="info-content">
+                        QueueMe API uses JWT (JSON Web Tokens) for authentication. Include your token in the Authorization header with the Bearer prefix.
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-title">
+                        <i class="fas fa-shield-alt"></i> Obtaining API Keys
+                    </div>
+                    <div class="info-content">
+                        Sign up at <a href="https://queueme.net/developers" style="color: var(--primary);">QueueMe Developer Portal</a> to receive your API keys. You'll need to verify your account before receiving production keys.
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-title">
+                        <i class="fas fa-clock"></i> Token Expiration
+                    </div>
+                    <div class="info-content">
+                        Access tokens expire after 24 hours. Use the refresh token endpoint to obtain a new access token.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Start Tab -->
+        <div class="tab-content" id="quick-start-content">
+            <div class="api-info">
+                <div class="info-item">
+                    <div class="info-title">
+                        <i class="fas fa-rocket"></i> Quick Start
+                    </div>
+                    <div class="info-content">
+                        <ol>
+                            <li>Register at the <a href="https://queueme.net/developers" style="color: var(--primary);">Developer Portal</a> to get your API key</li>
+                            <li>Make sure to include your API key in the Authorization header</li>
+                            <li>Explore the endpoints below to understand the available operations</li>
+                            <li>Start with basic operations like listing shops or services</li>
+                            <li>Check the response codes and formats to ensure correct implementation</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="quick-links">
+                    <div class="info-title">
+                        <i class="fas fa-link"></i> Common Operations
+                    </div>
+                    <a href="#/shops" class="quick-link"><i class="fas fa-store"></i> List all shops</a>
+                    <a href="#/services" class="quick-link"><i class="fas fa-concierge-bell"></i> Get available services</a>
+                    <a href="#/bookings" class="quick-link"><i class="fas fa-calendar-check"></i> Create a booking</a>
+                    <a href="#/queue-tickets" class="quick-link"><i class="fas fa-ticket-alt"></i> Manage queue tickets</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Swagger UI Container -->
+    <div id="swagger-ui"></div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Code copied to clipboard!</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.5.0/swagger-ui-bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.5.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        // Theme Handling
+        const themeToggle = document.getElementById('theme-toggle');
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+        // Function to set theme
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+
+            // Update theme toggle icon
+            if (theme === 'dark') {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else if (prefersDarkScheme.matches) {
+            setTheme('dark');
+        } else {
+            setTheme('light');
+        }
+
+        // Theme toggle event listener
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const navLinks = document.getElementById('nav-links');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+
+        // Tabs functionality
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                // Add active class to current tab and content
+                tab.classList.add('active');
+                document.getElementById(`${tabId}-content`).classList.add('active');
+            });
+        });
+
+        // Language selector for code examples
+        const languageTabs = document.querySelectorAll('.language-tab');
+        const codeSamples = document.querySelectorAll('.code-sample');
+
+        languageTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const language = tab.getAttribute('data-language');
+
+                // Remove active class from all tabs and samples
+                languageTabs.forEach(t => t.classList.remove('active'));
+                codeSamples.forEach(s => s.classList.remove('active'));
+
+                // Add active class to current tab and sample
+                tab.classList.add('active');
+                document.querySelector(`.code-sample[data-sample="${language}"]`).classList.add('active');
+            });
+        });
+
+        // Copy to clipboard functionality
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const language = button.getAttribute('data-code');
+                const codeBlock = document.querySelector(`.code-sample[data-sample="${language}"] .code-block`);
+
+                // Copy code to clipboard
+                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                    // Show toast notification
+                    toastMessage.textContent = `${language} code copied to clipboard!`;
+                    toast.classList.add('show', 'success');
+
+                    // Hide toast after 3 seconds
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3000);
+                });
+            });
+        });
+
+        // Initialize Swagger UI
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                url: "/static/swagger/swagger.json",
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "BaseLayout",
+                defaultModelsExpandDepth: 1,
+                defaultModelExpandDepth: 1,
+                defaultModelRendering: 'model',
+                docExpansion: 'list',
+                filter: true,
+                operationsSorter: 'alpha',
+                showCommonExtensions: true,
+                tagsSorter: 'alpha',
+                validatorUrl: null,
+                supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+                onComplete: function() {
+                    // Add event listeners to the quick links
+                    document.querySelectorAll('.quick-link').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            // Activate documentation tab
+                            tabs.forEach(t => t.classList.remove('active'));
+                            tabContents.forEach(c => c.classList.remove('active'));
+
+                            document.querySelector('.tab[data-tab="documentation"]').classList.add('active');
+                            document.getElementById('documentation-content').classList.add('active');
+                        });
+                    });
+                }
+            });
+
+            window.ui = ui;
+        };
+    </script>
+</body>
+</html>

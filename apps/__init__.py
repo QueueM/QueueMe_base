@@ -1,0 +1,3 @@
+"""
+Queue Me applications package.
+"""

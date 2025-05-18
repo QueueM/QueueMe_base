@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueMe API Documentation - ReDoc</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://queueme.net/favicon.ico" />
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1a365d;
+            --primary-light: #3b82f6;
+            --primary-hover: #1e40af;
+            --secondary: #10b981;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --text-color: var(--gray-900);
+            --background-color: #ffffff;
+            --card-background: #ffffff;
+            --header-bg: var(--primary-dark);
+            --header-text: #ffffff;
+            --border-color: var(--gray-200);
+
+            --code-bg: #f8fafc;
+            --code-text: var(--gray-800);
+            --code-border: var(--gray-200);
+        }
+
+        html {
+            box-sizing: border-box;
+            height: 100%;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom QueueMe Header */
+        .queueme-header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .queueme-logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-decoration: none;
+            color: var(--header-text);
+        }
+
+        .queueme-logo i {
+            margin-right: 0.5rem;
+            color: var(--secondary);
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            margin-right: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--header-text);
+            opacity: 0.8;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-links a.active {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--header-text);
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.25rem;
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--header-text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        /* Main content container */
+        .main-container {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+
+        /* API Examples Panel */
+        .examples-panel {
+            width: 280px;
+            background-color: var(--card-background);
+            border-right: 1px solid var(--border-color);
+            padding: 1rem;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 20;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .panel-title i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        .panel-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+
+        .api-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .api-status.online {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .api-status.online::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success);
+            margin-right: 0.5rem;
+        }
+
+        .quick-links {
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-links-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .quick-links-title i {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
+            font-weight: 500;
+        }
+
+        .quick-link:hover {
+            color: var(--primary);
+        }
+
+        .quick-link i {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .code-example {
+            margin-bottom: 1.5rem;
+        }
+
+        .example-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .example-title i {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .code-block {
+            background-color: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            margin: 0;
+            overflow-x: auto;
+            color: var(--code-text);
+            font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .code-actions {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            display: flex;
+        }
+
+        .copy-btn {
+            background-color: var(--gray-200);
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--gray-300);
+        }
+
+        .copy-btn i {
+            margin-right: 0.25rem;
+        }
+
+        /* ReDoc container */
+        .redoc-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: var(--card-background);
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 9999;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            margin-right: 0.5rem;
+        }
+
+        .toast.success i {
+            color: var(--success);
+        }
+
+        /* Media queries for responsive design */
+        @media (max-width: 992px) {
+            .examples-panel {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+                z-index: 30;
+            }
+
+            .examples-panel.open {
+                transform: translateX(0);
+            }
+
+            .panel-toggle {
+                display: block;
+                position: fixed;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                background-color: var(--primary);
+                color: white;
+                width: 24px;
+                height: 48px;
+                border-radius: 0 4px 4px 0;
+                z-index: 25;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-container {
+                padding-top: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .nav-links.open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: var(--header-bg);
+                padding: 1rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links.open a {
+                padding: 0.75rem 1rem;
+                width: 100%;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom QueueMe Header -->
+    <header class="queueme-header">
+        <a href="/" class="queueme-logo">
+            <i class="fas fa-layer-group"></i>
+            QueueMe API
+        </a>
+
+        <div class="nav-container">
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <nav class="nav-links" id="nav-links">
+                <a href="/api/docs/" class="active">Documentation</a>
+                <a href="https://queueme.net/developers">Developers</a>
+                <a href="https://queueme.net/support">Support</a>
+            </nav>
+
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <div class="main-container">
+        <!-- Examples Panel -->
+        <aside class="examples-panel" id="examples-panel">
+            <div class="panel-header">
+                <span class="panel-title">
+                    <i class="fas fa-book"></i>
+                    API Documentation
+                </span>
+            </div>
+
+            <div class="api-status online">
+                API is online and operational
+            </div>
+
+            <!-- Quick Links Section -->
+            <div class="quick-links">
+                <div class="quick-links-title">
+                    <i class="fas fa-link"></i>
+                    Important API Sections
+                </div>
+                <a href="#tag/Authentication" class="quick-link">
+                    <i class="fas fa-key"></i>
+                    Authentication
+                </a>
+                <a href="#tag/Shops" class="quick-link">
+                    <i class="fas fa-store"></i>
+                    Shops
+                </a>
+                <a href="#tag/Services" class="quick-link">
+                    <i class="fas fa-concierge-bell"></i>
+                    Services
+                </a>
+                <a href="#tag/Bookings" class="quick-link">
+                    <i class="fas fa-calendar-check"></i>
+                    Bookings
+                </a>
+                <a href="#tag/Queue" class="quick-link">
+                    <i class="fas fa-users"></i>
+                    Queue Management
+                </a>
+                <a href="#tag/Payments" class="quick-link">
+                    <i class="fas fa-credit-card"></i>
+                    Payments
+                </a>
+            </div>
+
+            <!-- Code Examples -->
+            <div class="code-example">
+                <div class="example-title">
+                    <i class="fas fa-code"></i>
+                    Authentication Example
+                </div>
+                <pre class="code-block">curl -X POST "https://api.queueme.net/api/v1/auth/token" \
+     -H "Content-Type: application/json" \
+     -d '{"username": "your_username", "password": "your_password"}'</pre>
+                <div class="code-actions">
+                    <button class="copy-btn" data-code="auth">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+
+            <div class="code-example">
+                <div class="example-title">
+                    <i class="fas fa-code"></i>
+                    Get All Shops
+                </div>
+                <pre class="code-block">curl -X GET "https://api.queueme.net/api/v1/shops" \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json"</pre>
+                <div class="code-actions">
+                    <button class="copy-btn" data-code="shops">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+
+            <div class="code-example">
+                <div class="example-title">
+                    <i class="fas fa-code"></i>
+                    Create Booking
+                </div>
+                <pre class="code-block">curl -X POST "https://api.queueme.net/api/v1/bookings" \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "service_id": 123,
+       "specialist_id": 456,
+       "date": "2025-06-15",
+       "time_slot": "14:30",
+       "customer_id": 789
+     }'</pre>
+                <div class="code-actions">
+                    <button class="copy-btn" data-code="booking">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Examples Panel Toggle Button (Mobile) -->
+        <button class="panel-toggle" id="panel-toggle">
+            <i class="fas fa-chevron-right" id="panel-toggle-icon"></i>
+        </button>
+
+        <!-- ReDoc Container -->
+        <div class="redoc-container" id="redoc-container"></div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Code copied to clipboard!</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const navLinks = document.getElementById('nav-links');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+
+        // Examples panel toggle (mobile)
+        const panelToggle = document.getElementById('panel-toggle');
+        const examplesPanel = document.getElementById('examples-panel');
+        const panelToggleIcon = document.getElementById('panel-toggle-icon');
+
+        panelToggle.addEventListener('click', () => {
+            examplesPanel.classList.toggle('open');
+
+            if (examplesPanel.classList.contains('open')) {
+                panelToggleIcon.classList.remove('fa-chevron-right');
+                panelToggleIcon.classList.add('fa-chevron-left');
+            } else {
+                panelToggleIcon.classList.remove('fa-chevron-left');
+                panelToggleIcon.classList.add('fa-chevron-right');
+            }
+        });
+
+        // Copy to clipboard functionality
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const codeType = button.getAttribute('data-code');
+                const codeBlock = button.parentElement.previousElementSibling;
+
+                // Copy code to clipboard
+                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                    // Show toast notification
+                    toastMessage.textContent = `${codeType} example copied to clipboard!`;
+                    toast.classList.add('show', 'success');
+
+                    // Hide toast after 3 seconds
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3000);
+                });
+            });
+        });
+
+        // Theme Handling for ReDoc
+        // Dark mode requires a special approach with ReDoc because it doesn't support dynamic theme changes
+        // We use localStorage to store the preference and reload the page when theme changes
+        const themeToggle = document.getElementById('theme-toggle');
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+        // Check if we should use dark theme
+        function shouldUseDarkTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            return savedTheme === 'dark' || (!savedTheme && prefersDarkScheme.matches);
+        }
+
+        // Function to set theme
+        function setTheme(theme) {
+            localStorage.setItem('theme', theme);
+
+            // Update theme toggle icon
+            if (theme === 'dark') {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+
+            // Reload page to apply theme to ReDoc
+            // This is necessary because ReDoc doesn't support dynamic theme changes
+            if (theme !== getCurrentTheme()) {
+                location.reload();
+            }
+        }
+
+        // Get current theme
+        function getCurrentTheme() {
+            return shouldUseDarkTheme() ? 'dark' : 'light';
+        }
+
+        // Initialize theme icons
+        const currentTheme = getCurrentTheme();
+        if (currentTheme === 'dark') {
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        } else {
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        }
+
+        // Theme toggle event listener
+        themeToggle.addEventListener('click', () => {
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+
+        // Initialize ReDoc
+        Redoc.init(
+            '/static/swagger/swagger.json',
+            {
+                scrollYOffset: 60,
+                hideDownloadButton: false,
+                theme: {
+                    colors: {
+                        primary: {
+                            main: '#2563eb'
+                        }
+                    },
+                    typography: {
+                        fontFamily: '"Inter", sans-serif',
+                        headings: {
+                            fontFamily: '"Inter", sans-serif',
+                        }
+                    },
+                    sidebar: {
+                        width: '260px'
+                    }
+                }
+            },
+            document.getElementById('redoc-container')
+        );
+    </script>
+</body>
+</html>

@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueMe API Documentation</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #10b981;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --border: #e5e7eb;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --blue: #3b82f6;
+            --green: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f9fafb;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+            scroll-margin-top: 100px;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; margin-top: 2rem; }
+        h3 { font-size: 1.5rem; margin-top: 1.5rem; }
+        h4 { font-size: 1.25rem; margin-top: 1rem; }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.9em;
+            background-color: var(--light-gray);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+        }
+
+        pre {
+            background-color: var(--dark);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        ul, ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9em;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(to right, #1a365d, #2563eb);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header h1 {
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        /* Navigation */
+        .nav {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .nav-brand {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--dark);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--gray);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        /* Main content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 3rem;
+        }
+
+        .sidebar {
+            width: 300px;
+            position: sticky;
+            top: 80px;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            padding-bottom: 2rem;
+        }
+
+        .sidebar-content {
+            padding-right: 1rem;
+        }
+
+        .sidebar h3 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 0.5rem 0;
+            color: var(--dark);
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: var(--light-gray);
+            text-decoration: none;
+        }
+
+        .sidebar a.active {
+            background-color: var(--light-gray);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .content {
+            flex: 1;
+            max-width: 850px;
+            padding-bottom: 4rem;
+        }
+
+        .note {
+            background-color: #fff8e6;
+            border-left: 4px solid var(--yellow);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        /* API endpoints */
+        .endpoint {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background-color: var(--light-gray);
+        }
+
+        .endpoint-method {
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            margin-right: 1rem;
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .method-get { background-color: var(--blue); }
+        .method-post { background-color: var(--green); }
+        .method-put { background-color: var(--yellow); }
+        .method-patch { background-color: var(--yellow); }
+        .method-delete { background-color: var(--red); }
+
+        .endpoint-path {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-weight: 500;
+        }
+
+        .endpoint-body {
+            padding: 1.5rem;
+        }
+
+        .endpoint-description {
+            margin-bottom: 1.5rem;
+        }
+
+        .endpoint-section {
+            margin-top: 1.5rem;
+        }
+
+        .endpoint-section h4 {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .endpoint-section h4::before {
+            content: "";
+            display: inline-block;
+            width: 1.5rem;
+            height: 2px;
+            background-color: var(--primary);
+            margin-right: 0.5rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: white;
+            border-top: 1px solid var(--border);
+            padding: 3rem 0;
+            margin-top: 2rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .footer-section {
+            max-width: 300px;
+        }
+
+        .footer h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--gray);
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+                height: auto;
+                margin-bottom: 2rem;
+            }
+
+            .content {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 3rem 0;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                height: auto;
+                padding: 1rem 2rem;
+            }
+
+            .nav-brand {
+                margin-bottom: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .footer-section {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>QueueMe API Documentation</h1>
+            <p>Complete reference for the QueueMe platform API</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="#" class="nav-brand">QueueMe API</a>
+            <div class="nav-links">
+                <a href="/api/docs/swagger/" class="active">Interactive Docs</a>
+                <a href="/api/docs/redoc/">ReDoc</a>
+                <a href="/api/schema.json">OpenAPI Schema</a>
+                <a href="https://github.com/queueme/api" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <h3>Getting Started</h3>
+                <ul>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#authentication">Authentication</a></li>
+                    <li><a href="#errors">Error Handling</a></li>
+                    <li><a href="#pagination">Pagination</a></li>
+                </ul>
+
+                <h3>API Resources</h3>
+                <ul>
+                    <li><a href="#auth">Authentication</a></li>
+                    <li><a href="#shops">Shops</a></li>
+                    <li><a href="#specialists">Specialists</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#bookings">Bookings</a></li>
+                    <li><a href="#packages">Packages</a></li>
+                    <li><a href="#customers">Customers</a></li>
+                    <li><a href="#payments">Payments</a></li>
+                    <li><a href="#queues">Queues</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <div class="note">
+                <strong>Note:</strong> This is a static documentation page. For interactive API testing, use our
+                <a href="/api/docs/swagger/">Swagger UI</a> or
+                <a href="/api/docs/redoc/">ReDoc</a> documentation.
+            </div>
+
+            <section id="introduction">
+                <h2>Introduction</h2>
+                <p>
+                    The QueueMe API provides programmatic access to the QueueMe platform. It allows developers to integrate QueueMe's
+                    queue management, booking, and specialist management features into their applications.
+                </p>
+
+                <h3>Base URL</h3>
+                <pre><code>https://api.queueme.net/api</code></pre>
+
+                <h3>Response Format</h3>
+                <p>All API responses are returned in JSON format.</p>
+                <p>Standard response structure:</p>
+                <pre><code>{
+  "data": { /* Response data */ },
+  "meta": {
+    "pagination": {
+      "total": 100,
+      "count": 20,
+      "per_page": 20,
+      "current_page": 1,
+      "total_pages": 5
+    }
+  }
+}</code></pre>
+            </section>
+
+            <section id="authentication">
+                <h2>Authentication</h2>
+                <p>
+                    QueueMe API uses JWT (JSON Web Tokens) for authentication. To access protected endpoints, you'll need to:
+                </p>
+
+                <ol>
+                    <li>Obtain a JWT token using your credentials</li>
+                    <li>Include the token in the Authorization header of your requests</li>
+                </ol>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method method-post">POST</span>
+                        <span class="endpoint-path">/api/auth/token/</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">
+                            <p>Obtain a JWT token by providing your phone number and password.</p>
+                        </div>
+
+                        <div class="tabs">
+                            <div class="tab active" data-tab="request">Request</div>
+                            <div class="tab" data-tab="response">Response</div>
+                        </div>
+
+                        <div class="tab-content active" id="request">
+                            <pre><code>{
+  "phone": "966558173151",
+  "password": "your_password"
+}</code></pre>
+                        </div>
+
+                        <div class="tab-content" id="response">
+                            <pre><code>{
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Using the Token</h3>
+                <p>For all authenticated requests, include the access token in your Authorization header:</p>
+                <pre><code>Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+
+                <h3>Token Refresh</h3>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method method-post">POST</span>
+                        <span class="endpoint-path">/api/auth/token/refresh/</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">
+                            <p>Refresh your access token using a valid refresh token.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="errors">
+                <h2>Error Handling</h2>
+                <p>
+                    The QueueMe API uses conventional HTTP response codes to indicate the success or failure of an API request.
+                    In general:
+                </p>
+
+                <ul>
+                    <li>2xx status codes indicate success</li>
+                    <li>4xx status codes indicate an error in the request</li>
+                    <li>5xx status codes indicate an error on the server</li>
+                </ul>
+
+                <h3>Error Response Format</h3>
+                <pre><code>{
+  "error": {
+    "code": "invalid_credentials",
+    "message": "Unable to login with provided credentials.",
+    "details": { /* Additional error details */ }
+  }
+}</code></pre>
+
+                <h3>Common Error Codes</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status Code</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>400 Bad Request</td>
+                            <td>The request was malformed or contained invalid parameters</td>
+                        </tr>
+                        <tr>
+                            <td>401 Unauthorized</td>
+                            <td>Authentication credentials were missing or invalid</td>
+                        </tr>
+                        <tr>
+                            <td>403 Forbidden</td>
+                            <td>The authenticated user doesn't have permission for the requested resource</td>
+                        </tr>
+                        <tr>
+                            <td>404 Not Found</td>
+                            <td>The requested resource does not exist</td>
+                        </tr>
+                        <tr>
+                            <td>429 Too Many Requests</td>
+                            <td>Rate limit exceeded</td>
+                        </tr>
+                        <tr>
+                            <td>500 Internal Server Error</td>
+                            <td>An error occurred on the server</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="pagination">
+                <h2>Pagination</h2>
+                <p>
+                    List endpoints in the QueueMe API support pagination. By default, requests return 20 items per page.
+                </p>
+
+                <h3>Pagination Parameters</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>page</code></td>
+                            <td>Page number (starts at 1)</td>
+                        </tr>
+                        <tr>
+                            <td><code>page_size</code></td>
+                            <td>Number of items per page (default: 20, max: 100)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Pagination Response</h3>
+                <p>
+                    Paginated responses include metadata in the <code>meta.pagination</code> object:
+                </p>
+                <pre><code>{
+  "data": [ /* Response data */ ],
+  "meta": {
+    "pagination": {
+      "total": 100,
+      "count": 20,
+      "per_page": 20,
+      "current_page": 1,
+      "total_pages": 5
+    }
+  }
+}</code></pre>
+            </section>
+
+            <!-- API Resources sections -->
+            <section id="auth">
+                <h2>Authentication API</h2>
+                <p>
+                    The Authentication API allows users to register, login, and manage their account.
+                </p>
+
+                <!-- Token endpoints covered above, so we'll add other auth endpoints -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method method-post">POST</span>
+                        <span class="endpoint-path">/api/auth/register/</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">
+                            <p>Register a new user account.</p>
+                        </div>
+
+                        <div class="endpoint-section">
+                            <h4>Parameters</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>phone</code></td>
+                                        <td>string</td>
+                                        <td>Yes</td>
+                                        <td>Phone number</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>password</code></td>
+                                        <td>string</td>
+                                        <td>Yes</td>
+                                        <td>Password</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>password_confirm</code></td>
+                                        <td>string</td>
+                                        <td>Yes</td>
+                                        <td>Password confirmation</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>first_name</code></td>
+                                        <td>string</td>
+                                        <td>Yes</td>
+                                        <td>First name</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>last_name</code></td>
+                                        <td>string</td>
+                                        <td>Yes</td>
+                                        <td>Last name</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>email</code></td>
+                                        <td>string</td>
+                                        <td>No</td>
+                                        <td>Email address</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method method-post">POST</span>
+                        <span class="endpoint-path">/api/auth/verify-otp/</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">
+                            <p>Verify OTP for phone verification.</p>
+                        </div>
+
+                        <div class="endpoint-section">
+                            <h4>Parameters</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>phone</code></td>
+                                        <td>string</td>
+                                        <td>Yes</td>
+                                        <td>Phone number</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>otp</code></td>
+                                        <td>string</td>
+                                        <td>Yes</td>
+                                        <td>OTP code</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="shops">
+                <h2>Shops API</h2>
+                <p>
+                    The Shops API allows you to manage and retrieve information about shops on the QueueMe platform.
+                </p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-path">/api/shops/</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">
+                            <p>List all shops with pagination support.</p>
+                        </div>
+
+                        <div class="endpoint-section">
+                            <h4>Query Parameters</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Type</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>page</code></td>
+                                        <td>integer</td>
+                                        <td>No</td>
+                                        <td>Page number</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>page_size</code></td>
+                                        <td>integer</td>
+                                        <td>No</td>
+                                        <td>Results per page (default: 20, max: 100)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>search</code></td>
+                                        <td>string</td>
+                                        <td>No</td>
+                                        <td>Search by shop name</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>city</code></td>
+                                        <td>string</td>
+                                        <td>No</td>
+                                        <td>Filter by city</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>category</code></td>
+                                        <td>integer</td>
+                                        <td>No</td>
+                                        <td>Filter by category ID</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>is_active</code></td>
+                                        <td>boolean</td>
+                                        <td>No</td>
+                                        <td>Filter by active status</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional shop endpoints would go here -->
+            </section>
+
+            <!-- Additional API resource sections would follow -->
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>QueueMe API</h3>
+                <p>The complete solution for queue management and service booking.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <ul class="footer-links">
+                    <li><a href="/api/docs/swagger/">Swagger UI</a></li>
+                    <li><a href="/api/docs/redoc/">ReDoc</a></li>
+                    <li><a href="/api/schema.json">OpenAPI Schema</a></li>
+                    <li><a href="https://github.com/queueme/api">GitHub</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Support</h3>
+                <ul class="footer-links">
+                    <li><a href="mailto:support@queueme.net">Email Support</a></li>
+                    <li><a href="https://queueme.net/docs">Documentation</a></li>
+                    <li><a href="https://queueme.net/faq">FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-content footer-bottom">
+            <p>&copy; 2023 QueueMe. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab switching
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Get parent tab container
+                    const tabContainer = this.parentElement;
+
+                    // Get tab content container
+                    const tabContents = tabContainer.nextElementSibling.querySelectorAll('.tab-content');
+
+                    // Remove active class from all tabs and contents
+                    tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+
+                    // Get data-tab attribute
+                    const tabName = this.getAttribute('data-tab');
+
+                    // Add active class to corresponding content
+                    document.getElementById(tabName).classList.add('active');
+                });
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+
+                        // Update active state in sidebar
+                        document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                });
+            });
+
+            // Highlight active section based on scroll position
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.sidebar a');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+
+                    if (pageYOffset >= sectionTop - 150) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1056 @@
+{% extends "api_docs/base.html" %}
+
+{% block title %}QueueMe API - ReDoc{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* ReDoc container */
+        .redoc-container {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Header section with enhanced 3D effects */
+        .redoc-header {
+            background: linear-gradient(to right, var(--tertiary), var(--quaternary));
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .redoc-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 150%, rgba(16, 185, 129, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+            z-index: 0;
+            opacity: 0.8;
+            transform: translateZ(10px);
+            animation: gradientShift 15s ease infinite alternate;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .redoc-header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            transform-style: preserve-3d;
+        }
+
+        .redoc-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, white, rgba(255, 255, 255, 0.85));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transform: translateZ(50px);
+            transition: transform 0.4s var(--animation-timing);
+            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .redoc-header:hover h1 {
+            transform: translateZ(60px);
+        }
+
+        .redoc-header p {
+            font-size: 1.25rem;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            transform: translateZ(30px);
+            transition: transform 0.4s var(--animation-timing);
+        }
+
+        .redoc-header:hover p {
+            transform: translateZ(40px);
+        }
+
+        .redoc-header .btn {
+            transform: translateZ(20px);
+            transition: all 0.4s var(--animation-bounce);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        .redoc-header .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.6s var(--animation-timing);
+            z-index: -1;
+        }
+
+        .redoc-header .btn:hover {
+            transform: translateZ(40px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .redoc-header .btn:hover::before {
+            transform: translateX(0);
+        }
+
+        /* Advanced Loading spinner */
+        .redoc-spinner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--card-background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .spinner-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .spinner-icon {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .spinner-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: var(--tertiary);
+            animation: spinnerRotate 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        .spinner-circle:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .spinner-circle:nth-child(2) {
+            width: 70%;
+            height: 70%;
+            top: 15%;
+            left: 15%;
+            border-top-color: var(--quaternary);
+            animation-duration: 2s;
+            animation-direction: reverse;
+        }
+
+        .spinner-circle:nth-child(3) {
+            width: 40%;
+            height: 40%;
+            top: 30%;
+            left: 30%;
+            border-top-color: var(--secondary);
+            animation-duration: 1s;
+        }
+
+        .spinner-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--tertiary);
+            animation: spinnerPulse 1.5s ease-in-out infinite alternate;
+            letter-spacing: 1px;
+        }
+
+        @keyframes spinnerRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spinnerPulse {
+            0% { opacity: 0.7; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* Features section with enhanced 3D cards */
+        .features-section {
+            background-color: var(--gray-50);
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .features-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 10% 10%, var(--tertiary-light) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, var(--quaternary-light) 0%, transparent 40%);
+            filter: blur(80px) opacity(0.07);
+            z-index: 0;
+            transform: translateZ(0);
+            animation: gradientFloat 20s ease infinite alternate;
+        }
+
+        @keyframes gradientFloat {
+            0% {
+                background-position: 0% 0%;
+            }
+            50% {
+                background-position: 100% 100%;
+            }
+            100% {
+                background-position: 0% 0%;
+            }
+        }
+
+        [data-theme="dark"] .features-section {
+            background-color: rgba(15, 23, 42, 0.3);
+        }
+
+        [data-theme="dark"] .features-bg {
+            opacity: 0.1;
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .features-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            text-align: center;
+            color: var(--text-color);
+            position: relative;
+            transform: translateZ(30px);
+        }
+
+        .features-title::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, var(--tertiary), var(--quaternary));
+            border-radius: 2px;
+            box-shadow: 0 2px 10px rgba(139, 92, 246, 0.3);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            transform-style: preserve-3d;
+        }
+
+        .feature-card {
+            background-color: var(--card-background);
+            border-radius: 1.25rem;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            transition: all 0.6s var(--animation-bounce);
+            transform-style: preserve-3d;
+            transform: translateZ(0) rotateX(0deg) rotateY(0deg);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            will-change: transform, box-shadow;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent 20%,
+                rgba(139, 92, 246, 0.05) 40%,
+                rgba(139, 92, 246, 0.05) 60%,
+                transparent 80%
+            );
+            transform: translateX(-100%);
+            transition: transform 0.8s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .feature-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .feature-card:hover {
+            transform: translateZ(40px) rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--tertiary), var(--quaternary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.75rem;
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.3);
+            transition: all 0.5s var(--animation-bounce);
+            transform: translateZ(10px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: translateZ(60px) scale(1.2) rotate(10deg);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.4);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            transform: translateZ(5px);
+            transition: transform 0.4s var(--animation-timing);
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card:hover .feature-title {
+            transform: translateZ(30px);
+        }
+
+        .feature-description {
+            color: var(--gray-600);
+            font-size: 1rem;
+            line-height: 1.7;
+            transform: translateZ(0);
+            transition: transform 0.4s var(--animation-timing);
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card:hover .feature-description {
+            transform: translateZ(20px);
+        }
+
+        /* ReDoc UI container with floating elements */
+        .redoc-ui-container {
+            flex: 1;
+            padding: 4rem 0;
+            min-height: 800px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+        }
+
+        .floating-api-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            opacity: 0.02;
+            pointer-events: none;
+        }
+
+        .api-element {
+            position: absolute;
+            font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+            color: var(--tertiary);
+            opacity: 0;
+            animation: floatApiElement 20s linear infinite;
+            font-size: 5rem;
+            font-weight: bold;
+            will-change: transform, opacity;
+        }
+
+        [data-theme="dark"] .api-element {
+            color: var(--tertiary-light);
+        }
+
+        @keyframes floatApiElement {
+            0% {
+                transform: translate(-50px, 100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translate(-50px, -100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Enhanced Redoc customization */
+        redoc {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: block;
+            height: 100%;
+            min-height: 800px;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transform: translateZ(0);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Customized ReDoc styling for better integration */
+        :root {
+            --redoc-h1-color: var(--text-color);
+            --redoc-h2-color: var(--text-color);
+            --redoc-h3-color: var(--text-color);
+            --redoc-h4-color: var(--text-color);
+            --redoc-h5-color: var(--text-color);
+            --redoc-h6-color: var(--text-color);
+            --redoc-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            --redoc-font-family-mono: 'Menlo', 'Monaco', 'Consolas', monospace;
+        }
+
+        /* Style customizations for ReDoc */
+        redoc::part(section-tag) {
+            transition: all 0.3s ease !important;
+        }
+
+        redoc::part(section-tag):hover {
+            transform: translateX(5px) !important;
+            color: var(--tertiary) !important;
+        }
+
+        redoc::part(operation) {
+            transition: all 0.4s var(--animation-timing) !important;
+            border-radius: 0.75rem !important;
+            overflow: hidden !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+            transform: translateZ(0);
+        }
+
+        redoc::part(operation):hover {
+            transform: translateY(-5px) !important;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .redoc-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .redoc-header p {
+                font-size: 1.1rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features-title {
+                font-size: 2rem;
+            }
+
+            .feature-card {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .redoc-header h1 {
+                font-size: 2rem;
+            }
+
+            .redoc-header p {
+                font-size: 1rem;
+            }
+
+            .features-title {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* Shimmer effect for cards */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.2) 25%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            background-size: 1000px 100%;
+            z-index: 1;
+            opacity: 0;
+            pointer-events: none;
+            animation: shimmer 2s infinite;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Download buttons with icon */
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            transform: translateZ(30px);
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            transition: all 0.3s var(--animation-timing);
+            backdrop-filter: blur(4px);
+            text-decoration: none;
+            will-change: transform;
+        }
+
+        .download-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn i {
+            font-size: 1rem;
+            transition: transform 0.3s var(--animation-bounce);
+        }
+
+        .download-btn:hover i {
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <!-- ReDoc Styles -->
+    <link href="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <!-- Advanced ReDoc Loading Spinner -->
+    <div class="redoc-spinner" id="redoc-spinner">
+        <div class="spinner-content">
+            <div class="spinner-icon">
+                <div class="spinner-circle"></div>
+                <div class="spinner-circle"></div>
+                <div class="spinner-circle"></div>
+            </div>
+            <div class="spinner-text">Loading API Reference...</div>
+        </div>
+    </div>
+
+    <div class="redoc-container">
+        <!-- Enhanced 3D Header Section -->
+        <header class="redoc-header" data-parallax-container>
+            <div class="redoc-header-content">
+                <h1 data-animate="fade-in" data-parallax data-depth="0.3">QueueMe API Reference</h1>
+                <p data-animate="slide-up" data-parallax data-depth="0.2">Explore our API endpoints, request/response schemas, and learn how to integrate with the QueueMe platform.</p>
+                <div data-animate="slide-up" data-parallax data-depth="0.1">
+                    <a href="{% url 'api-guide' %}" class="btn btn-light">
+                        <i class="fas fa-book"></i>
+                        Read API Guide
+                    </a>
+                </div>
+
+                <!-- Download OpenAPI Spec Buttons -->
+                <div class="download-buttons" data-parallax data-depth="0.15">
+                    <a href="/api/docs/schema.json" download="openapi-schema.json" class="download-btn">
+                        <i class="fas fa-download"></i>
+                        Download JSON Spec
+                    </a>
+                    <a href="/api/docs/schema.yaml" download="openapi-schema.yaml" class="download-btn">
+                        <i class="fas fa-download"></i>
+                        Download YAML Spec
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Enhanced Features Section with 3D Cards -->
+        <section class="features-section">
+            <div class="features-bg"></div>
+            <div class="features-container">
+                <h2 class="features-title" data-animate="fade-in" data-3d-text>ReDoc Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card" data-animate="slide-up" data-delay="0">
+                        <div class="feature-icon">
+                            <i class="fas fa-columns"></i>
+                        </div>
+                        <h3 class="feature-title">Three-Panel Layout</h3>
+                        <p class="feature-description">
+                            Navigate through API categories, explore endpoint details, and view schemas all in one intuitive interface designed for maximum readability.
+                        </p>
+                    </div>
+
+                    <div class="feature-card" data-animate="slide-up" data-delay="0.2">
+                        <div class="feature-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3 class="feature-title">Powerful Search</h3>
+                        <p class="feature-description">
+                            Quickly find endpoints, parameters, and schemas with the built-in search functionality that supports partial matching and highlights results.
+                        </p>
+                    </div>
+
+                    <div class="feature-card" data-animate="slide-up" data-delay="0.4">
+                        <div class="feature-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3 class="feature-title">Schema Visualizer</h3>
+                        <p class="feature-description">
+                            Easily understand complex data structures with interactive schema visualization tools that reveal nested properties and relationships.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ReDoc UI with Floating Background Elements -->
+        <div class="redoc-ui-container" data-animate="fade-in">
+            <div class="floating-api-elements" id="floating-api-elements"></div>
+            <redoc id="redoc-element" spec-url="/api/docs/schema.json" hide-download-button expand-responses="all" lazy-rendering></redoc>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <!-- ReDoc JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
+    <script>
+        // Hide spinner with enhanced animation when UI loads
+        function hideSpinner() {
+            const spinner = document.getElementById('redoc-spinner');
+            spinner.style.opacity = '0';
+            setTimeout(() => {
+                spinner.style.visibility = 'hidden';
+            }, 800);
+        }
+
+        // Create floating API elements in the background - optimized version
+        function createFloatingElements() {
+            const container = document.getElementById('floating-api-elements');
+            if (!container) return;
+
+            const apiElements = ['{', '}', '[', ']', ':', '/', '<', '>', '()', '{}', '[]', '200', '404', '500', 'GET', 'POST', 'PUT', 'DELETE'];
+
+            // Clear existing elements
+            container.innerHTML = '';
+
+            // Reduce element count for better performance
+            const elementCount = isLowPoweredDevice() ? 5 : 10;
+
+            // Create floating elements
+            for (let i = 0; i < elementCount; i++) {
+                const element = document.createElement('div');
+                element.className = 'api-element';
+                element.textContent = apiElements[Math.floor(Math.random() * apiElements.length)];
+
+                // Random position
+                const left = Math.random() * 100;
+                element.style.left = `${left}%`;
+
+                // Random delay
+                const delay = Math.random() * 20;
+                element.style.animationDelay = `${delay}s`;
+
+                // Random duration - increased for smoother feel
+                const duration = Math.random() * 30 + 20;
+                element.style.animationDuration = `${duration}s`;
+
+                // Random size - slightly reduced for better performance
+                const size = Math.random() * 2.5 + 2;
+                element.style.fontSize = `${size}rem`;
+
+                // Random rotation
+                const rotation = Math.random() * 360;
+                element.style.transform = `rotate(${rotation}deg)`;
+
+                // Add to container
+                container.appendChild(element);
+            }
+        }
+
+        // Add 3D card effect to feature cards - improved performance
+        function add3DCardEffects() {
+            const featureCards = document.querySelectorAll('.feature-card');
+
+            // Skip effect on low-powered devices
+            if (isLowPoweredDevice()) {
+                featureCards.forEach(card => {
+                    card.style.transform = 'none';
+                    card.style.transition = 'all 0.3s ease';
+
+                    card.addEventListener('mouseenter', function() {
+                        this.style.transform = 'translateY(-10px)';
+                        this.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
+                        this.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                    });
+
+                    card.addEventListener('mouseleave', function() {
+                        this.style.transform = 'none';
+                        this.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.08)';
+                        this.style.borderColor = 'var(--border-color)';
+                    });
+                });
+                return;
+            }
+
+            // Pre-calculate transform values for better performance
+            const transformCache = {};
+            const rotationSteps = 10; // Number of rotation steps to pre-calculate
+
+            for (let i = 0; i < rotationSteps; i++) {
+                for (let j = 0; j < rotationSteps; j++) {
+                    const rotateX = (i - rotationSteps/2) / (rotationSteps/2) * 4; // -4 to 4 degrees
+                    const rotateY = (j - rotationSteps/2) / (rotationSteps/2) * 4; // -4 to 4 degrees
+                    const key = `${i}-${j}`;
+                    transformCache[key] = `translateZ(40px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                }
+            }
+
+            // Throttle function for better performance
+            function throttle(func, limit) {
+                let lastRan;
+                return function() {
+                    const context = this;
+                    const args = arguments;
+                    if (!lastRan || (Date.now() - lastRan) >= limit) {
+                        func.apply(context, args);
+                        lastRan = Date.now();
+                    }
+                };
+            }
+
+            featureCards.forEach(card => {
+                card.addEventListener('mousemove', throttle(function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    // Map to discrete steps for using cached transforms
+                    const xStep = Math.floor((x / rect.width) * rotationSteps);
+                    const yStep = Math.floor((y / rect.height) * rotationSteps);
+                    const key = `${Math.min(Math.max(yStep, 0), rotationSteps-1)}-${Math.min(Math.max(xStep, 0), rotationSteps-1)}`;
+
+                    requestAnimationFrame(() => {
+                        this.style.transform = transformCache[key];
+                        this.style.boxShadow = '0 30px 60px rgba(0, 0, 0, 0.15)';
+                        this.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+
+                        // Also transform the icon for added effect but limit movement
+                        const icon = this.querySelector('.feature-icon');
+                        if (icon) {
+                            icon.style.transform = 'scale(1.15) translateZ(60px)';
+                        }
+                    });
+                }, 16)); // 60fps
+
+                card.addEventListener('mouseleave', function() {
+                    requestAnimationFrame(() => {
+                        this.style.transform = 'translateZ(0)';
+                        this.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.08)';
+                        this.style.borderColor = 'var(--border-color)';
+
+                        // Reset icon transform
+                        const icon = this.querySelector('.feature-icon');
+                        if (icon) {
+                            icon.style.transform = 'translateZ(10px)';
+                        }
+                    });
+                });
+            });
+        }
+
+        // Check if device is low-powered
+        function isLowPoweredDevice() {
+            return window.innerWidth < 768 ||
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        }
+
+        // Apply parallax effect to header elements - improved performance
+        function applyParallaxEffects() {
+            const parallaxContainer = document.querySelector('[data-parallax-container]');
+            if (!parallaxContainer) return;
+
+            const parallaxElements = parallaxContainer.querySelectorAll('[data-parallax]');
+
+            // Skip effect on low-powered devices
+            if (isLowPoweredDevice()) {
+                return;
+            }
+
+            // Throttle mousemove for better performance
+            function throttle(func, limit) {
+                let lastRan;
+                return function() {
+                    const context = this;
+                    const args = arguments;
+                    if (!lastRan || (Date.now() - lastRan) >= limit) {
+                        func.apply(context, args);
+                        lastRan = Date.now();
+                    }
+                };
+            }
+
+            // Use requestAnimationFrame to optimize
+            let ticking = false;
+            let lastMouseX = 0;
+            let lastMouseY = 0;
+
+            parallaxContainer.addEventListener('mousemove', throttle(function(e) {
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+
+                if (!ticking) {
+                    requestAnimationFrame(() => {
+                        const rect = this.getBoundingClientRect();
+                        const mouseX = lastMouseX - rect.left;
+                        const mouseY = lastMouseY - rect.top;
+
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+
+                        parallaxElements.forEach(element => {
+                            const depth = parseFloat(element.getAttribute('data-depth')) || 0.1;
+                            // Reduce movement amount for smoother effect
+                            const moveX = (mouseX - centerX) * depth * -0.3;
+                            const moveY = (mouseY - centerY) * depth * -0.3;
+
+                            // Use translate3d for hardware acceleration
+                            element.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+                        });
+
+                        ticking = false;
+                    });
+
+                    ticking = true;
+                }
+            }, 16)); // 16ms for ~60fps
+
+            parallaxContainer.addEventListener('mouseleave', function() {
+                requestAnimationFrame(() => {
+                    parallaxElements.forEach(element => {
+                        element.style.transform = 'translate3d(0, 0, 0)';
+                    });
+                });
+            });
+        }
+
+        // Initialize ReDoc with enhanced event handlers and error handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set a timeout to handle cases where ReDoc might not initialize correctly
+            const loadingTimeout = setTimeout(() => {
+                console.log("ReDoc loading timeout occurred, attempting to reload");
+
+                // Try direct initialization if the element exists
+                try {
+                    const redocElement = document.querySelector('redoc');
+                    if (redocElement) {
+                        hideSpinner();
+                        // Try to initialize with static schema
+                        redocElement.setAttribute('spec-url', '/api/docs/static-schema.json');
+                        // Force reload if necessary
+                        if (typeof Redoc !== 'undefined') {
+                            Redoc.init('/api/docs/static-schema.json', {
+                                scrollYOffset: 100,
+                                hideHostname: false,
+                                nativeScrollbars: true,
+                                sortPropsAlphabetically: true
+                            }, redocElement);
+                        }
+                    } else {
+                        // If redoc element doesn't exist, show an error message
+                        const container = document.querySelector('.redoc-ui-container');
+                        if (container) {
+                            hideSpinner();
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 40px; color: var(--text-color);">
+                                    <h2>Unable to load API documentation</h2>
+                                    <p>Please try refreshing the page or check your network connection.</p>
+                                    <button class="btn btn-primary" onclick="window.location.reload()">Refresh Page</button>
+                                </div>
+                            `;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error in ReDoc fallback:', e);
+                }
+            }, 15000); // 15 seconds timeout
+
+            // Now set up the normal ReDoc initialization
+            try {
+                const redocElement = document.querySelector('redoc');
+                if (!redocElement) return;
+
+                // Listen for Redoc's ready event
+                redocElement.addEventListener('ready', function() {
+                    clearTimeout(loadingTimeout); // Clear the timeout since it loaded successfully
+                    hideSpinner();
+                    createFloatingElements();
+                    enhanceRedocUI();
+                });
+
+                // Handle errors
+                redocElement.addEventListener('error', function(e) {
+                    console.error('ReDoc error:', e.detail);
+
+                    // Try loading from static schema as fallback
+                    if (e.detail && e.detail.source === 'spec') {
+                        redocElement.setAttribute('spec-url', '/api/docs/static-schema.json');
+                    }
+                });
+
+                // Additional initialization approach
+                if (typeof Redoc !== 'undefined') {
+                    Redoc.init(
+                        '/api/docs/schema.json',
+                        {
+                            hideDownloadButton: true,
+                            expandResponses: 'all',
+                            lazyRendering: true,
+                            disableSearch: false,
+                            requiredPropsFirst: true,
+                            sortPropsAlphabetically: true,
+                            nativeScrollbars: true,
+                            hideHostname: false,
+                            onlyRequiredInSamples: false,
+                            pathInMiddlePanel: false,
+                            scrollYOffset: 100
+                        },
+                        document.getElementById('redoc-element'),
+                        function() {
+                            // On success callback
+                            clearTimeout(loadingTimeout);
+                            hideSpinner();
+                            createFloatingElements();
+                        },
+                        function(err) {
+                            // On error callback
+                            console.error('ReDoc init error:', err);
+                            // Try static schema
+                            Redoc.init('/api/docs/static-schema.json', {}, document.getElementById('redoc-element'));
+                        }
+                    );
+                }
+            } catch (err) {
+                console.error('Error setting up ReDoc:', err);
+            }
+
+            // Add custom animations to sections in ReDoc
+            function enhanceRedocUI() {
+                // Apply enhancements after a short delay to ensure ReDoc has fully loaded
+                setTimeout(() => {
+                    // Apply 3D card effects to feature cards
+                    add3DCardEffects();
+
+                    // Apply parallax effects
+                    applyParallaxEffects();
+
+                    // Add custom 3D text effects
+                    const titleElements = document.querySelectorAll('[data-3d-text]');
+                    titleElements.forEach(element => {
+                        element.style.textShadow = '0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 0 rgba(255, 255, 255, 0.3), 0 3px 0 rgba(255, 255, 255, 0.2), 0 4px 0 rgba(255, 255, 255, 0.1), 0 5px 10px rgba(0, 0, 0, 0.4)';
+                        if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                            element.style.textShadow = '0 1px 0 rgba(0, 0, 0, 0.4), 0 2px 0 rgba(0, 0, 0, 0.3), 0 3px 0 rgba(0, 0, 0, 0.2), 0 4px 0 rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.4)';
+                        }
+                    });
+                }, 1000);
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,31 @@
+<!-- apps/subscriptionapp/templates/subscriptionapp/emails/renewal_reminder.txt -->
+Queue Me - Subscription Renewal Reminder
+
+Dear {{ company_name }},
+
+{% if auto_renew %}
+This is a friendly reminder that your Queue Me subscription will be automatically renewed in {{ days_remaining }} days on {{ expiry_date|date:"F d, Y" }}.
+{% else %}
+Your Queue Me subscription will expire in {{ days_remaining }} days on {{ expiry_date|date:"F d, Y" }}.
+{% endif %}
+
+Subscription Plan: {{ plan_name }}
+Expiry Date: {{ expiry_date|date:"F d, Y" }}
+Auto-Renewal: {% if auto_renew %}Enabled{% else %}Disabled{% endif %}
+
+{% if auto_renew %}
+To ensure uninterrupted service, please make sure your payment method is up to date. You can update your payment details or manage your subscription from your account dashboard.
+{% else %}
+To continue using Queue Me services without interruption, please renew your subscription before the expiry date. You can renew your subscription from your account dashboard:
+https://shop.queueme.net/subscriptions/{{ subscription_id }}/renew
+{% endif %}
+
+If you have any questions or need assistance, please contact our support team at support@queueme.net.
+
+Thank you for choosing Queue Me!
+
+Best regards,
+The Queue Me Team
+
+© {{ expiry_date|date:"Y" }} Queue Me. All rights reserved.
+Queue Me Platform Ltd., Riyadh, Saudi Arabia

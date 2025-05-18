@@ -1,0 +1,36 @@
+# QueueMe Backup Configuration
+
+[backup]
+# Directory to store backups
+directory = /path/to/backups
+
+# Enable compression (default: true)
+compression = true
+
+[retention]
+# Retention periods for each backup type
+daily = 7    # Keep daily backups for 7 days
+weekly = 4   # Keep weekly backups for 4 weeks
+monthly = 12 # Keep monthly backups for 12 months
+
+[storage]
+# Enable local storage (default: true)
+local = true
+
+# Enable AWS S3 storage (default: false)
+s3 = false
+s3_bucket = queueme-backups
+s3_prefix = db-backups/
+s3_region = us-east-1
+
+# Enable Google Cloud Storage (default: false)
+gcs = false
+gcs_bucket = queueme-backups
+gcs_prefix = db-backups/
+
+[notify]
+# Enable notifications (default: true)
+enabled = true
+
+# Admin user ID to receive notifications
+notify_admin_id = 00000000-0000-0000-0000-000000000001

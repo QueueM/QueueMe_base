@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Report: {{ report_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #1976d2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 12px;
+            color: #777;
+        }
+        h1, h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .header h1 {
+            color: white;
+            margin-bottom: 0;
+        }
+        .header p {
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #1976d2;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .report-info {
+            background-color: white;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .report-info p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dashboard Report</h1>
+            <p>{{ report_name }}</p>
+        </div>
+
+        <div class="content">
+            <div class="report-info">
+                <h2>Report Details</h2>
+                <p><strong>Shop:</strong> {{ shop_name }}</p>
+                <p><strong>Date Generated:</strong> {{ date }}</p>
+                <p><strong>Period:</strong> {{ report_period }}</p>
+            </div>
+
+            <p>Your scheduled dashboard report for {{ shop_name }} is ready. Please find the attached PDF for a detailed overview of your shop's performance metrics.</p>
+
+            <p>This report includes:</p>
+            <ul>
+                <li>Key performance indicators</li>
+                <li>Visualizations of your business data</li>
+                <li>Performance comparisons to previous periods</li>
+                <li>Insights to help optimize your operations</li>
+            </ul>
+
+            <p>For a more interactive experience, you can view your live dashboard by clicking the button below:</p>
+
+            <div style="text-align: center;">
+                <a href="https://shop.queueme.net/dashboard" class="btn">View Dashboard</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated email from Queue Me. Please do not reply to this message.</p>
+            <p>&copy; {{ date|slice:":4" }} Queue Me. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

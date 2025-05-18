@@ -1,0 +1,203 @@
+{% extends 'email/base_email.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Booking Confirmation" %}{% endblock %}
+
+{% block extra_styles %}
+.booking-details {
+    background-color: #f8fafc;
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.booking-details table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.booking-details th {
+    text-align: {% if LANGUAGE_CODE == 'ar' %}right{% else %}left{% endif %};
+    padding: 8px;
+    width: 30%;
+    color: #64748b;
+}
+
+.booking-details td {
+    text-align: {% if LANGUAGE_CODE == 'ar' %}right{% else %}left{% endif %};
+    padding: 8px;
+}
+
+.booking-id {
+    font-family: monospace;
+    background-color: #e2e8f0;
+    padding: 3px 6px;
+    border-radius: 3px;
+}
+
+.add-to-calendar {
+    display: block;
+    text-align: center;
+    margin-top: 30px;
+}
+
+.add-to-calendar img {
+    height: 20px;
+    vertical-align: middle;
+    margin-{% if LANGUAGE_CODE == 'ar' %}left{% else %}right{% endif %}: 10px;
+}
+
+.highlight {
+    color: #3B82F6;
+    font-weight: bold;
+}
+
+.map-link {
+    display: block;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.cancellation-policy {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #64748b;
+}
+{% endblock %}
+
+{% block content %}
+<h1>
+    {% if LANGUAGE_CODE == 'ar' %}
+    تم تأكيد حجزك!
+    {% else %}
+    Your Booking is Confirmed!
+    {% endif %}
+</h1>
+
+<p>
+    {% if LANGUAGE_CODE == 'ar' %}
+    مرحبًا {{ customer_name }}،
+    <br><br>
+    نود إعلامك بأنه تم تأكيد حجزك بنجاح. فيما يلي تفاصيل موعدك:
+    {% else %}
+    Hello {{ customer_name }},
+    <br><br>
+    We're pleased to inform you that your booking has been successfully confirmed. Here are the details of your appointment:
+    {% endif %}
+</p>
+
+<div class="booking-details">
+    <table>
+        <tr>
+            <th>
+                {% if LANGUAGE_CODE == 'ar' %}رقم الحجز:{% else %}Booking ID:{% endif %}
+            </th>
+            <td>
+                <span class="booking-id">{{ booking_id }}</span>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                {% if LANGUAGE_CODE == 'ar' %}الخدمة:{% else %}Service:{% endif %}
+            </th>
+            <td>{{ service_name }}</td>
+        </tr>
+        <tr>
+            <th>
+                {% if LANGUAGE_CODE == 'ar' %}المتخصص:{% else %}Specialist:{% endif %}
+            </th>
+            <td>{{ specialist_name }}</td>
+        </tr>
+        <tr>
+            <th>
+                {% if LANGUAGE_CODE == 'ar' %}التاريخ:{% else %}Date:{% endif %}
+            </th>
+            <td>{{ appointment_date }}</td>
+        </tr>
+        <tr>
+            <th>
+                {% if LANGUAGE_CODE == 'ar' %}الوقت:{% else %}Time:{% endif %}
+            </th>
+            <td><span class="highlight">{{ appointment_time }}</span></td>
+        </tr>
+        <tr>
+            <th>
+                {% if LANGUAGE_CODE == 'ar' %}المدة:{% else %}Duration:{% endif %}
+            </th>
+            <td>{{ duration }} {% if LANGUAGE_CODE == 'ar' %}دقيقة{% else %}minutes{% endif %}</td>
+        </tr>
+        <tr>
+            <th>
+                {% if LANGUAGE_CODE == 'ar' %}المكان:{% else %}Location:{% endif %}
+            </th>
+            <td>
+                {{ shop_name }}<br>
+                {{ shop_address }}
+                <a href="{{ map_url }}" class="map-link" target="_blank">
+                    {% if LANGUAGE_CODE == 'ar' %}عرض على الخريطة{% else %}View on map{% endif %}
+                </a>
+            </td>
+        </tr>
+        {% if payment_status %}
+        <tr>
+            <th>
+                {% if LANGUAGE_CODE == 'ar' %}حالة الدفع:{% else %}Payment Status:{% endif %}
+            </th>
+            <td>
+                <span class="highlight">
+                    {% if payment_status == 'paid' %}
+                        {% if LANGUAGE_CODE == 'ar' %}تم الدفع{% else %}Paid{% endif %}
+                    {% else %}
+                        {% if LANGUAGE_CODE == 'ar' %}في انتظار الدفع{% else %}Pending{% endif %}
+                    {% endif %}
+                </span>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+
+<p>
+    {% if LANGUAGE_CODE == 'ar' %}
+    يرجى الوصول قبل 10 دقائق من الموعد المحدد. إذا كنت بحاجة إلى إلغاء أو إعادة جدولة موعدك، يُرجى القيام بذلك قبل 24 ساعة على الأقل من الموعد المحدد.
+    {% else %}
+    Please arrive 10 minutes before your scheduled appointment time. If you need to cancel or reschedule your appointment, please do so at least 24 hours in advance.
+    {% endif %}
+</p>
+
+<a href="{{ booking_url }}" class="button">
+    {% if LANGUAGE_CODE == 'ar' %}
+    عرض تفاصيل الحجز
+    {% else %}
+    View Booking Details
+    {% endif %}
+</a>
+
+<a href="{{ calendar_url }}" class="add-to-calendar">
+    <img src="{{ calendar_icon|default:'https://queueme.net/static/img/calendar-icon.png' }}" alt="Calendar">
+    {% if LANGUAGE_CODE == 'ar' %}
+    إضافة إلى التقويم
+    {% else %}
+    Add to Calendar
+    {% endif %}
+</a>
+
+<div class="cancellation-policy">
+    <strong>
+        {% if LANGUAGE_CODE == 'ar' %}
+        سياسة الإلغاء:
+        {% else %}
+        Cancellation Policy:
+        {% endif %}
+    </strong>
+    <p>
+        {% if LANGUAGE_CODE == 'ar' %}
+        يمكن إلغاء أو إعادة جدولة الحجز دون رسوم حتى قبل 24 ساعة من الموعد المحدد. قد يتم تطبيق رسوم على الإلغاءات التي تتم بعد هذا الوقت.
+        {% else %}
+        Bookings can be cancelled or rescheduled free of charge up to 24 hours before the scheduled appointment time. Cancellations made after this time may incur a fee.
+        {% endif %}
+    </p>
+</div>
+{% endblock %}

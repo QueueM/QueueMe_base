@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueMe API Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://queueme.net/favicon.ico" />
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1a365d;
+            --primary-light: #3b82f6;
+            --primary-hover: #1e40af;
+            --secondary: #10b981;
+            --secondary-dark: #065f46;
+            --secondary-light: #34d399;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --text-color: var(--gray-900);
+            --background-color: #ffffff;
+            --card-background: #ffffff;
+            --header-bg: var(--primary-dark);
+            --header-text: #ffffff;
+            --border-color: var(--gray-200);
+            --code-bg: #f8fafc;
+            --code-text: var(--gray-800);
+        }
+
+        [data-theme="dark"] {
+            --text-color: #f3f4f6;
+            --background-color: #0f172a;
+            --card-background: #1e293b;
+            --header-bg: #0f172a;
+            --header-text: #f3f4f6;
+            --border-color: #334155;
+            --code-bg: #1e293b;
+            --code-text: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Header styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 6rem 0 5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 150%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            margin-right: 0.75rem;
+            color: var(--secondary);
+        }
+
+        .logo-text {
+            font-size: 2.25rem;
+            font-weight: 700;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            background: linear-gradient(to right, white, rgba(255, 255, 255, 0.85));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.875rem 1.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover::after {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background-color: white;
+            color: var(--primary);
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            background-color: var(--card-background);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(15deg) scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        /* API Explorer section */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 1.5rem 4rem;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        .section-title p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 700px;
+            margin: 1.5rem auto 0;
+        }
+
+        [data-theme="dark"] .section-title p {
+            color: var(--gray-400);
+        }
+
+        .docs-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 6rem;
+        }
+
+        .docs-card {
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            height: 100%;
+        }
+
+        .docs-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: radial-gradient(circle at 10% 90%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+        }
+
+        .card-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-header h3 i {
+            font-size: 1.25rem;
+            background-color: rgba(255, 255, 255, 0.15);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .card-content {
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-content p {
+            margin-bottom: 1.5rem;
+            color: var(--gray-600);
+            flex: 1;
+        }
+
+        [data-theme="dark"] .card-content p {
+            color: var(--gray-400);
+        }
+
+        .card-footer {
+            padding: 0 2rem 2rem;
+            text-align: center;
+        }
+
+        /* Features section */
+        .features {
+            margin-top: 4rem;
+            padding-top: 4rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            margin-bottom: 1.25rem;
+            font-size: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: var(--gray-600);
+            font-size: 0.9375rem;
+        }
+
+        [data-theme="dark"] .feature-card p {
+            color: var(--gray-400);
+        }
+
+        /* Sample code section */
+        .code-samples {
+            margin-top: 6rem;
+            padding-top: 4rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-300) transparent;
+        }
+
+        .code-tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .code-tabs::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-tabs::-webkit-scrollbar-thumb {
+            background-color: var(--gray-300);
+            border-radius: 2px;
+        }
+
+        .code-tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: var(--gray-600);
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .code-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .code-tab:hover:not(.active) {
+            color: var(--text-color);
+            border-bottom-color: var(--gray-300);
+        }
+
+        .code-sample {
+            background-color: var(--code-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            overflow-x: auto;
+            position: relative;
+            display: none;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .code-sample.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .code-sample pre {
+            margin: 0;
+            color: var(--code-text);
+            font-family: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.9375rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--gray-600);
+        }
+
+        .copy-btn:hover {
+            background-color: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            padding: 5rem 0 2rem;
+            margin-top: 6rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 3rem;
+        }
+
+        .footer-brand {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo i {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        .footer-logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3rem;
+        }
+
+        .footer-col h4 {
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
+            color: var(--primary);
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-col h4::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 24px;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-col a {
+            color: var(--gray-600);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 0.9375rem;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .footer-col a:hover {
+            color: var(--primary);
+        }
+
+        .footer-col a i {
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: all 0.2s ease;
+        }
+
+        .footer-col a:hover i {
+            opacity: 1;
+            transform: translateX(0);
+            margin-right: 0.5rem;
+        }
+
+        [data-theme="dark"] .footer-col a {
+            color: var(--gray-400);
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--card-background);
+            color: var(--text-color);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            font-size: 0.9375rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 9999;
+            border: 1px solid var(--border-color);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            margin-right: 0.75rem;
+            color: var(--success);
+            font-size: 1.25rem;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 0;
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .navbar {
+            background-color: rgba(15, 23, 42, 0.9);
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .navbar-brand i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .navbar-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            font-size: 0.9375rem;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .navbar-link:hover, .navbar-link.active {
+            color: var(--primary);
+        }
+
+        .navbar-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: width 0.2s ease;
+        }
+
+        .navbar-link:hover::after, .navbar-link.active::after {
+            width: 100%;
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .header h1 {
+                font-size: 3rem;
+            }
+
+            .features-grid {
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 5rem 0 4rem;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header p {
+                font-size: 1.125rem;
+            }
+
+            .section-title h2 {
+                font-size: 2rem;
+            }
+
+            .docs-options,
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: var(--card-background);
+                flex-direction: column;
+                padding: 1.5rem;
+                border-bottom: 1px solid var(--border-color);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .navbar-menu.active {
+                display: flex;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .theme-toggle {
+                top: 0.75rem;
+                right: 0.75rem;
+                width: 42px;
+                height: 42px;
+                font-size: 1.125rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <i class="fas fa-layer-group"></i>
+                QueueMe API
+            </a>
+            <button class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="navbar-menu" id="navbar-menu">
+                <a href="/api/docs/" class="navbar-link active">Documentation</a>
+                <a href="/api/docs/swagger/" class="navbar-link">Swagger UI</a>
+                <a href="/api/docs/redoc/" class="navbar-link">ReDoc</a>
+                <a href="https://queueme.net/developers" class="navbar-link">Developer Portal</a>
+                <a href="https://queueme.net/support" class="navbar-link">Support</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-layer-group"></i>
+                <span class="logo-text">QueueMe API</span>
+            </div>
+            <h1>Modern, Flexible, Developer-First</h1>
+            <p>Build powerful queue management systems and booking applications with QueueMe's comprehensive API platform.</p>
+            <div class="cta-buttons">
+                <a href="/api/docs/swagger/" class="btn btn-primary">
+                    <i class="fas fa-code"></i>
+                    Interactive Documentation
+                </a>
+                <a href="https://queueme.net/developers" class="btn btn-secondary">
+                    <i class="fas fa-book"></i>
+                    Developer Guide
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main>
+        <!-- API Documentation Options -->
+        <section class="container">
+            <div class="section-title">
+                <h2>API Documentation</h2>
+                <p>Choose the documentation format that best suits your workflow and development style.</p>
+            </div>
+
+            <div class="docs-options">
+                <div class="docs-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-code"></i> Swagger UI</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>Interactive documentation with built-in request builder, live testing capabilities, and comprehensive endpoint details. Perfect for exploring and testing API functionality.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/api/docs/swagger/" class="btn btn-primary">
+                            <i class="fas fa-chevron-right"></i>
+                            Launch Swagger UI
+                        </a>
+                    </div>
+                </div>
+
+                <div class="docs-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-book"></i> ReDoc</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>Clean, responsive reference documentation with a three-panel layout for intuitive navigation. Ideal for understanding data models and API structure at a glance.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/api/docs/redoc/" class="btn btn-primary">
+                            <i class="fas fa-chevron-right"></i>
+                            View ReDoc
+                        </a>
+                    </div>
+                </div>
+
+                <div class="docs-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-code"></i> OpenAPI Spec</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>Download the raw OpenAPI specification to use with your preferred tools or code generators. Available in both JSON and YAML formats for maximum compatibility.</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="cta-buttons">
+                            <a href="/static/swagger/swagger.json" class="btn btn-primary">
+                                <i class="fas fa-download"></i>
+                                JSON
+                            </a>
+                            <a href="/static/swagger/openapi.yaml" class="btn btn-secondary">
+                                <i class="fas fa-download"></i>
+                                YAML
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features">
+                <div class="section-title">
+                    <h2>API Features</h2>
+                    <p>Leverage the full power of QueueMe's comprehensive API ecosystem.</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Secure Authentication</h3>
+                        <p>Industry-standard JWT authentication with refresh token rotation and comprehensive security controls.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Real-time Updates</h3>
+                        <p>WebSocket integration for live queue status, notifications, and instant updates across all connected clients.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h3>Advanced Scheduling</h3>
+                        <p>Flexible booking system with support for recurring appointments, complex time slots, and multi-service bookings.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <h3>Payment Integration</h3>
+                        <p>Seamless payment processing with Moyasar, supporting multiple currencies and payment methods.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h3>Role-based Access</h3>
+                        <p>Fine-grained permissions system allowing secure delegation of capabilities to different user roles.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Analytics & Reports</h3>
+                        <p>Comprehensive analytics endpoints for business insights, customer trends, and operational metrics.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Sample Section -->
+            <div class="code-samples">
+                <div class="section-title">
+                    <h2>Quick Start Examples</h2>
+                    <p>Get started with these common API operations and code examples.</p>
+                </div>
+
+                <div class="code-tabs">
+                    <div class="code-tab active" data-tab="authentication">Authentication</div>
+                    <div class="code-tab" data-tab="shops">Get Shops</div>
+                    <div class="code-tab" data-tab="services">Get Services</div>
+                    <div class="code-tab" data-tab="booking">Create Booking</div>
+                </div>
+
+                <div class="code-sample active" data-tab="authentication">
+                    <button class="copy-btn" data-code="authentication">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre>
+curl -X POST "https://api.queueme.net/api/v1/auth/token" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "username": "your_username",
+       "password": "your_password"
+     }'</pre>
+                </div>
+
+                <div class="code-sample" data-tab="shops">
+                    <button class="copy-btn" data-code="shops">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre>
+curl -X GET "https://api.queueme.net/api/v1/shops" \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json"</pre>
+                </div>
+
+                <div class="code-sample" data-tab="services">
+                    <button class="copy-btn" data-code="services">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre>
+curl -X GET "https://api.queueme.net/api/v1/services?shop_id=123" \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json"</pre>
+                </div>
+
+                <div class="code-sample" data-tab="booking">
+                    <button class="copy-btn" data-code="booking">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre>
+curl -X POST "https://api.queueme.net/api/v1/bookings" \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "service_id": 123,
+       "specialist_id": 456,
+       "date": "2025-06-15",
+       "time_slot": "14:30",
+       "customer_id": 789
+     }'</pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="footer-logo-text">QueueMe API</span>
+                </div>
+                <p>The complete solution for queue management and booking systems.</p>
+            </div>
+
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="/api/docs/swagger/"><i class="fas fa-chevron-right"></i>Swagger UI</a></li>
+                        <li><a href="/api/docs/redoc/"><i class="fas fa-chevron-right"></i>ReDoc</a></li>
+                        <li><a href="/static/swagger/swagger.json"><i class="fas fa-chevron-right"></i>OpenAPI Spec</a></li>
+                        <li><a href="/api/guide"><i class="fas fa-chevron-right"></i>API Guide</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://queueme.net/developers"><i class="fas fa-chevron-right"></i>Developer Portal</a></li>
+                        <li><a href="https://queueme.net/blog"><i class="fas fa-chevron-right"></i>Blog</a></li>
+                        <li><a href="https://queueme.net/tutorials"><i class="fas fa-chevron-right"></i>Tutorials</a></li>
+                        <li><a href="https://queueme.net/case-studies"><i class="fas fa-chevron-right"></i>Case Studies</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="https://queueme.net/support"><i class="fas fa-chevron-right"></i>Help Center</a></li>
+                        <li><a href="https://queueme.net/status"><i class="fas fa-chevron-right"></i>API Status</a></li>
+                        <li><a href="https://queueme.net/contact"><i class="fas fa-chevron-right"></i>Contact Us</a></li>
+                        <li><a href="https://queueme.net/faq"><i class="fas fa-chevron-right"></i>FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">
+            &copy; 2025 QueueMe. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Code copied to clipboard!</span>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Theme Handling
+        const themeToggle = document.getElementById('theme-toggle');
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+        // Function to set theme
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+
+            // Update theme toggle icon
+            if (theme === 'dark') {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else if (prefersDarkScheme.matches) {
+            setTheme('dark');
+        } else {
+            setTheme('light');
+        }
+
+        // Theme toggle event listener
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+
+        // Mobile menu toggle
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const navbarMenu = document.getElementById('navbar-menu');
+
+        mobileToggle.addEventListener('click', () => {
+            navbarMenu.classList.toggle('active');
+
+            if (navbarMenu.classList.contains('active')) {
+                mobileToggle.innerHTML = '<i class="fas fa-times"></i>';
+            } else {
+                mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+            }
+        });
+
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Code Tabs Functionality
+        const codeTabs = document.querySelectorAll('.code-tab');
+        const codeSamples = document.querySelectorAll('.code-sample');
+
+        codeTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabTarget = tab.getAttribute('data-tab');
+
+                // Remove active class from all tabs and samples
+                codeTabs.forEach(t => t.classList.remove('active'));
+                codeSamples.forEach(s => s.classList.remove('active'));
+
+                // Add active class to clicked tab and corresponding sample
+                tab.classList.add('active');
+                document.querySelector(`.code-sample[data-tab="${tabTarget}"]`).classList.add('active');
+            });
+        });
+
+        // Copy Code Functionality
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const codeType = button.getAttribute('data-code');
+                const codeBlock = button.nextElementSibling;
+
+                // Copy code to clipboard
+                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                    // Show toast notification
+                    toastMessage.textContent = `${codeType} code copied to clipboard!`;
+                    toast.classList.add('show');
+
+                    // Hide toast after 3 seconds
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+"queueme_user" "md5password"
+"postgres" "md5password"
+
+# Replace "md5password" with the MD5 password hash
+# You can generate this with:
+# echo -n "password+username" | md5sum
+# For example: echo -n "mypasswordqueueme_user" | md5sum

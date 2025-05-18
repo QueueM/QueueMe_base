@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Server Error" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12">
+    <div class="max-w-md w-full space-y-8 text-center">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                {% if LANGUAGE_CODE == 'ar' %}
+                500 - خطأ في الخادم
+                {% else %}
+                500 - Server Error
+                {% endif %}
+            </h2>
+            <img src="{% static 'img/500.svg' %}" alt="500" class="mx-auto h-64 my-8">
+            <p class="mt-2 text-center text-md text-gray-600">
+                {% if LANGUAGE_CODE == 'ar' %}
+                عذراً، حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.
+                {% else %}
+                Sorry, something went wrong on our server. Please try again later.
+                {% endif %}
+            </p>
+        </div>
+        <div class="mt-8 space-y-6">
+            <div>
+                <a href="{% url 'home' %}" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {% if LANGUAGE_CODE == 'ar' %}
+                    العودة إلى الصفحة الرئيسية
+                    {% else %}
+                    Return to Home Page
+                    {% endif %}
+                </a>
+            </div>
+            <div>
+                <a href="{% url 'contact' %}" class="text-primary hover:text-primary-dark">
+                    {% if LANGUAGE_CODE == 'ar' %}
+                    اتصل بالدعم
+                    {% else %}
+                    Contact Support
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

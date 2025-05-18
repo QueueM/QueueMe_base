@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with shop_name=shop.name date=date time=time %}
+Reminder: Your appointment at {{ shop_name }} is on {{ date }} at {{ time }}. Service: {{ service.name }}.
+{% endblocktranslate %}

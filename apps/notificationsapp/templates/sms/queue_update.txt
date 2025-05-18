@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with shop_name=queue.shop.name position=position wait_time=wait_time %}
+Queue Me update: You are position #{{ position }} at {{ shop_name }}. Estimated wait: {{ wait_time }} min. We'll notify you when you're next.
+{% endblocktranslate %}

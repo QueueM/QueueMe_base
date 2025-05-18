@@ -1,0 +1,1328 @@
+{% extends "api_docs/base.html" %}
+
+{% block title %}QueueMe API Documentation{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Hero section styles */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 9rem 0 6rem;
+            position: relative;
+            overflow: hidden;
+            margin-top: 60px;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .hero-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 150%, rgba(16, 185, 129, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+            z-index: 0;
+            transform: translateZ(20px);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+
+        /* 3D hero heading */
+        .hero-heading {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            background: linear-gradient(to right, white, rgba(255, 255, 255, 0.85));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transform-style: preserve-3d;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            letter-spacing: -0.02em;
+            transform: translateZ(50px);
+            animation: heroTextFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes heroTextFloat {
+            0%, 100% {
+                transform: translateZ(50px) translateY(0);
+                text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+            50% {
+                transform: translateZ(70px) translateY(-10px);
+                text-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .hero-subheading {
+            font-size: 1.35rem;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            opacity: 0.95;
+            line-height: 1.6;
+            font-weight: 400;
+            transform: translateZ(30px);
+            animation: subtitlePulse 8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes subtitlePulse {
+            0%, 100% {
+                opacity: 0.95;
+                transform: translateZ(30px) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateZ(30px) scale(1.03);
+            }
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            transform: translateZ(40px);
+        }
+
+        /* Download buttons with icon */
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            transform: translateZ(40px);
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            transition: all 0.3s var(--animation-timing);
+            backdrop-filter: blur(4px);
+            text-decoration: none;
+        }
+
+        .download-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn i {
+            font-size: 1rem;
+            transition: transform 0.3s var(--animation-bounce);
+        }
+
+        .download-btn:hover i {
+            transform: translateY(-2px);
+        }
+
+        /* Interactive 3D code preview */
+        .code-preview {
+            position: relative;
+            background-color: #1e293b;
+            border-radius: 1rem;
+            overflow: hidden;
+            margin: 5rem auto 0;
+            max-width: 850px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
+            transform-style: preserve-3d;
+            transform: perspective(1000px) rotateX(5deg);
+            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            will-change: transform, box-shadow;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-preview:hover {
+            transform: perspective(1000px) rotateX(0deg) translateY(-10px) scale(1.02);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+        }
+
+        .code-header {
+            background-color: #0f172a;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .code-preview:hover .code-dot {
+            transform: scale(1.2);
+        }
+
+        .code-dot.red {
+            background-color: #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+        }
+
+        .code-dot.yellow {
+            background-color: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+        }
+
+        .code-dot.green {
+            background-color: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+
+        .code-title {
+            flex: 1;
+            color: #cbd5e1;
+            font-size: 0.875rem;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .code-content {
+            padding: 1.5rem;
+            color: #e2e8f0;
+            font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-content .token-method {
+            color: #ec4899;
+            animation: tokenPulse 3s infinite;
+        }
+
+        .code-content .token-url {
+            color: #a5b4fc;
+        }
+
+        .code-content .token-value {
+            color: #fbbf24;
+        }
+
+        .code-content .token-key {
+            color: #34d399;
+        }
+
+        .code-content .token-comment {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        @keyframes tokenPulse {
+            0%, 100% { opacity: 1; }
+            60% { opacity: 0.7; }
+        }
+
+        /* Animated cursor effect */
+        .code-cursor {
+            position: absolute;
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background-color: rgba(255, 255, 255, 0.7);
+            animation: cursorBlink 1.2s infinite;
+            margin-left: 2px;
+            vertical-align: middle;
+        }
+
+        @keyframes cursorBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        /* Parallax-scrolling features section */
+        .features-section {
+            padding: 10rem 0 8rem;
+            background-color: var(--background-color);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .features-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 10% 10%, var(--primary-light) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, var(--secondary-light) 0%, transparent 40%);
+            filter: blur(80px) opacity(0.07);
+            z-index: -1;
+            transform: translateZ(0);
+        }
+
+        [data-theme="dark"] .features-bg {
+            opacity: 0.1;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--text-color);
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--tertiary));
+            border-radius: 2px;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .section-description {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 5rem;
+            color: var(--gray-600);
+            font-size: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .feature-card {
+            background-color: var(--card-background);
+            border-radius: 1.25rem;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border-color);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transform: translateZ(0);
+            will-change: transform, box-shadow;
+            backface-visibility: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent 20%,
+                rgba(255, 255, 255, 0.2) 40%,
+                rgba(255, 255, 255, 0.2) 60%,
+                transparent 80%
+            );
+            opacity: 0;
+            transform: translateX(-100%);
+            transition: transform 0.8s, opacity 0.8s;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+            transform: translateX(100%);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px) translateZ(30px) scale(1.03);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--tertiary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.75rem;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.15) rotate(10deg);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            transition: transform 0.3s ease;
+            z-index: 2;
+        }
+
+        .feature-card:hover .feature-title {
+            transform: scale(1.05);
+        }
+
+        .feature-description {
+            color: var(--gray-600);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            flex: 1;
+            z-index: 2;
+        }
+
+        /* 3D Card Interfaces section */
+        .interfaces-section {
+            padding: 8rem 0;
+            background-color: var(--gray-50);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interfaces-bg-shape {
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 70%;
+            height: 140%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            transform: rotate(10deg);
+            z-index: 0;
+            animation: morphShape 15s linear infinite alternate;
+        }
+
+        @keyframes morphShape {
+            0% {
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            }
+            25% {
+                border-radius: 50% 50% 30% 70% / 50% 50% 50% 50%;
+            }
+            50% {
+                border-radius: 70% 30% 50% 50% / 40% 60% 40% 60%;
+            }
+            75% {
+                border-radius: 40% 60% 60% 40% / 60% 30% 70% 40%;
+            }
+            100% {
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            }
+        }
+
+        [data-theme="dark"] .interfaces-section {
+            background-color: rgba(15, 23, 42, 0.3);
+        }
+
+        .interfaces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .interface-card {
+            background-color: var(--card-background);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            height: 100%;
+            transform-style: preserve-3d;
+            perspective: 1500px;
+            will-change: transform, box-shadow;
+            backface-visibility: hidden;
+        }
+
+        .interface-card:hover {
+            transform: translateY(-15px) rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2);
+            border-color: var(--primary-light);
+        }
+
+        .interface-image {
+            width: 100%;
+            height: 220px;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .interface-image::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+            z-index: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .interface-card:hover .interface-image::after {
+            opacity: 0.7;
+        }
+
+        .interface-image i {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            z-index: 2;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .interface-card:hover .interface-image i {
+            transform: translate(-50%, -50%) scale(1.2) rotate(5deg);
+            color: rgba(255, 255, 255, 1);
+            text-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .interface-content {
+            padding: 2rem;
+            transform-style: preserve-3d;
+        }
+
+        .interface-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .interface-title::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--tertiary));
+            transition: width 0.4s ease;
+        }
+
+        .interface-card:hover .interface-title {
+            transform: translateZ(10px);
+        }
+
+        .interface-card:hover .interface-title::after {
+            width: 100%;
+        }
+
+        .interface-description {
+            color: var(--gray-600);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease 0.1s;
+        }
+
+        .interface-card:hover .interface-description {
+            transform: translateZ(5px);
+        }
+
+        .interface-card .btn {
+            transform: translateZ(15px);
+            opacity: 0.9;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .interface-card:hover .btn {
+            opacity: 1;
+            transform: translateZ(25px) scale(1.05);
+        }
+
+        .swagger-image {
+            background: linear-gradient(135deg, #38bdf8, #1d4ed8);
+        }
+
+        .redoc-image {
+            background: linear-gradient(135deg, #f43f5e, #7e22ce);
+        }
+
+        .guide-image {
+            background: linear-gradient(135deg, #22c55e, #0891b2);
+        }
+
+        /* Immersive animated CTA section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--tertiary), var(--quaternary));
+            color: white;
+            padding: 8rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .cta-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 150%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 3;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            transform-style: preserve-3d;
+        }
+
+        .cta-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            transform: translateZ(50px);
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .cta-description {
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.7;
+            opacity: 0.95;
+            transform: translateZ(30px);
+        }
+
+        .cta-section .btn {
+            transform: translateZ(40px);
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-section .btn:hover {
+            transform: translateZ(60px) scale(1.05);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Enhance floating code effect */
+        .floating-code-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            opacity: 0.15;
+            overflow: hidden;
+            pointer-events: none;
+            transform-style: preserve-3d;
+        }
+
+        .floating-code {
+            position: absolute;
+            font-family: monospace;
+            color: white;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            white-space: nowrap;
+            opacity: 0;
+            animation: floatCode 25s linear infinite;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            transform-style: preserve-3d;
+            transform: translateZ(0);
+        }
+
+        @keyframes floatCode {
+            0% {
+                transform: translateY(100%) translateZ(0) rotateX(10deg);
+                opacity: 0;
+            }
+            5% {
+                opacity: 0.8;
+                transform: translateY(90%) translateZ(10px) rotateX(5deg);
+            }
+            95% {
+                opacity: 0.8;
+                transform: translateY(-90%) translateZ(20px) rotateX(-5deg);
+            }
+            100% {
+                transform: translateY(-100%) translateZ(0) rotateX(-10deg);
+                opacity: 0;
+            }
+        }
+
+        /* Parallax scrolling and responsive styles */
+        @media (max-width: 1024px) {
+            .hero-heading {
+                font-size: 3.25rem;
+            }
+
+            .section-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-heading {
+                font-size: 2.75rem;
+            }
+
+            .hero-subheading {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2.25rem;
+            }
+
+            .cta-title {
+                font-size: 2.25rem;
+            }
+
+            .feature-card {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-heading {
+                font-size: 2.25rem;
+            }
+
+            .hero-section {
+                padding: 8rem 0 4rem;
+            }
+
+            .code-preview {
+                margin-top: 3rem;
+            }
+
+            .feature-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Parallax scrolling container */
+        .parallax-container {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        [data-parallax] {
+            transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: transform;
+        }
+
+        /* Shimmer effect for feature cards */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.2) 25%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            background-size: 1000px 100%;
+            z-index: 1;
+            opacity: 0;
+            pointer-events: none;
+            animation: shimmer 2s infinite;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Interface card shimmer effect */
+        .interface-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.2) 25%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            background-size: 1000px 100%;
+            z-index: 1;
+            opacity: 0;
+            pointer-events: none;
+            animation: shimmer 2.5s infinite;
+            transition: opacity 0.3s ease;
+            border-radius: 1.5rem;
+        }
+
+        .interface-card:hover::after {
+            opacity: 1;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero-section parallax-container">
+        <div class="hero-content">
+            <h1 class="hero-heading" data-parallax data-depth="0.3">QueueMe API Documentation</h1>
+            <p class="hero-subheading" data-parallax data-depth="0.2">Powerful, flexible, and developer-friendly APIs for queue management and booking systems.</p>
+            <div class="hero-cta" data-parallax data-depth="0.1">
+                <a href="{% url 'swagger-ui' %}" class="btn btn-light">
+                    <i class="fas fa-code"></i>
+                    Explore API
+                </a>
+                <a href="{% url 'api-guide' %}" class="btn btn-ghost">
+                    <i class="fas fa-book"></i>
+                    Read Guide
+                </a>
+            </div>
+
+            <!-- Download OpenAPI Spec Buttons -->
+            <div class="download-buttons" data-parallax data-depth="0.05">
+                <a href="/api/docs/schema.json" download="openapi-schema.json" class="download-btn">
+                    <i class="fas fa-download"></i>
+                    Download JSON Spec
+                </a>
+                <a href="/api/docs/schema.yaml" download="openapi-schema.yaml" class="download-btn">
+                    <i class="fas fa-download"></i>
+                    Download YAML Spec
+                </a>
+            </div>
+
+            <div class="code-preview" data-animate="slide-up" data-parallax data-depth="0.05">
+                <div class="code-header">
+                    <div class="code-dots">
+                        <div class="code-dot red"></div>
+                        <div class="code-dot yellow"></div>
+                        <div class="code-dot green"></div>
+                    </div>
+                    <div class="code-title">Example API Request</div>
+                    <div style="width: 60px;"></div>
+                </div>
+                <div class="code-content">
+                    <span class="token-comment">// Fetch available booking slots</span><br>
+                    <span class="token-method">GET</span> <span class="token-url">https://api.queueme.net/api/v1/slots?</span><span class="token-key">serviceId</span><span>=</span><span class="token-value">123</span>&<span class="token-key">date</span><span>=</span><span class="token-value">2025-06-15</span><br><br>
+                    <span class="token-comment">// Response</span><br>
+                    {<br>
+                    &nbsp;&nbsp;<span class="token-key">"slots"</span>: [<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-key">"id"</span>: <span class="token-value">"slot_1a2b3c"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-key">"startTime"</span>: <span class="token-value">"09:00"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-key">"endTime"</span>: <span class="token-value">"09:30"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-key">"status"</span>: <span class="token-value">"available"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;},<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-key">"id"</span>: <span class="token-value">"slot_4d5e6f"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-key">"startTime"</span>: <span class="token-value">"10:00"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-key">"endTime"</span>: <span class="token-value">"10:30"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-key">"status"</span>: <span class="token-value">"available"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                    &nbsp;&nbsp;]<br>
+                    }<span class="code-cursor"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="features-bg"></div>
+        <h2 class="section-title" data-animate="fade-in" data-3d-text>API Features</h2>
+        <p class="section-description" data-animate="slide-up">Designed with developers in mind, our API offers a comprehensive set of features to build robust queue management and booking applications.</p>
+
+        <div class="features-grid">
+            <div class="feature-card" data-animate="slide-up" data-delay="0">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="feature-title">Lightning Fast</h3>
+                <p class="feature-description">
+                    Our API endpoints are optimized for performance, ensuring quick response times even under heavy loads.
+                </p>
+                <a href="{% url 'api-guide' %}#performance" class="btn btn-outline">Learn More</a>
+            </div>
+
+            <div class="feature-card" data-animate="slide-up" data-delay="0.1">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">Secure by Design</h3>
+                <p class="feature-description">
+                    Built with security in mind, featuring JWT authentication, rate limiting, and role-based access controls.
+                </p>
+                <a href="{% url 'api-guide' %}#security" class="btn btn-outline">Learn More</a>
+            </div>
+
+            <div class="feature-card" data-animate="slide-up" data-delay="0.2">
+                <div class="feature-icon">
+                    <i class="fas fa-puzzle-piece"></i>
+                </div>
+                <h3 class="feature-title">Flexible Integration</h3>
+                <p class="feature-description">
+                    Easily integrate with your existing systems using our comprehensive SDKs and webhooks.
+                </p>
+                <a href="{% url 'developer-portal' %}" class="btn btn-outline">View SDKs</a>
+            </div>
+
+            <div class="feature-card" data-animate="slide-up" data-delay="0.3">
+                <div class="feature-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3 class="feature-title">Global Ready</h3>
+                <p class="feature-description">
+                    Full support for internationalization, with timezone-aware scheduling and multi-language capabilities.
+                </p>
+                <a href="{% url 'api-guide' %}#i18n" class="btn btn-outline">Learn More</a>
+            </div>
+
+            <div class="feature-card" data-animate="slide-up" data-delay="0.4">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="feature-title">Comprehensive Analytics</h3>
+                <p class="feature-description">
+                    Gain insights into your booking patterns with our powerful analytics endpoints.
+                </p>
+                <a href="{% url 'swagger-ui' %}#tag/analytics" class="btn btn-outline">View Endpoints</a>
+            </div>
+
+            <div class="feature-card" data-animate="slide-up" data-delay="0.5">
+                <div class="feature-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3 class="feature-title">Real-time Notifications</h3>
+                <p class="feature-description">
+                    Keep users informed with real-time notifications across multiple channels.
+                </p>
+                <a href="{% url 'swagger-ui' %}#tag/notifications" class="btn btn-outline">View Endpoints</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Interfaces Section -->
+    <section class="interfaces-section">
+        <div class="interfaces-bg-shape"></div>
+        <h2 class="section-title" data-animate="fade-in" data-3d-text>API Documentation Interfaces</h2>
+        <p class="section-description" data-animate="slide-up">Choose the documentation interface that best suits your needs and workflow.</p>
+
+        <div class="interfaces-grid">
+            <div class="interface-card" data-animate="slide-up" data-delay="0">
+                <div class="interface-image swagger-image">
+                    <i class="fas fa-code"></i>
+                </div>
+                <div class="interface-content">
+                    <h3 class="interface-title">Swagger UI</h3>
+                    <p class="interface-description">
+                        Interactive documentation that allows you to try out API endpoints directly from your browser. Perfect for development and testing.
+                    </p>
+                    <a href="{% url 'swagger-ui' %}" class="btn btn-primary">
+                        Open Swagger UI
+                    </a>
+                </div>
+            </div>
+
+            <div class="interface-card" data-animate="slide-up" data-delay="0.2">
+                <div class="interface-image redoc-image">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div class="interface-content">
+                    <h3 class="interface-title">ReDoc</h3>
+                    <p class="interface-description">
+                        Clean, responsive documentation with a three-panel design for easy navigation and reference. Ideal for exploring the API structure.
+                    </p>
+                    <a href="{% url 'redoc-ui' %}" class="btn btn-primary">
+                        Open ReDoc
+                    </a>
+                </div>
+            </div>
+
+            <div class="interface-card" data-animate="slide-up" data-delay="0.4">
+                <div class="interface-image guide-image">
+                    <i class="fas fa-map"></i>
+                </div>
+                <div class="interface-content">
+                    <h3 class="interface-title">API Guide</h3>
+                    <p class="interface-description">
+                        Comprehensive guide with examples, best practices, and tutorials to help you integrate with our API quickly and efficiently.
+                    </p>
+                    <a href="{% url 'api-guide' %}" class="btn btn-primary">
+                        Read API Guide
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section parallax-container">
+        <div class="floating-code-container" id="floating-code-container"></div>
+        <div class="cta-content">
+            <h2 class="cta-title" data-animate="fade-in" data-parallax data-depth="0.2">Ready to Get Started?</h2>
+            <p class="cta-description" data-animate="slide-up" data-parallax data-depth="0.1">Create a developer account to get your API keys and start building your queue management application today.</p>
+            <div data-animate="slide-up">
+                <a href="{% url 'developer-portal' %}" class="btn btn-light">
+                    <i class="fas fa-rocket"></i>
+                    Developer Portal
+                </a>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        // Create enhanced floating code snippets for the CTA section
+        function createFloatingCode() {
+            const container = document.getElementById('floating-code-container');
+            const codeSnippets = [
+                "GET /api/v1/shops",
+                "POST /api/v1/bookings",
+                "const booking = await api.createBooking(params);",
+                "curl -X GET \"https://api.queueme.net/api/v1/slots\"",
+                "res = requests.get('https://api.queueme.net/api/v1/services')",
+                "await queueme.sendNotification(user_id, message);",
+                "function bookAppointment() { ... }",
+                "const slots = await api.getAvailableSlots(serviceId, date);",
+                "class QueueService implements IQueueService { ... }",
+                "from queueme import QueueMeClient",
+                "import QueueMeSDK from 'queueme-sdk';",
+                "$client = new QueueMeClient($apiKey);",
+                "interface BookingResponse { id: string; status: string; }",
+                "public async Task<IActionResult> GetQueue(int queueId)",
+                "def process_booking(booking_id, status):",
+                "<QueueItem status=\"waiting\" position={3} />",
+                "@bookings = Booking.where(service_id: params[:id])"
+            ];
+
+            // Clear existing code snippets
+            container.innerHTML = '';
+
+            // Reduce the number of elements for better performance
+            const elementCount = window.innerWidth < 768 ? 8 : 15;
+
+            // Create code snippets with varying sizes, positions, and animations
+            for (let i = 0; i < elementCount; i++) {
+                const snippet = document.createElement('div');
+                snippet.className = 'floating-code';
+
+                // Random snippet content
+                const snippetText = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+                snippet.textContent = snippetText;
+
+                // Random position and animation
+                const left = Math.random() * 100;
+                snippet.style.left = `${left}%`;
+
+                // Random delay (0-15s)
+                const delay = Math.random() * 15;
+                snippet.style.animationDelay = `${delay}s`;
+
+                // Random duration (20-40s)
+                const duration = Math.random() * 20 + 20;
+                snippet.style.animationDuration = `${duration}s`;
+
+                // Random depth (z-index) - reduce the range
+                const depth = Math.floor(Math.random() * 20);
+                snippet.style.transform = `translateZ(${depth}px)`;
+
+                // Random size
+                const size = Math.random() * 0.3 + 0.7;
+                snippet.style.fontSize = `${size}rem`;
+
+                // Random opacity
+                const opacity = Math.random() * 0.5 + 0.5;
+                snippet.style.opacity = opacity;
+
+                // Add will-change for better performance
+                snippet.style.willChange = 'transform, opacity';
+
+                // Add to container
+                container.appendChild(snippet);
+            }
+        }
+
+        // Initialize floating code and other effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create floating code snippets
+            createFloatingCode();
+
+            // Implement typewriter effect for code cursor
+            const codeCursor = document.querySelector('.code-cursor');
+            if (codeCursor) {
+                let visible = true;
+                setInterval(() => {
+                    visible = !visible;
+                    codeCursor.style.opacity = visible ? 1 : 0;
+                }, 600);
+            }
+
+            // Apply 3D parallax effect on mouse move with improved throttling
+            const parallaxContainers = document.querySelectorAll('.parallax-container');
+
+            // Improved throttle function
+            function throttle(func, limit) {
+                let lastRan;
+                return function() {
+                    const args = arguments;
+                    const context = this;
+                    if (!lastRan || (Date.now() - lastRan) >= limit) {
+                        func.apply(context, args);
+                        lastRan = Date.now();
+                    }
+                };
+            }
+
+            // Apply optimized parallax effect
+            parallaxContainers.forEach(container => {
+                const parallaxElements = container.querySelectorAll('[data-parallax]');
+
+                // Skip effect on low-powered devices
+                if (isLowPoweredDevice()) {
+                    return;
+                }
+
+                // Use requestAnimationFrame and throttling for smoother performance
+                let ticking = false;
+                let lastMouseX = 0;
+                let lastMouseY = 0;
+
+                const handleMouseMove = (e) => {
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            const rect = container.getBoundingClientRect();
+                            const offsetX = lastMouseX - rect.left - rect.width / 2;
+                            const offsetY = lastMouseY - rect.top - rect.height / 2;
+
+                            // Apply parallax to each element based on depth
+                            parallaxElements.forEach(element => {
+                                const depth = parseFloat(element.getAttribute('data-depth')) || 0.1;
+                                // Reduce the movement amount for smoother effect
+                                const moveX = offsetX * depth * -0.3;
+                                const moveY = offsetY * depth * -0.3;
+
+                                // Use translate3d for hardware acceleration
+                                element.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+                            });
+
+                            ticking = false;
+                        });
+
+                        ticking = true;
+                    }
+                };
+
+                // Throttle the mousemove event
+                container.addEventListener('mousemove', throttle(handleMouseMove, 16));
+
+                // Reset positions when mouse leaves
+                container.addEventListener('mouseleave', () => {
+                    // Use requestAnimationFrame for smoother transitions
+                    window.requestAnimationFrame(() => {
+                        parallaxElements.forEach(element => {
+                            element.style.transform = 'translate3d(0, 0, 0)';
+                        });
+                    });
+                });
+            });
+
+            // Check if device is low-powered (mobile/tablet)
+            function isLowPoweredDevice() {
+                return window.innerWidth < 768 ||
+                       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            }
+
+            // Apply optimized card animations based on device capability
+            if (isLowPoweredDevice()) {
+                // Simpler animations for low-powered devices
+                document.querySelectorAll('.feature-card, .interface-card').forEach(card => {
+                    card.style.transform = 'none';
+                    card.style.transition = 'box-shadow 0.3s ease, transform 0.3s ease';
+
+                    card.addEventListener('mouseenter', function() {
+                        this.style.transform = 'translateY(-5px)';
+                        this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
+                    });
+
+                    card.addEventListener('mouseleave', function() {
+                        this.style.transform = 'none';
+                        this.style.boxShadow = '';
+                    });
+                });
+
+                // Disable 3D effects on hero heading
+                const heroHeading = document.querySelector('.hero-heading');
+                if (heroHeading) {
+                    heroHeading.style.animation = 'none';
+                    heroHeading.style.transform = 'none';
+                }
+
+                // Reduce floating elements
+                const floatingElements = document.querySelectorAll('.floating-code');
+                for (let i = 0; i < floatingElements.length; i++) {
+                    if (i % 2 === 0) {
+                        floatingElements[i].style.display = 'none';
+                    }
+                }
+            } else {
+                // Optimized card effect system for powerful devices
+
+                // Pre-calculate CSS transforms for better performance
+                const transformCache = {};
+
+                // Prepare feature cards with optimized 3D effect
+                document.querySelectorAll('.feature-card').forEach(card => {
+                    // Create lookup tables for transforms to avoid recalculating during mousemove
+                    const rotationSteps = 10; // Number of rotation steps to pre-calculate
+                    for (let i = 0; i < rotationSteps; i++) {
+                        for (let j = 0; j < rotationSteps; j++) {
+                            const rotateX = (i - rotationSteps/2) / (rotationSteps/2) * 5; // -5 to 5 degrees
+                            const rotateY = (j - rotationSteps/2) / (rotationSteps/2) * 5; // -5 to 5 degrees
+                            const key = `${i}-${j}`;
+                            transformCache[key] = `translateY(-15px) translate3d(0,0,30px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`;
+                        }
+                    }
+
+                    // Add optimized listener
+                    card.addEventListener('mousemove', throttle(function(e) {
+                        const rect = this.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+
+                        // Map to discrete steps for using cached transforms
+                        const xStep = Math.floor((x / rect.width) * rotationSteps);
+                        const yStep = Math.floor((y / rect.height) * rotationSteps);
+                        const key = `${Math.min(Math.max(yStep, 0), rotationSteps-1)}-${Math.min(Math.max(xStep, 0), rotationSteps-1)}`;
+
+                        // Apply the pre-calculated transform
+                        requestAnimationFrame(() => {
+                            this.style.transform = transformCache[key];
+                        });
+                    }, 16));
+
+                    card.addEventListener('mouseleave', function() {
+                        requestAnimationFrame(() => {
+                            this.style.transform = 'translateZ(0)';
+                        });
+                    });
+                });
+
+                // Prepare interface cards with optimized 3D effect
+                document.querySelectorAll('.interface-card').forEach(card => {
+                    card.addEventListener('mousemove', throttle(function(e) {
+                        const rect = this.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+
+                        // Compute simplified rotation angles with limits to prevent extreme values
+                        const rotateX = Math.max(Math.min((y - centerY) / 40, 4), -4); // Limit to ±4 degrees
+                        const rotateY = Math.max(Math.min((centerX - x) / 40, 4), -4); // Limit to ±4 degrees
+
+                        requestAnimationFrame(() => {
+                            this.style.transform = `translateY(-15px) translate3d(0,0,0) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                        });
+                    }, 16));
+
+                    card.addEventListener('mouseleave', function() {
+                        requestAnimationFrame(() => {
+                            this.style.transform = 'translateY(0) rotateX(0deg) rotateY(0deg)';
+                        });
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}

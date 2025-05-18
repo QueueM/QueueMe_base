@@ -1,0 +1,18 @@
+[Unit]
+Description=QueueMe Django Application
+After=network.target postgresql.service redis-server.service
+Wants=postgresql.service redis-server.service
+
+[Service]
+User=arise
+Group=arise
+WorkingDirectory=/home/arise/queueme
+Environment="PATH=/home/arise/queueme/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="DJANGO_SETTINGS_MODULE=queueme.settings.production"
+ExecStart=/bin/bash -c 'source /home/arise/queueme/production_env.sh && /home/arise/queueme/venv/bin/gunicorn queueme.wsgi:application --workers 4 --bind 127.0.0.1:8000'
+Restart=on-failure
+RestartSec=5
+SyslogIdentifier=queueme
+
+[Install]
+WantedBy=multi-user.target

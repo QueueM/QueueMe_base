@@ -1,0 +1,6 @@
+{
+  "exclude": ["**/apps/queueMeAdminApp"],
+  "ignore": ["**/apps/queueMeAdminApp"],
+  "reportMissingImports": "none",
+  "reportGeneralTypeIssues": "none"
+}

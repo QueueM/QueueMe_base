@@ -1,0 +1,139 @@
+server {
+    listen 80;
+    server_name api.queueme.net;
+
+    # Redirect all HTTP requests to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+
+    # Let's Encrypt verification
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name api.queueme.net;
+
+    # SSL configuration
+    ssl_certificate /etc/letsencrypt/live/api.queueme.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.queueme.net/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(self), interest-cohort=()" always;
+    add_header Access-Control-Allow-Origin "https://queueme.net https://shop.queueme.net https://admin.queueme.net" always;
+    add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization" always;
+
+    # Content Security Policy for documentation (more permissive)
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.amazonaws.com; connect-src 'self' https://*.amazonaws.com" always;
+
+    # Static files
+    location /static/ {
+        alias /opt/queueme/staticfiles/;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000";
+        access_log off;
+    }
+
+    # API rate limiting zones
+    limit_req_zone $binary_remote_addr zone=api_standard:10m rate=10r/s;
+    limit_req_zone $binary_remote_addr zone=api_strict:10m rate=3r/s;
+    limit_req_zone $binary_remote_addr zone=api_docs:10m rate=30r/s;
+
+    # API documentation - less restrictive rate limit
+    location ~ ^/(swagger|redoc|api/docs|api/schema) {
+        limit_req zone=api_docs burst=20 nodelay;
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-QueueMe-Interface "api";
+
+        # Documentation pages may take longer to load
+        proxy_read_timeout 120s;
+    }
+
+    # Authentication endpoints - stricter rate limits
+    location ~ ^/api/(auth|login|token) {
+        limit_req zone=api_strict burst=5 nodelay;
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-QueueMe-Interface "api";
+    }
+
+    # Health check endpoint - no rate limiting
+    location /api/health/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-QueueMe-Interface "api";
+    }
+
+    # Handle all other API requests
+    location /api/ {
+        limit_req zone=api_standard burst=15 nodelay;
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-QueueMe-Interface "api";
+
+        # Handle CORS preflight requests
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' 'https://queueme.net https://shop.queueme.net https://admin.queueme.net' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization' always;
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+    }
+
+    # Default to API docs for root path
+    location = / {
+        return 301 /api/docs/;
+    }
+
+    # Error pages
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+    error_page 429 /429.html;
+
+    location = /404.html {
+        root /opt/queueme/staticfiles/errors;
+    }
+
+    location = /50x.html {
+        root /opt/queueme/staticfiles/errors;
+    }
+
+    location = /429.html {
+        root /opt/queueme/staticfiles/errors;
+        add_header Retry-After 30;
+    }
+
+    # Disable access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+}

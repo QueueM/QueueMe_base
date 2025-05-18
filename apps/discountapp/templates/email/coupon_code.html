@@ -1,0 +1,118 @@
+<!-- apps/discountapp/templates/email/coupon_code.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Your Coupon Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #777;
+        }
+        .coupon-code {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            padding: 15px;
+            text-align: center;
+            border: 2px dashed #4CAF50;
+            background-color: white;
+            margin: 20px 0;
+        }
+        .discount-details {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 20px 0;
+            background-color: white;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white !important;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Special Coupon</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{ customer.first_name|default:"Valued Customer" }},</p>
+
+            <p>Thank you for choosing {{ coupon.shop.name }}. We're pleased to offer you a special discount!</p>
+
+            <div class="coupon-code">
+                {{ coupon.code }}
+            </div>
+
+            <div class="discount-details">
+                <h3>{{ coupon.name }}</h3>
+                <p>{{ coupon.description }}</p>
+
+                <p><strong>Discount:</strong>
+                {% if coupon.discount_type == 'percentage' %}
+                {{ coupon.value }}% off
+                {% else %}
+                {{ coupon.value }} SAR off
+                {% endif %}
+                </p>
+
+                {% if coupon.min_purchase_amount > 0 %}
+                <p><strong>Minimum Purchase:</strong> {{ coupon.min_purchase_amount }} SAR</p>
+                {% endif %}
+
+                <p><strong>Valid Until:</strong> {{ coupon.end_date|date:"F j, Y" }}</p>
+
+                {% if coupon.usage_limit == 1 %}
+                <p><em>This coupon can only be used once.</em></p>
+                {% elif coupon.usage_limit > 1 %}
+                <p><em>This coupon can be used up to {{ coupon.usage_limit }} times.</em></p>
+                {% endif %}
+
+                {% if not coupon.apply_to_all_services %}
+                <p><em>Valid for selected services only.</em></p>
+                {% endif %}
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{ shop_url }}" class="cta-button">Use Coupon Now</a>
+            </div>
+
+            <p>We look forward to serving you!</p>
+        </div>
+        <div class="footer">
+            <p>This email was sent to {{ customer.email }}.</p>
+            <p>&copy; {{ current_year }} {{ coupon.shop.name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

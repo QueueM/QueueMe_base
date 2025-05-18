@@ -1,0 +1,1011 @@
+{% extends "api_docs/base.html" %}
+
+{% block title %}QueueMe API - Developer Support{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Main content styles */
+        .support-container {
+            margin-top: 60px;
+            min-height: calc(100vh - 60px - 350px);
+        }
+
+        /* Header styles */
+        .support-header {
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            color: white;
+            padding: 5rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .support-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 150%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .support-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .support-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .support-header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        /* Support options */
+        .support-options {
+            padding: 5rem 0;
+            background-color: var(--background-color);
+        }
+
+        .options-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .options-heading {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .options-heading h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--quaternary);
+        }
+
+        .options-heading p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        [data-theme="dark"] .options-heading p {
+            color: var(--gray-400);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .option-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-card-header {
+            background: linear-gradient(to right, var(--quaternary), var(--tertiary));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .option-card-header::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 6px;
+            background: linear-gradient(to right, var(--quaternary), var(--tertiary));
+        }
+
+        .option-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .option-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .option-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .option-card-body {
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-description {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: var(--gray-600);
+            flex: 1;
+        }
+
+        [data-theme="dark"] .option-description {
+            color: var(--gray-400);
+        }
+
+        .option-features {
+            margin: 1.5rem 0;
+        }
+
+        .option-feature {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .option-feature i {
+            color: var(--quaternary);
+            margin-right: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .option-feature-text {
+            font-size: 0.9375rem;
+            color: var(--gray-700);
+        }
+
+        [data-theme="dark"] .option-feature-text {
+            color: var(--gray-300);
+        }
+
+        .option-card-footer {
+            padding: 0 2rem 2rem;
+        }
+
+        /* Contact form */
+        .contact-section {
+            padding: 5rem 0;
+            background-color: var(--gray-50);
+        }
+
+        [data-theme="dark"] .contact-section {
+            background-color: rgba(15, 23, 42, 0.5);
+        }
+
+        .contact-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .contact-heading {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .contact-heading h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--tertiary);
+        }
+
+        .contact-heading p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        [data-theme="dark"] .contact-heading p {
+            color: var(--gray-400);
+        }
+
+        .contact-box {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-top: 3rem;
+        }
+
+        .contact-box-inner {
+            padding: 3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--tertiary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .contact-submit {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        /* FAQ section */
+        .faq-section {
+            padding: 5rem 0;
+            background-color: var(--background-color);
+        }
+
+        .faq-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .faq-heading {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .faq-heading h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--tertiary);
+        }
+
+        .faq-heading p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        [data-theme="dark"] .faq-heading p {
+            color: var(--gray-400);
+        }
+
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background-color: var(--card-background);
+            transition: box-shadow 0.3s;
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .faq-question {
+            padding: 1.25rem 1.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+
+        .faq-question:hover {
+            background-color: rgba(139, 92, 246, 0.05);
+        }
+
+        .faq-question:after {
+            content: '\f107';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            color: var(--tertiary);
+            transition: transform 0.2s;
+        }
+
+        .faq-item.active .faq-question:after {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem;
+            height: 0;
+            overflow: hidden;
+            transition: height 0.3s ease;
+        }
+
+        .faq-answer-inner {
+            padding: 0 0 1.5rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        [data-theme="dark"] .faq-answer-inner {
+            color: var(--gray-400);
+        }
+
+        .faq-item.active .faq-answer {
+            height: auto;
+        }
+
+        /* Resources section */
+        .resources-section {
+            padding: 5rem 0;
+            background-color: var(--gray-50);
+        }
+
+        [data-theme="dark"] .resources-section {
+            background-color: rgba(15, 23, 42, 0.5);
+        }
+
+        .resources-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .resources-heading {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .resources-heading h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--quaternary);
+        }
+
+        .resources-heading p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        [data-theme="dark"] .resources-heading p {
+            color: var(--gray-400);
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .resource-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .resource-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--quaternary), var(--tertiary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .resource-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
+        }
+
+        .resource-description {
+            flex: 1;
+            font-size: 0.9375rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        [data-theme="dark"] .resource-description {
+            color: var(--gray-400);
+        }
+
+        /* Responsive styles */
+        @media (max-width: 1024px) {
+            .support-header h1,
+            .options-heading h2,
+            .contact-heading h2,
+            .faq-heading h2,
+            .resources-heading h2 {
+                font-size: 2.25rem;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .support-header {
+                padding: 4rem 0;
+            }
+
+            .support-header h1 {
+                font-size: 2rem;
+            }
+
+            .support-header p,
+            .options-heading p,
+            .contact-heading p,
+            .faq-heading p,
+            .resources-heading p {
+                font-size: 1rem;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-box-inner {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .support-header h1,
+            .options-heading h2,
+            .contact-heading h2,
+            .faq-heading h2,
+            .resources-heading h2 {
+                font-size: 1.75rem;
+            }
+
+            .option-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.75rem;
+            }
+
+            .option-title {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="support-container">
+        <!-- Header -->
+        <div class="support-header">
+            <div class="support-header-content">
+                <h1 data-animate="fade-in">Developer Support</h1>
+                <p data-animate="slide-up">Get help with QueueMe API integration and resolve any issues you encounter</p>
+                <div data-animate="slide-up">
+                    <a href="#contact" class="btn btn-light">
+                        <i class="fas fa-headset"></i>
+                        Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Options -->
+        <section class="support-options">
+            <div class="options-container">
+                <div class="options-heading">
+                    <h2 data-animate="fade-in">How Can We Help?</h2>
+                    <p data-animate="slide-up">Choose the support option that best meets your needs</p>
+                </div>
+
+                <div class="options-grid">
+                    <div class="option-card" data-animate="slide-up">
+                        <div class="option-card-header">
+                            <div class="option-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h3 class="option-title">Email Support</h3>
+                            <p class="option-subtitle">Response within 24 hours</p>
+                        </div>
+                        <div class="option-card-body">
+                            <p class="option-description">
+                                Our dedicated support team will respond to your email inquiries within 24 hours during business days. Perfect for non-urgent questions and detailed technical issues.
+                            </p>
+                            <div class="option-features">
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Detailed technical assistance</span>
+                                </div>
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Code sample reviews</span>
+                                </div>
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Integration guidance</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="option-card-footer">
+                            <a href="mailto:api-support@queueme.net" class="btn btn-outline">
+                                <i class="fas fa-envelope"></i>
+                                Email Support
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="option-card" data-animate="slide-up">
+                        <div class="option-card-header">
+                            <div class="option-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <h3 class="option-title">Live Chat</h3>
+                            <p class="option-subtitle">Available 9am-5pm GMT</p>
+                        </div>
+                        <div class="option-card-body">
+                            <p class="option-description">
+                                Get real-time assistance from our developer support team through live chat. Available during business hours for quick questions and troubleshooting.
+                            </p>
+                            <div class="option-features">
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Instant responses</span>
+                                </div>
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Quick troubleshooting</span>
+                                </div>
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Screen sharing capability</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="option-card-footer">
+                            <a href="https://queueme.net/chat" class="btn btn-outline">
+                                <i class="fas fa-comments"></i>
+                                Start Chat
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="option-card" data-animate="slide-up">
+                        <div class="option-card-header">
+                            <div class="option-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="option-title">Developer Community</h3>
+                            <p class="option-subtitle">Connect with other developers</p>
+                        </div>
+                        <div class="option-card-body">
+                            <p class="option-description">
+                                Join our developer community to interact with other QueueMe developers, share code, ask questions, and get advice on best practices and solutions.
+                            </p>
+                            <div class="option-features">
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Developer forums</span>
+                                </div>
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Code sharing</span>
+                                </div>
+                                <div class="option-feature">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="option-feature-text">Integration showcases</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="option-card-footer">
+                            <a href="https://community.queueme.net" class="btn btn-outline">
+                                <i class="fas fa-users"></i>
+                                Join Community
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Form -->
+        <section class="contact-section" id="contact">
+            <div class="contact-container">
+                <div class="contact-heading">
+                    <h2 data-animate="fade-in">Contact Developer Support</h2>
+                    <p data-animate="slide-up">We're here to help you with any questions or issues you may have with the QueueMe API</p>
+                </div>
+
+                <div class="contact-box" data-animate="slide-up">
+                    <div class="contact-box-inner">
+                        <form id="support-form">
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="name" class="form-label">Your Name</label>
+                                        <input type="text" id="name" class="form-control" placeholder="John Doe" required>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="email" class="form-label">Email Address</label>
+                                        <input type="email" id="email" class="form-control" placeholder="john@example.com" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" id="subject" class="form-control" placeholder="API Integration Issue" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="category" class="form-label">Issue Category</label>
+                                <select id="category" class="form-control" required>
+                                    <option value="">Please select...</option>
+                                    <option value="authentication">Authentication</option>
+                                    <option value="endpoints">API Endpoints</option>
+                                    <option value="performance">Performance</option>
+                                    <option value="billing">Billing</option>
+                                    <option value="feature-request">Feature Request</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea id="message" class="form-control" rows="5" placeholder="Please describe your issue in detail..." required></textarea>
+                            </div>
+
+                            <div class="contact-submit">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Submit Request
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <div class="faq-container">
+                <div class="faq-heading">
+                    <h2 data-animate="fade-in">Frequently Asked Questions</h2>
+                    <p data-animate="slide-up">Find quick answers to common questions about the QueueMe API</p>
+                </div>
+
+                <div class="faq-list" data-animate="slide-up">
+                    <div class="faq-item">
+                        <div class="faq-question">How do I get API credentials?</div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                To get API credentials, you need to register for a QueueMe developer account at <a href="https://queueme.net/developers">queueme.net/developers</a>. Once registered, you can create API keys from your developer dashboard.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">What are the rate limits for the API?</div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Rate limits vary by endpoint and subscription tier. The standard tier allows 100 requests per minute. Enterprise tiers have higher limits. Rate limit information is returned in the headers of each API response with X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset headers.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">How do I report a bug in the API?</div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                You can report bugs by submitting a detailed bug report through the contact form on this page or by emailing api-bugs@queueme.net. Please include steps to reproduce, expected vs. actual behavior, and any error messages or response codes you received.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Is there a sandbox environment for testing?</div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Yes, we provide a sandbox environment for testing your integration. The sandbox environment is available at https://sandbox-api.queueme.net and simulates all API endpoints with test data. You can obtain sandbox API keys from your developer dashboard.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">What format should dates be in for API requests?</div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                All dates should be formatted as ISO 8601 strings (YYYY-MM-DDTHH:MM:SSZ). For date-only fields, you can use the simplified format YYYY-MM-DD. All times are in UTC unless otherwise specified.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">How do I handle pagination for large result sets?</div>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Our API uses cursor-based pagination for large result sets. Responses include a <code>pagination</code> object with <code>next_cursor</code> and <code>previous_cursor</code> fields. To get the next page, include the <code>cursor</code> parameter in your request with the value of <code>next_cursor</code> from the previous response.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section class="resources-section">
+            <div class="resources-container">
+                <div class="resources-heading">
+                    <h2 data-animate="fade-in">Support Resources</h2>
+                    <p data-animate="slide-up">Additional resources to help you integrate with the QueueMe API</p>
+                </div>
+
+                <div class="resources-grid">
+                    <div class="resource-card" data-animate="slide-up">
+                        <div class="resource-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3 class="resource-title">API Documentation</h3>
+                        <p class="resource-description">
+                            Comprehensive documentation of all API endpoints, parameters, and response formats.
+                        </p>
+                        <a href="{% url 'api-docs' %}" class="btn btn-outline">
+                            <i class="fas fa-external-link-alt"></i>
+                            View Documentation
+                        </a>
+                    </div>
+
+                    <div class="resource-card" data-animate="slide-up">
+                        <div class="resource-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3 class="resource-title">Code Examples</h3>
+                        <p class="resource-description">
+                            Sample code for common API operations in multiple programming languages.
+                        </p>
+                        <a href="https://github.com/queueme/examples" class="btn btn-outline">
+                            <i class="fas fa-external-link-alt"></i>
+                            View Examples
+                        </a>
+                    </div>
+
+                    <div class="resource-card" data-animate="slide-up">
+                        <div class="resource-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3 class="resource-title">Video Tutorials</h3>
+                        <p class="resource-description">
+                            Step-by-step video tutorials on implementing QueueMe features.
+                        </p>
+                        <a href="https://youtube.com/queueme" class="btn btn-outline">
+                            <i class="fas fa-external-link-alt"></i>
+                            Watch Tutorials
+                        </a>
+                    </div>
+
+                    <div class="resource-card" data-animate="slide-up">
+                        <div class="resource-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h3 class="resource-title">Webinars</h3>
+                        <p class="resource-description">
+                            Attend live webinars hosted by our developer advocates with Q&A sessions.
+                        </p>
+                        <a href="https://queueme.net/webinars" class="btn btn-outline">
+                            <i class="fas fa-external-link-alt"></i>
+                            Register for Webinars
+                        </a>
+                    </div>
+
+                    <div class="resource-card" data-animate="slide-up">
+                        <div class="resource-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3 class="resource-title">API Tools</h3>
+                        <p class="resource-description">
+                            Useful development tools, SDKs, and utilities for working with QueueMe API.
+                        </p>
+                        <a href="https://queueme.net/tools" class="btn btn-outline">
+                            <i class="fas fa-external-link-alt"></i>
+                            Explore Tools
+                        </a>
+                    </div>
+
+                    <div class="resource-card" data-animate="slide-up">
+                        <div class="resource-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="resource-title">Status Page</h3>
+                        <p class="resource-description">
+                            Check the current status and uptime of all QueueMe API services.
+                        </p>
+                        <a href="https://status.queueme.net" class="btn btn-outline">
+                            <i class="fas fa-external-link-alt"></i>
+                            View Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // FAQ accordion functionality
+            const faqQuestions = document.querySelectorAll('.faq-question');
+
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', () => {
+                    const faqItem = question.parentElement;
+                    const answer = question.nextElementSibling;
+                    const answerHeight = answer.querySelector('.faq-answer-inner').offsetHeight;
+
+                    // Close all other questions
+                    faqQuestions.forEach(q => {
+                        if (q !== question) {
+                            q.parentElement.classList.remove('active');
+                            q.nextElementSibling.style.height = '0';
+                        }
+                    });
+
+                    // Toggle current question
+                    if (faqItem.classList.contains('active')) {
+                        faqItem.classList.remove('active');
+                        answer.style.height = '0';
+                    } else {
+                        faqItem.classList.add('active');
+                        answer.style.height = answerHeight + 'px';
+                    }
+                });
+            });
+
+            // Support form submission
+            const supportForm = document.getElementById('support-form');
+
+            supportForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Simple validation
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const subject = document.getElementById('subject').value;
+                const message = document.getElementById('message').value;
+
+                if (!name || !email || !subject || !message) {
+                    showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                // Simulated form submission
+                showToast('Support request submitted successfully!');
+
+                // Reset form
+                supportForm.reset();
+            });
+
+            // Open first FAQ by default
+            if (faqQuestions.length > 0) {
+                const firstQuestion = faqQuestions[0];
+                const firstAnswer = firstQuestion.nextElementSibling;
+                const firstAnswerHeight = firstAnswer.querySelector('.faq-answer-inner').offsetHeight;
+
+                firstQuestion.parentElement.classList.add('active');
+                firstAnswer.style.height = firstAnswerHeight + 'px';
+            }
+
+            // Smooth scroll to contact form when clicking the contact button
+            const contactButton = document.querySelector('a[href="#contact"]');
+
+            if (contactButton) {
+                contactButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const contactSection = document.getElementById('contact');
+
+                    if (contactSection) {
+                        window.scrollTo({
+                            top: contactSection.offsetTop,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

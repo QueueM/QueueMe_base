@@ -1,0 +1,11 @@
+# Pylance cache refresh
+
+[MASTER]
+# Cache clear trigger timestamp: $(date +%s)
+ignore=apps/queueMeAdminApp
+
+[MESSAGES CONTROL]
+disable=import-error
+
+[TYPECHECK]
+ignored-modules=apps.queueMeAdminApp

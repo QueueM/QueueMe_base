@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Page Not Found" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12">
+    <div class="max-w-md w-full space-y-8 text-center">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                {% if LANGUAGE_CODE == 'ar' %}
+                404 - الصفحة غير موجودة
+                {% else %}
+                404 - Page Not Found
+                {% endif %}
+            </h2>
+            <img src="{% static 'img/404.svg' %}" alt="404" class="mx-auto h-64 my-8">
+            <p class="mt-2 text-center text-md text-gray-600">
+                {% if LANGUAGE_CODE == 'ar' %}
+                عذراً، الصفحة التي تبحث عنها غير موجودة.
+                {% else %}
+                Sorry, the page you're looking for doesn't exist.
+                {% endif %}
+            </p>
+        </div>
+        <div class="mt-8 space-y-6">
+            <div>
+                <a href="{% url 'home' %}" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {% if LANGUAGE_CODE == 'ar' %}
+                    العودة إلى الصفحة الرئيسية
+                    {% else %}
+                    Return to Home Page
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+groups:
+  - name: queueme_alerts
+    rules:
+      # API availability alerts
+      - alert: APIHighErrorRate
+        expr: sum(rate(queueme_api_requests_total{status=~"5.."}[5m])) by (endpoint) / sum(rate(queueme_api_requests_total[5m])) by (endpoint) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "High error rate on {{ $labels.endpoint }}"
+          description: "Error rate is {{ $value | humanizePercentage }} for the past 5 minutes (threshold: 5%)"
+
+      - alert: APIEndpointDown
+        expr: probe_success{job="api-probe"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "API endpoint {{ $labels.instance }} is down"
+          description: "The API endpoint has been down for more than 2 minutes"
+
+      - alert: APIHighLatency
+        expr: histogram_quantile(0.95, sum(rate(queueme_api_request_duration_seconds_bucket[5m])) by (le, endpoint)) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High latency on {{ $labels.endpoint }}"
+          description: "95th percentile of request duration is above 2 seconds for the past 5 minutes"
+
+      # Database alerts
+      - alert: DatabaseConnectionPoolExhausted
+        expr: queueme_db_connection_pool_size / max_over_time(queueme_db_connection_pool_size[1h]) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "Database {{ $labels.database }} connection pool is at {{ $value | humanizePercentage }} of maximum size"
+
+      - alert: SlowDatabaseQueries
+        expr: histogram_quantile(0.95, sum(rate(queueme_db_query_duration_seconds_bucket[5m])) by (le, query_type)) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "95th percentile of {{ $labels.query_type }} queries is above 1 second for the past 5 minutes"
+
+      - alert: PostgresHighConnections
+        expr: sum(pg_stat_activity_count) by (datname) > (sum(pg_settings_max_connections) * 0.8)
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL connections near limit"
+          description: "Database {{ $labels.datname }} connections at {{ $value | humanizePercentage }} of max capacity"
+
+      # Redis alerts
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is at {{ $value | humanizePercentage }} of maximum"
+
+      # Celery alerts
+      - alert: CeleryTaskFailureRate
+        expr: sum(rate(queueme_celery_task_executions_total{status="failure"}[5m])) by (task_name) / sum(rate(queueme_celery_task_executions_total[5m])) by (task_name) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: celery
+        annotations:
+          summary: "High failure rate for Celery task {{ $labels.task_name }}"
+          description: "Task failure rate is {{ $value | humanizePercentage }} for the past 5 minutes (threshold: 10%)"
+
+      - alert: CeleryQueueGrowing
+        expr: delta(queueme_celery_queue_size[10m]) > 100
+        for: 15m
+        labels:
+          severity: warning
+          service: celery
+        annotations:
+          summary: "Celery queue {{ $labels.queue_name }} is growing"
+          description: "Queue has grown by {{ $value }} tasks in the last 10 minutes"
+
+      # System alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 15m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} for the past 15 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 15m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage detected on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} for the past 15 minutes"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 85
+        for: 15m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}:{{ $labels.mountpoint }}"
+          description: "Disk usage is {{ $value | humanizePercentage }} for the past 15 minutes"
+
+      # Business alerts
+      - alert: HighQueueWaitTime
+        expr: histogram_quantile(0.95, sum(rate(queueme_queue_wait_time_seconds_bucket[30m])) by (le, shop_id)) > 1800
+        for: 15m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Long queue wait times detected for shop {{ $labels.shop_id }}"
+          description: "95th percentile of queue wait time is above 30 minutes"
+
+      - alert: PaymentFailureRateHigh
+        expr: sum(rate(queueme_payments_processed_total{status="failed"}[30m])) / sum(rate(queueme_payments_processed_total[30m])) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          service: payments
+        annotations:
+          summary: "High payment failure rate"
+          description: "Payment failure rate is {{ $value | humanizePercentage }} for the past 30 minutes (threshold: 10%)"
