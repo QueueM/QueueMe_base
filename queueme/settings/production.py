@@ -28,7 +28,7 @@ sys.modules["core.tasks.worker"] = dummy_worker
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -49,47 +49,30 @@ if os.environ.get("DB_REPLICAS_ENABLED", "False").lower() == "true":
     DATABASES = {
         "default": {
             "ENGINE": "django.contrib.gis.db.backends.postgis",
-            "NAME": os.environ.get("POSTGRES_DB", "postgres"),
-            "USER": os.environ.get("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "postgres"),
+            "NAME": os.environ.get("POSTGRES_DB", "queueme"),
+            "USER": os.environ.get("POSTGRES_USER", "queueme"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "Arisearise"),
             "HOST": os.environ.get("POSTGRES_HOST", "db"),
             "PORT": os.environ.get("POSTGRES_PORT", "5432"),
             "CONN_MAX_AGE": DATABASE_CONNECTION_POOL_SETTINGS["MAX_LIFETIME"],
             "OPTIONS": {
                 "connect_timeout": 5,
                 "client_encoding": "UTF8",
-                "sslmode": os.environ.get("DB_SSL_MODE", "require"),
+                "sslmode": os.environ.get("POSTGRES_SSL_MODE", "prefer"),
             },
         },
         "replica1": {
             "ENGINE": "django.contrib.gis.db.backends.postgis",
-            "NAME": os.environ.get("POSTGRES_DB", "postgres"),
-            "USER": os.environ.get("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "postgres"),
+            "NAME": os.environ.get("POSTGRES_DB", "queueme"),
+            "USER": os.environ.get("POSTGRES_USER", "queueme"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "Arisearise"),
             "HOST": os.environ.get("POSTGRES_REPLICA1_HOST", "db-replica1"),
             "PORT": os.environ.get("POSTGRES_PORT", "5432"),
             "CONN_MAX_AGE": DATABASE_CONNECTION_POOL_SETTINGS["MAX_LIFETIME"],
             "OPTIONS": {
                 "connect_timeout": 5,
                 "client_encoding": "UTF8",
-                "sslmode": os.environ.get("DB_SSL_MODE", "require"),
-            },
-            "TEST": {
-                "MIRROR": "default",
-            },
-        },
-        "replica2": {
-            "ENGINE": "django.contrib.gis.db.backends.postgis",
-            "NAME": os.environ.get("POSTGRES_DB", "postgres"),
-            "USER": os.environ.get("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "postgres"),
-            "HOST": os.environ.get("POSTGRES_REPLICA2_HOST", "db-replica2"),
-            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
-            "CONN_MAX_AGE": DATABASE_CONNECTION_POOL_SETTINGS["MAX_LIFETIME"],
-            "OPTIONS": {
-                "connect_timeout": 5,
-                "client_encoding": "UTF8",
-                "sslmode": os.environ.get("DB_SSL_MODE", "require"),
+                "sslmode": os.environ.get("POSTGRES_SSL_MODE", "prefer"),
             },
             "TEST": {
                 "MIRROR": "default",
@@ -104,16 +87,16 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.contrib.gis.db.backends.postgis",
-            "NAME": os.environ.get("POSTGRES_DB", "postgres"),
-            "USER": os.environ.get("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "postgres"),
+            "NAME": os.environ.get("POSTGRES_DB", "queueme"),
+            "USER": os.environ.get("POSTGRES_USER", "queueme"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "Arisearise"),
             "HOST": os.environ.get("POSTGRES_HOST", "db"),
             "PORT": os.environ.get("POSTGRES_PORT", "5432"),
             "CONN_MAX_AGE": DATABASE_CONNECTION_POOL_SETTINGS["MAX_LIFETIME"],
             "OPTIONS": {
                 "connect_timeout": 5,
                 "client_encoding": "UTF8",
-                "sslmode": os.environ.get("DB_SSL_MODE", "require"),
+                "sslmode": os.environ.get("POSTGRES_SSL_MODE", "prefer"),
             },
         }
     }
@@ -142,8 +125,40 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/opt/queueme/media")
 
-# Add security middlewares
-MIDDLEWARE += [
+# Ensure Debug Toolbar is completely disabled in production
+# Only include Debug Toolbar in INSTALLED_APPS if explicitly enabled in debug mode
+if DEBUG and os.environ.get("ENABLE_DEBUG_TOOLBAR", "False").lower() == "true":
+    try:
+        import debug_toolbar
+        INSTALLED_APPS.append('debug_toolbar')
+        MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+        
+        # Same config as development, but with more restrictions
+        INTERNAL_IPS = ["127.0.0.1", "::1", "localhost"]
+        DEBUG_TOOLBAR_CONFIG = {
+            # Disable problematic panels
+            'DISABLE_PANELS': [
+                'debug_toolbar.panels.history.HistoryPanel',
+                'debug_toolbar.panels.redirects.RedirectsPanel',
+            ],
+            # Only show for admins with explicit IP restriction
+            'SHOW_TOOLBAR_CALLBACK': lambda request: (
+                request.user.is_superuser and
+                request.META.get("REMOTE_ADDR") in INTERNAL_IPS
+            ),
+            'RENDER_PANELS': False,
+            'ENABLE_STACKTRACES': False,  # Disable stacktraces in production
+            'SHOW_COLLAPSED': True,
+        }
+    except ImportError:
+        pass
+else:
+    # Ensure Debug Toolbar is completely removed from settings if present
+    INSTALLED_APPS = [app for app in INSTALLED_APPS if not (isinstance(app, str) and 'debug_toolbar' in app)]
+    MIDDLEWARE = [mw for mw in MIDDLEWARE if not (isinstance(mw, str) and 'debug_toolbar' in mw)]
+
+# Try to safely add security middlewares
+security_middlewares = [
     "core.middleware.security.ContentSecurityPolicyMiddleware",
     "core.middleware.security.XFrameOptionsMiddleware",
     "core.middleware.security.StrictTransportSecurityMiddleware",
@@ -151,18 +166,32 @@ MIDDLEWARE += [
     "core.middleware.security.XContentTypeOptionsMiddleware",
     "core.middleware.security.PermissionsPolicyMiddleware",
     "core.middleware.security.SQLInjectionProtectionMiddleware",
-    "core.middleware.metrics_middleware.PrometheusMetricsMiddleware",
 ]
 
-# Enhanced security settings
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# Try to add the Prometheus middleware only if it works
+try:
+    from core.monitoring.metrics import API_REQUEST_LATENCY
+    # Check if API_REQUESTS is available
+    try:
+        from core.monitoring.metrics import API_REQUESTS
+        security_middlewares.append("core.middleware.metrics_middleware.PrometheusMetricsMiddleware")
+    except ImportError:
+        print("⚠️ PrometheusMetricsMiddleware not loaded - API_REQUESTS missing")
+except ImportError:
+    print("⚠️ PrometheusMetricsMiddleware not loaded - metrics module missing")
+
+# Add the valid middlewares
+MIDDLEWARE += security_middlewares
+
+# Enhanced security settings - Use environment variables for flexibility in testing
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "1") == "1"
+SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"
+SECURE_HSTS_PRELOAD = os.environ.get("SECURE_HSTS_PRELOAD", "1") == "1" 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "1") == "1"
+CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "1") == "1"
 X_FRAME_OPTIONS = "DENY"
 
 # JWT settings with enhanced security

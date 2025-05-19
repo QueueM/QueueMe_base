@@ -9,15 +9,15 @@ import os
 from .base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-development-key-not-for-production"
+SECRET_KEY = env("SECRET_KEY", "django-insecure-development-key-not-for-production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG", "True") == "True"
 
 # Allow all hosts in development
 ALLOWED_HOSTS = ["*"]
 
-# Use SQLite for development to simplify setup
+# Use PostgreSQL for development with proper host settings
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
@@ -29,6 +29,7 @@ DATABASES = {
         "CONN_MAX_AGE": 300,  # 5 minutes connection persistence
         "OPTIONS": {
             "connect_timeout": 5,
+            "sslmode": os.environ.get("POSTGRES_SSL_MODE", "disable"),
         },
         "ATOMIC_REQUESTS": True,  # Wrap each request in a transaction for data consistency
     }
@@ -80,36 +81,73 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# Disable SSL/HTTPS requirements
+# Disable SSL/HTTPS requirements in development
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+SECURE_HSTS_SECONDS = 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 
 # Use local storage for media files
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
-# Django Debug Toolbar
+# Django Debug Toolbar - Completely fixed configuration
 if DEBUG:
     try:
         import debug_toolbar
-
-        INSTALLED_APPS.append("debug_toolbar")
-        MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
-        INTERNAL_IPS = ["127.0.0.1", "::1"]
-
-        # Configure Debug Toolbar to only show on admin.queueme.net
+        
+        # Add the app to INSTALLED_APPS if not already there
+        if 'debug_toolbar' not in INSTALLED_APPS:
+            INSTALLED_APPS.append('debug_toolbar')
+        
+        # Add middleware if not already present
+        if 'debug_toolbar.middleware.DebugToolbarMiddleware' not in MIDDLEWARE:
+            MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+        
+        # Set internal IPs
+        INTERNAL_IPS = ["127.0.0.1", "::1", "localhost"]
+        
+        # Comprehensive Debug Toolbar configuration
         DEBUG_TOOLBAR_CONFIG = {
-            "SHOW_TOOLBAR_CALLBACK": lambda request: (
+            # Disable problematic panels
+            'DISABLE_PANELS': [
+                'debug_toolbar.panels.history.HistoryPanel',  # Disable history panel that causes 404s
+                'debug_toolbar.panels.redirects.RedirectsPanel',  # Optional: disable if causing issues
+            ],
+            # Only show toolbar in admin or for specific hosts
+            'SHOW_TOOLBAR_CALLBACK': lambda request: (
                 request.get_host().split(":")[0]
-                in ("admin.queueme.net", "admin.localhost", "admin.127.0.0.1")
+                in ("admin.queueme.net", "admin.localhost", "admin.127.0.0.1", "127.0.0.1", "localhost")
                 or (
                     request.path.startswith("/admin/")
-                    and request.META.get("REMOTE_ADDR") in ("127.0.0.1", "localhost", "::1")
+                    and request.META.get("REMOTE_ADDR") in ["127.0.0.1", "::1", "localhost"]
                 )
             ),
-            "RENDER_PANELS": False,  # Don't automatically render panels to improve performance
-            "ENABLE_STACKTRACES": True,
+            'RENDER_PANELS': False,  # Don't auto-render panels for performance
+            'ENABLE_STACKTRACES': True,
+            'RESULTS_CACHE_SIZE': 10,  # Limit history size
+            'SHOW_COLLAPSED': True,  # Start with toolbar collapsed
+            'SQL_WARNING_THRESHOLD': 500,  # ms, threshold for highlighting slow queries
         }
+        
+        # Use minimal panels to avoid issues
+        DEBUG_TOOLBAR_PANELS = [
+            'debug_toolbar.panels.versions.VersionsPanel',
+            'debug_toolbar.panels.timer.TimerPanel',
+            'debug_toolbar.panels.settings.SettingsPanel',
+            'debug_toolbar.panels.headers.HeadersPanel',
+            'debug_toolbar.panels.request.RequestPanel',
+            'debug_toolbar.panels.sql.SQLPanel',
+            'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+            'debug_toolbar.panels.templates.TemplatesPanel',
+            'debug_toolbar.panels.cache.CachePanel',
+            'debug_toolbar.panels.signals.SignalsPanel',
+            'debug_toolbar.panels.logging.LoggingPanel',
+            # Explicitly exclude problematic panels
+            # 'debug_toolbar.panels.history.HistoryPanel',
+            # 'debug_toolbar.panels.redirects.RedirectsPanel',
+        ]
     except ImportError:
         pass
 
@@ -138,6 +176,13 @@ ADMIN_PANEL_URL = "http://localhost:3002"
 # Logging - more verbose in development
 LOGGING["loggers"]["django"]["level"] = "DEBUG"
 LOGGING["loggers"]["queueme"]["level"] = "DEBUG"
+
+# Add debugging for Django's database operations
+LOGGING["loggers"]["django.db.backends"] = {
+    "handlers": ["console"],
+    "level": "DEBUG" if DEBUG else "INFO",
+    "propagate": False,
+}
 
 # Development-specific settings for debugging
 QUEUEME = {

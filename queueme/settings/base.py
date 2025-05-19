@@ -132,36 +132,38 @@ INSTALLED_APPS = [
     # Core apps
     "core",
     "algorithms",
-    "websockets",
     "utils",  # Utility components including admin audit logs
     # Custom admin panel
-    # Queue Me domain apps  (order matters for FK / signals)
-    "apps.authapp",
-    "apps.rolesapp",
-    "apps.geoapp",
-    "apps.companiesapp",
-    "apps.shopapp",
-    "apps.employeeapp",
-    "apps.specialistsapp",
-    "apps.categoriesapp",
-    "apps.serviceapp",
-    "apps.packageapp",
-    "apps.bookingapp",
-    "apps.queueapp",
-    "apps.reviewapp",
-    "apps.customersapp",
-    "apps.discountapp",
-    "apps.payment",
-    "apps.notificationsapp",
-    "apps.chatapp",
-    "apps.subscriptionapp",
-    "apps.followapp",
-    "apps.reelsapp",
-    "apps.storiesapp",
-    "apps.reportanalyticsapp",
-    "apps.shopDashboardApp",
-    "apps.marketingapp",
-]
+    # Realtime gateway (avoid name clash with PyPI websockets)
+    "websockets.apps.WebsocketsConfig",
+
+    # Domain apps – explicit AppConfig paths
+    "apps.authapp.apps.AuthAppConfig",
+    "apps.rolesapp.apps.RolesappConfig",
+    "apps.geoapp.apps.GeoAppConfig",
+    "apps.companiesapp.apps.CompaniesappConfig",
+    "apps.shopapp.apps.ShopAppConfig",
+    "apps.employeeapp.apps.EmployeeAppConfig",
+    "apps.specialistsapp.apps.SpecialistsAppConfig",
+    "apps.categoriesapp.apps.CategoriesappConfig",
+    "apps.serviceapp.apps.ServiceAppConfig",
+    "apps.packageapp.apps.PackageAppConfig",
+    "apps.bookingapp.apps.BookingAppConfig",
+    "apps.queueapp.apps.QueueAppConfig",
+    "apps.reviewapp.apps.ReviewAppConfig",
+    "apps.customersapp.apps.CustomersConfig",
+    "apps.discountapp.apps.DiscountappConfig",
+    "apps.payment.apps.PaymentConfig",
+    "apps.notificationsapp.apps.NotificationsAppConfig",
+    "apps.chatapp.apps.ChatConfig",
+    "apps.subscriptionapp.apps.SubscriptionAppConfig",
+    "apps.followapp.apps.FollowappConfig",
+    "apps.reelsapp.apps.ReelsAppConfig",
+    "apps.storiesapp.apps.StoriesAppConfig",
+    "apps.reportanalyticsapp.apps.ReportAnalyticsConfig",
+    "apps.shopDashboardApp.apps.ShopDashboardAppConfig",
+    "apps.marketingapp.apps.MarketingAppConfig",
+    ]
 
 MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
@@ -351,7 +353,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Use S3 for media if all creds presen
+# Use S3 for media if all creds present
 if all(env(v) for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")):
     AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", "me-south-1")
     AWS_S3_CUSTOM_DOMAIN = f"{env('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
@@ -436,14 +438,18 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG  # easiest for local dev
 
 
 # ---------------------------------------------------------------------------
-# Security
+# Security - Improved Default Values for Production
 # ---------------------------------------------------------------------------
-SECURE_SSL_REDIRECT = env("SECURE_SSL_REDIRECT", "0") == "1"
-SESSION_COOKIE_SECURE = env("SESSION_COOKIE_SECURE", "0") == "1"
-CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE", "0") == "1"
-SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS", "0"))
-SECURE_HSTS_INCLUDE_SUBDOMAINS = env("SECURE_HSTS_INCLUDE_SUBDOMAINS", "0") == "1"
-SECURE_HSTS_PRELOAD = env("SECURE_HSTS_PRELOAD", "0") == "1"
+# Set secure defaults but allow overriding through environment variables
+SECURE_SSL_REDIRECT = env("SECURE_SSL_REDIRECT", "1") == "1"  # Default to True in production
+SESSION_COOKIE_SECURE = env("SESSION_COOKIE_SECURE", "1") == "1"  # Default to True in production
+CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE", "1") == "1"  # Default to True in production
+SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS", "31536000"))  # Default to 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"  # Default to True
+SECURE_HSTS_PRELOAD = env("SECURE_HSTS_PRELOAD", "1") == "1"  # Default to True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = "DENY"
 
 
 # ---------------------------------------------------------------------------

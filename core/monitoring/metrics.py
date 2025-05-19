@@ -29,6 +29,9 @@ API_REQUESTS_TOTAL = Counter(
     "api_requests_total", "Total count of API requests", ["method", "endpoint", "status_code"]
 )
 
+# Add an alias for API_REQUESTS to fix middleware import error
+API_REQUESTS = API_REQUESTS_TOTAL
+
 # Counter for API errors
 API_ERRORS_TOTAL = Counter(
     "api_errors_total", "Total count of API errors", ["method", "endpoint", "error_type"]
