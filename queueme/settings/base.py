@@ -129,9 +129,11 @@ INSTALLED_APPS = [
     "django_filters",
     "storages",
     "django_prometheus",
+    #"drf_spectacular",
     # Core apps
     "core",
     "algorithms",
+    "django_extensions",
     "utils",  # Utility components including admin audit logs
     # Custom admin panel
     # Realtime gateway (avoid name clash with PyPI websockets)
@@ -233,6 +235,7 @@ AUTHENTICATION_BACKENDS = [
 # ---------------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         "apps.authapp.backends.QueueMeJWTAuthentication",
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
@@ -240,7 +243,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+    #"DEFAULT_SCHEMA_CLASS": "drf_yasg.openapi.AutoSchema",
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
@@ -515,6 +518,15 @@ LOGGING = {
     },
 }
 
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
 
 # ---------------------------------------------------------------------------
 # Front-end URLs

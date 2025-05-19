@@ -353,22 +353,25 @@ class BookingRescheduleSerializer(serializers.Serializer):
 
 
 class MultiServiceBookingSerializer(serializers.ModelSerializer):
-    """Serializer for multi-service bookings"""
+    # ──────────────────────────────────────────────────────────────────────────
+    # manual fields so DRF won't look for DB columns
+    transaction_id   = serializers.CharField(read_only=True, allow_null=True)
+    payment_status   = serializers.CharField(read_only=True, allow_null=True)
+    created_at       = serializers.DateTimeField(read_only=True)
+    updated_at       = serializers.DateTimeField(read_only=True)
+    # ──────────────────────────────────────────────────────────────────────────
 
-    appointments = AppointmentSerializer(many=True, read_only=True)
-    customer_details = UserSerializer(source="customer", read_only=True)
-    shop_details = ShopSerializer(source="shop", read_only=True)
+    appointments   = AppointmentSerializer(many=True, read_only=True)
+    shop_details   = serializers.SerializerMethodField()
+    total_price    = serializers.SerializerMethodField()
     payment_status_display = serializers.CharField(
         source="get_payment_status_display", read_only=True
     )
 
     class Meta:
-        model = MultiServiceBooking
+        model  = MultiServiceBooking
         fields = [
             "id",
-            "customer",
-            "customer_details",
-            "shop",
             "shop_details",
             "appointments",
             "total_price",
@@ -378,15 +381,7 @@ class MultiServiceBookingSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = [
-            "id",
-            "customer_details",
-            "shop_details",
-            "payment_status_display",
-            "created_at",
-            "updated_at",
-        ]
-
+        read_only_fields = fields  # everything is read-only
 
 class MultiServiceBookingCreateSerializer(serializers.Serializer):
     """Serializer for creating multiple appointments in one booking"""
