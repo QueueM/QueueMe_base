@@ -67,6 +67,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     - created_at: Date the employee record was created
     """
 
+    queryset = Employee.objects.all()
     permission_classes = [permissions.IsAuthenticated, EmployeePermission]
     filter_backends = [
         DjangoFilterBackend,
@@ -77,31 +78,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     search_fields = ["first_name", "last_name", "email", "phone_number"]
     ordering_fields = ["first_name", "last_name", "position", "hire_date", "created_at"]
     ordering = ["first_name"]
-
-    def get_queryset(self):
-        """
-        Filter employees based on user permissions
-
-        - Admins see all employees
-        - Shop managers see employees in their shops
-        - Regular users see their own employee profile
-
-        Returns:
-            QuerySet: Filtered list of employees
-        """
-        user = self.request.user
-
-        # Admin sees all employees
-        if user.user_type == "admin":
-            return Employee.objects.all()
-
-        # Get shops the user has access to
-        from apps.rolesapp.services.permission_resolver import PermissionResolver
-
-        accessible_shops = PermissionResolver.get_user_shops(user)
-
-        # Return employees from accessible shops
-        return Employee.objects.filter(shop__in=accessible_shops)
 
     def get_serializer_class(self):
         """
@@ -286,6 +262,7 @@ class EmployeeWorkingHoursViewSet(viewsets.ModelViewSet):
 
     permission_classes = [permissions.IsAuthenticated, EmployeeWorkingHoursPermission]
     serializer_class = EmployeeWorkingHoursSerializer
+    queryset = EmployeeWorkingHours.objects.all()
 
     def get_queryset(self):
         """
@@ -373,6 +350,7 @@ class EmployeeSkillViewSet(viewsets.ModelViewSet):
 
     permission_classes = [permissions.IsAuthenticated, EmployeePermission]
     serializer_class = EmployeeSkillSerializer
+    queryset = EmployeeSkill.objects.all()
 
     def get_queryset(self):
         """
@@ -430,6 +408,7 @@ class EmployeeLeaveViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, EmployeePermission]
     serializer_class = EmployeeLeaveSerializer
     filterset_fields = ["leave_type", "status", "start_date", "end_date"]
+    queryset = EmployeeLeave.objects.all()
 
     def get_queryset(self):
         """

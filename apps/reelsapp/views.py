@@ -77,6 +77,7 @@ class ReelViewSet(viewsets.ModelViewSet):
     search_fields = ["title", "caption"]
     ordering_fields = ["created_at", "view_count"]
     ordering = ["-created_at"]
+    queryset = Reel.objects.all()
 
     def get_queryset(self):
         """
@@ -250,6 +251,7 @@ class CustomerReelViewSet(
     - view_count: Number of views
     """
 
+    queryset = Reel.objects.all()
     serializer_class = ReelFeedSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [

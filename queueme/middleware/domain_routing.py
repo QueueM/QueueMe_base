@@ -1,13 +1,4 @@
-"""
-Domain-based routing middleware for QueueMe platform.
-
-This middleware handles different behaviors based on which domain
-is being accessed (main site, shop interface, admin panel, or API).
-"""
-
 import logging
-from urllib.parse import urljoin
-
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -27,6 +18,16 @@ class DomainRoutingMiddleware(MiddlewareMixin):
     def __call__(self, request):
         # Get the current domain
         domain = request.get_host().split(":")[0]  # remove port if present
+
+        # Special case: Allow access to django-admin and its static files on api.queueme.net
+        if domain == 'api.queueme.net' and (
+            request.path.startswith('/django-admin/') or 
+            request.path.startswith('/static/admin/') or
+            request.path.startswith('/django-admin/static/admin/')
+        ):
+            # Let django-admin and its static files pass through
+            response = self.get_response(request)
+            return response
 
         # Get the app for this domain
         app_name = self.domain_routing.get(domain)
@@ -50,6 +51,10 @@ class DomainRoutingMiddleware(MiddlewareMixin):
         For example, API requests coming to main domain should go to api.queueme.net
         """
         path = request.path
+
+        # Skip redirecting django-admin and its static assets
+        if path.startswith('/django-admin/') or path.startswith('/static/admin/'):
+            return False
 
         # API paths should go to the API domain
         if path.startswith("/api/") and app_name != "api":
@@ -114,6 +119,10 @@ class DomainRoutingMiddleware(MiddlewareMixin):
         """
         # Skip for static/media requests
         if request.path.startswith("/static/") or request.path.startswith("/media/"):
+            return None
+            
+        # Skip for django-admin requests
+        if request.path.startswith("/django-admin/"):
             return None
 
         # Extract domain from host

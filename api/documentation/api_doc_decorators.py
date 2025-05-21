@@ -12,13 +12,19 @@ from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.decorators import api_view
 
+# ----------------------------------------------------------------------
+# Import the deduplication utility from utils
+# ----------------------------------------------------------------------
+from api.documentation.utils import dedupe_manual_parameters
 
+# ----------------------------------------------------------------------
+# Endpoint Decorator
+# ----------------------------------------------------------------------
 def document_api_endpoint(
     summary: str = None,
     description: str = None,
-    request_body: Dict = None,
+    request_body: Any = None,
     responses: Dict = None,
     tags: List[str] = None,
     query_params: List[Dict] = None,
@@ -29,8 +35,8 @@ def document_api_endpoint(
     Decorator for documenting API endpoints.
 
     Args:
-        summary: A short summary of what the operation does
-        description: A verbose explanation of the operation behavior
+        summary: Short summary of what the operation does
+        description: Verbose explanation of the operation behavior
         request_body: Request body schema
         responses: Response schemas for different HTTP status codes
         tags: A list of tags for API documentation control
@@ -51,7 +57,6 @@ def document_api_endpoint(
             status.HTTP_500_INTERNAL_SERVER_ERROR: "Server Error",
         }
 
-    # Build manual parameters list for swagger
     manual_parameters = []
 
     # Add query parameters
@@ -59,7 +64,6 @@ def document_api_endpoint(
         for param in query_params:
             param_type = param.get("type", openapi.TYPE_STRING)
             required = param.get("required", False)
-
             manual_parameters.append(
                 openapi.Parameter(
                     param["name"],
@@ -74,31 +78,28 @@ def document_api_endpoint(
     if path_params:
         for param in path_params:
             param_type = param.get("type", openapi.TYPE_STRING)
-
             manual_parameters.append(
                 openapi.Parameter(
                     param["name"],
                     openapi.IN_PATH,
                     description=param.get("description", ""),
                     type=param_type,
-                    required=True,  # Path parameters are always required
+                    required=True,
                 )
             )
 
-    # The actual decorator function
+    # Deduplicate using the canonical dedupe utility
+    manual_parameters = dedupe_manual_parameters(manual_parameters)
+
     def decorator(view_func):
-        # Check if this is a class-based view (in which case our decorator should
-        # be used on methods, not the class)
+        # Skip decorating classes directly
         if isinstance(view_func, type):
-            # Return the class unchanged
             return view_func
 
-        # For function-based views or view methods, apply the swagger_auto_schema decorator
         @functools.wraps(view_func)
         def wrapped_view(*args, **kwargs):
             return view_func(*args, **kwargs)
 
-        # Apply swagger_auto_schema decorator
         decorated_view = swagger_auto_schema(
             operation_summary=summary,
             operation_description=description,
@@ -113,7 +114,9 @@ def document_api_endpoint(
 
     return decorator
 
-
+# ----------------------------------------------------------------------
+# ViewSet Decorator
+# ----------------------------------------------------------------------
 def document_api_viewset(
     summary: str = None,
     description: str = None,
@@ -134,12 +137,10 @@ def document_api_viewset(
     """
 
     def decorator(cls):
-        # Check if this is actually a class
+        # Only decorate actual classes
         if not isinstance(cls, type):
-            # If not a class, just return the function unchanged
             return cls
 
-        # Map of action names to their default documentation
         action_descriptions = {
             "list": _("List all objects"),
             "create": _("Create a new object"),
@@ -149,18 +150,17 @@ def document_api_viewset(
             "destroy": _("Delete an object"),
         }
 
-        # Add class documentation
+        # Inject docstring
         if not cls.__doc__:
             cls.__doc__ = description
         elif description:
             cls.__doc__ = f"{cls.__doc__}\n\n{description}"
 
-        # Get the actions from the viewset's action_map
+        # Guess actions if not explicit
         actions = []
         if hasattr(cls, "action_map") and cls.action_map:
             actions = list(cls.action_map.values())
         else:
-            # Standard DRF viewset actions
             http_method_names = getattr(cls, "http_method_names", [])
             if "get" in http_method_names and hasattr(cls, "list"):
                 actions.append("list")
@@ -175,36 +175,29 @@ def document_api_viewset(
             if "delete" in http_method_names and hasattr(cls, "destroy"):
                 actions.append("destroy")
 
-        # Iterate through the identified actions
         for action_name in actions:
             if hasattr(cls, action_name):
                 action_method = getattr(cls, action_name)
-
-                # Skip if already decorated
+                # Avoid decorating twice
                 if hasattr(action_method, "_swagger_auto_schema"):
                     continue
 
-                # Generate operation ID from prefix and action
                 op_id = f"{operation_id_prefix}_{action_name}" if operation_id_prefix else None
-
-                # Get description for this action
                 action_summary = (
                     f"{summary} - {action_descriptions.get(action_name, '')}"
-                    if summary
-                    else action_descriptions.get(action_name, "")
+                    if summary else action_descriptions.get(action_name, "")
                 )
 
-                # Apply swagger_auto_schema to the action method
                 decorated_method = swagger_auto_schema(
                     operation_summary=action_summary,
                     operation_description=description,
                     tags=tags,
                     operation_id=op_id,
                 )(action_method)
-
-                # Update the method in the class
                 setattr(cls, action_name, decorated_method)
 
         return cls
 
     return decorator
+
+# END OF FILE

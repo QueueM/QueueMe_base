@@ -24,12 +24,9 @@ API_REQUEST_LATENCY = Histogram(
     buckets=(0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0),
 )
 
-# Counter for API requests
 API_REQUESTS_TOTAL = Counter(
     "api_requests_total", "Total count of API requests", ["method", "endpoint", "status_code"]
 )
-
-# Add an alias for API_REQUESTS to fix middleware import error
 API_REQUESTS = API_REQUESTS_TOTAL
 
 # Counter for API errors

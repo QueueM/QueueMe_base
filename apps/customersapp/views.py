@@ -260,6 +260,7 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
     - Customers can only access their own payment methods
     """
 
+    queryset = SavedPaymentMethod.objects.all()
     serializer_class = SavedPaymentMethodSerializer
     permission_classes = [IsAuthenticated, IsCustomerOwner]
 
@@ -384,6 +385,7 @@ class FavoritesViewSet(viewsets.GenericViewSet):
     - User must be authenticated as a customer
     """
 
+    queryset = Customer.objects.all()
     permission_classes = [IsAuthenticated]
 
     def get_customer(self):

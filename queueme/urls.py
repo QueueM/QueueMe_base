@@ -1,11 +1,4 @@
-"""Queue Me project — main URL configuration.
-
-This file wires together Django admin, app APIs, interactive documentation,
-health‑checks and development‑only helpers (static files & Debug Toolbar).
-
-Nothing that could leak sensitive information is enabled unless
-``settings.DEBUG`` is **True**.
-"""
+"""Queue Me project — main URL configuration."""
 
 from __future__ import annotations
 
@@ -14,15 +7,15 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import include, path
-from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
-###############################################################################
-# API schema (Swagger / ReDoc)
-###############################################################################
+# -----------------------------------------------------------------------------
+# Swagger / ReDoc API schema setup
+# -----------------------------------------------------------------------------
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -37,52 +30,49 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-###############################################################################
-# Small utility endpoints
-###############################################################################
-
+# -----------------------------------------------------------------------------
+# Health check endpoint
+# -----------------------------------------------------------------------------
 def health(request):
-    """Minimal health‑check endpoint used by load‑balancers / uptime checks."""
+    """Minimal health-check endpoint used by load-balancers / uptime checks."""
     return JsonResponse({"status": "ok"})
 
-###############################################################################
-# Core URL patterns — order matters!
-###############################################################################
-
-urlpatterns: list[path] = [
-    # Django admin (default UI)
+# -----------------------------------------------------------------------------
+# URL patterns
+# -----------------------------------------------------------------------------
+urlpatterns = [
+    # Django admin
     path("admin/", admin.site.urls),
 
     # Application API (versioned)
     path("api/v1/", include("api.v1.urls")),
 
-    # Interactive API docs
+    # API Documentation (Swagger & Redoc via drf-yasg)
     path("api/docs/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
     path("api/redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 
-    # Health check
+    # Health check endpoint
     path("health/", health, name="health_check"),
 
-    # Front‑end fallback (serves the SPA entry point or simple index page)
-    path("", TemplateView.as_view(template_name="index.html"), name="index"),
+    # Redirect home "/" to your Swagger homepage (optional)
+    path("", RedirectView.as_view(url="/static/swagger/", permanent=False), name="static-swagger-ui-home"),
 ]
 
-###############################################################################
-# Development‑only helpers
-###############################################################################
-
+# -----------------------------------------------------------------------------
+# Development-only static/media/debug helpers
+# -----------------------------------------------------------------------------
 if settings.DEBUG:
-    # Static & media files served directly by Django’s dev server.
+    # Static & media files served directly by Django’s dev server
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-    # Django Debug Toolbar — only if it’s installed *and* enabled.
+    # Django Debug Toolbar — only if installed and enabled
     try:
-        import debug_toolbar  # noqa: WPS433 — optional debug package
-
+        import debug_toolbar
         urlpatterns = [
             path("__debug__/", include(debug_toolbar.urls)),
         ] + urlpatterns
     except ModuleNotFoundError:
-        # Toolbar not installed; skip silently.
         pass
+
+# END OF FILE

@@ -21,6 +21,9 @@ from apps.notificationsapp.serializers import (
 from apps.notificationsapp.services.notification_service import NotificationService
 from apps.rolesapp.decorators import has_permission
 
+# ──────────────────────────────────────────────────────────────────────────────
+#  NotificationViewSet
+# ──────────────────────────────────────────────────────────────────────────────
 
 @document_api_viewset(
     summary="Notification",
@@ -32,8 +35,21 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for getting user notifications and marking them as read
     """
 
+    queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # For drf_yasg schema generation, return empty queryset
+        if getattr(self, "swagger_fake_view", False):
+            return Notification.objects.none()
+        user = self.request.user
+        return Notification.objects.filter(recipient=user).order_by("-created_at")
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return NotificationListSerializer
+        return self.serializer_class
 
     @document_api_endpoint(
         summary="List notifications",
@@ -59,15 +75,6 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         """Get a specific notification"""
         return super().retrieve(request, *args, **kwargs)
 
-    def get_queryset(self):
-        user = self.request.user
-        return Notification.objects.filter(user=user).order_by("-created_at")
-
-    def get_serializer_class(self):
-        if self.action == "list":
-            return NotificationListSerializer
-        return self.serializer_class
-
     @document_api_endpoint(
         summary="Get unread notifications",
         description="Retrieve all unread notifications for the current user",
@@ -79,7 +86,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         """Get unread notifications for the authenticated user"""
         user = self.request.user
         unread_notifications = Notification.objects.filter(
-            user=user, status__in=["sent", "delivered"]
+            recipient=user, status__in=["sent", "delivered"]
         ).order_by("-created_at")
 
         page = self.paginate_queryset(unread_notifications)
@@ -124,7 +131,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         """Mark all notifications as read"""
         user = request.user
         unread_count = Notification.objects.filter(
-            user=user, status__in=["sent", "delivered"]
+            recipient=user, status__in=["sent", "delivered"]
         ).update(status="read", read_at=timezone.now())
 
         return Response(
@@ -152,7 +159,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         notification_ids = serializer.validated_data["notification_ids"]
         update_count = Notification.objects.filter(
             id__in=notification_ids,
-            user=request.user,  # Ensure user can only mark their own notifications
+            recipient=request.user,
             status__in=["sent", "delivered"],
         ).update(status="read", read_at=timezone.now())
 
@@ -173,11 +180,14 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     def count_unread(self, request):
         """Get count of unread notifications"""
         count = Notification.objects.filter(
-            user=request.user, status__in=["sent", "delivered"]
+            recipient=request.user, status__in=["sent", "delivered"]
         ).count()
 
         return Response({"unread_count": count})
 
+# ──────────────────────────────────────────────────────────────────────────────
+#  DeviceTokenViewSet
+# ──────────────────────────────────────────────────────────────────────────────
 
 @document_api_viewset(
     summary="Device Token",
@@ -189,8 +199,19 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
     ViewSet for managing user device tokens for push notifications
     """
 
+    queryset = DeviceToken.objects.all()
     serializer_class = DeviceTokenSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # For drf_yasg schema generation, return empty queryset
+        if getattr(self, "swagger_fake_view", False):
+            return DeviceToken.objects.none()
+        return DeviceToken.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Associate the device token with the authenticated user
+        serializer.save(user=self.request.user)
 
     @document_api_endpoint(
         summary="List device tokens",
@@ -258,13 +279,6 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
         """Delete a device token"""
         return super().destroy(request, *args, **kwargs)
 
-    def get_queryset(self):
-        return DeviceToken.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        # Associate the device token with the authenticated user
-        serializer.save(user=self.request.user)
-
     @document_api_endpoint(
         summary="Delete device token by device ID",
         description="Remove device token using the device's unique identifier",
@@ -304,6 +318,9 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
             }
         )
 
+# ──────────────────────────────────────────────────────────────────────────────
+#  AdminNotificationViewSet
+# ──────────────────────────────────────────────────────────────────────────────
 
 @document_api_viewset(
     summary="Admin Notification",
@@ -315,6 +332,7 @@ class AdminNotificationViewSet(viewsets.GenericViewSet):
     ViewSet for admin users to send notifications
     """
 
+    queryset = Notification.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     @document_api_endpoint(

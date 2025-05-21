@@ -14,10 +14,10 @@ SECRET_KEY = env("SECRET_KEY", "django-insecure-development-key-not-for-producti
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG", "True") == "True"
 
-# Allow all hosts in development
-ALLOWED_HOSTS = ["*"]
+# Allow all hosts in development (for convenience)
+ALLOWED_HOSTS = ["*", "148.72.244.135"]
 
-# Use PostgreSQL for development with proper host settings
+# PostgreSQL local dev config (adjust as needed)
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
@@ -26,28 +26,56 @@ DATABASES = {
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "Arisearise"),
         "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
-        "CONN_MAX_AGE": 300,  # 5 minutes connection persistence
+        "CONN_MAX_AGE": 300,
         "OPTIONS": {
             "connect_timeout": 5,
             "sslmode": os.environ.get("POSTGRES_SSL_MODE", "disable"),
         },
-        "ATOMIC_REQUESTS": True,  # Wrap each request in a transaction for data consistency
+        "ATOMIC_REQUESTS": True,
     }
 }
 
-# Enable connection pooling for improved performance
+# ---------------------------------------------------------------------------
+# Swagger settings: robust dedupe + SafeSwaggerSchema for error tolerance
+# ---------------------------------------------------------------------------
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": "queueme.urls.api_info",
+    "USE_SESSION_AUTH": False,
+    "SHOW_REQUEST_HEADERS": True,
+    "VALIDATOR_URL": None,
+    "DEFAULT_MODEL_RENDERING": "example",
+    "DOC_EXPANSION": "none",
+    "PERSIST_AUTH": True,
+    "REFETCH_SCHEMA_WITH_AUTH": True,
+    "SHOW_EXTENSIONS": True,
+    "DEBUG": True,
+    # CRITICAL: dedupe + error-proof docs
+    "FUNCTION_TO_APPLY_BEFORE_SWAGGER_SCHEMA_VALIDATION": "api.documentation.utils.dedupe_operation_params",
+    "DEFAULT_AUTO_SCHEMA_CLASS": "api.documentation.yasg_patch.SafeSwaggerSchema",
+}
+
+# Enable connection pooling for improved performance (optional, usually production)
 if "CONN_MAX_AGE" not in DATABASES["default"]:
-    DATABASES["default"]["CONN_MAX_AGE"] = 300  # Keep connections alive for 5 minutes
+    DATABASES["default"]["CONN_MAX_AGE"] = 300
 
+# Email and SMS (console backend in dev)
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-# Use console backend for SMS in development
 SMS_BACKEND = "utils.sms.backends.console.ConsoleSMSBackend"
 
-# ---------------------------------------------------------------------------
-# CORS settings for development
-# ---------------------------------------------------------------------------
-# More restrictive CORS settings even for development
+# Static & media config (local storage only in dev)
+STATIC_URL = '/static/'
+STATIC_ROOT = '/opt/queueme/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# WhiteNoise for local static serving (always in dev)
+MIDDLEWARE = [m for m in MIDDLEWARE if 'whitenoise' not in m.lower()]
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+# CORS (restrict as much as you like in dev)
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -55,33 +83,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
-
-# Only allow credentials for our specific origins
 CORS_ALLOW_CREDENTIALS = True
-
-# Additional CORS security headers
 CORS_ALLOW_METHODS = [
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
+    "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT",
 ]
-
 CORS_ALLOW_HEADERS = [
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "dnt",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
+    "accept", "accept-encoding", "authorization", "content-type",
+    "dnt", "origin", "user-agent", "x-csrftoken", "x-requested-with",
 ]
 
-# Disable SSL/HTTPS requirements in development
+# Security in development (no SSL, no secure cookies, no HSTS)
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
@@ -89,49 +100,34 @@ SECURE_HSTS_SECONDS = 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
 
-# Use local storage for media files
-DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-
-# Django Debug Toolbar - Completely fixed configuration
+# Debug Toolbar (full setup for local debugging)
 if DEBUG:
     try:
         import debug_toolbar
-        
-        # Add the app to INSTALLED_APPS if not already there
         if 'debug_toolbar' not in INSTALLED_APPS:
             INSTALLED_APPS.append('debug_toolbar')
-        
-        # Add middleware if not already present
         if 'debug_toolbar.middleware.DebugToolbarMiddleware' not in MIDDLEWARE:
             MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
-        
-        # Set internal IPs
         INTERNAL_IPS = ["127.0.0.1", "::1", "localhost"]
-        
-        # Comprehensive Debug Toolbar configuration
         DEBUG_TOOLBAR_CONFIG = {
-            # Disable problematic panels
             'DISABLE_PANELS': [
-                'debug_toolbar.panels.history.HistoryPanel',  # Disable history panel that causes 404s
-                'debug_toolbar.panels.redirects.RedirectsPanel',  # Optional: disable if causing issues
+                'debug_toolbar.panels.history.HistoryPanel',
+                'debug_toolbar.panels.redirects.RedirectsPanel',
             ],
-            # Only show toolbar in admin or for specific hosts
             'SHOW_TOOLBAR_CALLBACK': lambda request: (
                 request.get_host().split(":")[0]
                 in ("admin.queueme.net", "admin.localhost", "admin.127.0.0.1", "127.0.0.1", "localhost")
                 or (
-                    request.path.startswith("/admin/")
+                    (request.path.startswith("/admin/") or request.path.startswith("/django-admin/"))
                     and request.META.get("REMOTE_ADDR") in ["127.0.0.1", "::1", "localhost"]
                 )
             ),
-            'RENDER_PANELS': False,  # Don't auto-render panels for performance
+            'RENDER_PANELS': False,
             'ENABLE_STACKTRACES': True,
-            'RESULTS_CACHE_SIZE': 10,  # Limit history size
-            'SHOW_COLLAPSED': True,  # Start with toolbar collapsed
-            'SQL_WARNING_THRESHOLD': 500,  # ms, threshold for highlighting slow queries
+            'RESULTS_CACHE_SIZE': 10,
+            'SHOW_COLLAPSED': True,
+            'SQL_WARNING_THRESHOLD': 500,
         }
-        
-        # Use minimal panels to avoid issues
         DEBUG_TOOLBAR_PANELS = [
             'debug_toolbar.panels.versions.VersionsPanel',
             'debug_toolbar.panels.timer.TimerPanel',
@@ -144,51 +140,62 @@ if DEBUG:
             'debug_toolbar.panels.cache.CachePanel',
             'debug_toolbar.panels.signals.SignalsPanel',
             'debug_toolbar.panels.logging.LoggingPanel',
-            # Explicitly exclude problematic panels
-            # 'debug_toolbar.panels.history.HistoryPanel',
-            # 'debug_toolbar.panels.redirects.RedirectsPanel',
         ]
     except ImportError:
         pass
 
-# Set Celery to run tasks immediately in development
+# Celery: always run tasks immediately in dev
 CELERY_TASK_ALWAYS_EAGER = True
 
-# Cache settings for development
+# Dev cache: local memory
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
 
-# Use in-memory channel layers for WebSockets in development
+# Channels: in-memory for dev, Redis not required
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
 
-# Frontend URLs for development
+# URLs for all panels for local dev (match your local frontend)
 FRONTEND_URL = "http://localhost:3000"
 SHOP_PANEL_URL = "http://localhost:3001"
 ADMIN_PANEL_URL = "http://localhost:3002"
 
-# Logging - more verbose in development
+# Domain routing for dev environment
+DOMAIN_ROUTING = {
+    "queueme.net": "main",
+    "www.queueme.net": "main",
+    "shop.queueme.net": "shop",
+    "admin.queueme.net": "admin",
+    "api.queueme.net": "api",
+    "localhost": "main",
+    "127.0.0.1": "main",
+}
+
+# Logging: verbose in dev, debug everything
 LOGGING["loggers"]["django"]["level"] = "DEBUG"
 LOGGING["loggers"]["queueme"]["level"] = "DEBUG"
-
-# Add debugging for Django's database operations
 LOGGING["loggers"]["django.db.backends"] = {
     "handlers": ["console"],
     "level": "DEBUG" if DEBUG else "INFO",
     "propagate": False,
 }
-
-# Development-specific settings for debugging
-QUEUEME = {
-    "SKIP_OTP_VERIFICATION": True,  # Skip actual OTP verification in development
-    "DEMO_MODE": False,  # Enable demo mode with sample data
-    "PERFORMANCE_MONITORING": True,  # Enable more detailed performance tracking
+LOGGING["loggers"]["django.contrib.staticfiles"] = {
+    "handlers": ["console"],
+    "level": "DEBUG",
+    "propagate": False,
 }
 
-print("🚀 Running in DEVELOPMENT mode")
+# Dev-specific toggles
+QUEUEME = {
+    "SKIP_OTP_VERIFICATION": True,
+    "DEMO_MODE": False,
+    "PERFORMANCE_MONITORING": True,
+}
+
+print("�� Running in DEVELOPMENT mode")

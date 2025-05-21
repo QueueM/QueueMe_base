@@ -77,7 +77,7 @@ class CreatePaymentSerializer(serializers.Serializer):
             )
             model_class = content_type.model_class()
             model_class.objects.get(id=data["object_id"])
-        except (ContentType.DoesNotExist, model_class.DoesNotExist):
+        except (ContentType.DoesNotExist, Exception):
             raise serializers.ValidationError(_("The specified object does not exist."))
 
         return data
@@ -85,9 +85,6 @@ class CreatePaymentSerializer(serializers.Serializer):
 
 class TransactionSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
-    transaction_type_display = serializers.CharField(
-        source="get_transaction_type_display", read_only=True
-    )
     payment_method_details = PaymentMethodSerializer(source="payment_method", read_only=True)
     refund_count = serializers.SerializerMethodField()
     refunded_amount = serializers.SerializerMethodField()
@@ -97,25 +94,30 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = [
             "id",
-            "moyasar_id",
+            "provider_transaction_id",  # external payment gateway ID
             "amount",
             "user",
-            "payment_type",
+            "currency",
             "status",
             "status_display",
-            "transaction_type",
-            "transaction_type_display",
+            "wallet_type",
             "description",
-            "content_type",
-            "object_id",
             "content_type_info",
             "payment_method_details",
+            "metadata",
             "created_at",
             "updated_at",
             "refund_count",
             "refunded_amount",
         ]
-        read_only_fields = ["id", "moyasar_id", "status", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "provider_transaction_id",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+
 
     def get_refund_count(self, obj):
         return obj.refunds.count()
@@ -127,12 +129,8 @@ class TransactionSerializer(serializers.ModelSerializer):
         return sum(refund.amount for refund in refunds)
 
     def get_content_type_info(self, obj):
-        content_type = obj.content_type
-        return {
-            "app_label": content_type.app_label,
-            "model": content_type.model,
-            "name": content_type.name,
-        }
+        # Since your Transaction model does NOT have content_type, return None or blank info
+        return None
 
 
 class RefundSerializer(serializers.ModelSerializer):
@@ -143,23 +141,29 @@ class RefundSerializer(serializers.ModelSerializer):
         model = Refund
         fields = [
             "id",
-            "moyasar_id",
+            "provider_refund_id",  # external refund id (not 'moyasar_id')
             "transaction",
             "transaction_details",
             "amount",
             "reason",
             "status",
             "status_display",
-            "refunded_by",
+            "created_at",
+            "updated_at",
+            "metadata",
+        ]
+        read_only_fields = [
+            "id",
+            "provider_refund_id",
+            "status",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "moyasar_id", "status", "created_at", "updated_at"]
 
     def get_transaction_details(self, obj):
         return {
             "id": str(obj.transaction.id),
-            "moyasar_id": obj.transaction.moyasar_id,
+            "provider_transaction_id": obj.transaction.provider_transaction_id,
             "amount": str(obj.transaction.amount),
             "status": obj.transaction.status,
         }

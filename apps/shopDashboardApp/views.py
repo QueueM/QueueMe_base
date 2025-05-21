@@ -48,6 +48,7 @@ from apps.shopDashboardApp.services.stats_service import StatsService
 class DashboardDataViewSet(viewsets.ViewSet):
     """API endpoint for fetching dashboard data"""
 
+    queryset = DashboardSettings.objects.all()
     permission_classes = [IsAuthenticated, HasShopDashboardPermission]
 
     def list(self, request):

@@ -750,6 +750,7 @@ class DiscountCalculationViewSet(viewsets.ViewSet):
     - Authentication required for all actions
     """
 
+    queryset = ServiceDiscount.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=["post"])

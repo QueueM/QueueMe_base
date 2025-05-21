@@ -765,6 +765,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
 class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
     """API endpoint for service availability"""
 
+    queryset = ServiceAvailability.objects.all()
     serializer_class = ServiceAvailabilitySerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
@@ -892,6 +893,7 @@ class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
 class ServiceExceptionViewSet(viewsets.ModelViewSet):
     """API endpoint for service exceptions (holidays, special days)"""
 
+    queryset = ServiceException.objects.all()
     serializer_class = ServiceExceptionSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
@@ -996,6 +998,7 @@ class ServiceExceptionViewSet(viewsets.ModelViewSet):
 class ServiceFAQViewSet(viewsets.ModelViewSet):
     """API endpoint for service FAQs"""
 
+    queryset = ServiceFAQ.objects.all()
     serializer_class = ServiceFAQSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
@@ -1148,6 +1151,7 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
 class ServiceOverviewViewSet(viewsets.ModelViewSet):
     """API endpoint for service overviews"""
 
+    queryset = ServiceOverview.objects.all()
     serializer_class = ServiceOverviewSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
@@ -1302,6 +1306,7 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
 class ServiceStepViewSet(viewsets.ModelViewSet):
     """API endpoint for service steps (How It Works)"""
 
+    queryset = ServiceStep.objects.all()
     serializer_class = ServiceStepSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 
@@ -1456,6 +1461,7 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
 class ServiceAftercareViewSet(viewsets.ModelViewSet):
     """API endpoint for service aftercare tips"""
 
+    queryset = ServiceAftercare.objects.all()
     serializer_class = ServiceAftercareSerializer
     permission_classes = [IsAuthenticated, IsShopStaffOrAdmin]
 

@@ -241,6 +241,7 @@ class CompanyDocumentViewSet(viewsets.ModelViewSet):
     - User must have permission to manage company documents
     """
 
+    queryset = CompanyDocument.objects.all()
     serializer_class = CompanyDocumentSerializer
     permission_classes = [permissions.IsAuthenticated, CanManageCompanyDocuments]
 

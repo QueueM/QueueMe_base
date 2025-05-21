@@ -235,6 +235,7 @@ class ShopFollowersViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     - Most actions require permission to view followers (shop owners/managers/admins)
     """
 
+    queryset = Follow.objects.all()
     serializer_class = FollowSerializer
     permission_classes = [permissions.IsAuthenticated, CanViewFollowers]
 

@@ -1,6 +1,10 @@
 from rest_framework import serializers
+from django.utils.translation import gettext_lazy as _
 
 from apps.authapp.serializers import UserSerializer
+from apps.companiesapp.serializers import CompanySerializer
+from apps.shopapp.serializers import ShopSerializer
+from apps.specialistsapp.serializers import SpecialistSerializer
 from apps.reportanalyticsapp.models import (
     AnalyticsSnapshot,
     AnomalyDetection,
@@ -9,8 +13,6 @@ from apps.reportanalyticsapp.models import (
     ShopAnalytics,
     SpecialistAnalytics,
 )
-from apps.shopapp.serializers import ShopSerializer
-from apps.specialistsapp.serializers import SpecialistSerializer
 
 
 class AnalyticsSnapshotSerializer(serializers.ModelSerializer):
@@ -86,6 +88,7 @@ class ScheduledReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ScheduledReport
+        ref_name = "ReportAnalyticsApp_ScheduledReportSerializer"  # <--- FIXED!
         fields = (
             "id",
             "name",
@@ -108,24 +111,19 @@ class ScheduledReportSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at", "updated_at", "last_run")
 
     def validate(self, data):
-        """Validate recipient based on recipient_type"""
         recipient_type = data.get("recipient_type")
-
         if recipient_type == "user" and not data.get("recipient_user"):
             raise serializers.ValidationError(
                 {"recipient_user": "User must be specified for user recipient type"}
             )
-
         if recipient_type == "shop" and not data.get("recipient_shop"):
             raise serializers.ValidationError(
                 {"recipient_shop": "Shop must be specified for shop recipient type"}
             )
-
         if recipient_type == "email" and not data.get("recipient_email"):
             raise serializers.ValidationError(
                 {"recipient_email": "Email must be specified for email recipient type"}
             )
-
         return data
 
 
@@ -197,44 +195,35 @@ class AnomalyDetectionSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at", "acknowledged_at")
 
     def get_entity_name(self, obj):
-        """Get human-readable entity name"""
         entity_type = obj.entity_type
         entity_id = obj.entity_id
 
         if entity_type == "shop":
             from apps.shopapp.models import Shop
-
             try:
                 shop = Shop.objects.get(id=entity_id)
                 return shop.name
             except Shop.DoesNotExist:
                 return None
-
         elif entity_type == "specialist":
             from apps.specialistsapp.models import Specialist
-
             try:
                 specialist = Specialist.objects.get(id=entity_id)
                 employee = specialist.employee
                 return f"{employee.first_name} {employee.last_name}"
             except Specialist.DoesNotExist:
                 return None
-
         elif entity_type == "service":
             from apps.serviceapp.models import Service
-
             try:
                 service = Service.objects.get(id=entity_id)
                 return service.name
             except Service.DoesNotExist:
                 return None
-
         return None
 
 
 class DashboardMetricsSerializer(serializers.Serializer):
-    """Serializer for dashboard metrics"""
-
     date_range = serializers.CharField(read_only=True)
     total_bookings = serializers.IntegerField(read_only=True)
     completed_bookings = serializers.IntegerField(read_only=True)
@@ -253,8 +242,6 @@ class DashboardMetricsSerializer(serializers.Serializer):
 
 
 class ReportRequestSerializer(serializers.Serializer):
-    """Serializer for report generation requests"""
-
     report_type = serializers.CharField()
     name = serializers.CharField()
     parameters = serializers.JSONField(required=False, default=dict)

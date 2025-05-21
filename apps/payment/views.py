@@ -42,6 +42,7 @@ class PaymentViewSet(viewsets.ViewSet):
     ViewSet for payment-related operations
     """
 
+    queryset = Transaction.objects.all()
     permission_classes = [permissions.IsAuthenticated, PaymentPermission]
 
     @document_api_endpoint(

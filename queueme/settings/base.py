@@ -1,3 +1,4 @@
+# queueme/settings/base.py
 """
 Queue Me – shared Django settings (development, staging, production).
 
@@ -17,6 +18,9 @@ from decouple import config  # Use python-decouple for env vars
 from django.utils.translation import gettext_lazy as _  # noqa: F401 - Used in LANGUAGES setting
 from dotenv import load_dotenv
 
+# Apply patch for drf_yasg duplicate parameters issue and SafeSwaggerSchema
+from api.documentation import yasg_patch  # noqa
+
 # ---------------------------------------------------------------------------
 # Paths & dotenv
 # ---------------------------------------------------------------------------
@@ -30,7 +34,6 @@ else:
 
 TESTING = any(cmd in sys.argv for cmd in ("test", "pytest", "makemigrations", "migrate"))
 
-
 # ---------------------------------------------------------------------------
 # Tiny helper – read env with "required" flag
 # ---------------------------------------------------------------------------
@@ -40,18 +43,11 @@ def env(key: str, default: Optional[str] = None, *, required: bool = False) -> s
         raise RuntimeError(f"⚠️  The environment variable {key} is required but not set.")
     return val
 
-
 # ---------------------------------------------------------------------------
 # Core toggles
 # ---------------------------------------------------------------------------
-# SECURITY WARNING: keep the secret key used in production secret!
-# Load SECRET_KEY from environment variable. Use a default ONLY for local dev if necessary,
-# but ideally, set it in your .env file.
 SECRET_KEY = config("SECRET_KEY", default="django-insecure-fallback-key-change-me-in-env")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
-
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS", default="127.0.0.1,localhost", cast=lambda v: [s.strip() for s in v.split(",")]
 )
@@ -67,38 +63,36 @@ DATABASES = {
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "queueme"),
         "HOST": os.environ.get("POSTGRES_HOST", "db"),
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
-        "CONN_MAX_AGE": 600,  # Keep connections alive for 10 minutes
+        "CONN_MAX_AGE": 600,
         "OPTIONS": {
             "connect_timeout": 10,
             "client_encoding": "UTF8",
             "sslmode": os.environ.get("POSTGRES_SSL_MODE", "prefer"),
             "application_name": "queueme",
         },
-        "ATOMIC_REQUESTS": True,  # Wrap each request in a transaction for data consistency
-        "CONN_HEALTH_CHECKS": True,  # Check connection health before use (Django 4.2+)
+        "ATOMIC_REQUESTS": True,
+        "CONN_HEALTH_CHECKS": True,
     }
 }
 
-# Database connection pooling (require django-db-connection-pool for production)
+# Optional: database connection pooling for production
 if os.environ.get("USE_CONNECTION_POOLING", "False").lower() == "true":
     try:
-        # Dynamically import and configure connection pooling
         DATABASES["default"]["ENGINE"] = "dj_db_conn_pool.backends.postgresql"
         DATABASES["default"]["POOL_OPTIONS"] = {
             "POOL_SIZE": int(os.environ.get("DB_POOL_SIZE", 20)),
             "MAX_OVERFLOW": int(os.environ.get("DB_MAX_OVERFLOW", 15)),
-            "RECYCLE": 300,  # Recycle connections after 5 minutes
-            "TIMEOUT": 20,  # 20 seconds acquisition timeout
-            "MAX_LIFETIME": 1800,  # 30 minutes maximum lifetime
-            "POOL_PRE_PING": True,  # Enable connection health checks
+            "RECYCLE": 300,
+            "TIMEOUT": 20,
+            "MAX_LIFETIME": 1800,
+            "POOL_PRE_PING": True,
         }
         print("Database connection pooling enabled.")
     except ImportError:
         print("Package django-db-connection-pool not installed. Connection pooling disabled.")
-        # Fallback to standard PostgreSQL
         DATABASES["default"]["ENGINE"] = "django.contrib.gis.db.backends.postgis"
 
-# SQLite fallback for development if needed
+# SQLite fallback for local/dev testing
 if os.environ.get("USE_SQLITE", "False").lower() == "true":
     DATABASES = {
         "default": {
@@ -107,12 +101,10 @@ if os.environ.get("USE_SQLITE", "False").lower() == "true":
         }
     }
 
-
 # ---------------------------------------------------------------------------
 # Application definition
 # ---------------------------------------------------------------------------
 INSTALLED_APPS = [
-    # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.gis",
@@ -120,7 +112,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Third-party apps
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
@@ -129,17 +120,12 @@ INSTALLED_APPS = [
     "django_filters",
     "storages",
     "django_prometheus",
-    #"drf_spectacular",
-    # Core apps
-    "core",
+    # "drf_spectacular",
+    'core.apps.CoreConfig',
     "algorithms",
     "django_extensions",
-    "utils",  # Utility components including admin audit logs
-    # Custom admin panel
-    # Realtime gateway (avoid name clash with PyPI websockets)
+    "utils",
     "websockets.apps.WebsocketsConfig",
-
-    # Domain apps – explicit AppConfig paths
     "apps.authapp.apps.AuthAppConfig",
     "apps.rolesapp.apps.RolesappConfig",
     "apps.geoapp.apps.GeoAppConfig",
@@ -165,7 +151,7 @@ INSTALLED_APPS = [
     "apps.reportanalyticsapp.apps.ReportAnalyticsConfig",
     "apps.shopDashboardApp.apps.ShopDashboardAppConfig",
     "apps.marketingapp.apps.MarketingAppConfig",
-    ]
+]
 
 MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
@@ -175,7 +161,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # "utils.admin.middleware.AdminAuditMiddleware",  # Admin audit logging - disabled temporarily
+    # "utils.admin.middleware.AdminAuditMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -184,7 +170,8 @@ MIDDLEWARE = [
     "queueme.middleware.localization_middleware.LocalizationMiddleware",
     "queueme.middleware.performance_middleware.PerformanceMiddleware",
     "queueme.middleware.domain_routing.DomainRoutingMiddleware",
-    "core.middleware.performance_middleware.PerformanceMonitoringMiddleware",  # Performance monitoring
+    "core.middleware.swagger_middleware.SwaggerMiddleware",
+    "core.middleware.performance_middleware.PerformanceMonitoringMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
@@ -208,7 +195,6 @@ TEMPLATES = [
     },
 ]
 
-
 # ---------------------------------------------------------------------------
 # Password validation
 # ---------------------------------------------------------------------------
@@ -219,7 +205,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-
 # ---------------------------------------------------------------------------
 # Custom user model & auth backends
 # ---------------------------------------------------------------------------
@@ -228,7 +213,6 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "apps.authapp.backends.PhoneNumberBackend",
 ]
-
 
 # ---------------------------------------------------------------------------
 # REST Framework & JWT
@@ -243,7 +227,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
-    #"DEFAULT_SCHEMA_CLASS": "drf_yasg.openapi.AutoSchema",
+    # "DEFAULT_SCHEMA_CLASS": "drf_yasg.openapi.AutoSchema",
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
@@ -282,7 +266,6 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
 }
 
-
 # ---------------------------------------------------------------------------
 # Cookies
 # ---------------------------------------------------------------------------
@@ -290,7 +273,6 @@ JWT_COOKIE_NAME = "queueme_auth"
 JWT_COOKIE_SECURE = not DEBUG
 JWT_COOKIE_HTTPONLY = True
 JWT_COOKIE_SAMESITE = "Lax"
-
 
 # ---------------------------------------------------------------------------
 # Channels – Redis
@@ -304,23 +286,12 @@ CHANNEL_LAYERS = {
     },
 }
 
-
 # ---------------------------------------------------------------------------
 # Celery - DISABLED TEMPORARILY
 # ---------------------------------------------------------------------------
-# CELERY_BROKER_URL = env("CELERY_BROKER_URL", "redis://redis:6379/0")
-# CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
-# CELERY_TIMEZONE = "Asia/Riyadh"
-# CELERY_TASK_TRACK_STARTED = True
-# CELERY_TASK_TIME_LIMIT = 30 * 60
-# CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
-# CELERY_RESULT_EXTENDED = True
-
-# Dummy Celery settings to prevent errors
 DISABLE_CELERY = True
 CELERY_ALWAYS_EAGER = True
 CELERY_TASK_ALWAYS_EAGER = True
-
 
 # ---------------------------------------------------------------------------
 # Cache
@@ -333,7 +304,6 @@ CACHES = {
     }
 }
 
-
 # ---------------------------------------------------------------------------
 # I18N / L10N
 # ---------------------------------------------------------------------------
@@ -345,7 +315,6 @@ USE_TZ = True
 LANGUAGES = [("en", "English"), ("ar", "Arabic")]
 LOCALE_PATHS = [BASE_DIR / "locale"]
 
-
 # ---------------------------------------------------------------------------
 # Static & Media
 # ---------------------------------------------------------------------------
@@ -356,7 +325,6 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Use S3 for media if all creds present
 if all(env(v) for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")):
     AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", "me-south-1")
     AWS_S3_CUSTOM_DOMAIN = f"{env('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
@@ -365,7 +333,6 @@ if all(env(v) for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORA
     AWS_QUERYSTRING_AUTH = False
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
-
 
 # ---------------------------------------------------------------------------
 # Email
@@ -378,18 +345,14 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "noreply@queueme.net")
 
-
 # ---------------------------------------------------------------------------
 # Third-party integrations
 # ---------------------------------------------------------------------------
 MOYASAR_API_KEY = env("MOYASAR_API_KEY", "")
 MOYASAR_WEBHOOK_SECRET = env("MOYASAR_WEBHOOK_SECRET", "")
 
-# Import Moyasar wallet configuration
 try:
     from .moyasar import MOYASAR_ADS, MOYASAR_MER, MOYASAR_SUB, validate_moyasar_config
-
-    # Log Moyasar wallet status
     if DEBUG:
         moyasar_status = validate_moyasar_config()
         has_issues = moyasar_status["missing_keys"] or moyasar_status["empty_keys"]
@@ -399,7 +362,6 @@ try:
                 print(f"  - Missing keys: {', '.join(moyasar_status['missing_keys'])}")
             if moyasar_status["empty_keys"]:
                 print(f"  - Empty keys: {', '.join(moyasar_status['empty_keys'])}")
-
         print(
             "🔐 Moyasar wallets status: "
             + "Subscription: {} | Ads: {} | Merchant: {}".format(
@@ -420,15 +382,16 @@ TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", "")
 
 SMS_BACKEND = "utils.sms.backends.twilio.TwilioBackend"
 
-
 # ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "https://queueme.net",
+    "https://www.queueme.net",
     "https://shop.queueme.net",
     "https://admin.queueme.net",
+    "https://api.queueme.net",
 ]
 if DEBUG:
     CORS_ALLOWED_ORIGINS += [
@@ -437,23 +400,20 @@ if DEBUG:
         "http://localhost:8000",
         "http://127.0.0.1:8000",
     ]
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # easiest for local dev
-
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 # ---------------------------------------------------------------------------
 # Security - Improved Default Values for Production
 # ---------------------------------------------------------------------------
-# Set secure defaults but allow overriding through environment variables
-SECURE_SSL_REDIRECT = env("SECURE_SSL_REDIRECT", "1") == "1"  # Default to True in production
-SESSION_COOKIE_SECURE = env("SESSION_COOKIE_SECURE", "1") == "1"  # Default to True in production
-CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE", "1") == "1"  # Default to True in production
-SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS", "31536000"))  # Default to 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = env("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"  # Default to True
-SECURE_HSTS_PRELOAD = env("SECURE_HSTS_PRELOAD", "1") == "1"  # Default to True
+SECURE_SSL_REDIRECT = env("SECURE_SSL_REDIRECT", "1") == "1"
+SESSION_COOKIE_SECURE = env("SESSION_COOKIE_SECURE", "1") == "1"
+CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE", "1") == "1"
+SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS", "31536000"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"
+SECURE_HSTS_PRELOAD = env("SECURE_HSTS_PRELOAD", "1") == "1"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
-
 
 # ---------------------------------------------------------------------------
 # Default PK
@@ -518,14 +478,32 @@ LOGGING = {
     },
 }
 
+# ---------------------------------------------------------------------------
+# SWAGGER SETTINGS (guaranteed robust dedupe + SafeSwaggerSchema)
+# ---------------------------------------------------------------------------
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "Bearer": {
             "type": "apiKey",
             "name": "Authorization",
-            "in": "header"
+            "in": "header",
+            "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
         }
-    }
+    },
+    "SECURITY_REQUIREMENTS": [
+        {"Bearer": []}
+    ],
+    "USE_SESSION_AUTH": True,  # Allow session auth alongside Bearer tokens
+    "OPERATIONS_SORTER": "alpha",
+    "TAGS_SORTER": "alpha",
+    "DOC_EXPANSION": "none",
+    "DEFAULT_MODEL_RENDERING": "model",
+    "USE_SESSION_AUTH": False,
+    "VALIDATOR_URL": None,
+    "DISPLAY_OPERATION_ID": False,
+    # CRITICAL: This line dedupes params and prevents schema errors!
+    "FUNCTION_TO_APPLY_BEFORE_SWAGGER_SCHEMA_VALIDATION": "api.documentation.utils.dedupe_operation_params",
+    "DEFAULT_AUTO_SCHEMA_CLASS": "api.documentation.yasg_patch.SafeSwaggerSchema",
 }
 
 # ---------------------------------------------------------------------------
@@ -535,19 +513,21 @@ FRONTEND_URL = env("FRONTEND_URL", "https://queueme.net")
 SHOP_PANEL_URL = env("SHOP_PANEL_URL", "https://shop.queueme.net")
 ADMIN_PANEL_URL = env("ADMIN_PANEL_URL", "https://admin.queueme.net")
 
-
+# ---------------------------------------------------------------------------
 # Rate limiting settings
-RATE_LIMIT_DEFAULT_RATE = 100  # 100 requests
-RATE_LIMIT_DEFAULT_PERIOD = 60  # per minute
-RATE_LIMIT_API_RATE = 60  # 60 API requests
-RATE_LIMIT_API_PERIOD = 60  # per minute
-RATE_LIMIT_OTP_RATE = 5  # 5 OTP send requests
-RATE_LIMIT_OTP_PERIOD = 300  # per 5 minutes (300 seconds)
-RATE_LIMIT_OTP_LOCKOUT = 1800  # 30 minutes lockout after exceeding
-RATE_LIMIT_OTP_VERIFY_RATE = 10  # 10 OTP verify attempts
-RATE_LIMIT_OTP_VERIFY_PERIOD = 300  # per 5 minutes
-RATE_LIMIT_OTP_VERIFY_LOCKOUT = 1800  # 30 minutes lockout after exceeding
-
+# ---------------------------------------------------------------------------
+RATE_LIMIT_DEFAULT_RATE = 100
+RATE_LIMIT_DEFAULT_PERIOD = 60
+RATE_LIMIT_API_RATE = 60
+RATE_LIMIT_API_PERIOD = 60
+RATE_LIMIT_OTP_RATE = 5
+RATE_LIMIT_OTP_PERIOD = 300
+RATE_LIMIT_OTP_LOCKOUT = 1800
+RATE_LIMIT_OTP_VERIFY_RATE = 10
+RATE_LIMIT_OTP_VERIFY_PERIOD = 300
+RATE_LIMIT_OTP_VERIFY_LOCKOUT = 1800
 
 print("🏗️  Settings loaded  |  DEBUG={}  |  DB={}".format(DEBUG, DATABASES["default"]["ENGINE"]))
 print("🏗️  Installed apps: {}".format(", ".join(INSTALLED_APPS)))
+
+# END OF FILE

@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.authapp.models import User
@@ -94,7 +93,7 @@ class PaymentMethod(models.Model):
 class Transaction(models.Model):
     """
     Main payment transaction model that can be linked to various entities
-    (bookings, subscriptions, etc.)
+    (bookings, subscriptions, ads, etc.)
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -123,6 +122,23 @@ class Transaction(models.Model):
     )
     provider_transaction_id = models.CharField(max_length=255, null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
+
+    # --- FIX: Add these fields for generic linkage and transaction type ---
+    transaction_type = models.CharField(
+        max_length=40, null=True, blank=True,
+        help_text="Type of transaction (booking, subscription, ad, etc.)"
+    )
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="The Django content type of the related object."
+    )
+    object_id = models.UUIDField(null=True, blank=True, help_text="ID of the related object.")
+    content_object = GenericForeignKey("content_type", "object_id")
+    # ----------------------------------------------------------------------
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -136,6 +152,9 @@ class Transaction(models.Model):
             models.Index(fields=["provider_transaction_id"]),
             models.Index(fields=["user", "status"]),
             models.Index(fields=["user", "wallet_type"]),
+            # Add index for content_type/object_id for fast reverse lookups
+            models.Index(fields=["content_type", "object_id"]),
+            models.Index(fields=["transaction_type"]),
         ]
         ordering = ["-created_at"]
         verbose_name = _("Transaction")

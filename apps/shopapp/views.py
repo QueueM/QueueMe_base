@@ -50,6 +50,7 @@ class ShopViewSet(viewsets.ModelViewSet):
     API endpoint for managing shops.
     """
 
+    queryset = Shop.objects.all()
     serializer_class = ShopSerializer
     permission_classes = [permissions.IsAuthenticated, HasShopPermission]
     pagination_class = StandardResultsSetPagination

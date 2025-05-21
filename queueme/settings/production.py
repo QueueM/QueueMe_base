@@ -5,8 +5,6 @@ These settings override the base settings for production environments.
 """
 
 import os
-
-# Monkey patch to fix the persistent import error
 import sys
 import types
 from datetime import timedelta
@@ -15,37 +13,54 @@ from pathlib import Path
 from .base import *
 from .base import env
 
-# Create fake module implementations to bypass the problematic imports
+# Monkey patch to fix persistent import errors in production (Celery worker)
 dummy_worker = types.ModuleType("core.tasks.worker")
 dummy_worker.WorkerManager = type(
     "WorkerManager", (), {"get_active_workers": staticmethod(lambda: {})}
 )
 dummy_worker.task_with_lock = lambda func=None, **kwargs: ((lambda f: f) if func is None else func)
 dummy_worker.task_with_retry = lambda **kwargs: lambda f: f
-
-# Replace the problematic modules in sys.modules
 sys.modules["core.tasks.worker"] = dummy_worker
 
+# =============================== STATIC FILES ===============================
+STATIC_URL = '/static/'
+STATIC_ROOT = os.environ.get("STATIC_ROOT", "/opt/queueme/static")
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+# ============================================================================
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable not set!")
 
-# Database connection pooling configuration
 DATABASE_CONNECTION_POOL_SETTINGS = {
     "MAX_CONNECTIONS": int(os.environ.get("DB_MAX_CONNECTIONS", 20)),
     "MIN_CONNECTIONS": int(os.environ.get("DB_MIN_CONNECTIONS", 5)),
-    "MAX_LIFETIME": int(os.environ.get("DB_MAX_LIFETIME", 1800)),  # 30 minutes
-    "IDLE_TIMEOUT": int(os.environ.get("DB_IDLE_TIMEOUT", 300)),  # 5 minutes
+    "MAX_LIFETIME": int(os.environ.get("DB_MAX_LIFETIME", 1800)),
+    "IDLE_TIMEOUT": int(os.environ.get("DB_IDLE_TIMEOUT", 300)),
 }
 
-# Database read replicas configuration
+# ================== SWAGGER SETTINGS FOR PRODUCTION ========================
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": "queueme.urls.api_info",
+    "USE_SESSION_AUTH": False,
+    "SHOW_REQUEST_HEADERS": True,
+    "VALIDATOR_URL": None,
+    "DEFAULT_MODEL_RENDERING": "example",
+    "DOC_EXPANSION": "none",
+    "PERSIST_AUTH": True,
+    "REFETCH_SCHEMA_WITH_AUTH": True,
+    "SHOW_EXTENSIONS": True,
+    "DEBUG": True,  # Set to False for clean prod docs if desired
+    # CRITICAL: robust deduplication + error-proof schema
+    "FUNCTION_TO_APPLY_BEFORE_SWAGGER_SCHEMA_VALIDATION": "api.documentation.utils.dedupe_operation_params",
+    "DEFAULT_AUTO_SCHEMA_CLASS": "api.documentation.yasg_patch.SafeSwaggerSchema",
+}
+# ============================================================================
+
 if os.environ.get("DB_REPLICAS_ENABLED", "False").lower() == "true":
-    # Example database configuration with read replicas
     DATABASES = {
         "default": {
             "ENGINE": "django.contrib.gis.db.backends.postgis",
@@ -74,16 +89,11 @@ if os.environ.get("DB_REPLICAS_ENABLED", "False").lower() == "true":
                 "client_encoding": "UTF8",
                 "sslmode": os.environ.get("POSTGRES_SSL_MODE", "prefer"),
             },
-            "TEST": {
-                "MIRROR": "default",
-            },
+            "TEST": {"MIRROR": "default"},
         },
     }
-
-    # Database router for read/write splitting
     DATABASE_ROUTERS = ["queueme.db_routers.ReplicationRouter"]
 else:
-    # Standard single database configuration
     DATABASES = {
         "default": {
             "ENGINE": "django.contrib.gis.db.backends.postgis",
@@ -101,63 +111,63 @@ else:
         }
     }
 
-# Use pgbouncer for connection pooling if enabled
+# PGBouncer: Connection pooling support
 if os.environ.get("USE_PGBOUNCER", "False").lower() == "true":
     for db_name, db_config in DATABASES.items():
-        # Adjust host and port for pgbouncer
         db_config["HOST"] = os.environ.get("PGBOUNCER_HOST", db_config["HOST"])
         db_config["PORT"] = os.environ.get("PGBOUNCER_PORT", "6432")
-        # Disable persistent connections when using a connection pooler
         db_config["CONN_MAX_AGE"] = 0
 
-# Add whitenoise for static file serving in production
-MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
-# Add domain routing middleware
+# Remove whitenoise if present (for S3/CDN)
+MIDDLEWARE = [m for m in MIDDLEWARE if 'whitenoise' not in m.lower()]
 MIDDLEWARE.insert(0, "queueme.middleware.domain_routing.DomainRoutingMiddleware")
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# FIX: Static files configuration - CRITICAL FOR ADMIN CSS/JS
-STATIC_URL = "/static/"
-STATIC_ROOT = os.environ.get("STATIC_ROOT", "/opt/queueme/staticfiles")
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-
-# Media files
+# Media configuration
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/opt/queueme/media")
+if os.environ.get("USE_S3_MEDIA", "False").lower() == "true" and all(
+    os.environ.get(v) for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")
+):
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "me-south-1")
+    AWS_S3_CUSTOM_DOMAIN = (
+        f"{os.environ.get('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+    )
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+    AWS_DEFAULT_ACL = "public-read"
+    AWS_QUERYSTRING_AUTH = False
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+else:
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    MEDIA_URL = "/media/"
 
-# Ensure Debug Toolbar is completely disabled in production
-# Only include Debug Toolbar in INSTALLED_APPS if explicitly enabled in debug mode
+# Debug toolbar for debug only
 if DEBUG and os.environ.get("ENABLE_DEBUG_TOOLBAR", "False").lower() == "true":
     try:
         import debug_toolbar
         INSTALLED_APPS.append('debug_toolbar')
         MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
-        
-        # Same config as development, but with more restrictions
         INTERNAL_IPS = ["127.0.0.1", "::1", "localhost"]
         DEBUG_TOOLBAR_CONFIG = {
-            # Disable problematic panels
             'DISABLE_PANELS': [
                 'debug_toolbar.panels.history.HistoryPanel',
                 'debug_toolbar.panels.redirects.RedirectsPanel',
             ],
-            # Only show for admins with explicit IP restriction
             'SHOW_TOOLBAR_CALLBACK': lambda request: (
                 request.user.is_superuser and
                 request.META.get("REMOTE_ADDR") in INTERNAL_IPS
             ),
             'RENDER_PANELS': False,
-            'ENABLE_STACKTRACES': False,  # Disable stacktraces in production
+            'ENABLE_STACKTRACES': False,
             'SHOW_COLLAPSED': True,
         }
     except ImportError:
         pass
 else:
-    # Ensure Debug Toolbar is completely removed from settings if present
     INSTALLED_APPS = [app for app in INSTALLED_APPS if not (isinstance(app, str) and 'debug_toolbar' in app)]
     MIDDLEWARE = [mw for mw in MIDDLEWARE if not (isinstance(mw, str) and 'debug_toolbar' in mw)]
 
-# Try to safely add security middlewares
+# Security middlewares
 security_middlewares = [
     "core.middleware.security.ContentSecurityPolicyMiddleware",
     "core.middleware.security.XFrameOptionsMiddleware",
@@ -167,11 +177,8 @@ security_middlewares = [
     "core.middleware.security.PermissionsPolicyMiddleware",
     "core.middleware.security.SQLInjectionProtectionMiddleware",
 ]
-
-# Try to add the Prometheus middleware only if it works
 try:
     from core.monitoring.metrics import API_REQUEST_LATENCY
-    # Check if API_REQUESTS is available
     try:
         from core.monitoring.metrics import API_REQUESTS
         security_middlewares.append("core.middleware.metrics_middleware.PrometheusMetricsMiddleware")
@@ -179,22 +186,19 @@ try:
         print("⚠️ PrometheusMetricsMiddleware not loaded - API_REQUESTS missing")
 except ImportError:
     print("⚠️ PrometheusMetricsMiddleware not loaded - metrics module missing")
-
-# Add the valid middlewares
 MIDDLEWARE += security_middlewares
 
-# Enhanced security settings - Use environment variables for flexibility in testing
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "1") == "1"
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"
-SECURE_HSTS_PRELOAD = os.environ.get("SECURE_HSTS_PRELOAD", "1") == "1" 
+SECURE_HSTS_PRELOAD = os.environ.get("SECURE_HSTS_PRELOAD", "1") == "1"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "1") == "1"
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "1") == "1"
 X_FRAME_OPTIONS = "DENY"
 
-# JWT settings with enhanced security
+# JWT settings (override any base.py values as needed)
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
         minutes=int(os.environ.get("JWT_ACCESS_TOKEN_MINUTES", "30"))
@@ -214,7 +218,6 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": True,
 }
 
-# Rate limiting
 REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = [
     "rest_framework.throttling.AnonRateThrottle",
     "rest_framework.throttling.UserRateThrottle",
@@ -226,26 +229,13 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
     "webhook": os.environ.get("WEBHOOK_THROTTLE_RATE", "120/minute"),
 }
 
-# Password validation settings
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {
-            "min_length": 10,
-        },
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 10}},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# Cache settings with Redis - Advanced Configuration
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -255,12 +245,11 @@ CACHES = {
             "SOCKET_CONNECT_TIMEOUT": 5,
             "SOCKET_TIMEOUT": 5,
             "CONNECTION_POOL_KWARGS": {"max_connections": 100},
-            "PARSER_CLASS": "redis.connection.HiredisParser",
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             "IGNORE_EXCEPTIONS": True,
         },
         "KEY_PREFIX": "queueme",
-        "TIMEOUT": 300,  # 5 minutes default
+        "TIMEOUT": 300,
     },
     "persistent": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -272,7 +261,7 @@ CACHES = {
             "CONNECTION_POOL_KWARGS": {"max_connections": 50},
         },
         "KEY_PREFIX": "queueme:persist",
-        "TIMEOUT": 86400,  # 1 day default
+        "TIMEOUT": 86400,
     },
     "large_objects": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -283,7 +272,7 @@ CACHES = {
             "IGNORE_EXCEPTIONS": True,
         },
         "KEY_PREFIX": "queueme:large",
-        "TIMEOUT": 3600,  # 1 hour default
+        "TIMEOUT": 3600,
     },
     "session": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -296,29 +285,9 @@ CACHES = {
     },
 }
 
-# Cache session backend
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"
 
-# Use local storage for media files
-DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-
-# If AWS credentials exist, use S3
-if all(
-    os.environ.get(v)
-    for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")
-):
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "me-south-1")
-    AWS_S3_CUSTOM_DOMAIN = (
-        f"{os.environ.get('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
-    )
-    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
-    AWS_DEFAULT_ACL = "public-read"
-    AWS_QUERYSTRING_AUTH = False
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
-
-# Email/SMS settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
@@ -330,7 +299,6 @@ DEFAULT_FROM_EMAIL = env(
     default="QueueMe <noreply@example.com>",
 )
 
-# Firebase settings for notifications and SMS
 FIREBASE_CREDENTIALS_PATH = os.environ.get("FIREBASE_CREDENTIALS_PATH")
 FIREBASE_API_KEY = os.environ.get("FIREBASE_API_KEY")
 FIREBASE_PROJECT_ID = os.environ.get("FIREBASE_PROJECT_ID")
@@ -340,27 +308,21 @@ FIREBASE_STORAGE_BUCKET = os.environ.get("FIREBASE_STORAGE_BUCKET")
 FIREBASE_SMS_API_URL = os.environ.get("FIREBASE_SMS_API_URL")
 FIREBASE_SMS_API_KEY = os.environ.get("FIREBASE_SMS_API_KEY")
 
-# Use Firebase for SMS
 SMS_BACKEND = "utils.sms.backends.firebase.FirebaseSMSBackend"
 
-# CORS settings - allow domain and subdomains
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    "https://queueme.net",  # Main site
-    "https://www.queueme.net",  # www version of main site
-    "https://shop.queueme.net",  # Shop interface for businesses
-    "https://admin.queueme.net",  # Admin panel for site administrators
-    "https://api.queueme.net",  # API endpoints
+    "https://queueme.net",
+    "https://www.queueme.net",
+    "https://shop.queueme.net",
+    "https://admin.queueme.net",
+    "https://api.queueme.net",
 ]
-
-# Allow credentials for cross-domain API requests
-CORS_ALLOW_CREDENTIALS = True
-
-# Add any additional domains from environment variable
 if os.environ.get("ADDITIONAL_CORS_ORIGINS"):
     CORS_ALLOWED_ORIGINS.extend(os.environ.get("ADDITIONAL_CORS_ORIGINS").split(","))
+CORS_ALLOW_CREDENTIALS = True
 
-# Content Security Policy
+# Content Security Policy (CSP)
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = (
     "'self'",
@@ -381,19 +343,16 @@ CSP_FRAME_ANCESTORS = ("'none'",)
 CSP_FORM_ACTION = ("'self'",)
 CSP_INCLUDE_NONCE_IN = ("script-src",)
 
-# Channel layers for WebSockets
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/0")],
-            "capacity": 1500,  # Maximum number of messages in channel
-            "expiry": 60,  # Message expiry in seconds
-            "group_expiry": 86400,  # Channel/group expiry (1 day)
+            "capacity": 1500,
+            "expiry": 60,
+            "group_expiry": 86400,
             "channel_capacity": {
-                # Default channel capacity (global setting)
                 "http.request": 100,
-                # Per-channel overrides
                 "websocket.send*": 200,
                 "websocket.receive*": 200,
             },
@@ -401,148 +360,59 @@ CHANNEL_LAYERS = {
     },
 }
 
-# CRITICAL: Allow all subdomains
 ALLOWED_HOSTS = [
-    "queueme.net",  # Main site
-    "www.queueme.net",  # www version of main site
-    "shop.queueme.net",  # Shop interface for businesses
-    "admin.queueme.net",  # Admin panel for site administrators
-    "api.queueme.net",  # API endpoints
-    "localhost",  # Local development
-    "127.0.0.1",  # Local development
+    "queueme.net",
+    "www.queueme.net",
+    "shop.queueme.net",
+    "admin.queueme.net",
+    "api.queueme.net",
+    "localhost",
+    "127.0.0.1",
+    "148.72.244.135",
 ]
-
-# Add any additional hosts from environment variable
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 if os.environ.get("ADDITIONAL_ALLOWED_HOSTS"):
     ALLOWED_HOSTS.extend(os.environ.get("ADDITIONAL_ALLOWED_HOSTS").split(","))
 
-# Domain-specific routing - used for routing requests to the right app
 DOMAIN_ROUTING = {
-    "queueme.net": "main",  # Main site
-    "www.queueme.net": "main",  # www version of main site
-    "shop.queueme.net": "shop",  # Shop interface for businesses
-    "admin.queueme.net": "admin",  # Admin panel for site administrators
-    "api.queueme.net": "api",  # API endpoints
+    "queueme.net": "main",
+    "www.queueme.net": "main",
+    "shop.queueme.net": "shop",
+    "admin.queueme.net": "admin",
+    "api.queueme.net": "api",
 }
 
-# Logging configuration
+# Logging adjustments
 LOGGING["handlers"]["mail_admins"] = {
     "level": "ERROR",
     "class": "django.utils.log.AdminEmailHandler",
     "formatter": "verbose",
 }
-
 LOGGING["root"] = {
     "level": "WARNING",
     "handlers": ["file", "mail_admins"],
 }
-
 LOGGING["loggers"]["django.request"] = {
     "handlers": ["file", "mail_admins"],
     "level": "ERROR",
     "propagate": False,
 }
-
-# Add logging for static files for debugging
 LOGGING["loggers"]["django.contrib.staticfiles"] = {
     "handlers": ["console", "file"],
     "level": "DEBUG",
     "propagate": False,
 }
 
-# Celery configuration
+# Celery settings for prod: disable if needed
 DISABLE_CELERY = os.environ.get("DISABLE_CELERY", "False").lower() == "true"
 CELERY_ALWAYS_EAGER = DISABLE_CELERY
 CELERY_TASK_ALWAYS_EAGER = DISABLE_CELERY
 
-# Production-specific settings
 QUEUEME = {
     "SKIP_OTP_VERIFICATION": os.environ.get("SKIP_OTP_VERIFICATION", "False").lower() == "true",
     "DEMO_MODE": os.environ.get("DEMO_MODE", "False").lower() == "true",
     "PERFORMANCE_MONITORING": os.environ.get("PERFORMANCE_MONITORING", "True").lower() == "true",
 }
-
-# S3 / Cloud Storage Configuration
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
-# AWS Settings
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME", "queueme-production")
-AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "us-east-1")
-AWS_S3_CUSTOM_DOMAIN = os.environ.get(
-    "AWS_S3_CUSTOM_DOMAIN", f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-)
-AWS_S3_OBJECT_PARAMETERS = {
-    "CacheControl": "max-age=86400",
-}
-AWS_DEFAULT_ACL = "public-read"
-AWS_LOCATION = "static"
-STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
-MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
-
-# Alternative Google Cloud Storage config (uncomment to use instead of S3)
-# DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-# GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'queueme-production')
-# GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-#     os.environ.get('GS_CREDENTIALS_FILE')
-# )
-# MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
-
-# Static files optimization
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
-STATIC_ROOT = os.environ.get("STATIC_ROOT", "/opt/queueme/static")
-
-# Static file compression and caching
-INSTALLED_APPS += ["compressor"]
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-]
-
-STATICFILES_FINDERS += ["compressor.finders.CompressorFinder"]
-
-COMPRESS_ENABLED = True
-COMPRESS_OFFLINE = True
-COMPRESS_CSS_FILTERS = [
-    "compressor.filters.css_default.CssAbsoluteFilter",
-    "compressor.filters.cssmin.CSSMinFilter",
-]
-COMPRESS_JS_FILTERS = ["compressor.filters.jsmin.JSMinFilter"]
-COMPRESS_OUTPUT_DIR = "compressed"
-COMPRESS_STORAGE = "compressor.storage.GzipCompressorFileStorage"
-
-# Media file storage (use S3 in production)
-if os.environ.get("USE_S3", "False").lower() == "true":
-    # AWS S3 settings
-    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "us-east-1")
-    AWS_S3_CUSTOM_DOMAIN = os.environ.get(
-        "AWS_S3_CUSTOM_DOMAIN", f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-    )
-    AWS_S3_OBJECT_PARAMETERS = {
-        "CacheControl": "max-age=86400",
-    }
-    AWS_DEFAULT_ACL = "public-read"
-    AWS_LOCATION = "static"
-    AWS_S3_FILE_OVERWRITE = False
-
-    # Media settings for S3
-    MEDIA_LOCATION = "media"
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/"
-    DEFAULT_FILE_STORAGE = "core.storage.MediaStorage"
-
-    # Static settings for S3 (optional, can use local for faster performance)
-    if os.environ.get("S3_STATIC_FILES", "False").lower() == "true":
-        STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
-        STATICFILES_STORAGE = "core.storage.StaticStorage"
-else:
-    # Use local storage with proper caching headers
-    MEDIA_URL = "/media/"
-    STATIC_URL = "/static/"
 
 # CDN configuration (optional)
 if os.environ.get("USE_CDN", "False").lower() == "true":
@@ -552,3 +422,5 @@ if os.environ.get("USE_CDN", "False").lower() == "true":
         MEDIA_URL = f"https://{CDN_DOMAIN}/media/"
 
 print(f"🔒 Running in PRODUCTION mode with DEBUG={DEBUG}")
+
+# END OF FILE

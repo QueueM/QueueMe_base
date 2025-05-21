@@ -49,6 +49,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     - updated_at: Conversation's last update time (default: most recent first)
     """
 
+    queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
     permission_classes = [CanAccessChatPermission]
     filter_backends = [filters.OrderingFilter]
@@ -330,6 +331,7 @@ class MessageViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     - User must have access to the conversation containing the message
     """
 
+    queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = [CanAccessChatPermission]
 

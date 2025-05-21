@@ -36,12 +36,14 @@ logger = logging.getLogger(__name__)
     description="API endpoints for payment-related operations including payment methods, transactions, and refunds",
     tags=["Payments"],
 )
-class PaymentViewSet(viewsets.ViewSet):
+class PaymentViewSet(viewsets.ModelViewSet):   # <--- FIXED: Use ModelViewSet
     """
     ViewSet for payment-related operations
     """
 
+    queryset = Transaction.objects.all()      # <--- FIXED: Add this line
     permission_classes = [permissions.IsAuthenticated, PaymentPermission]
+    serializer_class = TransactionSerializer   # For DRF to work properly
 
     @document_api_endpoint(
         summary="Get payment methods",

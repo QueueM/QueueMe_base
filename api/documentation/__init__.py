@@ -1,7 +1,11 @@
 """
-Documentation modules for Queue Me API.
-This package contains utilities for generating and serving API documentation.
+API Documentation Package
+
+This package contains helpers and utilities for API documentation using drf-yasg.
 """
+
+# Apply monkey patch for drf_yasg duplicate parameters issue
+from api.documentation import yasg_patch
 
 from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
 from api.documentation.swagger import schema_view, swagger_urlpatterns
