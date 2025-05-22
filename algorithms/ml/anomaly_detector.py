@@ -250,7 +250,9 @@ class AnomalyDetector:
                 metrics = specialist_metrics
 
             # Get the current period's data
-            current_data = self._get_specialist_current_data(specialist_id, metrics, time_range)
+            current_data = self._get_specialist_current_data(
+                specialist_id, metrics, time_range
+            )
 
             # Get historical data for comparison
             historical_data = self._get_specialist_historical_data(
@@ -416,7 +418,9 @@ class AnomalyDetector:
                     f"Bookings have increased by {formatted_change} compared to normal."
                 )
                 if severity in ["high", "critical"]:
-                    insights.append("You may need additional staff to handle increased demand.")
+                    insights.append(
+                        "You may need additional staff to handle increased demand."
+                    )
             else:
                 insights.append(
                     f"Bookings have decreased by {formatted_change} compared to normal."
@@ -428,11 +432,17 @@ class AnomalyDetector:
 
         elif metric_name == "revenue" or metric_name == "total_revenue":
             if direction == "increase":
-                insights.append(f"Revenue has increased by {formatted_change} compared to normal.")
+                insights.append(
+                    f"Revenue has increased by {formatted_change} compared to normal."
+                )
                 if severity == "critical":
-                    insights.append("This is a significant increase that warrants investigation.")
+                    insights.append(
+                        "This is a significant increase that warrants investigation."
+                    )
             else:
-                insights.append(f"Revenue has decreased by {formatted_change} compared to normal.")
+                insights.append(
+                    f"Revenue has decreased by {formatted_change} compared to normal."
+                )
                 if severity in ["high", "critical"]:
                     insights.append(
                         "Review pricing, booking volume, and cancellation rates for potential causes."
@@ -443,7 +453,9 @@ class AnomalyDetector:
                 insights.append(
                     f"Wait times have increased by {formatted_change} compared to normal."
                 )
-                insights.append("Consider adding more staff or reviewing service efficiency.")
+                insights.append(
+                    "Consider adding more staff or reviewing service efficiency."
+                )
             else:
                 insights.append(
                     f"Wait times have decreased by {formatted_change} compared to normal."
@@ -468,14 +480,20 @@ class AnomalyDetector:
                     "Your reminder system or booking confirmation process is working well."
                 )
 
-        elif metric_name == "average_rating" or metric_name == "average_platform_rating":
+        elif (
+            metric_name == "average_rating" or metric_name == "average_platform_rating"
+        ):
             if direction == "increase":
-                insights.append(f"Ratings have improved by {formatted_change} compared to normal.")
+                insights.append(
+                    f"Ratings have improved by {formatted_change} compared to normal."
+                )
                 insights.append(
                     "Recent changes appear to be having a positive impact on customer satisfaction."
                 )
             else:
-                insights.append(f"Ratings have decreased by {formatted_change} compared to normal.")
+                insights.append(
+                    f"Ratings have decreased by {formatted_change} compared to normal."
+                )
                 if severity in ["high", "critical"]:
                     insights.append(
                         "Review recent reviews for specific issues that may need addressing."
@@ -486,7 +504,9 @@ class AnomalyDetector:
                 insights.append(
                     f"Cancellation rate has increased by {formatted_change} compared to normal."
                 )
-                insights.append("Review your confirmation process and consider policy adjustments.")
+                insights.append(
+                    "Review your confirmation process and consider policy adjustments."
+                )
             else:
                 insights.append(
                     f"Cancellation rate has decreased by {formatted_change} compared to normal."
@@ -497,7 +517,9 @@ class AnomalyDetector:
                 insights.append(
                     f"Content engagement has increased by {formatted_change} compared to normal."
                 )
-                insights.append("Your recent content is resonating well with customers.")
+                insights.append(
+                    "Your recent content is resonating well with customers."
+                )
             else:
                 insights.append(
                     f"Content engagement has decreased by {formatted_change} compared to normal."
@@ -518,7 +540,9 @@ class AnomalyDetector:
                 insights.append(
                     f"Customer retention has decreased by {formatted_change} compared to normal."
                 )
-                insights.append("Review the customer experience to identify potential issues.")
+                insights.append(
+                    "Review the customer experience to identify potential issues."
+                )
 
         elif metric_name == "active_users":
             if direction == "increase":
@@ -553,7 +577,9 @@ class AnomalyDetector:
 
         return insights
 
-    def _get_current_period_data(self, shop_id: str, metrics: List[str], time_range: str) -> Dict:
+    def _get_current_period_data(
+        self, shop_id: str, metrics: List[str], time_range: str
+    ) -> Dict:
         """
         Get metrics data for the current period.
 
@@ -586,7 +612,9 @@ class AnomalyDetector:
         results = {}
 
         # Get relevant models based on the requested metrics
-        if any(m in metrics for m in ["booking_count", "no_show_rate", "cancellation_rate"]):
+        if any(
+            m in metrics for m in ["booking_count", "no_show_rate", "cancellation_rate"]
+        ):
             from apps.bookingapp.models import Appointment
 
             # Total bookings in period
@@ -759,7 +787,9 @@ class AnomalyDetector:
         elif time_range == "month":
             # Approximate months as 30 days for simplicity
             for i in range(1, comparison_period + 1):
-                periods.append((now - timedelta(days=i * 30), now - timedelta(days=(i - 1) * 30)))
+                periods.append(
+                    (now - timedelta(days=i * 30), now - timedelta(days=(i - 1) * 30))
+                )
 
         # Collect data for each period
         for start_date, end_date in periods:
@@ -793,7 +823,9 @@ class AnomalyDetector:
         results = {}
 
         # Get relevant models based on the requested metrics
-        if any(m in metrics for m in ["booking_count", "no_show_rate", "cancellation_rate"]):
+        if any(
+            m in metrics for m in ["booking_count", "no_show_rate", "cancellation_rate"]
+        ):
             from apps.bookingapp.models import Appointment
 
             # Total bookings in period

@@ -132,9 +132,9 @@ class PlatformQueries:
         ).count()
 
         avg_platform_rating = (
-            Review.objects.filter(created_at__gte=start_date, created_at__lt=end_date).aggregate(
-                avg=Coalesce(Avg("rating"), 0)
-            )["avg"]
+            Review.objects.filter(
+                created_at__gte=start_date, created_at__lt=end_date
+            ).aggregate(avg=Coalesce(Avg("rating"), 0))["avg"]
             or 0
         )
 
@@ -219,7 +219,9 @@ class PlatformQueries:
 
         # Calculate daily appointments trend
         daily_appointments = (
-            Appointment.objects.filter(start_time__gte=start_date, start_time__lt=end_date)
+            Appointment.objects.filter(
+                start_time__gte=start_date, start_time__lt=end_date
+            )
             .annotate(date=TruncDate("start_time"))
             .values("date")
             .annotate(count=Count("id"))

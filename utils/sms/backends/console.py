@@ -30,7 +30,9 @@ class ConsoleBackend:
         """
         self.stream = stream or sys.stdout
 
-    def send(self, phone_number: str, message: str, context: Optional[Dict] = None) -> bool:
+    def send(
+        self, phone_number: str, message: str, context: Optional[Dict] = None
+    ) -> bool:
         """
         Print the SMS message to the console.
 

@@ -30,7 +30,9 @@ class Discount(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("Name"), max_length=100)
     description = models.TextField(_("Description"), blank=True)
-    discount_type = models.CharField(_("Discount Type"), max_length=10, choices=TYPE_CHOICES)
+    discount_type = models.CharField(
+        _("Discount Type"), max_length=10, choices=TYPE_CHOICES
+    )
     value = models.DecimalField(
         _("Value"),
         max_digits=10,
@@ -153,7 +155,9 @@ class ServiceDiscount(Discount):
         blank=True,
         help_text=_("Categories of services this discount applies to"),
     )
-    apply_to_all_services = models.BooleanField(_("Apply to All Services"), default=False)
+    apply_to_all_services = models.BooleanField(
+        _("Apply to All Services"), default=False
+    )
 
     class Meta:
         verbose_name = _("Service Discount")
@@ -168,7 +172,9 @@ class Coupon(Discount):
 
     code = models.CharField(_("Code"), max_length=20, unique=True)
     is_single_use = models.BooleanField(_("Single Use"), default=False)
-    requires_authentication = models.BooleanField(_("Requires Authentication"), default=True)
+    requires_authentication = models.BooleanField(
+        _("Requires Authentication"), default=True
+    )
     is_referral = models.BooleanField(_("Referral Coupon"), default=False)
     referred_by = models.ForeignKey(
         "authapp.User",
@@ -184,7 +190,9 @@ class Coupon(Discount):
     categories = models.ManyToManyField(
         Category, related_name="coupons", verbose_name=_("Categories"), blank=True
     )
-    apply_to_all_services = models.BooleanField(_("Apply to All Services"), default=False)
+    apply_to_all_services = models.BooleanField(
+        _("Apply to All Services"), default=False
+    )
     shop = models.ForeignKey(
         Shop, on_delete=models.CASCADE, related_name="coupons", verbose_name=_("Shop")
     )
@@ -248,7 +256,9 @@ class PromotionalCampaign(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("Name"), max_length=100)
     description = models.TextField(_("Description"), blank=True)
-    campaign_type = models.CharField(_("Campaign Type"), max_length=20, choices=TYPE_CHOICES)
+    campaign_type = models.CharField(
+        _("Campaign Type"), max_length=20, choices=TYPE_CHOICES
+    )
     start_date = models.DateTimeField(_("Start Date"))
     end_date = models.DateTimeField(_("End Date"))
     is_active = models.BooleanField(_("Active"), default=True)

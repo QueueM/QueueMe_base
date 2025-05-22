@@ -17,7 +17,11 @@ from apps.serviceapp.models import (
 from apps.serviceapp.services.availability_service import AvailabilityService
 from apps.serviceapp.services.service_service import ServiceService
 from apps.shopapp.models import Shop, ShopHours
-from apps.specialistsapp.models import Specialist, SpecialistService, SpecialistWorkingHours
+from apps.specialistsapp.models import (
+    Specialist,
+    SpecialistService,
+    SpecialistWorkingHours,
+)
 
 
 class AvailabilityServiceTest(TestCase):
@@ -69,7 +73,9 @@ class AvailabilityServiceTest(TestCase):
         )
 
         # Create employee for specialist
-        self.employee_user = User.objects.create(phone_number="9876543210", user_type="employee")
+        self.employee_user = User.objects.create(
+            phone_number="9876543210", user_type="employee"
+        )
 
         self.employee = Employee.objects.create(
             user=self.employee_user,
@@ -109,7 +115,9 @@ class AvailabilityServiceTest(TestCase):
         future_monday = today + datetime.timedelta(days=days_ahead)
 
         # Get availability
-        slots = AvailabilityService.get_service_availability(self.service.id, future_monday)
+        slots = AvailabilityService.get_service_availability(
+            self.service.id, future_monday
+        )
 
         # Should have slots from 9AM to 4PM (last slot starts at 4PM, ends at 5PM)
         self.assertTrue(len(slots) > 0)
@@ -128,7 +136,9 @@ class AvailabilityServiceTest(TestCase):
         future_friday = today + datetime.timedelta(days=days_ahead)
 
         # Get availability
-        slots = AvailabilityService.get_service_availability(self.service.id, future_friday)
+        slots = AvailabilityService.get_service_availability(
+            self.service.id, future_friday
+        )
 
         # Should have no slots
         self.assertEqual(len(slots), 0)
@@ -157,7 +167,9 @@ class AvailabilityServiceTest(TestCase):
         future_monday = today + datetime.timedelta(days=days_ahead)
 
         # Get availability
-        slots = AvailabilityService.get_service_availability(self.service.id, future_monday)
+        slots = AvailabilityService.get_service_availability(
+            self.service.id, future_monday
+        )
 
         # Should have slots from 10AM to 2PM (last slot starts at 2PM, ends at 3PM)
         self.assertTrue(len(slots) > 0)
@@ -181,21 +193,27 @@ class AvailabilityServiceTest(TestCase):
         future_monday = today + datetime.timedelta(days=days_ahead)
 
         # Create exception (closed on this Monday)
-        ServiceException.objects.create(service=self.service, date=future_monday, is_closed=True)
+        ServiceException.objects.create(
+            service=self.service, date=future_monday, is_closed=True
+        )
 
         # Get availability
-        slots = AvailabilityService.get_service_availability(self.service.id, future_monday)
+        slots = AvailabilityService.get_service_availability(
+            self.service.id, future_monday
+        )
 
         # Should have no slots
         self.assertEqual(len(slots), 0)
 
         # Create exception (special hours on this Monday: 11AM-2PM)
-        ServiceException.objects.filter(service=self.service, date=future_monday).update(
-            is_closed=False, from_hour="11:00:00", to_hour="14:00:00"
-        )
+        ServiceException.objects.filter(
+            service=self.service, date=future_monday
+        ).update(is_closed=False, from_hour="11:00:00", to_hour="14:00:00")
 
         # Get availability again
-        slots = AvailabilityService.get_service_availability(self.service.id, future_monday)
+        slots = AvailabilityService.get_service_availability(
+            self.service.id, future_monday
+        )
 
         # Should have slots from 11AM to 1PM (last slot starts at 1PM, ends at 2PM)
         self.assertTrue(len(slots) > 0)
@@ -233,7 +251,9 @@ class ServiceServiceTest(TestCase):
         self.category = Category.objects.create(name="Test Category")
 
         # Create employee for specialist
-        self.employee_user = User.objects.create(phone_number="9876543210", user_type="employee")
+        self.employee_user = User.objects.create(
+            phone_number="9876543210", user_type="employee"
+        )
 
         self.employee = Employee.objects.create(
             user=self.employee_user,
@@ -282,7 +302,9 @@ class ServiceServiceTest(TestCase):
 
         # Verify specialist was assigned
         self.assertTrue(
-            SpecialistService.objects.filter(service=service, specialist=self.specialist).exists()
+            SpecialistService.objects.filter(
+                service=service, specialist=self.specialist
+            ).exists()
         )
 
     def test_update_service(self):
@@ -344,7 +366,9 @@ class ServiceServiceTest(TestCase):
         SpecialistService.objects.create(service=service, specialist=self.specialist)
 
         # Duplicate service
-        duplicate = ServiceService.duplicate_service(service.id, new_name="Duplicated Service")
+        duplicate = ServiceService.duplicate_service(
+            service.id, new_name="Duplicated Service"
+        )
 
         # Verify basic info
         self.assertEqual(duplicate.name, "Duplicated Service")

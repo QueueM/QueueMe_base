@@ -3,11 +3,8 @@ Customers app views for QueueMe platform
 Handles endpoints related to customer profiles, payment methods, and favorites.
 """
 
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext_lazy as _
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -90,7 +87,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         search = self.request.query_params.get("search", None)
         if search:
             queryset = queryset.filter(
-                models.Q(name__icontains=search) | models.Q(user__phone_number__icontains=search)
+                models.Q(name__icontains=search)
+                | models.Q(user__phone_number__icontains=search)
             )
 
         return queryset
@@ -467,7 +465,9 @@ class FavoritesViewSet(viewsets.GenericViewSet):
             shop = get_object_or_404(Shop, id=shop_id)
 
             # Create if not exists
-            favorite, created = FavoriteShop.objects.get_or_create(customer=customer, shop=shop)
+            favorite, created = FavoriteShop.objects.get_or_create(
+                customer=customer, shop=shop
+            )
 
             if created:
                 return Response(
@@ -475,7 +475,9 @@ class FavoritesViewSet(viewsets.GenericViewSet):
                     status=status.HTTP_201_CREATED,
                 )
             else:
-                return Response({"detail": "Shop already in favorites"}, status=status.HTTP_200_OK)
+                return Response(
+                    {"detail": "Shop already in favorites"}, status=status.HTTP_200_OK
+                )
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
@@ -511,7 +513,9 @@ class FavoritesViewSet(viewsets.GenericViewSet):
                 )
 
             # Delete if exists
-            result = FavoriteShop.objects.filter(customer=customer, shop_id=shop_id).delete()
+            result = FavoriteShop.objects.filter(
+                customer=customer, shop_id=shop_id
+            ).delete()
 
             if result[0] > 0:
                 return Response(

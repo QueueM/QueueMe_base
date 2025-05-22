@@ -1,4 +1,3 @@
-import ast
 import os
 import tempfile
 import uuid
@@ -30,7 +29,11 @@ class MediaService:
             # Get video info
             probe = ffmpeg.probe(video_path)
             video_info = next(
-                (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
+                (
+                    stream
+                    for stream in probe["streams"]
+                    if stream["codec_type"] == "video"
+                ),
                 None,
             )
 
@@ -61,7 +64,9 @@ class MediaService:
             raise VideoProcessingError(f"Error generating thumbnail: {str(e)}")
 
     @staticmethod
-    def optimize_video(video_path, output_path=None, target_size_mb=10, maintain_quality=True):
+    def optimize_video(
+        video_path, output_path=None, target_size_mb=10, maintain_quality=True
+    ):
         """
         Optimize a video for web streaming
 
@@ -90,7 +95,11 @@ class MediaService:
 
             # Scale resolution based on original size
             video_stream = next(
-                (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
+                (
+                    stream
+                    for stream in probe["streams"]
+                    if stream["codec_type"] == "video"
+                ),
                 None,
             )
 
@@ -104,9 +113,7 @@ class MediaService:
             # Determine target resolution
             if width > 1280 or height > 720:
                 # Scale down to 720p max
-                scale_filter = (
-                    "scale=w=min(1280,iw):h=min(720,ih):force_original_aspect_ratio=decrease"
-                )
+                scale_filter = "scale=w=min(1280,iw):h=min(720,ih):force_original_aspect_ratio=decrease"
             else:
                 # Keep original resolution
                 scale_filter = "scale=w=iw:h=ih"

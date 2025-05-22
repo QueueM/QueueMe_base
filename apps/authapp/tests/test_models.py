@@ -36,7 +36,9 @@ class UserModelTest(TestCase):
 
     def test_create_superuser(self):
         """Test creating a superuser."""
-        admin = User.objects.create_superuser(phone_number="966507654321", password="testpassword")
+        admin = User.objects.create_superuser(
+            phone_number="966507654321", password="testpassword"
+        )
 
         self.assertEqual(admin.phone_number, "966507654321")
         self.assertEqual(admin.user_type, "admin")
@@ -80,7 +82,9 @@ class OTPModelTest(TestCase):
 
     def setUp(self):
         # Create a user
-        self.user = User.objects.create(phone_number="966501234567", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="966501234567", email="test@example.com"
+        )
 
         # Create an OTP
         self.otp = OTP.objects.create(

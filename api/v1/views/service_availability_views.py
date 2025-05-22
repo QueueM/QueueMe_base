@@ -11,18 +11,20 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.bookingapp.services.availability_service import AvailabilityService
-from apps.bookingapp.services.dynamic_availability_service import DynamicAvailabilityService
-
 # Import shared parameters
 from api.documentation.parameters import (
-    SERVICE_ID_PARAM, 
     DATE_PARAM,
-    SPECIALIST_ID_PARAM
+    SERVICE_ID_PARAM,
+    SPECIALIST_ID_PARAM,
 )
 
 # Import deduplication utility
 from api.documentation.utils import dedupe_manual_parameters
+from apps.bookingapp.services.availability_service import AvailabilityService
+from apps.bookingapp.services.dynamic_availability_service import (
+    DynamicAvailabilityService,
+)
+
 
 # --------------------------------------------------------------------------
 # API: Service Availability
@@ -31,13 +33,16 @@ class ServiceAvailabilityAPIView(APIView):
     """
     API endpoint for service availability
     """
+
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        manual_parameters=dedupe_manual_parameters([
-            SERVICE_ID_PARAM,
-            DATE_PARAM,
-        ]),
+        manual_parameters=dedupe_manual_parameters(
+            [
+                SERVICE_ID_PARAM,
+                DATE_PARAM,
+            ]
+        ),
         responses={
             200: openapi.Response(
                 description="List of available time slots",
@@ -46,10 +51,21 @@ class ServiceAvailabilityAPIView(APIView):
                     items=openapi.Schema(
                         type=openapi.TYPE_OBJECT,
                         properties={
-                            "start": openapi.Schema(type=openapi.TYPE_STRING, description="Start time (HH:MM)"),
-                            "end": openapi.Schema(type=openapi.TYPE_STRING, description="End time (HH:MM)"),
-                            "duration": openapi.Schema(type=openapi.TYPE_INTEGER, description="Duration in minutes"),
-                            "specialist_id": openapi.Schema(type=openapi.TYPE_STRING, description="Available specialist ID"),
+                            "start": openapi.Schema(
+                                type=openapi.TYPE_STRING,
+                                description="Start time (HH:MM)",
+                            ),
+                            "end": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="End time (HH:MM)"
+                            ),
+                            "duration": openapi.Schema(
+                                type=openapi.TYPE_INTEGER,
+                                description="Duration in minutes",
+                            ),
+                            "specialist_id": openapi.Schema(
+                                type=openapi.TYPE_STRING,
+                                description="Available specialist ID",
+                            ),
                         },
                     ),
                 ),
@@ -80,8 +96,11 @@ class ServiceAvailabilityAPIView(APIView):
             )
 
         # Get available slots
-        available_slots = AvailabilityService.get_service_availability(service_id, date_obj)
+        available_slots = AvailabilityService.get_service_availability(
+            service_id, date_obj
+        )
         return Response(available_slots)
+
 
 # --------------------------------------------------------------------------
 # API: Dynamic (Optimized) Service Availability
@@ -90,6 +109,7 @@ class DynamicServiceAvailabilityAPIView(APIView):
     """
     API endpoint for optimized dynamic service availability
     """
+
     permission_classes = [IsAuthenticated]
 
     # Custom parameter - not defined in centralized parameters module
@@ -103,12 +123,14 @@ class DynamicServiceAvailabilityAPIView(APIView):
     )
 
     @swagger_auto_schema(
-        manual_parameters=dedupe_manual_parameters([
-            SERVICE_ID_PARAM,
-            DATE_PARAM,
-            SPECIALIST_ID_PARAM,
-            PERSONALIZE_PARAM,
-        ]),
+        manual_parameters=dedupe_manual_parameters(
+            [
+                SERVICE_ID_PARAM,
+                DATE_PARAM,
+                SPECIALIST_ID_PARAM,
+                PERSONALIZE_PARAM,
+            ]
+        ),
         responses={
             200: openapi.Response(
                 description="List of optimized time slots",
@@ -117,13 +139,32 @@ class DynamicServiceAvailabilityAPIView(APIView):
                     items=openapi.Schema(
                         type=openapi.TYPE_OBJECT,
                         properties={
-                            "start": openapi.Schema(type=openapi.TYPE_STRING, description="Start time (HH:MM)"),
-                            "end": openapi.Schema(type=openapi.TYPE_STRING, description="End time (HH:MM)"),
-                            "duration": openapi.Schema(type=openapi.TYPE_INTEGER, description="Duration in minutes"),
-                            "specialist_id": openapi.Schema(type=openapi.TYPE_STRING, description="Optimal specialist ID"),
-                            "specialist_name": openapi.Schema(type=openapi.TYPE_STRING, description="Specialist name"),
-                            "popularity": openapi.Schema(type=openapi.TYPE_NUMBER, description="Time slot popularity (0-1)"),
-                            "optimization_score": openapi.Schema(type=openapi.TYPE_NUMBER, description="Overall optimization score"),
+                            "start": openapi.Schema(
+                                type=openapi.TYPE_STRING,
+                                description="Start time (HH:MM)",
+                            ),
+                            "end": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="End time (HH:MM)"
+                            ),
+                            "duration": openapi.Schema(
+                                type=openapi.TYPE_INTEGER,
+                                description="Duration in minutes",
+                            ),
+                            "specialist_id": openapi.Schema(
+                                type=openapi.TYPE_STRING,
+                                description="Optimal specialist ID",
+                            ),
+                            "specialist_name": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="Specialist name"
+                            ),
+                            "popularity": openapi.Schema(
+                                type=openapi.TYPE_NUMBER,
+                                description="Time slot popularity (0-1)",
+                            ),
+                            "optimization_score": openapi.Schema(
+                                type=openapi.TYPE_NUMBER,
+                                description="Overall optimization score",
+                            ),
                         },
                     ),
                 ),
@@ -169,6 +210,7 @@ class DynamicServiceAvailabilityAPIView(APIView):
 
         return Response(optimized_slots)
 
+
 # --------------------------------------------------------------------------
 # API: Most Popular Time Slots
 # --------------------------------------------------------------------------
@@ -176,6 +218,7 @@ class PopularTimeSlotsAPIView(APIView):
     """
     API endpoint for getting popular time slots
     """
+
     permission_classes = [IsAuthenticated]
 
     LIMIT_PARAM = openapi.Parameter(
@@ -188,11 +231,13 @@ class PopularTimeSlotsAPIView(APIView):
     )
 
     @swagger_auto_schema(
-        manual_parameters=dedupe_manual_parameters([
-            SERVICE_ID_PARAM,
-            DATE_PARAM,
-            LIMIT_PARAM,
-        ]),
+        manual_parameters=dedupe_manual_parameters(
+            [
+                SERVICE_ID_PARAM,
+                DATE_PARAM,
+                LIMIT_PARAM,
+            ]
+        ),
         responses={
             200: openapi.Response(
                 description="List of popular time slots",
@@ -201,9 +246,17 @@ class PopularTimeSlotsAPIView(APIView):
                     items=openapi.Schema(
                         type=openapi.TYPE_OBJECT,
                         properties={
-                            "start": openapi.Schema(type=openapi.TYPE_STRING, description="Start time (HH:MM)"),
-                            "end": openapi.Schema(type=openapi.TYPE_STRING, description="End time (HH:MM)"),
-                            "popularity": openapi.Schema(type=openapi.TYPE_NUMBER, description="Popularity score (0-1)"),
+                            "start": openapi.Schema(
+                                type=openapi.TYPE_STRING,
+                                description="Start time (HH:MM)",
+                            ),
+                            "end": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="End time (HH:MM)"
+                            ),
+                            "popularity": openapi.Schema(
+                                type=openapi.TYPE_NUMBER,
+                                description="Popularity score (0-1)",
+                            ),
                         },
                     ),
                 ),
@@ -238,6 +291,7 @@ class PopularTimeSlotsAPIView(APIView):
         )
         return Response(popular_slots)
 
+
 # --------------------------------------------------------------------------
 # API: Quiet (Least Busy) Time Slots
 # --------------------------------------------------------------------------
@@ -245,6 +299,7 @@ class QuietTimeSlotsAPIView(APIView):
     """
     API endpoint for getting quiet/less busy time slots
     """
+
     permission_classes = [IsAuthenticated]
 
     LIMIT_PARAM = openapi.Parameter(
@@ -257,11 +312,13 @@ class QuietTimeSlotsAPIView(APIView):
     )
 
     @swagger_auto_schema(
-        manual_parameters=dedupe_manual_parameters([
-            SERVICE_ID_PARAM,
-            DATE_PARAM,
-            LIMIT_PARAM,
-        ]),
+        manual_parameters=dedupe_manual_parameters(
+            [
+                SERVICE_ID_PARAM,
+                DATE_PARAM,
+                LIMIT_PARAM,
+            ]
+        ),
         responses={
             200: openapi.Response(
                 description="List of quiet time slots",
@@ -270,9 +327,17 @@ class QuietTimeSlotsAPIView(APIView):
                     items=openapi.Schema(
                         type=openapi.TYPE_OBJECT,
                         properties={
-                            "start": openapi.Schema(type=openapi.TYPE_STRING, description="Start time (HH:MM)"),
-                            "end": openapi.Schema(type=openapi.TYPE_STRING, description="End time (HH:MM)"),
-                            "popularity": openapi.Schema(type=openapi.TYPE_NUMBER, description="Popularity score (0-1)"),
+                            "start": openapi.Schema(
+                                type=openapi.TYPE_STRING,
+                                description="Start time (HH:MM)",
+                            ),
+                            "end": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="End time (HH:MM)"
+                            ),
+                            "popularity": openapi.Schema(
+                                type=openapi.TYPE_NUMBER,
+                                description="Popularity score (0-1)",
+                            ),
                         },
                     ),
                 ),
@@ -307,6 +372,7 @@ class QuietTimeSlotsAPIView(APIView):
         )
         return Response(quiet_slots)
 
+
 # --------------------------------------------------------------------------
 # API: Best Specialist For A Time Slot
 # --------------------------------------------------------------------------
@@ -314,6 +380,7 @@ class BestSpecialistAPIView(APIView):
     """
     API endpoint for finding the best specialist for a time slot
     """
+
     permission_classes = [IsAuthenticated]
 
     TIME_SLOT_PARAM = openapi.Parameter(
@@ -325,20 +392,28 @@ class BestSpecialistAPIView(APIView):
     )
 
     @swagger_auto_schema(
-        manual_parameters=dedupe_manual_parameters([
-            SERVICE_ID_PARAM,
-            DATE_PARAM,
-            TIME_SLOT_PARAM,
-        ]),
+        manual_parameters=dedupe_manual_parameters(
+            [
+                SERVICE_ID_PARAM,
+                DATE_PARAM,
+                TIME_SLOT_PARAM,
+            ]
+        ),
         responses={
             200: openapi.Response(
                 description="Best specialist information",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "specialist_id": openapi.Schema(type=openapi.TYPE_STRING, description="Specialist UUID"),
-                        "specialist_name": openapi.Schema(type=openapi.TYPE_STRING, description="Specialist name"),
-                        "optimization_score": openapi.Schema(type=openapi.TYPE_NUMBER, description="Optimization score"),
+                        "specialist_id": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Specialist UUID"
+                        ),
+                        "specialist_name": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Specialist name"
+                        ),
+                        "optimization_score": openapi.Schema(
+                            type=openapi.TYPE_NUMBER, description="Optimization score"
+                        ),
                         "alternative_specialists": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),

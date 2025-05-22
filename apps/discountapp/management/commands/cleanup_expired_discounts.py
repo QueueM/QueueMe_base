@@ -36,7 +36,9 @@ class Command(BaseCommand):
         )
 
         # Find long-expired coupons
-        old_coupons = Coupon.objects.filter(status="expired", end_date__lt=cleanup_threshold)
+        old_coupons = Coupon.objects.filter(
+            status="expired", end_date__lt=cleanup_threshold
+        )
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -57,8 +59,12 @@ class Command(BaseCommand):
             coupon_count = old_coupons.count()
             old_coupons.delete()
 
-            self.stdout.write(self.style.SUCCESS(f"Deleted {discount_count} expired discounts"))
-            self.stdout.write(self.style.SUCCESS(f"Deleted {coupon_count} expired coupons"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Deleted {discount_count} expired discounts")
+            )
+            self.stdout.write(
+                self.style.SUCCESS(f"Deleted {coupon_count} expired coupons")
+            )
         else:
             self.stdout.write(
                 self.style.WARNING(

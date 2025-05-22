@@ -10,7 +10,7 @@ Provides real-time analytics data through WebSocket connections:
 
 import asyncio
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -77,7 +77,9 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
         """Handle WebSocket disconnection."""
         # Leave analytics group
         if self.room_group_name:
-            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+            await self.channel_layer.group_discard(
+                self.room_group_name, self.channel_name
+            )
 
         # Cancel periodic update task
         if self.update_task:
@@ -99,19 +101,27 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
             message_type = data.get("type")
 
             if message_type == "get_booking_forecast":
-                await self.send_booking_forecast(data.get("shop_id"), data.get("days_ahead", 14))
+                await self.send_booking_forecast(
+                    data.get("shop_id"), data.get("days_ahead", 14)
+                )
             elif message_type == "get_revenue_forecast":
-                await self.send_revenue_forecast(data.get("shop_id"), data.get("days_ahead", 30))
+                await self.send_revenue_forecast(
+                    data.get("shop_id"), data.get("days_ahead", 30)
+                )
             elif message_type == "get_fraud_alerts":
                 await self.send_fraud_alerts(data.get("lookback_days", 30))
             elif message_type == "get_booking_anomalies":
-                await self.send_booking_anomalies(data.get("shop_id"), data.get("days", 7))
+                await self.send_booking_anomalies(
+                    data.get("shop_id"), data.get("days", 7)
+                )
             elif message_type == "get_dashboard_metrics":
                 await self.send_dashboard_metrics()
         except json.JSONDecodeError:
             # Handle invalid JSON
             await self.send(
-                text_data=json.dumps({"type": "error", "message": "Invalid JSON format"})
+                text_data=json.dumps(
+                    {"type": "error", "message": "Invalid JSON format"}
+                )
             )
         except Exception as e:
             # Handle other errors
@@ -219,7 +229,9 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
         """Get revenue forecast using prediction algorithm."""
         try:
             if shop_id:
-                forecast = revenue_forecasting.forecast_shop_revenue(shop_id, days_ahead, "ml")
+                forecast = revenue_forecasting.forecast_shop_revenue(
+                    shop_id, days_ahead, "ml"
+                )
             else:
                 forecast = revenue_forecasting.get_platform_revenue_forecast(days_ahead)
             return forecast
@@ -257,7 +269,11 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
 
         await self.send(
             text_data=json.dumps(
-                {"type": "fraud_alerts", "data": alerts, "timestamp": timezone.now().isoformat()}
+                {
+                    "type": "fraud_alerts",
+                    "data": alerts,
+                    "timestamp": timezone.now().isoformat(),
+                }
             )
         )
 
@@ -351,7 +367,9 @@ class AdminDashboardConsumer(AnalyticsConsumer):
             metrics = dashboard_service.get_admin_dashboard_metrics()
 
             # Add revenue forecast for today
-            today_forecast = revenue_forecasting.get_platform_revenue_forecast(days_ahead=1)
+            today_forecast = revenue_forecasting.get_platform_revenue_forecast(
+                days_ahead=1
+            )
             if today_forecast.get("success", False):
                 metrics["today_revenue_forecast"] = (
                     today_forecast["forecast"][0]["forecasted_revenue"]
@@ -375,7 +393,11 @@ class AdminDashboardConsumer(AnalyticsConsumer):
 
         await self.send(
             text_data=json.dumps(
-                {"type": "admin_metrics", "data": metrics, "timestamp": timezone.now().isoformat()}
+                {
+                    "type": "admin_metrics",
+                    "data": metrics,
+                    "timestamp": timezone.now().isoformat(),
+                }
             )
         )
 
@@ -399,7 +421,9 @@ class AdminDashboardConsumer(AnalyticsConsumer):
         except json.JSONDecodeError:
             # Handle invalid JSON
             await self.send(
-                text_data=json.dumps({"type": "error", "message": "Invalid JSON format"})
+                text_data=json.dumps(
+                    {"type": "error", "message": "Invalid JSON format"}
+                )
             )
         except Exception as e:
             # Handle other errors

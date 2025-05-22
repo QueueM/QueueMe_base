@@ -204,7 +204,9 @@ class FraudDetector:
         # Convert to datetime if it's a string
         if isinstance(current_time, str):
             try:
-                current_time = datetime.fromisoformat(current_time.replace("Z", "+00:00"))
+                current_time = datetime.fromisoformat(
+                    current_time.replace("Z", "+00:00")
+                )
             except (ValueError, TypeError):
                 return 0.0
 
@@ -258,7 +260,8 @@ class FraudDetector:
                 # At 2x threshold, score is 0.5; at 4x threshold, score is near 1.0
                 normalized_risk = min(
                     1.0,
-                    (multiple - self.unusual_amount_factor) / self.unusual_amount_factor,
+                    (multiple - self.unusual_amount_factor)
+                    / self.unusual_amount_factor,
                 )
                 return normalized_risk
 
@@ -309,7 +312,9 @@ class FraudDetector:
                         usual_lng = usual_location.get("longitude")
 
                         if usual_lat and usual_lng:
-                            distance = self._calculate_distance(lat, lng, usual_lat, usual_lng)
+                            distance = self._calculate_distance(
+                                lat, lng, usual_lat, usual_lng
+                            )
 
                             min_distance = min(min_distance, distance)
 
@@ -327,7 +332,9 @@ class FraudDetector:
         # Return the higher of the two risks
         return max(device_risk, location_risk)
 
-    def _calculate_distance(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    def _calculate_distance(
+        self, lat1: float, lng1: float, lat2: float, lng2: float
+    ) -> float:
         """
         Calculate distance between two points using Haversine formula.
         """
@@ -496,7 +503,9 @@ class FraudDetector:
 
         # Calculate overall risk score
         if result["suspicious_patterns"]:
-            total_score = sum(pattern["score"] for pattern in result["suspicious_patterns"])
+            total_score = sum(
+                pattern["score"] for pattern in result["suspicious_patterns"]
+            )
             result["risk_score"] = min(1.0, total_score / 4.0)  # Normalize to 0-1
 
             # Determine if suspicious and recommended action
@@ -550,14 +559,18 @@ class FraudDetector:
         """
         # Get recent failed logins
         failed_logins = [
-            action for action in recent_actions if action.get("action_type") == "failed_login"
+            action
+            for action in recent_actions
+            if action.get("action_type") == "failed_login"
         ]
 
         # Count failed logins in last 1 hour
         hour_ago = datetime.now() - timedelta(hours=1)
 
         recent_failed = [
-            login for login in failed_logins if login.get("timestamp", datetime.now()) >= hour_ago
+            login
+            for login in failed_logins
+            if login.get("timestamp", datetime.now()) >= hour_ago
         ]
 
         # Determine risk score based on count
@@ -570,7 +583,9 @@ class FraudDetector:
 
         return 0.0
 
-    def _check_unusual_browsing(self, recent_actions: List[Dict], user_profile: Dict) -> float:
+    def _check_unusual_browsing(
+        self, recent_actions: List[Dict], user_profile: Dict
+    ) -> float:
         """
         Check for unusual browsing or activity patterns.
         """
@@ -609,7 +624,9 @@ class FraudDetector:
 
         return 0.0
 
-    def _check_access_patterns(self, recent_actions: List[Dict], user_profile: Dict) -> float:
+    def _check_access_patterns(
+        self, recent_actions: List[Dict], user_profile: Dict
+    ) -> float:
         """
         Check for suspicious access patterns such as impossible travel.
         """
@@ -617,7 +634,8 @@ class FraudDetector:
         login_actions = [
             action
             for action in recent_actions
-            if action.get("action_type") == "login" and action.get("details", {}).get("location")
+            if action.get("action_type") == "login"
+            and action.get("details", {}).get("location")
         ]
 
         if len(login_actions) < 2:
@@ -653,7 +671,9 @@ class FraudDetector:
                 continue
 
             # Calculate distance
-            distance_km = self._calculate_distance(prev_lat, prev_lng, curr_lat, curr_lng)
+            distance_km = self._calculate_distance(
+                prev_lat, prev_lng, curr_lat, curr_lng
+            )
 
             # Check if travel is impossible
             # Assume maximum travel speed of 900 km/h (fast commercial flight)

@@ -1,9 +1,8 @@
 import os
-import sys
 
 from colorama import Fore, Style, init
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
@@ -29,10 +28,17 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f"  MOYASAR_API_KEY: {Fore.RED}Missing{Style.RESET_ALL}")
 
-        if hasattr(settings, "MOYASAR_WEBHOOK_SECRET") and settings.MOYASAR_WEBHOOK_SECRET:
-            self.stdout.write(f"  MOYASAR_WEBHOOK_SECRET: {Fore.GREEN}Set{Style.RESET_ALL}")
+        if (
+            hasattr(settings, "MOYASAR_WEBHOOK_SECRET")
+            and settings.MOYASAR_WEBHOOK_SECRET
+        ):
+            self.stdout.write(
+                f"  MOYASAR_WEBHOOK_SECRET: {Fore.GREEN}Set{Style.RESET_ALL}"
+            )
         else:
-            self.stdout.write(f"  MOYASAR_WEBHOOK_SECRET: {Fore.RED}Missing{Style.RESET_ALL}")
+            self.stdout.write(
+                f"  MOYASAR_WEBHOOK_SECRET: {Fore.RED}Missing{Style.RESET_ALL}"
+            )
 
         # Check wallet configurations
         self.check_wallet_config("subscription", "MOYASAR_SUB", "MOYASAR_SUB")
@@ -49,7 +55,9 @@ class Command(BaseCommand):
 
         # Check settings object first
         wallet_config = (
-            getattr(settings, settings_attr, {}) if hasattr(settings, settings_attr) else {}
+            getattr(settings, settings_attr, {})
+            if hasattr(settings, settings_attr)
+            else {}
         )
 
         if wallet_config:
@@ -103,13 +111,13 @@ class Command(BaseCommand):
                 f"  {Fore.GREEN}✓ All required configuration present{Style.RESET_ALL}"
             )
         else:
-            self.stdout.write(f"  {Fore.RED}✗ Missing required configuration{Style.RESET_ALL}")
+            self.stdout.write(
+                f"  {Fore.RED}✗ Missing required configuration{Style.RESET_ALL}"
+            )
 
     def test_moyasar_connection(self):
         """Test connection to Moyasar API"""
-        import requests
 
-        from apps.payment.services.moyasar_service import MoyasarService
 
         self.stdout.write("\nTesting connection to Moyasar API...")
 
@@ -148,7 +156,9 @@ class Command(BaseCommand):
             )
 
             if response.status_code == 200:
-                self.stdout.write(f"  {Fore.GREEN}✓ Connection successful{Style.RESET_ALL}")
+                self.stdout.write(
+                    f"  {Fore.GREEN}✓ Connection successful{Style.RESET_ALL}"
+                )
                 self.stdout.write(f"  Response: {response.json()}")
             else:
                 self.stdout.write(
@@ -156,4 +166,6 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(f"  Response: {response.text}")
         except Exception as e:
-            self.stdout.write(f"  {Fore.RED}✗ Connection error: {str(e)}{Style.RESET_ALL}")
+            self.stdout.write(
+                f"  {Fore.RED}✗ Connection error: {str(e)}{Style.RESET_ALL}"
+            )

@@ -98,7 +98,9 @@ class CustomerSerializer(serializers.ModelSerializer):
         location_data = validated_data.pop("location", None)
 
         # Create customer
-        customer = Customer.objects.create(user=self.context["request"].user, **validated_data)
+        customer = Customer.objects.create(
+            user=self.context["request"].user, **validated_data
+        )
 
         # Create location if provided
         if location_data:

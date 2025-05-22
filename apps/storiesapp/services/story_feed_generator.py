@@ -81,23 +81,27 @@ class StoryFeedGenerator:
             QuerySet: Optimized QuerySet of stories
         """
         # Get viewed stories by this customer
-        viewed_story_ids = StoryView.objects.filter(customer_id=customer_id).values_list(
-            "story_id", flat=True
-        )
+        viewed_story_ids = StoryView.objects.filter(
+            customer_id=customer_id
+        ).values_list("story_id", flat=True)
 
         # Split stories into viewed and unviewed
         unviewed_stories = stories.exclude(id__in=viewed_story_ids)
         viewed_stories = stories.filter(id__in=viewed_story_ids)
 
         # Get shops with unviewed stories
-        shops_with_unviewed = unviewed_stories.values_list("shop_id", flat=True).distinct()
+        shops_with_unviewed = unviewed_stories.values_list(
+            "shop_id", flat=True
+        ).distinct()
 
         # For each shop with unviewed stories, take the most recent
         prioritized_stories = []
 
         for shop_id in shops_with_unviewed:
             # Get most recent unviewed story for this shop
-            shop_unviewed = unviewed_stories.filter(shop_id=shop_id).order_by("-created_at").first()
+            shop_unviewed = (
+                unviewed_stories.filter(shop_id=shop_id).order_by("-created_at").first()
+            )
             if shop_unviewed:
                 prioritized_stories.append(shop_unviewed.id)
 
@@ -110,7 +114,9 @@ class StoryFeedGenerator:
 
         for shop_id in shops_with_only_viewed:
             # Get most recent story for this shop
-            shop_story = viewed_stories.filter(shop_id=shop_id).order_by("-created_at").first()
+            shop_story = (
+                viewed_stories.filter(shop_id=shop_id).order_by("-created_at").first()
+            )
             if shop_story:
                 prioritized_stories.append(shop_story.id)
 

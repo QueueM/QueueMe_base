@@ -48,7 +48,9 @@ class QueueConsumer(AsyncJsonWebsocketConsumer):
         self.last_message_time = timezone.now()
 
         # Set up compression if requested
-        self.use_compression = self.scope.get("query_string", b"").find(b"compression=true") >= 0
+        self.use_compression = (
+            self.scope.get("query_string", b"").find(b"compression=true") >= 0
+        )
 
         # Check authentication for protected queues
         if not self.queue_id and not self.shop_id:
@@ -91,7 +93,9 @@ class QueueConsumer(AsyncJsonWebsocketConsumer):
 
         # Leave the shop group
         if hasattr(self, "shop_group_name"):
-            await self.channel_layer.group_discard(self.shop_group_name, self.channel_name)
+            await self.channel_layer.group_discard(
+                self.shop_group_name, self.channel_name
+            )
 
     async def receive_json(self, content):
         """Handle incoming messages."""
@@ -118,7 +122,9 @@ class QueueConsumer(AsyncJsonWebsocketConsumer):
         if message_type == "request_status":
             await self._send_queue_status()
         elif message_type == "ping":
-            await self.send_json({"type": "pong", "timestamp": timezone.now().isoformat()})
+            await self.send_json(
+                {"type": "pong", "timestamp": timezone.now().isoformat()}
+            )
 
     async def queue_update(self, event):
         """Handle queue update messages from the channel layer."""

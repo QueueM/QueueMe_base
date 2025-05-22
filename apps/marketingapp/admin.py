@@ -3,7 +3,6 @@ Admin configuration for Marketing app models.
 """
 
 from django.contrib import admin
-from django.db.models import Sum
 from django.utils.html import format_html
 
 from .models import AdClick, AdPayment, Advertisement, AdView, Campaign

@@ -31,7 +31,9 @@ class QueueServiceTest(TestCase):
         )
 
         # Create a queue
-        self.queue = Queue.objects.create(name="Test Queue", shop=self.shop, status="open")
+        self.queue = Queue.objects.create(
+            name="Test Queue", shop=self.shop, status="open"
+        )
 
         # Create a category
         self.category = Category.objects.create(name="Test Category")
@@ -77,7 +79,9 @@ class QueueServiceTest(TestCase):
         self.queue.save()
 
         # Try to join
-        result = QueueService.join_queue(queue_id=self.queue.id, customer_id=self.user.id)
+        result = QueueService.join_queue(
+            queue_id=self.queue.id, customer_id=self.user.id
+        )
 
         # Should return error
         self.assertIsInstance(result, dict)
@@ -97,13 +101,17 @@ class QueueServiceTest(TestCase):
         QueueTicket.objects.create(
             queue=self.queue,
             ticket_number="Q-123456-001",
-            customer=User.objects.create(phone_number="9876543210", user_type="customer"),
+            customer=User.objects.create(
+                phone_number="9876543210", user_type="customer"
+            ),
             position=1,
             status="waiting",
         )
 
         # Try to join
-        result = QueueService.join_queue(queue_id=self.queue.id, customer_id=self.user.id)
+        result = QueueService.join_queue(
+            queue_id=self.queue.id, customer_id=self.user.id
+        )
 
         # Should return error
         self.assertIsInstance(result, dict)
@@ -246,7 +254,9 @@ class QueueServiceTest(TestCase):
         ticket2 = QueueTicket.objects.create(
             queue=self.queue,
             ticket_number="Q-123456-002",
-            customer=User.objects.create(phone_number="9876543210", user_type="customer"),
+            customer=User.objects.create(
+                phone_number="9876543210", user_type="customer"
+            ),
             position=2,
             status="waiting",
         )

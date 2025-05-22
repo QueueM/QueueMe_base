@@ -34,14 +34,18 @@ class S3Storage:
             region_name=settings.AWS_S3_REGION_NAME,
         )
         self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        self.s3_domain = f"{self.bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com"
+        self.s3_domain = (
+            f"{self.bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com"
+        )
 
         if hasattr(settings, "AWS_S3_CUSTOM_DOMAIN"):
             self.custom_domain = settings.AWS_S3_CUSTOM_DOMAIN
         else:
             self.custom_domain = None
 
-    def upload_file(self, file_obj, path_prefix="", filename=None, content_type=None, public=True):
+    def upload_file(
+        self, file_obj, path_prefix="", filename=None, content_type=None, public=True
+    ):
         """
         Upload file to S3 bucket.
 
@@ -66,7 +70,9 @@ class S3Storage:
                 filename = f"{uuid.uuid4()}{ext}"
 
             # Combine with path prefix
-            s3_path = f"{path_prefix.rstrip('/')}/{filename}" if path_prefix else filename
+            s3_path = (
+                f"{path_prefix.rstrip('/')}/{filename}" if path_prefix else filename
+            )
 
             # Get content type if not provided
             if not content_type and hasattr(file_obj, "name"):

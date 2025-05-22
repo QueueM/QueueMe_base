@@ -142,7 +142,9 @@ class Category(models.Model):
     @property
     def specialist_count(self):
         if self.is_child:
-            specialists = {s.id for svc in self.services.all() for s in svc.specialists.all()}
+            specialists = {
+                s.id for svc in self.services.all() for s in svc.specialists.all()
+            }
             return len(specialists)
         specialists = set()
         for child in self.children.all():

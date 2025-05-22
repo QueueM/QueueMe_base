@@ -54,7 +54,9 @@ class MoyasarWebhookView(View):
             )
 
         # Verify webhook signature with the appropriate wallet
-        if not MoyasarService.verify_webhook_signature(request.body, signature, transaction_type):
+        if not MoyasarService.verify_webhook_signature(
+            request.body, signature, transaction_type
+        ):
             logger.error("Invalid webhook signature")
             return HttpResponse(status=401)
 

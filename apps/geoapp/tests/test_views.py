@@ -16,7 +16,9 @@ class GeoAPITest(TestCase):
     def setUp(self):
         """Set up test data and authenticate"""
         # Create user for authentication
-        self.user = User.objects.create_user(phone_number="1234567890", password="testpass123")
+        self.user = User.objects.create_user(
+            phone_number="1234567890", password="testpass123"
+        )
 
         # Set up API client
         self.client = APIClient()
@@ -92,7 +94,9 @@ class GeoAPITest(TestCase):
         self.assertEqual(response.data["longitude"], 46.6853)
 
         # Verify it was created in database
-        self.assertTrue(Location.objects.filter(address_line1="Al Faisaliah Tower").exists())
+        self.assertTrue(
+            Location.objects.filter(address_line1="Al Faisaliah Tower").exists()
+        )
 
     def test_check_city_match(self):
         """Test the check city match endpoint"""

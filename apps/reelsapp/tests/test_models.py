@@ -40,7 +40,9 @@ class ReelModelTest(TestCase):
 
         # Create a reel
         with open(video_file_path, "rb") as f:
-            video_file = SimpleUploadedFile("test_video.mp4", f.read(), content_type="video/mp4")
+            video_file = SimpleUploadedFile(
+                "test_video.mp4", f.read(), content_type="video/mp4"
+            )
 
             cls.reel = Reel.objects.create(
                 shop=cls.shop,

@@ -74,7 +74,9 @@ class Specialist(models.Model):
         """Update average rating based on reviews"""
         from apps.reviewapp.models import Review
 
-        reviews = Review.objects.filter(content_type__model="specialist", object_id=str(self.id))
+        reviews = Review.objects.filter(
+            content_type__model="specialist", object_id=str(self.id)
+        )
 
         if reviews.exists():
             total_rating = sum(review.rating for review in reviews)
@@ -187,9 +189,7 @@ class SpecialistWorkingHours(models.Model):
         ordering = ["weekday", "from_hour"]
 
     def __str__(self):
-        specialist_name = (
-            f"{self.specialist.employee.first_name} {self.specialist.employee.last_name}"
-        )
+        specialist_name = f"{self.specialist.employee.first_name} {self.specialist.employee.last_name}"
         return f"{specialist_name} - {self.get_weekday_display()}: {self.from_hour.strftime('%I:%M %p')} - {self.to_hour.strftime('%I:%M %p')}"
 
     def overlaps_with_shop_hours(self):
@@ -200,7 +200,10 @@ class SpecialistWorkingHours(models.Model):
         if not shop_hours or shop_hours.is_closed:
             return False
 
-        return self.from_hour >= shop_hours.from_hour and self.to_hour <= shop_hours.to_hour
+        return (
+            self.from_hour >= shop_hours.from_hour
+            and self.to_hour <= shop_hours.to_hour
+        )
 
 
 class PortfolioItem(models.Model):

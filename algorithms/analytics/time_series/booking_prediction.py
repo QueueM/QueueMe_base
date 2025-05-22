@@ -7,12 +7,10 @@ Uses time series analysis to predict future booking patterns, including:
 - Special event impact analysis
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-import numpy as np
 import pandas as pd
 from django.utils import timezone
-from scipy import stats
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.seasonal import seasonal_decompose
 
@@ -74,9 +72,11 @@ class BookingPredictor:
 
         # Identify seasonal patterns
         try:
-            result = seasonal_decompose(data, model="additive", period=7)  # Weekly seasonality
+            result = seasonal_decompose(
+                data, model="additive", period=7
+            )  # Weekly seasonality
             self.seasonal_patterns = result.seasonal
-        except Exception as e:
+        except Exception:
             # Fall back to simpler approach if decomposition fails
             self.seasonal_patterns = None
 
@@ -114,7 +114,9 @@ class BookingPredictor:
 
         # Create date range for future days
         last_date = self.get_historical_data().index[-1]
-        future_dates = pd.date_range(start=last_date + timedelta(days=1), periods=days_ahead)
+        future_dates = pd.date_range(
+            start=last_date + timedelta(days=1), periods=days_ahead
+        )
 
         # Create result DataFrame
         result = pd.DataFrame(
@@ -209,7 +211,9 @@ def predict_busy_hours(shop_id, date=None):
         current_date += timedelta(days=1)
 
     # Query bookings for these dates
-    bookings = Booking.objects.filter(shop_id=shop_id, booking_date__in=same_weekday_dates)
+    bookings = Booking.objects.filter(
+        shop_id=shop_id, booking_date__in=same_weekday_dates
+    )
 
     # Count bookings by hour
     hours_distribution = {}
@@ -234,7 +238,11 @@ def predict_busy_hours(shop_id, date=None):
             confidence = min(1.0, count / (avg_bookings * 1.5))
             if count > avg_bookings:
                 busy_hours.append(
-                    {"hour": hour, "predicted_bookings": count, "confidence": round(confidence, 2)}
+                    {
+                        "hour": hour,
+                        "predicted_bookings": count,
+                        "confidence": round(confidence, 2),
+                    }
                 )
 
     # Sort by number of predicted bookings

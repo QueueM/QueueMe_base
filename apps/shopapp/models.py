@@ -22,7 +22,9 @@ class Shop(models.Model):
     )
     name = models.CharField(_("Name"), max_length=255)
     description = models.TextField(_("Description"), blank=True)
-    avatar = models.ImageField(_("Avatar"), upload_to="shops/avatars/", null=True, blank=True)
+    avatar = models.ImageField(
+        _("Avatar"), upload_to="shops/avatars/", null=True, blank=True
+    )
     background_image = models.ImageField(
         _("Background Image"), upload_to="shops/backgrounds/", null=True, blank=True
     )
@@ -43,7 +45,9 @@ class Shop(models.Model):
         null=True,
     )
     is_verified = models.BooleanField(_("Verified"), default=False)
-    verification_date = models.DateTimeField(_("Verification Date"), null=True, blank=True)
+    verification_date = models.DateTimeField(
+        _("Verification Date"), null=True, blank=True
+    )
     is_active = models.BooleanField(_("Active"), default=True)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
@@ -52,14 +56,18 @@ class Shop(models.Model):
     # SEO and social media fields
     meta_title = models.CharField(_("Meta Title"), max_length=100, blank=True)
     meta_description = models.TextField(_("Meta Description"), blank=True)
-    instagram_handle = models.CharField(_("Instagram Handle"), max_length=50, blank=True)
+    instagram_handle = models.CharField(
+        _("Instagram Handle"), max_length=50, blank=True
+    )
     twitter_handle = models.CharField(_("Twitter Handle"), max_length=50, blank=True)
     facebook_page = models.CharField(_("Facebook Page"), max_length=100, blank=True)
 
     # Advanced fields
     is_featured = models.BooleanField(_("Featured Shop"), default=False)
     has_parking = models.BooleanField(_("Has Parking"), default=False)
-    accessibility_features = models.JSONField(_("Accessibility Features"), default=dict, blank=True)
+    accessibility_features = models.JSONField(
+        _("Accessibility Features"), default=dict, blank=True
+    )
     languages_supported = models.JSONField(_("Languages Supported"), default=list)
 
     class Meta:
@@ -82,9 +90,9 @@ class Shop(models.Model):
         from apps.reviewapp.models import Review
 
         avg_rating = (
-            Review.objects.filter(content_type__model="shop", object_id=self.id).aggregate(
-                Avg("rating")
-            )["rating__avg"]
+            Review.objects.filter(
+                content_type__model="shop", object_id=self.id
+            ).aggregate(Avg("rating"))["rating__avg"]
             or 0
         )
         return round(avg_rating, 1)
@@ -223,16 +231,24 @@ class ShopSettings(models.Model):
     check_in_timeout_minutes = models.PositiveIntegerField(
         _("Check-in Timeout (minutes)"), default=15
     )
-    grace_period_minutes = models.PositiveIntegerField(_("Grace Period (minutes)"), default=10)
+    grace_period_minutes = models.PositiveIntegerField(
+        _("Grace Period (minutes)"), default=10
+    )
     cancellation_policy = models.TextField(_("Cancellation Policy"), blank=True)
-    notification_preferences = models.JSONField(_("Notification Preferences"), default=dict)
+    notification_preferences = models.JSONField(
+        _("Notification Preferences"), default=dict
+    )
     booking_lead_time_minutes = models.PositiveIntegerField(
         _("Booking Lead Time (minutes)"), default=0
     )
-    booking_future_days = models.PositiveIntegerField(_("Booking Future Days"), default=30)
+    booking_future_days = models.PositiveIntegerField(
+        _("Booking Future Days"), default=30
+    )
 
     # Advanced settings
-    auto_assign_specialist = models.BooleanField(_("Auto Assign Specialist"), default=False)
+    auto_assign_specialist = models.BooleanField(
+        _("Auto Assign Specialist"), default=False
+    )
     specialist_assignment_algorithm = models.CharField(
         _("Specialist Assignment Algorithm"),
         max_length=50,
@@ -244,8 +260,12 @@ class ShopSettings(models.Model):
         ),
         default="round_robin",
     )
-    double_booking_allowed = models.BooleanField(_("Double Booking Allowed"), default=False)
-    max_concurrent_bookings = models.PositiveIntegerField(_("Max Concurrent Bookings"), default=1)
+    double_booking_allowed = models.BooleanField(
+        _("Double Booking Allowed"), default=False
+    )
+    max_concurrent_bookings = models.PositiveIntegerField(
+        _("Max Concurrent Bookings"), default=1
+    )
 
     class Meta:
         verbose_name = _("Shop Settings")
@@ -271,7 +291,9 @@ class ShopVerification(models.Model):
         related_name="verification_records",
         verbose_name=_("Shop"),
     )
-    status = models.CharField(_("Status"), max_length=20, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(
+        _("Status"), max_length=20, choices=STATUS_CHOICES, default="pending"
+    )
     submitted_at = models.DateTimeField(_("Submitted At"), auto_now_add=True)
     processed_at = models.DateTimeField(_("Processed At"), null=True, blank=True)
     processed_by = models.ForeignKey(

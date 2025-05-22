@@ -77,7 +77,9 @@ class DashboardDataViewSet(viewsets.ViewSet):
 
         try:
             # Calculate date range
-            date_range = dashboard_service.calculate_date_range(time_period, start_date, end_date)
+            date_range = dashboard_service.calculate_date_range(
+                time_period, start_date, end_date
+            )
 
             # Get dashboard data
             dashboard_data = dashboard_service.get_dashboard_data(
@@ -95,7 +97,9 @@ class DashboardDataViewSet(viewsets.ViewSet):
         except InvalidDateRangeException as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=["get"])
     def kpis(self, request):
@@ -130,7 +134,9 @@ class DashboardDataViewSet(viewsets.ViewSet):
         try:
             # Calculate date range
             dashboard_service = DashboardService()
-            date_range = dashboard_service.calculate_date_range(time_period, start_date, end_date)
+            date_range = dashboard_service.calculate_date_range(
+                time_period, start_date, end_date
+            )
 
             # Get KPI data
             kpi_data = kpi_service.get_kpis(
@@ -147,7 +153,9 @@ class DashboardDataViewSet(viewsets.ViewSet):
         except InvalidDateRangeException as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=["get"])
     def charts(self, request):
@@ -181,7 +189,9 @@ class DashboardDataViewSet(viewsets.ViewSet):
         try:
             # Calculate date range
             dashboard_service = DashboardService()
-            date_range = dashboard_service.calculate_date_range(time_period, start_date, end_date)
+            date_range = dashboard_service.calculate_date_range(
+                time_period, start_date, end_date
+            )
 
             # Get chart data
             chart_data = stats_service.get_chart_data(
@@ -199,7 +209,9 @@ class DashboardDataViewSet(viewsets.ViewSet):
         except InvalidDateRangeException as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=["get"])
     def tables(self, request):
@@ -234,7 +246,9 @@ class DashboardDataViewSet(viewsets.ViewSet):
         try:
             # Calculate date range
             dashboard_service = DashboardService()
-            date_range = dashboard_service.calculate_date_range(time_period, start_date, end_date)
+            date_range = dashboard_service.calculate_date_range(
+                time_period, start_date, end_date
+            )
 
             # Get table data
             table_data = stats_service.get_table_data(
@@ -253,7 +267,9 @@ class DashboardDataViewSet(viewsets.ViewSet):
         except InvalidDateRangeException as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class DashboardLayoutViewSet(viewsets.ModelViewSet):
@@ -301,7 +317,10 @@ class DashboardLayoutViewSet(viewsets.ModelViewSet):
             # First try to get user's preferred layout
             try:
                 preference = DashboardPreference.objects.get(user=request.user)
-                if preference.preferred_layout and preference.preferred_layout.shop_id == shop_id:
+                if (
+                    preference.preferred_layout
+                    and preference.preferred_layout.shop_id == shop_id
+                ):
                     serializer = self.get_serializer(preference.preferred_layout)
                     return Response(serializer.data)
             except DashboardPreference.DoesNotExist:
@@ -473,7 +492,9 @@ class ScheduledReportViewSet(viewsets.ModelViewSet):
 
             return Response({"detail": _("Report generation initiated.")})
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=["get"])
     def templates(self, request):
@@ -590,7 +611,9 @@ class DashboardPreferenceViewSet(
             serializer = self.get_serializer(preference)
             return Response(serializer.data)
         except DashboardLayout.DoesNotExist:
-            return Response({"detail": _("Layout not found.")}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": _("Layout not found.")}, status=status.HTTP_404_NOT_FOUND
+            )
 
     @action(detail=False, methods=["post"])
     def set_favorite_kpis(self, request):

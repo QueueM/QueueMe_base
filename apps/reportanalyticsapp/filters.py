@@ -83,7 +83,9 @@ class ReportExecutionFilter(filters.FilterSet):
 class AnomalyDetectionFilter(filters.FilterSet):
     detected_after = filters.DateFilter(field_name="detection_date", lookup_expr="gte")
     detected_before = filters.DateFilter(field_name="detection_date", lookup_expr="lte")
-    acknowledged_only = filters.BooleanFilter(field_name="is_acknowledged", lookup_expr="exact")
+    acknowledged_only = filters.BooleanFilter(
+        field_name="is_acknowledged", lookup_expr="exact"
+    )
     unacknowledged_only = filters.BooleanFilter(method="filter_unacknowledged")
 
     def filter_unacknowledged(self, queryset, name, value):

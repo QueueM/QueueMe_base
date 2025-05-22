@@ -14,7 +14,7 @@ from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.contrib.gis.measure import D
 from django.db import connection
-from django.db.models import ExpressionWrapper, F, FloatField, QuerySet, Value
+from django.db.models import ExpressionWrapper, F, FloatField, QuerySet
 
 # Constants for geospatial calculations
 EARTH_RADIUS_KM = 6371  # Earth radius in kilometers
@@ -60,7 +60,9 @@ def optimize_point_distance_query(
     # Then annotate with exact distance
     # This uses ST_Distance_Sphere which is faster than a full geodesic calculation
     # but slightly less accurate (usually within 0.3% which is fine for most applications)
-    annotated_qs = filtered_qs.annotate(**{distance_field_name: Distance("coordinates", point)})
+    annotated_qs = filtered_qs.annotate(
+        **{distance_field_name: Distance("coordinates", point)}
+    )
 
     # Convert distance to kilometers and order by it
     return annotated_qs.order_by(distance_field_name)
@@ -101,9 +103,9 @@ def get_points_in_polygon(
 
     # If ordering by distance is requested and reference point provided
     if distance_ordered and reference_point:
-        return filtered_qs.annotate(distance=Distance("coordinates", reference_point)).order_by(
-            "distance"
-        )
+        return filtered_qs.annotate(
+            distance=Distance("coordinates", reference_point)
+        ).order_by("distance")
 
     return filtered_qs
 
@@ -182,7 +184,9 @@ def optimize_geofence_query(
     # Add filter for circular geofences
     # The distance filter is more complex as we need to check against the radius
     # We'll use raw SQL here for maximum performance with PostGIS
-    distance_expr = ExpressionWrapper(Distance("center", point), output_field=FloatField())
+    distance_expr = ExpressionWrapper(
+        Distance("center", point), output_field=FloatField()
+    )
     radius_expr = ExpressionWrapper(
         F("radius_km") / 111.32,  # Convert km to approximate degrees
         output_field=FloatField(),
@@ -266,7 +270,9 @@ def batch_geocode_locations(
         except Exception as e:
             # Fall back to placeholder implementation if geocoding fails
             for address in addresses:
-                results.append({"address": address, "coordinates": None, "error": str(e)})
+                results.append(
+                    {"address": address, "coordinates": None, "error": str(e)}
+                )
     else:
         # Placeholder implementation - would be replaced with actual geocoding logic
         for address in addresses:
@@ -303,14 +309,18 @@ def optimize_spatial_index(model_class, location_field="location", batch_size=10
             break
 
     if not location_db_column:
-        return False, f"Field {location_field} not found on model {model_class.__name__}"
+        return (
+            False,
+            f"Field {location_field} not found on model {model_class.__name__}",
+        )
 
     try:
         with connection.cursor() as cursor:
             # Django's cursor.execute properly escapes table_name and location_db_column
             # using cursor.execute's parameter substitution
             cursor.execute(
-                "SELECT COUNT(*) FROM %s WHERE %s IS NOT NULL", [table_name, location_db_column]
+                "SELECT COUNT(*) FROM %s WHERE %s IS NOT NULL",
+                [table_name, location_db_column],
             )
             count = cursor.fetchone()[0]
 
@@ -356,7 +366,10 @@ def optimize_spatial_index(model_class, location_field="location", batch_size=10
                 [table_name],
             )
 
-            return True, f"Successfully optimized spatial index for {model_class.__name__}"
+            return (
+                True,
+                f"Successfully optimized spatial index for {model_class.__name__}",
+            )
     except Exception as e:
         return False, f"Error optimizing spatial index: {str(e)}"
 
@@ -367,7 +380,7 @@ def has_postgis_geocoding() -> bool:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1 FROM pg_proc WHERE proname = 'geocode' LIMIT 1")
             return cursor.fetchone() is not None
-    except Exception as e:
+    except Exception:
         return False
 
 
@@ -405,7 +418,7 @@ def calculate_distance(
             result = cursor.fetchone()
             # Convert meters to kilometers
             return result[0] / 1000 if result else 0
-    except Exception as e:
+    except Exception:
         # Fall back to Haversine formula if PostGIS calculation fails
         return _haversine(point1.y, point1.x, point2.y, point2.x)
 
@@ -429,7 +442,10 @@ def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     # Haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
     c = 2 * math.asin(math.sqrt(a))
 
     # Convert to kilometers

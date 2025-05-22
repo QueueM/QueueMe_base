@@ -80,7 +80,9 @@ class GeospatialSearch:
             List of entities within radius or k nearest, with distances
         """
         # Input validation
-        if not isinstance(latitude, (int, float)) or not isinstance(longitude, (int, float)):
+        if not isinstance(latitude, (int, float)) or not isinstance(
+            longitude, (int, float)
+        ):
             raise ValueError("Latitude and longitude must be numeric values")
 
         # Convert to float if they're valid numbers (handles string inputs)
@@ -89,7 +91,9 @@ class GeospatialSearch:
 
         # Check latitude/longitude ranges
         if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-            raise ValueError("Latitude must be between -90 and 90, longitude between -180 and 180")
+            raise ValueError(
+                "Latitude must be between -90 and 90, longitude between -180 and 180"
+            )
 
         # Require at least one of radius or k_nearest
         if radius_km is None and k_nearest is None:
@@ -135,7 +139,9 @@ class GeospatialSearch:
                 entity_lng = float(entity_lng)
 
                 # Calculate distance
-                distance = self._haversine_distance(latitude, longitude, entity_lat, entity_lng)
+                distance = self._haversine_distance(
+                    latitude, longitude, entity_lat, entity_lng
+                )
 
                 # Round to specified precision
                 distance = round(distance, self.distance_precision)
@@ -207,7 +213,9 @@ class GeospatialSearch:
 
         # Longitude bounds (width varies with latitude)
         # At higher latitudes, longitude degrees represent less distance
-        lng_delta = math.degrees(math.asin(math.sin(rad_dist) / math.cos(math.radians(latitude))))
+        lng_delta = math.degrees(
+            math.asin(math.sin(rad_dist) / math.cos(math.radians(latitude)))
+        )
 
         min_lng = longitude - lng_delta
         max_lng = longitude + lng_delta
@@ -280,7 +288,9 @@ class GeospatialSearch:
 
         return filtered_entities
 
-    def _haversine_distance(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    def _haversine_distance(
+        self, lat1: float, lng1: float, lat2: float, lng2: float
+    ) -> float:
         """
         Calculate the great-circle distance between two points
         using the Haversine formula (in kilometers).
@@ -418,7 +428,9 @@ class GeospatialSearch:
         """
         # Input validation
         if not len(bounds) == 4:
-            raise ValueError("Bounds must be a tuple of (min_lat, min_lng, max_lat, max_lng)")
+            raise ValueError(
+                "Bounds must be a tuple of (min_lat, min_lng, max_lat, max_lng)"
+            )
 
         min_lat, min_lng, max_lat, max_lng = bounds
 
@@ -445,7 +457,9 @@ class GeospatialSearch:
         # Apply additional filters if specified
         if filters:
             filtered_entities = [
-                entity for entity in filtered_entities if self._apply_filters(entity, filters)
+                entity
+                for entity in filtered_entities
+                if self._apply_filters(entity, filters)
             ]
 
         # Sort results if specified

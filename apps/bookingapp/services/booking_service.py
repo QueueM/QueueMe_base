@@ -1,11 +1,10 @@
 # apps/bookingapp/services/booking_service.py
 import logging
 from datetime import date, datetime, time, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-from uuid import UUID
+from typing import Any, Dict, Optional
 
 from django.db import transaction
-from django.db.models import Count, Exists, F, OuterRef, Q
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.authapp.models import User
@@ -22,7 +21,7 @@ from apps.queueapp.services.queue_service import QueueService
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
 from apps.specialistsapp.models import Specialist
-from utils.distributed_locks import DistributedLock, with_distributed_lock
+from utils.distributed_locks import with_distributed_lock
 
 from .availability_service import AvailabilityService
 
@@ -238,7 +237,9 @@ class BookingService:
         return appointment
 
     @staticmethod
-    @with_distributed_lock("multi_service_booking:shop:{shop_id}:customer:{customer_id}")
+    @with_distributed_lock(
+        "multi_service_booking:shop:{shop_id}:customer:{customer_id}"
+    )
     @transaction.atomic
     def create_multi_service_booking(customer_id, bookings_data, shop_id):
         """
@@ -310,7 +311,9 @@ class BookingService:
         multi_booking.save()
 
         # Send confirmation notification for the whole booking
-        NotificationService.send_multi_service_booking_confirmation(multi_booking, appointments)
+        NotificationService.send_multi_service_booking_confirmation(
+            multi_booking, appointments
+        )
 
         return multi_booking
 
@@ -436,16 +439,20 @@ class BookingService:
                 }
 
                 # Sort by appointment count and get the specialist with fewest appointments
-                specialist = min(available_specialists, key=lambda s: specialist_appointments[s.id])
+                specialist = min(
+                    available_specialists, key=lambda s: specialist_appointments[s.id]
+                )
 
             # Check for overlapping appointments (both for specialist and customer)
             # We're using select_for_update to lock the related rows during this transaction
-            overlapping_specialist_appointments = Appointment.objects.select_for_update().filter(
-                specialist=specialist,
-                date=appointment_date,
-                status__in=[AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING],
-                start_time__lt=appointment_end_time,
-                end_time__gt=appointment_start_time,
+            overlapping_specialist_appointments = (
+                Appointment.objects.select_for_update().filter(
+                    specialist=specialist,
+                    date=appointment_date,
+                    status__in=[AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING],
+                    start_time__lt=appointment_end_time,
+                    end_time__gt=appointment_start_time,
+                )
             )
 
             if overlapping_specialist_appointments.exists():
@@ -454,12 +461,14 @@ class BookingService:
                     "message": "Specialist already has an appointment at this time",
                 }
 
-            overlapping_customer_appointments = Appointment.objects.select_for_update().filter(
-                customer=customer,
-                date=appointment_date,
-                status__in=[AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING],
-                start_time__lt=appointment_end_time,
-                end_time__gt=appointment_start_time,
+            overlapping_customer_appointments = (
+                Appointment.objects.select_for_update().filter(
+                    customer=customer,
+                    date=appointment_date,
+                    status__in=[AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING],
+                    start_time__lt=appointment_end_time,
+                    end_time__gt=appointment_start_time,
+                )
             )
 
             if overlapping_customer_appointments.exists():
@@ -469,7 +478,9 @@ class BookingService:
                 }
 
             # Calculate price
-            specialist_service = specialist.specialist_services.filter(service=service).first()
+            specialist_service = specialist.specialist_services.filter(
+                service=service
+            ).first()
             if specialist_service:
                 price = specialist_service.price
             else:
@@ -542,7 +553,9 @@ class BookingService:
         """
         try:
             try:
-                appointment = Appointment.objects.select_for_update().get(id=appointment_id)
+                appointment = Appointment.objects.select_for_update().get(
+                    id=appointment_id
+                )
             except Appointment.DoesNotExist:
                 return {
                     "success": False,
@@ -587,8 +600,12 @@ class BookingService:
             # Special case for CHECKED_IN status - check if too early
             if new_status == AppointmentStatus.CHECKED_IN:
                 now = timezone.now()
-                appointment_datetime = datetime.combine(appointment.date, appointment.start_time)
-                check_in_window = timedelta(minutes=30)  # Allow check-in 30 minutes before
+                appointment_datetime = datetime.combine(
+                    appointment.date, appointment.start_time
+                )
+                check_in_window = timedelta(
+                    minutes=30
+                )  # Allow check-in 30 minutes before
 
                 if now < (appointment_datetime - check_in_window):
                     return {
@@ -602,7 +619,9 @@ class BookingService:
             # Update the appointment
             appointment.status = new_status
             if notes:
-                appointment.notes = f"{appointment.notes}\n{notes}" if appointment.notes else notes
+                appointment.notes = (
+                    f"{appointment.notes}\n{notes}" if appointment.notes else notes
+                )
 
             # Record status change time
             status_timestamp_field = f"{new_status.lower()}_at"
@@ -638,7 +657,9 @@ class BookingService:
                 if new_status == AppointmentStatus.CONFIRMED:
                     NotificationService.send_appointment_confirmed(appointment)
                 elif new_status == AppointmentStatus.CANCELLED:
-                    NotificationService.send_appointment_cancelled(appointment, old_status)
+                    NotificationService.send_appointment_cancelled(
+                        appointment, old_status
+                    )
                 elif new_status == AppointmentStatus.COMPLETED:
                     NotificationService.send_appointment_completed(appointment)
                 elif new_status == AppointmentStatus.NO_SHOW:
@@ -685,7 +706,9 @@ class BookingService:
         """
         try:
             try:
-                appointment = Appointment.objects.select_for_update().get(id=appointment_id)
+                appointment = Appointment.objects.select_for_update().get(
+                    id=appointment_id
+                )
             except Appointment.DoesNotExist:
                 return {
                     "success": False,
@@ -743,13 +766,15 @@ class BookingService:
                 }
 
             # Check for overlapping appointments (excluding this appointment)
-            overlapping_specialist_appointments = Appointment.objects.select_for_update().filter(
-                ~Q(id=appointment.id),
-                specialist=specialist,
-                date=new_date,
-                status__in=[AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING],
-                start_time__lt=new_end_time,
-                end_time__gt=new_start_time,
+            overlapping_specialist_appointments = (
+                Appointment.objects.select_for_update().filter(
+                    ~Q(id=appointment.id),
+                    specialist=specialist,
+                    date=new_date,
+                    status__in=[AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING],
+                    start_time__lt=new_end_time,
+                    end_time__gt=new_start_time,
+                )
             )
 
             if overlapping_specialist_appointments.exists():
@@ -758,13 +783,15 @@ class BookingService:
                     "message": "Specialist already has an appointment at this time",
                 }
 
-            overlapping_customer_appointments = Appointment.objects.select_for_update().filter(
-                ~Q(id=appointment.id),
-                customer=appointment.customer,
-                date=new_date,
-                status__in=[AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING],
-                start_time__lt=new_end_time,
-                end_time__gt=new_start_time,
+            overlapping_customer_appointments = (
+                Appointment.objects.select_for_update().filter(
+                    ~Q(id=appointment.id),
+                    customer=appointment.customer,
+                    date=new_date,
+                    status__in=[AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING],
+                    start_time__lt=new_end_time,
+                    end_time__gt=new_start_time,
+                )
             )
 
             if overlapping_customer_appointments.exists():
@@ -848,7 +875,9 @@ class BookingService:
                 ).first()
 
                 if queue_ticket:
-                    queue_info = QueueService.get_customer_position(str(queue_ticket.id))
+                    queue_info = QueueService.get_customer_position(
+                        str(queue_ticket.id)
+                    )
                     if queue_info.get("success", False):
                         queue_position = queue_info.get("position")
                         estimated_wait_time = queue_info.get("estimated_wait_minutes")
@@ -890,16 +919,24 @@ class BookingService:
                     "notes": appointment.notes,
                     "created_at": appointment.created_at.isoformat(),
                     "confirmed_at": (
-                        appointment.confirmed_at.isoformat() if appointment.confirmed_at else None
+                        appointment.confirmed_at.isoformat()
+                        if appointment.confirmed_at
+                        else None
                     ),
                     "cancelled_at": (
-                        appointment.cancelled_at.isoformat() if appointment.cancelled_at else None
+                        appointment.cancelled_at.isoformat()
+                        if appointment.cancelled_at
+                        else None
                     ),
                     "completed_at": (
-                        appointment.completed_at.isoformat() if appointment.completed_at else None
+                        appointment.completed_at.isoformat()
+                        if appointment.completed_at
+                        else None
                     ),
                     "checked_in_at": (
-                        appointment.checked_in_at.isoformat() if appointment.checked_in_at else None
+                        appointment.checked_in_at.isoformat()
+                        if appointment.checked_in_at
+                        else None
                     ),
                     "queue_position": queue_position,
                     "estimated_wait_minutes": estimated_wait_time,

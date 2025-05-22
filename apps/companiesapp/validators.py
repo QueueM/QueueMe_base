@@ -32,7 +32,9 @@ def validate_company_logo(image):
     # Check dimensions
     if hasattr(image, "width") and hasattr(image, "height"):
         if image.width < 100 or image.height < 100:
-            raise ValidationError(_("Image dimensions too small. Minimum size is 100x100 pixels."))
+            raise ValidationError(
+                _("Image dimensions too small. Minimum size is 100x100 pixels.")
+            )
 
         if image.width > 2000 or image.height > 2000:
             raise ValidationError(

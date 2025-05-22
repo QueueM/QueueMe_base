@@ -65,7 +65,10 @@ class StoryMediaService:
                 img = img.convert("RGB")
 
             # Resize if larger than max dimensions
-            if img.width > self.max_image_size[0] or img.height > self.max_image_size[1]:
+            if (
+                img.width > self.max_image_size[0]
+                or img.height > self.max_image_size[1]
+            ):
                 img.thumbnail(self.max_image_size, Image.LANCZOS)
 
             # Save optimized image to BytesIO
@@ -77,7 +80,9 @@ class StoryMediaService:
             filename = f"{uuid.uuid4()}.jpg"
             s3_path = f"stories/{shop_id}/images/{filename}"
 
-            media_url = self.s3_storage.upload_file(optimized, s3_path, content_type="image/jpeg")
+            media_url = self.s3_storage.upload_file(
+                optimized, s3_path, content_type="image/jpeg"
+            )
 
             return {"media_url": media_url}
 

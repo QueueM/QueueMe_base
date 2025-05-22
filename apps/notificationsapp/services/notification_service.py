@@ -1,28 +1,18 @@
-import json
 import logging
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
-from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, transaction
-from django.template import Context, Template
 from django.utils import timezone
 
-from apps.authapp.models import User
 from apps.notificationsapp.models import (
     DeadLetterNotification,
-    DeviceToken,
     Notification,
-    NotificationChannel,
-    NotificationTemplate,
-    NotificationType,
 )
-from apps.notificationsapp.services.channel_selector import ChannelSelector
-from apps.notificationsapp.services.timing_optimizer import TimingOptimizer
 from apps.notificationsapp.tasks import (
     retry_failed_notification_task,
     send_email_notification_task,
@@ -54,7 +44,9 @@ EMAIL_RATE_LIMIT = getattr(
 
 # Retry configuration
 MAX_RETRY_ATTEMPTS = getattr(settings, "NOTIFICATION_MAX_RETRY_ATTEMPTS", 5)
-RETRY_DELAY_BASE = getattr(settings, "NOTIFICATION_RETRY_DELAY_BASE", 60)  # 1 minute base delay
+RETRY_DELAY_BASE = getattr(
+    settings, "NOTIFICATION_RETRY_DELAY_BASE", 60
+)  # 1 minute base delay
 
 
 class NotificationService:
@@ -123,11 +115,17 @@ class NotificationService:
                 for channel in channels:
                     if channel == "sms" and not cls._check_sms_rate_limit(recipient_id):
                         channels.remove("sms")
-                        logger.warning(f"SMS rate limit exceeded for recipient {recipient_id}")
+                        logger.warning(
+                            f"SMS rate limit exceeded for recipient {recipient_id}"
+                        )
 
-                    if channel == "email" and not cls._check_email_rate_limit(recipient_id):
+                    if channel == "email" and not cls._check_email_rate_limit(
+                        recipient_id
+                    ):
                         channels.remove("email")
-                        logger.warning(f"Email rate limit exceeded for recipient {recipient_id}")
+                        logger.warning(
+                            f"Email rate limit exceeded for recipient {recipient_id}"
+                        )
 
             # If all channels were removed due to rate limiting
             if not channels:
@@ -221,11 +219,13 @@ class NotificationService:
             try:
                 with transaction.atomic():
                     try:
-                        notification = Notification.objects.select_for_update(nowait=True).get(
-                            id=notification_id
-                        )
+                        notification = Notification.objects.select_for_update(
+                            nowait=True
+                        ).get(id=notification_id)
                     except Notification.DoesNotExist:
-                        logger.error(f"Notification not found with ID: {notification_id}")
+                        logger.error(
+                            f"Notification not found with ID: {notification_id}"
+                        )
                         return False
 
                     # Add a small delay before proceeding if we're retrying
@@ -273,7 +273,9 @@ class NotificationService:
                             import random
 
                             jitter = random.uniform(0.8, 1.2)
-                            delay_seconds = int(RETRY_DELAY_BASE * (2**retry_count) * jitter)
+                            delay_seconds = int(
+                                RETRY_DELAY_BASE * (2**retry_count) * jitter
+                            )
 
                             # Update retry count
                             retry_data = notification.retry_count or {}
@@ -307,11 +309,15 @@ class NotificationService:
 
             except DatabaseError as e:
                 # This catches lock wait timeout and deadlocks
-                logger.warning(f"Database error updating notification {notification_id}: {str(e)}")
+                logger.warning(
+                    f"Database error updating notification {notification_id}: {str(e)}"
+                )
                 # Add a small delay and retry once
                 time.sleep(0.5)
                 with transaction.atomic():
-                    notification = Notification.objects.select_for_update().get(id=notification_id)
+                    notification = Notification.objects.select_for_update().get(
+                        id=notification_id
+                    )
                     # Perform minimal update to avoid race conditions
                     if status == "error":
                         # Just increment retry count if we're handling an error
@@ -354,7 +360,9 @@ class NotificationService:
 
             # Only retry if channel is in the notification's channels
             if channel not in notification.channels:
-                logger.error(f"Channel {channel} not found in notification {notification_id}")
+                logger.error(
+                    f"Channel {channel} not found in notification {notification_id}"
+                )
                 return False
 
             # Prepare notification data
@@ -731,7 +739,9 @@ class NotificationService:
         }
 
     @classmethod
-    def send_appointment_rescheduled(cls, appointment, old_date, old_time, old_specialist):
+    def send_appointment_rescheduled(
+        cls, appointment, old_date, old_time, old_specialist
+    ):
         """Send notification when an appointment is rescheduled"""
         # Notify customer
         customer_result = cls.send_notification(
@@ -749,7 +759,8 @@ class NotificationService:
                 "specialist_name": appointment.specialist.name,
                 "service_name": appointment.service.name,
                 "shop_name": appointment.shop.name,
-                "specialist_changed": str(old_specialist.id) != str(appointment.specialist.id),
+                "specialist_changed": str(old_specialist.id)
+                != str(appointment.specialist.id),
             },
         )
 
@@ -821,7 +832,9 @@ class NotificationService:
             notification_type="appointment_reminder",
             title="Appointment Reminder",
             message=f"Reminder: Your appointment with {appointment.specialist.name} is in {hours_before} hours.",
-            channels=(["in_app", "email", "sms"] if hours_before <= 3 else ["in_app", "email"]),
+            channels=(
+                ["in_app", "email", "sms"] if hours_before <= 3 else ["in_app", "email"]
+            ),
             data={
                 "appointment_id": str(appointment.id),
                 "date": appointment.date.isoformat(),

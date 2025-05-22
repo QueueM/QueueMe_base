@@ -40,7 +40,9 @@ class EligibilityService:
 
         # For coupons, check single use restriction
         if isinstance(discount_or_coupon, Coupon) and discount_or_coupon.is_single_use:
-            used = CouponUsage.objects.filter(coupon=discount_or_coupon, customer=customer).exists()
+            used = CouponUsage.objects.filter(
+                coupon=discount_or_coupon, customer=customer
+            ).exists()
             if used:
                 return False, ERROR_CODE_NOT_ELIGIBLE
 
@@ -94,7 +96,9 @@ class EligibilityService:
         # Get active coupons for the shop
         from apps.discountapp.services.coupon_service import CouponService
 
-        active_coupons = CouponService.get_available_coupons(shop=shop, customer=customer)
+        active_coupons = CouponService.get_available_coupons(
+            shop=shop, customer=customer
+        )
 
         # Filter coupons by service eligibility if service is provided
         if service:
@@ -103,7 +107,9 @@ class EligibilityService:
                 if (
                     coupon.apply_to_all_services
                     or service in coupon.services.all()
-                    or (service.category and service.category in coupon.categories.all())
+                    or (
+                        service.category and service.category in coupon.categories.all()
+                    )
                 ):
                     eligible_coupons.append(coupon)
             return eligible_coupons

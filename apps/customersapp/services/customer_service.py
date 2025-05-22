@@ -37,7 +37,9 @@ class CustomerService:
                 logger.error(f"Error creating location for customer: {e}")
 
         # Create customer profile
-        customer = Customer.objects.create(user=user, name=name, city=city, location=location)
+        customer = Customer.objects.create(
+            user=user, name=name, city=city, location=location
+        )
 
         # Create default preferences
         CustomerPreference.objects.create(customer=customer)
@@ -89,7 +91,11 @@ class CustomerService:
         customer.save()
 
         # Update preferences if provided
-        if "preferences" in data and data["preferences"] and hasattr(customer, "preferences"):
+        if (
+            "preferences" in data
+            and data["preferences"]
+            and hasattr(customer, "preferences")
+        ):
             preferences = customer.preferences
             preferences_data = data["preferences"]
 
@@ -137,7 +143,9 @@ class CustomerService:
         """
         from apps.bookingapp.models import Appointment
 
-        return Appointment.objects.filter(customer=customer.user).order_by("-start_time")[:limit]
+        return Appointment.objects.filter(customer=customer.user).order_by(
+            "-start_time"
+        )[:limit]
 
     @staticmethod
     def get_customer_favorite_entities(customer):
@@ -146,6 +154,8 @@ class CustomerService:
         """
         return {
             "shops": customer.favorite_shops.all().select_related("shop"),
-            "specialists": customer.favorite_specialists.all().select_related("specialist"),
+            "specialists": customer.favorite_specialists.all().select_related(
+                "specialist"
+            ),
             "services": customer.favorite_services.all().select_related("service"),
         }

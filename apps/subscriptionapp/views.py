@@ -13,7 +13,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.companiesapp.models import Company
-from apps.subscriptionapp.services.invoice_service import InvoiceService
 from apps.subscriptionapp.services.plan_service import PlanService
 from apps.subscriptionapp.services.subscription_service import SubscriptionService
 
@@ -434,7 +433,9 @@ class SubscriptionInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
     - status: Filter by invoice status
     """
 
-    queryset = SubscriptionInvoice.objects.all().select_related("subscription", "transaction")
+    queryset = SubscriptionInvoice.objects.all().select_related(
+        "subscription", "transaction"
+    )
     serializer_class = SubscriptionInvoiceSerializer
     permission_classes = [CanViewSubscriptions]
 
@@ -663,7 +664,9 @@ class SubscriptionRenewalView(generics.GenericAPIView):
         try:
             from apps.subscriptionapp.services.renewal_manager import RenewalManager
 
-            result = RenewalManager.process_renewal(serializer.validated_data["subscription_id"])
+            result = RenewalManager.process_renewal(
+                serializer.validated_data["subscription_id"]
+            )
 
             return Response(
                 {
@@ -776,7 +779,9 @@ class CompanySubscriptionView(generics.RetrieveAPIView):
 
         # Get the active subscription for this company
         subscription = (
-            Subscription.objects.filter(company=company, status__in=["active", "trial", "past_due"])
+            Subscription.objects.filter(
+                company=company, status__in=["active", "trial", "past_due"]
+            )
             .order_by("-created_at")
             .first()
         )

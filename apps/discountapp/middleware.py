@@ -35,7 +35,10 @@ class DiscountStatusMiddleware(MiddlewareMixin):
         for discount in service_discounts:
             # Update status based on current date and usage
             if discount.start_date <= now <= discount.end_date:
-                if discount.usage_limit > 0 and discount.used_count >= discount.usage_limit:
+                if (
+                    discount.usage_limit > 0
+                    and discount.used_count >= discount.usage_limit
+                ):
                     discount.status = "expired"
                 else:
                     discount.status = "active"
@@ -47,7 +50,9 @@ class DiscountStatusMiddleware(MiddlewareMixin):
             discount.save(update_fields=["status"])
 
         # Check a sample of active or scheduled coupons
-        coupons = Coupon.objects.filter(status__in=["active", "scheduled"]).order_by("?")[
+        coupons = Coupon.objects.filter(status__in=["active", "scheduled"]).order_by(
+            "?"
+        )[
             :5
         ]  # Random sampling
 

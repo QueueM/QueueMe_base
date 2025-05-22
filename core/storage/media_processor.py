@@ -27,7 +27,9 @@ logger = logging.getLogger("media")
 
 
 # Define absolute paths to binaries used for media processing
-FFMPEG_PATH = getattr(settings, "FFMPEG_BINARY_PATH", shutil.which("ffmpeg") or "/usr/bin/ffmpeg")
+FFMPEG_PATH = getattr(
+    settings, "FFMPEG_BINARY_PATH", shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
+)
 FFPROBE_PATH = getattr(
     settings, "FFPROBE_BINARY_PATH", shutil.which("ffprobe") or "/usr/bin/ffprobe"
 )
@@ -122,7 +124,9 @@ class MediaProcessor:
                 output_format = "jpeg"
 
             # Convert format to PIL format
-            pil_format = "JPEG" if output_format in ["jpg", "jpeg"] else output_format.upper()
+            pil_format = (
+                "JPEG" if output_format in ["jpg", "jpeg"] else output_format.upper()
+            )
 
             # Open image with PIL
             img = Image.open(image_file)
@@ -141,14 +145,20 @@ class MediaProcessor:
             if target_width or target_height:
                 if crop and target_width and target_height:
                     # Crop to exact dimensions (center crop)
-                    img = ImageOps.fit(img, (target_width, target_height), method=Image.LANCZOS)
+                    img = ImageOps.fit(
+                        img, (target_width, target_height), method=Image.LANCZOS
+                    )
                 else:
                     # Resize preserving aspect ratio
                     orig_width, orig_height = img.size
 
                     # Calculate scale factors
-                    width_scale = target_width / orig_width if target_width else float("inf")
-                    height_scale = target_height / orig_height if target_height else float("inf")
+                    width_scale = (
+                        target_width / orig_width if target_width else float("inf")
+                    )
+                    height_scale = (
+                        target_height / orig_height if target_height else float("inf")
+                    )
 
                     # Use smallest scale factor to ensure both dimensions fit
                     scale = min(width_scale, height_scale)
@@ -223,7 +233,9 @@ class MediaProcessor:
         with ThreadPoolExecutor() as executor:
             futures = {}
             for name, preset in variations.items():
-                futures[name] = executor.submit(self.process_image, image_file, size_preset=preset)
+                futures[name] = executor.submit(
+                    self.process_image, image_file, size_preset=preset
+                )
 
             for name, future in futures.items():
                 try:
@@ -233,7 +245,9 @@ class MediaProcessor:
 
         return processed_images
 
-    def process_video(self, video_file, max_size_mb=10, max_duration=60, generate_thumbnail=True):
+    def process_video(
+        self, video_file, max_size_mb=10, max_duration=60, generate_thumbnail=True
+    ):
         """
         Process a video file.
 
@@ -248,7 +262,9 @@ class MediaProcessor:
         """
         # Check if ffmpeg is available
         if not os.path.isfile(FFMPEG_PATH) or not os.access(FFMPEG_PATH, os.X_OK):
-            logger.warning(f"ffmpeg not available at {FFMPEG_PATH}, skipping video processing")
+            logger.warning(
+                f"ffmpeg not available at {FFMPEG_PATH}, skipping video processing"
+            )
             return video_file, None
 
         try:
@@ -292,7 +308,9 @@ class MediaProcessor:
                     )
 
                     # Create temp file for output with a secure random name
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_out:
+                    with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=".mp4"
+                    ) as tmp_out:
                         output_path = tmp_out.name
 
                     # Compress video using absolute path to ffmpeg
@@ -344,7 +362,9 @@ class MediaProcessor:
             thumbnail = None
             if generate_thumbnail:
                 # Create temp file for thumbnail with a secure random name
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_thumb:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=".jpg"
+                ) as tmp_thumb:
                     thumbnail_path = tmp_thumb.name
 
                 # Extract thumbnail at 1 second using absolute path to ffmpeg
@@ -465,7 +485,9 @@ class MediaProcessor:
             logger.error(f"Error validating image: {e}")
             raise MediaProcessingException(f"Invalid image file: {e}")
 
-    def validate_video(self, video_file, max_size_mb=10, max_duration=60, allowed_formats=None):
+    def validate_video(
+        self, video_file, max_size_mb=10, max_duration=60, allowed_formats=None
+    ):
         """
         Validate a video file.
 
@@ -485,7 +507,9 @@ class MediaProcessor:
             # Check format
             if hasattr(video_file, "name"):
                 file_ext = (
-                    os.path.splitext(os.path.basename(video_file.name))[1].lower().lstrip(".")
+                    os.path.splitext(os.path.basename(video_file.name))[1]
+                    .lower()
+                    .lstrip(".")
                 )
                 if allowed_formats and file_ext not in allowed_formats:
                     raise MediaProcessingException(
@@ -520,7 +544,9 @@ class MediaProcessor:
                         "default=noprint_wrappers=1:nokey=1",
                         tmp.name,
                     ]
-                    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, check=True
+                    )
                     duration = float(result.stdout.strip())
 
                     # Check duration
@@ -532,7 +558,9 @@ class MediaProcessor:
                     # Clean up
                     os.unlink(tmp.name)
             else:
-                logger.warning(f"ffprobe not available at {FFPROBE_PATH}, skipping duration check")
+                logger.warning(
+                    f"ffprobe not available at {FFPROBE_PATH}, skipping duration check"
+                )
 
             # Seek to beginning of file for future processing
             if hasattr(video_file, "seek"):

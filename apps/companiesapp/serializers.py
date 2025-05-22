@@ -2,7 +2,10 @@
 from rest_framework import serializers
 
 from apps.authapp.serializers import UserSerializer
-from apps.companiesapp.validators import validate_company_name, validate_registration_number
+from apps.companiesapp.validators import (
+    validate_company_name,
+    validate_registration_number,
+)
 from apps.geoapp.models import Location
 from apps.geoapp.serializers import LocationSerializer
 

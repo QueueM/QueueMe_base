@@ -144,9 +144,9 @@ class CategoryService:
         featured = cache.get(cache_key)
 
         if featured is None:
-            featured = Category.objects.filter(is_active=True, is_featured=True).order_by(
-                "position"
-            )[:limit]
+            featured = Category.objects.filter(
+                is_active=True, is_featured=True
+            ).order_by("position")[:limit]
 
             cache.set(cache_key, list(featured), CACHE_TTL)
 

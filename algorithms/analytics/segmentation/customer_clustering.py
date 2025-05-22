@@ -8,19 +8,16 @@ AI-powered customer segmentation using machine learning algorithms:
 - Automated customer tagging
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import numpy as np
 import pandas as pd
-from django.db.models import Avg, Count, DateTimeField, ExpressionWrapper, F, Sum
-from django.db.models.functions import ExtractMonth, ExtractYear
+from django.db.models import Avg, Count, Sum
 from django.utils import timezone
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
 
-from apps.authapp.models import User
 from apps.bookingapp.models import Booking
 from apps.customersapp.models import Customer, CustomerTag
 from apps.payment.models import Transaction
@@ -74,14 +71,18 @@ class CustomerSegmenter:
         ).select_related("user")
 
         # Extract customer IDs
-        customer_ids = set([b.user_id for b in bookings] + [t.user_id for t in transactions])
+        customer_ids = set(
+            [b.user_id for b in bookings] + [t.user_id for t in transactions]
+        )
 
         # Build customer feature matrix
         customer_features = []
 
         for customer_id in customer_ids:
             customer_bookings = [b for b in bookings if b.user_id == customer_id]
-            customer_transactions = [t for t in transactions if t.user_id == customer_id]
+            customer_transactions = [
+                t for t in transactions if t.user_id == customer_id
+            ]
 
             # Skip if not enough transactions
             if len(customer_transactions) < min_transactions:
@@ -95,7 +96,9 @@ class CustomerSegmenter:
                 recency_booking = lookback_days
 
             if customer_transactions:
-                last_transaction_date = max([t.created_at for t in customer_transactions])
+                last_transaction_date = max(
+                    [t.created_at for t in customer_transactions]
+                )
                 recency_transaction = (end_date - last_transaction_date).days
             else:
                 recency_transaction = lookback_days
@@ -111,11 +114,15 @@ class CustomerSegmenter:
             )
 
             # Time of day preference (0-23 scale)
-            booking_hours = [b.booking_time.hour for b in customer_bookings if b.booking_time]
+            booking_hours = [
+                b.booking_time.hour for b in customer_bookings if b.booking_time
+            ]
             preferred_hour = int(np.mean(booking_hours)) if booking_hours else -1
 
             # Day of week preference (0-6 scale, 0=Monday)
-            booking_days = [b.booking_date.weekday() for b in customer_bookings if b.booking_date]
+            booking_days = [
+                b.booking_date.weekday() for b in customer_bookings if b.booking_date
+            ]
             preferred_day = int(np.mean(booking_days)) if booking_days else -1
 
             # Service category preference
@@ -126,7 +133,9 @@ class CustomerSegmenter:
                     category_counts[category] = category_counts.get(category, 0) + 1
 
             preferred_category = (
-                max(category_counts.items(), key=lambda x: x[1])[0] if category_counts else None
+                max(category_counts.items(), key=lambda x: x[1])[0]
+                if category_counts
+                else None
             )
 
             # Calculate interval between bookings
@@ -145,7 +154,8 @@ class CustomerSegmenter:
                 (lookback_days - recency_booking) * 0.3
                 + booking_frequency * 3  # More recent = better
                 + transaction_frequency * 2  # More bookings = better
-                + (total_spend / 100) * 0.5  # More transactions = better  # More spending = better
+                + (total_spend / 100)
+                * 0.5  # More transactions = better  # More spending = better
             )
 
             # Assemble feature vector
@@ -213,8 +223,12 @@ class CustomerSegmenter:
 
         # Create a pipeline with scaling, dimensionality reduction, and clustering
         self.scaler = StandardScaler()
-        self.pca = PCA(n_components=min(5, len(self.feature_names)), random_state=self.random_state)
-        self.model = KMeans(n_clusters=self.n_clusters, random_state=self.random_state, n_init=10)
+        self.pca = PCA(
+            n_components=min(5, len(self.feature_names)), random_state=self.random_state
+        )
+        self.model = KMeans(
+            n_clusters=self.n_clusters, random_state=self.random_state, n_init=10
+        )
 
         # Fit the pipeline
         X_scaled = self.scaler.fit_transform(X)
@@ -242,7 +256,9 @@ class CustomerSegmenter:
         profiles = {}
 
         # Calculate aggregate statistics for each cluster
-        cluster_stats = segmented_customers.groupby("cluster")[self.feature_names].mean()
+        cluster_stats = segmented_customers.groupby("cluster")[
+            self.feature_names
+        ].mean()
 
         # Determine relative values (how much above/below average)
         overall_means = segmented_customers[self.feature_names].mean()
@@ -254,14 +270,25 @@ class CustomerSegmenter:
             rel_vals = relative_values.loc[cluster_id].to_dict()
 
             # Count customers in this cluster
-            customer_count = len(segmented_customers[segmented_customers["cluster"] == cluster_id])
+            customer_count = len(
+                segmented_customers[segmented_customers["cluster"] == cluster_id]
+            )
 
             # Create customer categories based on patterns
-            if rel_vals["recency_booking"] < 0.5 and rel_vals["booking_frequency"] > 1.5:
+            if (
+                rel_vals["recency_booking"] < 0.5
+                and rel_vals["booking_frequency"] > 1.5
+            ):
                 category = "Loyal High-Frequency"
-            elif rel_vals["total_spend"] > 1.5 and rel_vals["avg_transaction_value"] > 1.3:
+            elif (
+                rel_vals["total_spend"] > 1.5
+                and rel_vals["avg_transaction_value"] > 1.3
+            ):
                 category = "High-Value"
-            elif rel_vals["recency_booking"] > 1.5 and rel_vals["booking_frequency"] < 0.7:
+            elif (
+                rel_vals["recency_booking"] > 1.5
+                and rel_vals["booking_frequency"] < 0.7
+            ):
                 category = "At-Risk / Churned"
             elif (
                 rel_vals["recency_booking"] < 0.7
@@ -309,7 +336,9 @@ class CustomerSegmenter:
                 "id": cluster_id,
                 "name": category,
                 "customer_count": customer_count,
-                "percentage": round((customer_count / len(segmented_customers)) * 100, 1),
+                "percentage": round(
+                    (customer_count / len(segmented_customers)) * 100, 1
+                ),
                 "avg_spend": round(stats["total_spend"], 2),
                 "spend_relative": round(rel_vals["total_spend"], 2),
                 "visit_frequency": round(stats["booking_frequency"], 1),
@@ -320,7 +349,9 @@ class CustomerSegmenter:
                 "preferred_day": preferred_day,
                 "preferred_time": day_part,
                 "engagement_score": round(stats["engagement_score"], 1),
-                "description": self.generate_cluster_description(category, stats, rel_vals),
+                "description": self.generate_cluster_description(
+                    category, stats, rel_vals
+                ),
                 "marketing_recommendation": self.generate_marketing_recommendation(
                     category, stats, rel_vals
                 ),
@@ -405,13 +436,20 @@ class CustomerSegmenter:
             raise ValueError("Model not trained. Call train_model() first.")
 
         # Get customer features
-        customer_features = self.get_customer_features(lookback_days=365, min_transactions=0)
+        customer_features = self.get_customer_features(
+            lookback_days=365, min_transactions=0
+        )
 
         # Filter for just this customer
-        customer_data = customer_features[customer_features["customer_id"] == customer_id]
+        customer_data = customer_features[
+            customer_features["customer_id"] == customer_id
+        ]
 
         if customer_data.empty:
-            return {"success": False, "error": f"No data found for customer ID {customer_id}"}
+            return {
+                "success": False,
+                "error": f"No data found for customer ID {customer_id}",
+            }
 
         # Extract features
         X = customer_data[self.feature_names].copy()
@@ -479,14 +517,20 @@ class CustomerSegmenter:
 
             # Add the tags to our results
             customer_tags.append(
-                {"customer_id": row["customer_id"], "segment": segment_name, "tags": tags}
+                {
+                    "customer_id": row["customer_id"],
+                    "segment": segment_name,
+                    "tags": tags,
+                }
             )
 
             # Save to database if requested
             if add_to_database:
                 try:
                     # Get or create customer record
-                    customer, _ = Customer.objects.get_or_create(user_id=row["customer_id"])
+                    customer, _ = Customer.objects.get_or_create(
+                        user_id=row["customer_id"]
+                    )
 
                     # Add segment tag
                     segment_tag, _ = CustomerTag.objects.get_or_create(
@@ -500,12 +544,17 @@ class CustomerSegmenter:
                         if tag_name != segment_name:  # Don't duplicate segment tag
                             tag, _ = CustomerTag.objects.get_or_create(
                                 name=tag_name,
-                                defaults={"category": "behavior", "created_by_algorithm": True},
+                                defaults={
+                                    "category": "behavior",
+                                    "created_by_algorithm": True,
+                                },
                             )
                             customer.tags.add(tag)
                 except Exception as e:
                     # Log the error but continue processing other customers
-                    print(f"Error adding tags for customer {row['customer_id']}: {str(e)}")
+                    print(
+                        f"Error adding tags for customer {row['customer_id']}: {str(e)}"
+                    )
 
         return pd.DataFrame(customer_tags)
 
@@ -596,24 +645,36 @@ def get_customer_lifetime_value(customer_id=None, prediction_days=365):
 
             # Calculate purchase frequency (transactions per day)
             if metrics["first_purchase"] and metrics["last_purchase"]:
-                days_as_customer = (metrics["last_purchase"] - metrics["first_purchase"]).days + 1
-                purchase_frequency = metrics["transaction_count"] / max(days_as_customer, 1)
+                days_as_customer = (
+                    metrics["last_purchase"] - metrics["first_purchase"]
+                ).days + 1
+                purchase_frequency = metrics["transaction_count"] / max(
+                    days_as_customer, 1
+                )
             else:
                 purchase_frequency = 0
 
             # Calculate churn probability
             days_since_last_purchase = (
-                (end_date - metrics["last_purchase"]).days if metrics["last_purchase"] else 0
+                (end_date - metrics["last_purchase"]).days
+                if metrics["last_purchase"]
+                else 0
             )
-            if days_since_last_purchase > 90:  # Consider churned if inactive for 90+ days
-                churn_probability = min(0.9, days_since_last_purchase / 365)  # Cap at 90%
+            if (
+                days_since_last_purchase > 90
+            ):  # Consider churned if inactive for 90+ days
+                churn_probability = min(
+                    0.9, days_since_last_purchase / 365
+                )  # Cap at 90%
             else:
                 # Lower churn probability for active customers
                 churn_probability = max(0.05, days_since_last_purchase / 1000)
 
             # Calculate expected transactions in prediction period
             expected_transactions = (
-                metrics["transaction_count"] * (prediction_days / 365) * (1 - churn_probability)
+                metrics["transaction_count"]
+                * (prediction_days / 365)
+                * (1 - churn_probability)
             )
 
             # Calculate LTV
@@ -631,7 +692,9 @@ def get_customer_lifetime_value(customer_id=None, prediction_days=365):
                     "churn_probability": churn_probability,
                     "lifetime_value": ltv,
                     "ltv_confidence": 1
-                    - (churn_probability / 2),  # Higher confidence for lower churn probability
+                    - (
+                        churn_probability / 2
+                    ),  # Higher confidence for lower churn probability
                 }
             )
 
@@ -641,7 +704,11 @@ def get_customer_lifetime_value(customer_id=None, prediction_days=365):
         # If specific customer was requested, return just their data
         if customer_id:
             if results:
-                return {"success": True, "customer_id": customer_id, "ltv_data": results[0]}
+                return {
+                    "success": True,
+                    "customer_id": customer_id,
+                    "ltv_data": results[0],
+                }
             else:
                 return {
                     "success": False,
@@ -652,9 +719,11 @@ def get_customer_lifetime_value(customer_id=None, prediction_days=365):
         return {
             "success": True,
             "customers_analyzed": len(results),
-            "average_ltv": sum(r["lifetime_value"] for r in results) / len(results)
-            if results
-            else 0,
+            "average_ltv": (
+                sum(r["lifetime_value"] for r in results) / len(results)
+                if results
+                else 0
+            ),
             "top_customers": results[:10] if len(results) > 10 else results,
             "ltv_distribution": calculate_ltv_distribution(results),
         }

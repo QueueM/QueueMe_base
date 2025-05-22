@@ -9,14 +9,22 @@ class ShopFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr="icontains")
     company = django_filters.UUIDFilter(field_name="company__id")
     city = django_filters.CharFilter(field_name="location__city", lookup_expr="iexact")
-    country = django_filters.CharFilter(field_name="location__country", lookup_expr="iexact")
+    country = django_filters.CharFilter(
+        field_name="location__country", lookup_expr="iexact"
+    )
     is_verified = django_filters.BooleanFilter()
     is_active = django_filters.BooleanFilter()
     is_featured = django_filters.BooleanFilter()
     min_rating = django_filters.NumberFilter(method="filter_min_rating")
-    has_service_category = django_filters.UUIDFilter(method="filter_has_service_category")
-    created_after = django_filters.DateTimeFilter(field_name="created_at", lookup_expr="gte")
-    created_before = django_filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
+    has_service_category = django_filters.UUIDFilter(
+        method="filter_has_service_category"
+    )
+    created_after = django_filters.DateTimeFilter(
+        field_name="created_at", lookup_expr="gte"
+    )
+    created_before = django_filters.DateTimeFilter(
+        field_name="created_at", lookup_expr="lte"
+    )
 
     class Meta:
         model = Shop
@@ -53,7 +61,9 @@ class ShopFilter(django_filters.FilterSet):
         )
 
         # Filter shops by average rating
-        return queryset.annotate(avg_rating=Subquery(rating_subquery)).filter(avg_rating__gte=value)
+        return queryset.annotate(avg_rating=Subquery(rating_subquery)).filter(
+            avg_rating__gte=value
+        )
 
     def filter_has_service_category(self, queryset, name, value):
         """Filter shops that offer services in the specified category"""
@@ -77,8 +87,12 @@ class ShopFollowerFilter(django_filters.FilterSet):
 
     shop = django_filters.UUIDFilter()
     customer = django_filters.UUIDFilter()
-    created_after = django_filters.DateTimeFilter(field_name="created_at", lookup_expr="gte")
-    created_before = django_filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
+    created_after = django_filters.DateTimeFilter(
+        field_name="created_at", lookup_expr="gte"
+    )
+    created_before = django_filters.DateTimeFilter(
+        field_name="created_at", lookup_expr="lte"
+    )
 
     class Meta:
         model = ShopFollower
@@ -90,8 +104,12 @@ class ShopVerificationFilter(django_filters.FilterSet):
 
     shop = django_filters.UUIDFilter()
     status = django_filters.ChoiceFilter(choices=ShopVerification.STATUS_CHOICES)
-    submitted_after = django_filters.DateTimeFilter(field_name="submitted_at", lookup_expr="gte")
-    submitted_before = django_filters.DateTimeFilter(field_name="submitted_at", lookup_expr="lte")
+    submitted_after = django_filters.DateTimeFilter(
+        field_name="submitted_at", lookup_expr="gte"
+    )
+    submitted_before = django_filters.DateTimeFilter(
+        field_name="submitted_at", lookup_expr="lte"
+    )
     processed_by = django_filters.UUIDFilter()
 
     class Meta:

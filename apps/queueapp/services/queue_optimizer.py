@@ -16,18 +16,13 @@ Key features:
 
 import logging
 from collections import defaultdict
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from datetime import timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
-from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Case, Count, F, IntegerField, Q, Sum, Value, When
 from django.utils import timezone
 
-from algorithms.queueing.wait_time_predictor import WaitTimePredictor
-from apps.queueapp.models import QueueEntry, QueueStatus, ServiceQueue
-from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop
+from apps.queueapp.models import QueueEntry, ServiceQueue
 from apps.specialistsapp.models import Specialist
 
 logger = logging.getLogger(__name__)
@@ -40,7 +35,9 @@ class QueueOptimizer:
 
     # Constants for optimization strategies
     MAX_WAIT_THRESHOLD = 30  # Minutes before considering priority boost
-    SATISFACTION_THRESHOLD = 45  # Minutes before customer satisfaction decreases significantly
+    SATISFACTION_THRESHOLD = (
+        45  # Minutes before customer satisfaction decreases significantly
+    )
     FAIRNESS_WEIGHT = 0.6  # Weight for fairness vs. efficiency (0-1)
     WORKLOAD_IMBALANCE_THRESHOLD = 0.3  # Allowed workload imbalance before rebalancing
 
@@ -62,7 +59,9 @@ class QueueOptimizer:
         """
         try:
             # Get active queues for this shop
-            active_queues = ServiceQueue.objects.filter(shop_id=shop_id, status="active")
+            active_queues = ServiceQueue.objects.filter(
+                shop_id=shop_id, status="active"
+            )
 
             if not active_queues.exists():
                 return {
@@ -373,7 +372,8 @@ class QueueOptimizer:
 
                                     if (
                                         least_loaded
-                                        and min_load_value < assigned_loads[specialist_id] - 1
+                                        and min_load_value
+                                        < assigned_loads[specialist_id] - 1
                                     ):
                                         # Reassign this entry
                                         old_specialist_id = entry.specialist_id
@@ -388,8 +388,12 @@ class QueueOptimizer:
                                         reassignments.append(
                                             {
                                                 "entry_id": str(entry.id),
-                                                "old_specialist_id": str(old_specialist_id),
-                                                "new_specialist_id": str(least_loaded.id),
+                                                "old_specialist_id": str(
+                                                    old_specialist_id
+                                                ),
+                                                "new_specialist_id": str(
+                                                    least_loaded.id
+                                                ),
                                                 "reason": "load_balancing",
                                             }
                                         )
@@ -456,7 +460,9 @@ class QueueOptimizer:
         """
         try:
             # Get active queues
-            active_queues = ServiceQueue.objects.filter(shop_id=shop_id, status="active")
+            active_queues = ServiceQueue.objects.filter(
+                shop_id=shop_id, status="active"
+            )
 
             if not active_queues.exists():
                 return {
@@ -511,7 +517,9 @@ class QueueOptimizer:
                     ).total_seconds() / 60
 
                     # Adjust priority based on appointment proximity
-                    new_priority = cls._calculate_appointment_priority(time_until_appointment)
+                    new_priority = cls._calculate_appointment_priority(
+                        time_until_appointment
+                    )
 
                     if entry.priority != new_priority:
                         old_priority = entry.priority
@@ -526,7 +534,9 @@ class QueueOptimizer:
                                 "appointment_id": str(appointment.id),
                                 "old_priority": old_priority,
                                 "new_priority": new_priority,
-                                "minutes_until_appointment": round(time_until_appointment),
+                                "minutes_until_appointment": round(
+                                    time_until_appointment
+                                ),
                             }
                         )
 
@@ -647,8 +657,10 @@ class QueueOptimizer:
                 if entry.queue.service_id not in service_durations:
                     try:
                         service = entry.queue.service
-                        service_durations[entry.queue.service_id] = service.duration or 15
-                    except Exception as e:
+                        service_durations[entry.queue.service_id] = (
+                            service.duration or 15
+                        )
+                    except Exception:
                         service_durations[entry.queue.service_id] = 15
 
             # Sort entries within priority group
@@ -661,7 +673,9 @@ class QueueOptimizer:
             sorted_entries.extend(vip_entries)
 
             # Next, regular entries sorted by service duration (shorter first)
-            regular_entries = [e for e in entries if e.entry_type not in ["vip", "appointment"]]
+            regular_entries = [
+                e for e in entries if e.entry_type not in ["vip", "appointment"]
+            ]
             regular_entries.sort(
                 key=lambda e: (
                     service_durations.get(e.queue.service_id, 15),
@@ -753,8 +767,10 @@ class QueueOptimizer:
                 if entry.queue.service_id not in service_durations:
                     try:
                         service = entry.queue.service
-                        service_durations[entry.queue.service_id] = service.duration or 15
-                    except Exception as e:
+                        service_durations[entry.queue.service_id] = (
+                            service.duration or 15
+                        )
+                    except Exception:
                         service_durations[entry.queue.service_id] = 15
 
             # For VIPs and appointments, always prioritize by check-in time
@@ -773,7 +789,9 @@ class QueueOptimizer:
                     if latest_time == earliest_time:
                         time_factor = 0  # All checked in at same time
                     else:
-                        time_diff = (entry.check_in_time - earliest_time).total_seconds()
+                        time_diff = (
+                            entry.check_in_time - earliest_time
+                        ).total_seconds()
                         max_diff = (latest_time - earliest_time).total_seconds()
                         time_factor = time_diff / max_diff
 
@@ -786,7 +804,9 @@ class QueueOptimizer:
                         duration_factor = 0  # All services same duration
                     else:
                         duration = service_durations.get(entry.queue.service_id, 15)
-                        duration_factor = (duration - min_duration) / (max_duration - min_duration)
+                        duration_factor = (duration - min_duration) / (
+                            max_duration - min_duration
+                        )
 
                     # Combined score (lower is better)
                     score = (time_factor * fairness_weight) + (
@@ -820,10 +840,14 @@ class QueueOptimizer:
             QuerySet of active specialists
         """
         # Get specialists in this shop
-        return Specialist.objects.filter(employee__company__shops=shop_id, is_active=True)
+        return Specialist.objects.filter(
+            employee__company__shops=shop_id, is_active=True
+        )
 
     @classmethod
-    def _calculate_specialist_loads(cls, specialists: List[Specialist]) -> Dict[str, int]:
+    def _calculate_specialist_loads(
+        cls, specialists: List[Specialist]
+    ) -> Dict[str, int]:
         """
         Calculate current load for each specialist.
 

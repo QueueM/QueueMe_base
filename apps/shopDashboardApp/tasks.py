@@ -28,7 +28,10 @@ def process_scheduled_reports():
             should_run = True
         elif report.frequency == "weekly" and report.day_of_week == current_day_of_week:
             should_run = True
-        elif report.frequency == "monthly" and report.day_of_month == current_day_of_month:
+        elif (
+            report.frequency == "monthly"
+            and report.day_of_month == current_day_of_month
+        ):
             should_run = True
         elif report.frequency == "quarterly":
             # Run on 1st day of quarter (Jan, Apr, Jul, Oct)
@@ -158,7 +161,9 @@ def send_report_to_recipients(report, report_pdf):
     }
 
     # Render email HTML
-    email_html = render_to_string("shopDashboardApp/emails/scheduled_report.html", context)
+    email_html = render_to_string(
+        "shopDashboardApp/emails/scheduled_report.html", context
+    )
 
     # Create email message
     email = EmailMessage(

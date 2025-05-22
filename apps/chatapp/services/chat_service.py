@@ -21,12 +21,16 @@ class ChatService:
         customer = User.objects.get(id=customer_id)
         shop = Shop.objects.get(id=shop_id)
 
-        conversation, created = Conversation.objects.get_or_create(customer=customer, shop=shop)
+        conversation, created = Conversation.objects.get_or_create(
+            customer=customer, shop=shop
+        )
 
         # If new conversation, initialize presence records
         if created:
             # Create customer presence
-            Presence.objects.create(user=customer, conversation=conversation, is_online=False)
+            Presence.objects.create(
+                user=customer, conversation=conversation, is_online=False
+            )
 
             # Create presence records for shop employees with chat access
             from apps.rolesapp.services.permission_resolver import PermissionResolver

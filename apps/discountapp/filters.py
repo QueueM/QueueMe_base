@@ -33,11 +33,15 @@ class ServiceDiscountFilter(django_filters.FilterSet):
 
     def filter_service(self, queryset, name, value):
         """Filter by service"""
-        return queryset.filter(Q(services__id=value) | Q(apply_to_all_services=True)).distinct()
+        return queryset.filter(
+            Q(services__id=value) | Q(apply_to_all_services=True)
+        ).distinct()
 
     def filter_category(self, queryset, name, value):
         """Filter by category"""
-        return queryset.filter(Q(categories__id=value) | Q(apply_to_all_services=True)).distinct()
+        return queryset.filter(
+            Q(categories__id=value) | Q(apply_to_all_services=True)
+        ).distinct()
 
     def filter_status(self, queryset, name, value):
         """Filter by status with auto-calculation"""
@@ -46,7 +50,11 @@ class ServiceDiscountFilter(django_filters.FilterSet):
         if value == "active":
             return queryset.filter(
                 Q(status="active")
-                | (Q(status="scheduled") & Q(start_date__lte=now) & Q(end_date__gte=now))
+                | (
+                    Q(status="scheduled")
+                    & Q(start_date__lte=now)
+                    & Q(end_date__gte=now)
+                )
             )
         elif value == "scheduled":
             return queryset.filter(Q(status="scheduled") & Q(start_date__gt=now))
@@ -73,7 +81,9 @@ class CouponFilter(django_filters.FilterSet):
     shop = django_filters.UUIDFilter(field_name="shop__id")
     service = django_filters.UUIDFilter(method="filter_service")
     category = django_filters.UUIDFilter(method="filter_category")
-    status = django_filters.ChoiceFilter(choices=Coupon.STATUS_CHOICES, method="filter_status")
+    status = django_filters.ChoiceFilter(
+        choices=Coupon.STATUS_CHOICES, method="filter_status"
+    )
     discount_type = django_filters.ChoiceFilter(choices=Coupon.TYPE_CHOICES)
     valid_now = django_filters.BooleanFilter(method="filter_valid_now")
     min_value = django_filters.NumberFilter(field_name="value", lookup_expr="gte")
@@ -100,11 +110,15 @@ class CouponFilter(django_filters.FilterSet):
 
     def filter_service(self, queryset, name, value):
         """Filter by service"""
-        return queryset.filter(Q(services__id=value) | Q(apply_to_all_services=True)).distinct()
+        return queryset.filter(
+            Q(services__id=value) | Q(apply_to_all_services=True)
+        ).distinct()
 
     def filter_category(self, queryset, name, value):
         """Filter by category"""
-        return queryset.filter(Q(categories__id=value) | Q(apply_to_all_services=True)).distinct()
+        return queryset.filter(
+            Q(categories__id=value) | Q(apply_to_all_services=True)
+        ).distinct()
 
     def filter_status(self, queryset, name, value):
         """Filter by status with auto-calculation"""
@@ -113,7 +127,11 @@ class CouponFilter(django_filters.FilterSet):
         if value == "active":
             return queryset.filter(
                 Q(status="active")
-                | (Q(status="scheduled") & Q(start_date__lte=now) & Q(end_date__gte=now))
+                | (
+                    Q(status="scheduled")
+                    & Q(start_date__lte=now)
+                    & Q(end_date__gte=now)
+                )
             )
         elif value == "scheduled":
             return queryset.filter(Q(status="scheduled") & Q(start_date__gt=now))
@@ -138,7 +156,9 @@ class CouponFilter(django_filters.FilterSet):
 
 class PromotionalCampaignFilter(django_filters.FilterSet):
     shop = django_filters.UUIDFilter(field_name="shop__id")
-    campaign_type = django_filters.ChoiceFilter(choices=PromotionalCampaign.TYPE_CHOICES)
+    campaign_type = django_filters.ChoiceFilter(
+        choices=PromotionalCampaign.TYPE_CHOICES
+    )
     is_active = django_filters.BooleanFilter()
     active_now = django_filters.BooleanFilter(method="filter_active_now")
 
@@ -151,5 +171,7 @@ class PromotionalCampaignFilter(django_filters.FilterSet):
         now = timezone.now()
 
         if value:
-            return queryset.filter(is_active=True, start_date__lte=now, end_date__gte=now)
+            return queryset.filter(
+                is_active=True, start_date__lte=now, end_date__gte=now
+            )
         return queryset

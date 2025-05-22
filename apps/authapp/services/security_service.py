@@ -1,26 +1,28 @@
 import ipaddress
 import logging
 import secrets
-import string
-import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
-from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.db import transaction
 from django.http import HttpRequest
 from django.utils import timezone
-from django.utils.crypto import constant_time_compare
 
 from apps.authapp.constants import (
     MAX_OTP_REQUESTS_PER_DAY,
     MAX_OTP_REQUESTS_PER_HOUR,
     MAX_OTP_REQUESTS_PER_WEEK,
 )
-from apps.authapp.models import AuthToken, LoginAttempt, PasswordResetToken, SecurityEvent, User
+from apps.authapp.models import (
+    AuthToken,
+    LoginAttempt,
+    PasswordResetToken,
+    SecurityEvent,
+    User,
+)
 from apps.notificationsapp.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
@@ -124,7 +126,9 @@ class SecurityService:
         return False
 
     @staticmethod
-    def is_brute_force_attempt(identifier: str, action_type: str, success: bool = False) -> bool:
+    def is_brute_force_attempt(
+        identifier: str, action_type: str, success: bool = False
+    ) -> bool:
         """
         Check if the current activity appears to be a brute force attempt.
 
@@ -236,7 +240,8 @@ class SecurityService:
 
             # Log to standard logger
             log_message = (
-                f"SECURITY EVENT [{severity.upper()}] {event_type} " f"User: {user_id} - {details}"
+                f"SECURITY EVENT [{severity.upper()}] {event_type} "
+                f"User: {user_id} - {details}"
             )
 
             if severity == "critical":
@@ -300,7 +305,9 @@ class SecurityService:
         return status
 
     @staticmethod
-    def analyze_access_patterns(user_id: str, ip_address: str, action_type: str) -> Dict[str, Any]:
+    def analyze_access_patterns(
+        user_id: str, ip_address: str, action_type: str
+    ) -> Dict[str, Any]:
         """
         Analyze access patterns to detect unusual activity.
 
@@ -393,7 +400,9 @@ class SecurityService:
                 cls.record_login_failure(username, ip_address, user_agent)
 
                 # Check if account should be locked
-                attempts_left = MAX_LOGIN_ATTEMPTS - cls.get_failed_login_count(username)
+                attempts_left = MAX_LOGIN_ATTEMPTS - cls.get_failed_login_count(
+                    username
+                )
                 if attempts_left <= 0:
                     cls.lock_account(username)
                     return {
@@ -645,7 +654,9 @@ class SecurityService:
             }
 
     @classmethod
-    def request_password_reset(cls, email: str, request_ip: str = None) -> Dict[str, Any]:
+    def request_password_reset(
+        cls, email: str, request_ip: str = None
+    ) -> Dict[str, Any]:
         """
         Request a password reset for a user's account.
 
@@ -699,7 +710,9 @@ class SecurityService:
             token = secrets.token_urlsafe(40)
 
             # Set expiration time
-            expires_at = timezone.now() + timedelta(minutes=PASSWORD_RESET_EXPIRY_MINUTES)
+            expires_at = timezone.now() + timedelta(
+                minutes=PASSWORD_RESET_EXPIRY_MINUTES
+            )
 
             # Save token
             reset_token = PasswordResetToken.objects.create(
@@ -789,7 +802,9 @@ class SecurityService:
             }
 
     @classmethod
-    def reset_password(cls, token: str, new_password: str, user_ip: str = None) -> Dict[str, Any]:
+    def reset_password(
+        cls, token: str, new_password: str, user_ip: str = None
+    ) -> Dict[str, Any]:
         """
         Reset password using a valid reset token.
 

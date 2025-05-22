@@ -67,7 +67,9 @@ class StorySerializer(serializers.ModelSerializer):
         is_valid = any(media_url.lower().endswith(ext) for ext in valid_extensions)
         if not is_valid:
             raise serializers.ValidationError(
-                {"media_url": f"Media URL does not appear to be a valid {story_type} file"}
+                {
+                    "media_url": f"Media URL does not appear to be a valid {story_type} file"
+                }
             )
 
         return data
@@ -89,7 +91,9 @@ class StoryCreateSerializer(serializers.ModelSerializer):
     def validate_story_type(self, value):
         """Ensure story type is either image or video"""
         if value not in ["image", "video"]:
-            raise serializers.ValidationError("Story type must be either 'image' or 'video'")
+            raise serializers.ValidationError(
+                "Story type must be either 'image' or 'video'"
+            )
         return value
 
     def create(self, validated_data):

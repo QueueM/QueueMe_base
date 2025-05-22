@@ -46,7 +46,9 @@ class EmployeePermission(permissions.BasePermission):
             action = "view"
 
         # Check shop-specific permission
-        return PermissionResolver.has_shop_permission(request.user, obj.shop.id, "employee", action)
+        return PermissionResolver.has_shop_permission(
+            request.user, obj.shop.id, "employee", action
+        )
 
 
 class EmployeeWorkingHoursPermission(permissions.BasePermission):

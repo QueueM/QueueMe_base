@@ -12,7 +12,10 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 
 from .models import PaymentMethod, Transaction
 from .permissions import PaymentPermission
@@ -21,7 +24,6 @@ from .serializers import (
     CreatePaymentSerializer,
     CreateRefundSerializer,
     PaymentMethodSerializer,
-    PaymentStatusSerializer,
     SetDefaultPaymentMethodSerializer,
     TransactionSerializer,
 )
@@ -87,7 +89,9 @@ class PaymentViewSet(viewsets.ViewSet):
                 status=status.HTTP_201_CREATED,
             )
         else:
-            return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     @document_api_endpoint(
         summary="Set default payment method",
@@ -112,7 +116,9 @@ class PaymentViewSet(viewsets.ViewSet):
         if result["success"]:
             return Response({"detail": _("Default payment method updated.")})
         else:
-            return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     @document_api_endpoint(
         summary="Create payment",
@@ -136,7 +142,9 @@ class PaymentViewSet(viewsets.ViewSet):
         )
 
         model_class = content_type.model_class()
-        content_object = model_class.objects.get(id=serializer.validated_data["object_id"])
+        content_object = model_class.objects.get(
+            id=serializer.validated_data["object_id"]
+        )
 
         # Determine transaction type based on content type
         transaction_type = serializer.validated_data["transaction_type"]
@@ -175,7 +183,9 @@ class PaymentViewSet(viewsets.ViewSet):
 
             return Response(response_data, status=status.HTTP_201_CREATED)
         else:
-            return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     @document_api_endpoint(
         summary="Check payment status",
@@ -267,7 +277,10 @@ class PaymentViewSet(viewsets.ViewSet):
             # For shop staff/admins, filter by content_type_id and object_id if provided
             transactions = Transaction.objects.all()
 
-            if "content_type_id" in request.query_params and "object_id" in request.query_params:
+            if (
+                "content_type_id" in request.query_params
+                and "object_id" in request.query_params
+            ):
                 transactions = transactions.filter(
                     content_type_id=request.query_params["content_type_id"],
                     object_id=request.query_params["object_id"],
@@ -305,7 +318,9 @@ class PaymentViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         # Get transaction
-        transaction = get_object_or_404(Transaction, id=serializer.validated_data["transaction_id"])
+        transaction = get_object_or_404(
+            Transaction, id=serializer.validated_data["transaction_id"]
+        )
 
         # Verify permissions
         self.check_object_permissions(request, transaction)
@@ -327,7 +342,9 @@ class PaymentViewSet(viewsets.ViewSet):
 
         if result["success"]:
             # Get wallet configuration for the transaction type
-            wallet_config = MoyasarService.get_wallet_config(transaction.transaction_type)
+            wallet_config = MoyasarService.get_wallet_config(
+                transaction.transaction_type
+            )
 
             return Response(
                 {
@@ -339,7 +356,9 @@ class PaymentViewSet(viewsets.ViewSet):
                 }
             )
         else:
-            return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     @document_api_endpoint(
         summary="Recommend payment method",
@@ -437,7 +456,9 @@ class PaymentViewSet(viewsets.ViewSet):
 
         if not wallet_config.get("public_key"):
             return Response(
-                {"detail": f"No public key available for transaction type: {transaction_type}"},
+                {
+                    "detail": f"No public key available for transaction type: {transaction_type}"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

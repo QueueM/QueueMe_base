@@ -4,16 +4,12 @@ Firebase Cloud Messaging Service for QueueMe
 Handles push notifications using Firebase Cloud Messaging (FCM)
 """
 
-import json
 import logging
 import os
 
 import firebase_admin
 from django.conf import settings
-from django.utils.translation import gettext as _
 from firebase_admin import credentials, initialize_app, messaging
-
-from ..models import NotificationChannel
 
 logger = logging.getLogger("queueme.notifications")
 

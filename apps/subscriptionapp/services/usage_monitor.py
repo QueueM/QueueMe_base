@@ -331,7 +331,11 @@ class UsageMonitor:
                 "current": record.current_usage,
                 "limit": record.limit,
                 "usage_percent": round(
-                    ((record.current_usage / record.limit * 100) if record.limit > 0 else 0),
+                    (
+                        (record.current_usage / record.limit * 100)
+                        if record.limit > 0
+                        else 0
+                    ),
                     1,
                 ),
                 "is_limit_reached": record.is_limit_reached(),
@@ -344,7 +348,9 @@ class UsageMonitor:
 
         for shop in shops:
             service_count = Service.objects.filter(shop_id=shop.id).count()
-            specialist_count = Specialist.objects.filter(employee__shop_id=shop.id).count()
+            specialist_count = Specialist.objects.filter(
+                employee__shop_id=shop.id
+            ).count()
 
             shop_usage.append(
                 {
@@ -355,20 +361,29 @@ class UsageMonitor:
                         "limit": subscription.max_services_per_shop,
                         "percent": round(
                             (
-                                (service_count / subscription.max_services_per_shop * 100)
+                                (
+                                    service_count
+                                    / subscription.max_services_per_shop
+                                    * 100
+                                )
                                 if subscription.max_services_per_shop > 0
                                 else 0
                             ),
                             1,
                         ),
-                        "is_limit_reached": service_count >= subscription.max_services_per_shop,
+                        "is_limit_reached": service_count
+                        >= subscription.max_services_per_shop,
                     },
                     "specialists": {
                         "count": specialist_count,
                         "limit": subscription.max_specialists_per_shop,
                         "percent": round(
                             (
-                                (specialist_count / subscription.max_specialists_per_shop * 100)
+                                (
+                                    specialist_count
+                                    / subscription.max_specialists_per_shop
+                                    * 100
+                                )
                                 if subscription.max_specialists_per_shop > 0
                                 else 0
                             ),

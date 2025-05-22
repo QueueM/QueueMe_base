@@ -8,7 +8,9 @@ router.register(r"follows", views.FollowViewSet, basename="follow")
 
 # Nested routes for shop followers
 shop_followers_router = DefaultRouter()
-shop_followers_router.register(r"followers", views.ShopFollowersViewSet, basename="shop-followers")
+shop_followers_router.register(
+    r"followers", views.ShopFollowersViewSet, basename="shop-followers"
+)
 
 app_name = "followapp"
 

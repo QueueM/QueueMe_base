@@ -27,7 +27,9 @@ class InvoiceService:
         return f"{prefix}-{date_str}-{random_str}"
 
     @staticmethod
-    def create_invoice(subscription_id, amount, period_start, period_end, status="pending"):
+    def create_invoice(
+        subscription_id, amount, period_start, period_end, status="pending"
+    ):
         """Create a new invoice for a subscription"""
         subscription = Subscription.objects.get(id=subscription_id)
 
@@ -79,9 +81,9 @@ class InvoiceService:
     @staticmethod
     def get_company_invoices(company_id):
         """Get all invoices for a company"""
-        return SubscriptionInvoice.objects.filter(subscription__company_id=company_id).order_by(
-            "-issued_date"
-        )
+        return SubscriptionInvoice.objects.filter(
+            subscription__company_id=company_id
+        ).order_by("-issued_date")
 
     @staticmethod
     def send_invoice_email(invoice_id):
@@ -93,7 +95,9 @@ class InvoiceService:
         # Get company contact email
         to_email = company.contact_email
         if not to_email:
-            logger.warning(f"Cannot send invoice email: No contact email for company {company.id}")
+            logger.warning(
+                f"Cannot send invoice email: No contact email for company {company.id}"
+            )
             return False
 
         # Prepare email context
@@ -114,9 +118,13 @@ class InvoiceService:
             invoice_number=invoice.invoice_number
         )
 
-        text_content = render_to_string("subscriptionapp/emails/payment_receipt.txt", context)
+        text_content = render_to_string(
+            "subscriptionapp/emails/payment_receipt.txt", context
+        )
 
-        html_content = render_to_string("subscriptionapp/emails/payment_receipt.html", context)
+        html_content = render_to_string(
+            "subscriptionapp/emails/payment_receipt.html", context
+        )
 
         # Create email message
         from_email = settings.DEFAULT_FROM_EMAIL

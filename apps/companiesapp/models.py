@@ -20,7 +20,9 @@ def phone_number_validator(value):
     intl_regex = r"^\+\d{7,15}$"
 
     if not (re.match(saudi_regex, value) or re.match(intl_regex, value)):
-        raise ValidationError(_("Enter a valid phone number (e.g., +966501234567 or 0501234567)"))
+        raise ValidationError(
+            _("Enter a valid phone number (e.g., +966501234567 or 0501234567)")
+        )
     return value
 
 
@@ -37,7 +39,9 @@ class Company(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("Name"), max_length=255)
-    logo = models.ImageField(_("Logo"), upload_to="companies/logos/", null=True, blank=True)
+    logo = models.ImageField(
+        _("Logo"), upload_to="companies/logos/", null=True, blank=True
+    )
     registration_number = models.CharField(
         _("Registration Number"),
         max_length=50,
@@ -72,7 +76,9 @@ class Company(models.Model):
     subscription_status = models.CharField(
         _("Subscription Status"), max_length=20, default="inactive"
     )
-    subscription_end_date = models.DateTimeField(_("Subscription End Date"), null=True, blank=True)
+    subscription_end_date = models.DateTimeField(
+        _("Subscription End Date"), null=True, blank=True
+    )
 
     # Meta data for analytics and sorting
     employee_count = models.PositiveIntegerField(_("Employee Count"), default=0)
@@ -160,7 +166,9 @@ class CompanySettings(models.Model):
     )
     notification_email = models.BooleanField(_("Email Notifications"), default=True)
     notification_sms = models.BooleanField(_("SMS Notifications"), default=True)
-    auto_approve_bookings = models.BooleanField(_("Auto Approve Bookings"), default=True)
+    auto_approve_bookings = models.BooleanField(
+        _("Auto Approve Bookings"), default=True
+    )
     require_manager_approval_for_discounts = models.BooleanField(
         _("Require Manager Approval for Discounts"), default=True
     )

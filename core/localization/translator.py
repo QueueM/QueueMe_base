@@ -66,7 +66,9 @@ def get_translated_field(obj, field_name):
         return getattr(obj, other_lang_field)
 
     # If nothing is found, return empty string
-    logger.warning(f"No translation found for field {field_name} on {obj.__class__.__name__}")
+    logger.warning(
+        f"No translation found for field {field_name} on {obj.__class__.__name__}"
+    )
     return ""
 
 
@@ -137,7 +139,9 @@ def get_date_format(is_arabic=False):
     """
     if is_arabic:
         # Arabic date format (still using Gregorian calendar as specified in requirements)
-        return "d MMM, yyyy"  # This should be displayed with Arabic numerals in templates
+        return (
+            "d MMM, yyyy"  # This should be displayed with Arabic numerals in templates
+        )
     else:
         # English date format
         return "d MMM, yyyy"

@@ -41,7 +41,9 @@ class FeedService:
         )
 
     @staticmethod
-    def get_following_reels_feed(customer, page: int = 1, page_size: int = 10) -> Dict[str, Any]:
+    def get_following_reels_feed(
+        customer, page: int = 1, page_size: int = 10
+    ) -> Dict[str, Any]:
         """
         Get reels from shops the customer follows.
         Ordered by recency with pagination.

@@ -85,7 +85,9 @@ class SpecialistStatusConsumer(AsyncWebsocketConsumer):
                     },
                 )
         except json.JSONDecodeError:
-            await self.send(json.dumps({"type": "error", "message": _("Invalid message format.")}))
+            await self.send(
+                json.dumps({"type": "error", "message": _("Invalid message format.")})
+            )
 
     async def status_update(self, event):
         """Handle status update event - send to WebSocket"""

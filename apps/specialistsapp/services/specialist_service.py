@@ -4,8 +4,15 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.specialistsapp.constants import SPECIALIST_CACHE_KEY, SPECIALIST_SERVICES_CACHE_KEY
-from apps.specialistsapp.models import Specialist, SpecialistService, SpecialistWorkingHours
+from apps.specialistsapp.constants import (
+    SPECIALIST_CACHE_KEY,
+    SPECIALIST_SERVICES_CACHE_KEY,
+)
+from apps.specialistsapp.models import (
+    Specialist,
+    SpecialistService,
+    SpecialistWorkingHours,
+)
 
 
 class SpecialistService:
@@ -68,7 +75,10 @@ class SpecialistService:
                 )
         else:
             # Create default working hours (9AM-5PM, Sun-Thu, Friday off)
-            from apps.specialistsapp.constants import DEFAULT_END_HOUR, DEFAULT_START_HOUR
+            from apps.specialistsapp.constants import (
+                DEFAULT_END_HOUR,
+                DEFAULT_START_HOUR,
+            )
 
             for day in range(7):  # 0=Sunday, 6=Saturday
                 SpecialistWorkingHours.objects.create(
@@ -141,7 +151,9 @@ class SpecialistService:
         specialist.save()
 
         # Send notification to specialist's user
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         NotificationService.send_notification(
             user_id=specialist.employee.user.id,
@@ -172,12 +184,16 @@ class SpecialistService:
             Created SpecialistService object
         """
         # Check if service is already assigned
-        if SpecialistService.objects.filter(specialist=specialist, service=service).exists():
+        if SpecialistService.objects.filter(
+            specialist=specialist, service=service
+        ).exists():
             raise ValidationError(_("Service is already assigned to this specialist."))
 
         # Check if service belongs to the shop
         if service.shop_id != specialist.employee.shop_id:
-            raise ValidationError(_("Service does not belong to the specialist's shop."))
+            raise ValidationError(
+                _("Service does not belong to the specialist's shop.")
+            )
 
         # Create specialist service
         specialist_service = SpecialistService.objects.create(
@@ -190,9 +206,9 @@ class SpecialistService:
 
         # If marked as primary, update other services
         if specialist_service.is_primary:
-            SpecialistService.objects.filter(specialist=specialist, is_primary=True).exclude(
-                id=specialist_service.id
-            ).update(is_primary=False)
+            SpecialistService.objects.filter(
+                specialist=specialist, is_primary=True
+            ).exclude(id=specialist_service.id).update(is_primary=False)
 
         # Clear cache
         cache.delete(SPECIALIST_SERVICES_CACHE_KEY.format(id=specialist.id))
@@ -230,7 +246,9 @@ class SpecialistService:
             ).exclude(id=specialist_service.id).update(is_primary=False)
 
         # Clear cache
-        cache.delete(SPECIALIST_SERVICES_CACHE_KEY.format(id=specialist_service.specialist_id))
+        cache.delete(
+            SPECIALIST_SERVICES_CACHE_KEY.format(id=specialist_service.specialist_id)
+        )
 
         return specialist_service
 
@@ -258,16 +276,23 @@ class SpecialistService:
 
         # Check if this is the only service for the specialist
         is_only_service = (
-            SpecialistService.objects.filter(specialist=specialist_service.specialist).count() <= 1
+            SpecialistService.objects.filter(
+                specialist=specialist_service.specialist
+            ).count()
+            <= 1
         )
 
         if is_only_service:
-            raise ValidationError(_("Cannot remove the only service from a specialist."))
+            raise ValidationError(
+                _("Cannot remove the only service from a specialist.")
+            )
 
         # If this is the primary service, set another one as primary
         if specialist_service.is_primary:
             next_service = (
-                SpecialistService.objects.filter(specialist=specialist_service.specialist)
+                SpecialistService.objects.filter(
+                    specialist=specialist_service.specialist
+                )
                 .exclude(id=specialist_service.id)
                 .first()
             )
@@ -280,7 +305,9 @@ class SpecialistService:
         specialist_service.delete()
 
         # Clear cache
-        cache.delete(SPECIALIST_SERVICES_CACHE_KEY.format(id=specialist_service.specialist_id))
+        cache.delete(
+            SPECIALIST_SERVICES_CACHE_KEY.format(id=specialist_service.specialist_id)
+        )
 
         return True
 

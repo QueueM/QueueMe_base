@@ -18,7 +18,9 @@ class FavoritesService:
 
         try:
             # Check if already favorite
-            existing = FavoriteShop.objects.filter(customer=customer, shop_id=shop_id).first()
+            existing = FavoriteShop.objects.filter(
+                customer=customer, shop_id=shop_id
+            ).first()
 
             if existing:
                 # Remove from favorites
@@ -93,13 +95,17 @@ class FavoritesService:
         Check if an entity is favorited by the customer
         """
         if entity_type == "shop":
-            return FavoriteShop.objects.filter(customer=customer, shop_id=entity_id).exists()
+            return FavoriteShop.objects.filter(
+                customer=customer, shop_id=entity_id
+            ).exists()
         elif entity_type == "specialist":
             return FavoriteSpecialist.objects.filter(
                 customer=customer, specialist_id=entity_id
             ).exists()
         elif entity_type == "service":
-            return FavoriteService.objects.filter(customer=customer, service_id=entity_id).exists()
+            return FavoriteService.objects.filter(
+                customer=customer, service_id=entity_id
+            ).exists()
         else:
             raise ValueError(f"Invalid entity type: {entity_type}")
 
@@ -117,9 +123,9 @@ class FavoritesService:
 
             # Get existing favorites to avoid duplicates
             existing = set(
-                FavoriteShop.objects.filter(customer=customer, shop_id__in=entity_ids).values_list(
-                    "shop_id", flat=True
-                )
+                FavoriteShop.objects.filter(
+                    customer=customer, shop_id__in=entity_ids
+                ).values_list("shop_id", flat=True)
             )
 
             # Create new favorites
@@ -178,7 +184,9 @@ class FavoritesService:
             new_favorites = []
             for service in valid_services:
                 if service.id not in existing:
-                    new_favorites.append(FavoriteService(customer=customer, service=service))
+                    new_favorites.append(
+                        FavoriteService(customer=customer, service=service)
+                    )
 
             # Bulk create
             if new_favorites:

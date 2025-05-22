@@ -41,7 +41,9 @@ def send_sms(
 
     # Determine backend to use
     if not backend:
-        backend = getattr(settings, "SMS_BACKEND", "utils.sms.backends.dummy.DummyBackend")
+        backend = getattr(
+            settings, "SMS_BACKEND", "utils.sms.backends.dummy.DummyBackend"
+        )
 
     try:
         # Dynamically import the backend class

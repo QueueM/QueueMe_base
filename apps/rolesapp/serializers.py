@@ -12,7 +12,9 @@ from apps.rolesapp.models import Permission, Role, RolePermissionLog, UserRole
 class PermissionSerializer(serializers.ModelSerializer):
     """Serializer for Permission model"""
 
-    resource_display = serializers.CharField(source="get_resource_display", read_only=True)
+    resource_display = serializers.CharField(
+        source="get_resource_display", read_only=True
+    )
     action_display = serializers.CharField(source="get_action_display", read_only=True)
 
     class Meta:
@@ -38,7 +40,9 @@ class RoleSerializer(serializers.ModelSerializer):
     permission_ids = serializers.ListField(
         child=serializers.UUIDField(), write_only=True, required=False
     )
-    role_type_display = serializers.CharField(source="get_role_type_display", read_only=True)
+    role_type_display = serializers.CharField(
+        source="get_role_type_display", read_only=True
+    )
     parent_name = serializers.CharField(source="parent.name", read_only=True)
     entity_name = serializers.SerializerMethodField()
     user_count = serializers.SerializerMethodField()
@@ -142,7 +146,9 @@ class RoleSerializer(serializers.ModelSerializer):
                 role.permissions.set(permissions)
 
                 # Log permission changes
-                user = self.context["request"].user if "request" in self.context else None
+                user = (
+                    self.context["request"].user if "request" in self.context else None
+                )
                 for permission in permissions:
                     RolePermissionLog.objects.create(
                         role=role,
@@ -176,7 +182,9 @@ class RoleSerializer(serializers.ModelSerializer):
                 instance.permissions.set(new_permissions)
 
                 # Log permission changes
-                user = self.context["request"].user if "request" in self.context else None
+                user = (
+                    self.context["request"].user if "request" in self.context else None
+                )
                 for permission in added_permissions:
                     RolePermissionLog.objects.create(
                         role=instance,
@@ -269,7 +277,9 @@ class UserRoleSerializer(serializers.ModelSerializer):
                     # This is the same instance being updated
                     pass
                 else:
-                    raise serializers.ValidationError(_("This user already has this role"))
+                    raise serializers.ValidationError(
+                        _("This user already has this role")
+                    )
 
         return data
 

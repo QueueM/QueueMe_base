@@ -4,7 +4,10 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from apps.shopapp.models import Shop
-from apps.specialistsapp.constants import SPECIALIST_CACHE_KEY, SPECIALIST_TOP_RATED_CACHE_KEY
+from apps.specialistsapp.constants import (
+    SPECIALIST_CACHE_KEY,
+    SPECIALIST_TOP_RATED_CACHE_KEY,
+)
 from apps.specialistsapp.models import PortfolioItem, Specialist, SpecialistService
 
 
@@ -17,30 +20,38 @@ def specialist_post_save(sender, instance, created, **kwargs):
         [
             SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id="all", limit=5),
             SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id="all", limit=10),
-            SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id=instance.employee.shop.id, limit=5),
-            SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id=instance.employee.shop.id, limit=10),
+            SPECIALIST_TOP_RATED_CACHE_KEY.format(
+                shop_id=instance.employee.shop.id, limit=5
+            ),
+            SPECIALIST_TOP_RATED_CACHE_KEY.format(
+                shop_id=instance.employee.shop.id, limit=10
+            ),
         ]
     )
 
     # If created, notify shop managers
     if created:
         # Import here to avoid circular import
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
         from apps.rolesapp.models import Role, UserRole
 
         # Get shop managers and owner
         shop = instance.employee.shop
         shop_manager_roles = Role.objects.filter(role_type="shop_manager", shop=shop)
-        manager_user_ids = UserRole.objects.filter(role__in=shop_manager_roles).values_list(
-            "user_id", flat=True
-        )
+        manager_user_ids = UserRole.objects.filter(
+            role__in=shop_manager_roles
+        ).values_list("user_id", flat=True)
 
         # Add company owner
         if shop.company and shop.company.owner:
             manager_user_ids = list(manager_user_ids) + [shop.company.owner.id]
 
         # Send notification to each manager
-        specialist_name = f"{instance.employee.first_name} {instance.employee.last_name}"
+        specialist_name = (
+            f"{instance.employee.first_name} {instance.employee.last_name}"
+        )
         for user_id in manager_user_ids:
             NotificationService.send_notification(
                 user_id=user_id,
@@ -62,8 +73,12 @@ def specialist_post_delete(sender, instance, **kwargs):
         [
             SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id="all", limit=5),
             SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id="all", limit=10),
-            SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id=instance.employee.shop.id, limit=5),
-            SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id=instance.employee.shop.id, limit=10),
+            SPECIALIST_TOP_RATED_CACHE_KEY.format(
+                shop_id=instance.employee.shop.id, limit=5
+            ),
+            SPECIALIST_TOP_RATED_CACHE_KEY.format(
+                shop_id=instance.employee.shop.id, limit=10
+            ),
         ]
     )
 
@@ -73,7 +88,9 @@ def shop_verification_post_save(sender, instance, **kwargs):
     """Handle post save actions for Shop model - verify specialists when shop is verified"""
     if instance.is_verified:
         # Get all specialists for this shop
-        specialists = Specialist.objects.filter(employee__shop=instance, is_verified=False)
+        specialists = Specialist.objects.filter(
+            employee__shop=instance, is_verified=False
+        )
 
         # Mark them as verified
         if specialists.exists():

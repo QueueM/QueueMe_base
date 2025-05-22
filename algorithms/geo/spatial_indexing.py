@@ -73,7 +73,9 @@ class SpatialIndex:
         # Extract coordinates
         if isinstance(location, dict):
             lat = location.get("latitude") or location.get("lat")
-            lon = location.get("longitude") or location.get("lng") or location.get("lon")
+            lon = (
+                location.get("longitude") or location.get("lng") or location.get("lon")
+            )
         else:
             lat, lon = location
 
@@ -122,7 +124,11 @@ class SpatialIndex:
                 # Extract coordinates
                 if isinstance(location, dict):
                     lat = location.get("latitude") or location.get("lat")
-                    lon = location.get("longitude") or location.get("lng") or location.get("lon")
+                    lon = (
+                        location.get("longitude")
+                        or location.get("lng")
+                        or location.get("lon")
+                    )
                 else:
                     lat, lon = location
 
@@ -214,7 +220,9 @@ class SpatialIndex:
         if isinstance(new_location, dict):
             new_lat = new_location.get("latitude") or new_location.get("lat")
             new_lon = (
-                new_location.get("longitude") or new_location.get("lng") or new_location.get("lon")
+                new_location.get("longitude")
+                or new_location.get("lng")
+                or new_location.get("lon")
             )
         else:
             new_lat, new_lon = new_location
@@ -261,7 +269,9 @@ class SpatialIndex:
         # Extract coordinates
         if isinstance(location, dict):
             lat = location.get("latitude") or location.get("lat")
-            lon = location.get("longitude") or location.get("lng") or location.get("lon")
+            lon = (
+                location.get("longitude") or location.get("lng") or location.get("lon")
+            )
         else:
             lat, lon = location
 
@@ -273,7 +283,8 @@ class SpatialIndex:
         nearest_candidates = list(
             self.idx.nearest(
                 (lon, lat, lon, lat),  # Query rectangle (a point)
-                num_results * 2,  # Get more candidates than needed to account for filtering
+                num_results
+                * 2,  # Get more candidates than needed to account for filtering
             )
         )
 

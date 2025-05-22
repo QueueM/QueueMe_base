@@ -9,7 +9,9 @@ from apps.discountapp.models import Coupon, ServiceDiscount
 class DiscountService:
     @staticmethod
     @transaction.atomic
-    def create_service_discount(shop, name, discount_type, value, start_date, end_date, **kwargs):
+    def create_service_discount(
+        shop, name, discount_type, value, start_date, end_date, **kwargs
+    ):
         """
         Create a service discount with the given parameters
         """
@@ -62,7 +64,9 @@ class DiscountService:
         return discounts
 
     @staticmethod
-    def calculate_discount(price, service=None, shop=None, customer=None, coupon_code=None):
+    def calculate_discount(
+        price, service=None, shop=None, customer=None, coupon_code=None
+    ):
         """
         Calculate the best discount for a given price
         Returns (discounted_price, original_price, discount_info)
@@ -132,7 +136,9 @@ class DiscountService:
         return discounted_price, price, best_discount_info
 
     @staticmethod
-    def apply_multiple_discounts(price, service=None, shop=None, customer=None, coupon_code=None):
+    def apply_multiple_discounts(
+        price, service=None, shop=None, customer=None, coupon_code=None
+    ):
         """
         Apply multiple combinable discounts to a price
         Returns (discounted_price, original_price, discount_breakdown)
@@ -178,7 +184,9 @@ class DiscountService:
 
             # Filter to only include combinable discounts if we already have a coupon discount
             if discount_breakdown:
-                applicable_discounts = [d for d in applicable_discounts if d.is_combinable]
+                applicable_discounts = [
+                    d for d in applicable_discounts if d.is_combinable
+                ]
 
             # Apply discounts in order of priority
             for discount in applicable_discounts:
@@ -225,7 +233,10 @@ class DiscountService:
 
         for discount in service_discounts:
             if discount.start_date <= now <= discount.end_date:
-                if discount.usage_limit > 0 and discount.used_count >= discount.usage_limit:
+                if (
+                    discount.usage_limit > 0
+                    and discount.used_count >= discount.usage_limit
+                ):
                     discount.status = "expired"
                 else:
                     discount.status = "active"

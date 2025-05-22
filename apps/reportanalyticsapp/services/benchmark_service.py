@@ -82,7 +82,9 @@ class BenchmarkService:
             }
 
         # Calculate shop metrics
-        shop_metrics = BenchmarkService._calculate_shop_metrics(shop_id, start_date, end_date)
+        shop_metrics = BenchmarkService._calculate_shop_metrics(
+            shop_id, start_date, end_date
+        )
 
         # Calculate benchmark metrics across similar shops
         benchmark_metrics = BenchmarkService._calculate_benchmark_metrics(
@@ -90,7 +92,9 @@ class BenchmarkService:
         )
 
         # Combine shop and benchmark metrics for comparison
-        comparison = BenchmarkService._create_comparison(shop_metrics, benchmark_metrics)
+        comparison = BenchmarkService._create_comparison(
+            shop_metrics, benchmark_metrics
+        )
 
         return {
             "shop_id": shop_id,
@@ -164,7 +168,9 @@ class BenchmarkService:
         )
 
         # Get top performers for each metric
-        top_performers = BenchmarkService._get_top_performers(shop_ids, start_date, end_date)
+        top_performers = BenchmarkService._get_top_performers(
+            shop_ids, start_date, end_date
+        )
 
         return {
             "period": period,
@@ -199,7 +205,9 @@ class BenchmarkService:
             }
 
         # Get shop benchmarks
-        benchmarks = BenchmarkService.get_shop_benchmarks(shop_id, period, comparison_type)
+        benchmarks = BenchmarkService.get_shop_benchmarks(
+            shop_id, period, comparison_type
+        )
 
         if "error" in benchmarks:
             return benchmarks
@@ -296,7 +304,9 @@ class BenchmarkService:
             return {"error": "No competitors found for analysis", "shop_id": shop_id}
 
         # Calculate shop metrics
-        shop_metrics = BenchmarkService._calculate_shop_metrics(shop_id, start_date, end_date)
+        shop_metrics = BenchmarkService._calculate_shop_metrics(
+            shop_id, start_date, end_date
+        )
 
         # Calculate metrics for each competitor
         competitor_metrics = {}
@@ -331,7 +341,9 @@ class BenchmarkService:
 
                 # Calculate difference
                 if avg_competitor_value > 0:
-                    difference = ((shop_value - avg_competitor_value) / avg_competitor_value) * 100
+                    difference = (
+                        (shop_value - avg_competitor_value) / avg_competitor_value
+                    ) * 100
                 else:
                     difference = 0 if shop_value == 0 else 100
 
@@ -463,7 +475,8 @@ class BenchmarkService:
 
         for metric in BenchmarkService.BENCHMARK_METRICS:
             values = [
-                segment["metrics"].get(metric, {}).get("mean", 0) for segment in segment_metrics
+                segment["metrics"].get(metric, {}).get("mean", 0)
+                for segment in segment_metrics
             ]
 
             if not values or all(v == 0 for v in values):
@@ -501,12 +514,16 @@ class BenchmarkService:
                     "values": values,
                     "percent_change": round(percent_change, 2),
                     "direction": direction,
-                    "significance": BenchmarkService._calculate_trend_significance(values),
+                    "significance": BenchmarkService._calculate_trend_significance(
+                        values
+                    ),
                 }
 
         # Sort trends by significance
         sorted_trends = dict(
-            sorted(trends.items(), key=lambda item: item[1]["significance"], reverse=True)
+            sorted(
+                trends.items(), key=lambda item: item[1]["significance"], reverse=True
+            )
         )
 
         return {
@@ -595,7 +612,9 @@ class BenchmarkService:
         )
 
         # Average wait time
-        metrics["wait_time"] = BenchmarkService._calculate_wait_time(shop_id, start_date, end_date)
+        metrics["wait_time"] = BenchmarkService._calculate_wait_time(
+            shop_id, start_date, end_date
+        )
 
         # Average service time
         metrics["service_time"] = BenchmarkService._calculate_service_time(
@@ -603,18 +622,24 @@ class BenchmarkService:
         )
 
         # Revenue per appointment
-        metrics["revenue_per_appointment"] = BenchmarkService._calculate_revenue_per_appointment(
-            shop_id, start_date, end_date
+        metrics["revenue_per_appointment"] = (
+            BenchmarkService._calculate_revenue_per_appointment(
+                shop_id, start_date, end_date
+            )
         )
 
         # Appointments per specialist
-        metrics[
-            "appointments_per_specialist"
-        ] = BenchmarkService._calculate_appointments_per_specialist(shop_id, start_date, end_date)
+        metrics["appointments_per_specialist"] = (
+            BenchmarkService._calculate_appointments_per_specialist(
+                shop_id, start_date, end_date
+            )
+        )
 
         # Customer return rate
-        metrics["customer_return_rate"] = BenchmarkService._calculate_customer_return_rate(
-            shop_id, start_date, end_date
+        metrics["customer_return_rate"] = (
+            BenchmarkService._calculate_customer_return_rate(
+                shop_id, start_date, end_date
+            )
         )
 
         return metrics
@@ -630,7 +655,9 @@ class BenchmarkService:
         # Average rating across shops
         avg_ratings = []
         for shop_id in shop_ids:
-            rating = BenchmarkService._calculate_average_rating(shop_id, start_date, end_date)
+            rating = BenchmarkService._calculate_average_rating(
+                shop_id, start_date, end_date
+            )
             if rating > 0:
                 avg_ratings.append(rating)
 
@@ -645,7 +672,9 @@ class BenchmarkService:
         # Cancellation rate across shops
         cancellation_rates = []
         for shop_id in shop_ids:
-            rate = BenchmarkService._calculate_cancellation_rate(shop_id, start_date, end_date)
+            rate = BenchmarkService._calculate_cancellation_rate(
+                shop_id, start_date, end_date
+            )
             if rate >= 0:
                 cancellation_rates.append(rate)
 
@@ -660,7 +689,9 @@ class BenchmarkService:
         # No-show rate across shops
         no_show_rates = []
         for shop_id in shop_ids:
-            rate = BenchmarkService._calculate_no_show_rate(shop_id, start_date, end_date)
+            rate = BenchmarkService._calculate_no_show_rate(
+                shop_id, start_date, end_date
+            )
             if rate >= 0:
                 no_show_rates.append(rate)
 
@@ -690,7 +721,9 @@ class BenchmarkService:
         # Service time across shops
         service_times = []
         for shop_id in shop_ids:
-            time = BenchmarkService._calculate_service_time(shop_id, start_date, end_date)
+            time = BenchmarkService._calculate_service_time(
+                shop_id, start_date, end_date
+            )
             if time > 0:
                 service_times.append(time)
 
@@ -742,7 +775,9 @@ class BenchmarkService:
         # Customer return rate across shops
         return_rates = []
         for shop_id in shop_ids:
-            rate = BenchmarkService._calculate_customer_return_rate(shop_id, start_date, end_date)
+            rate = BenchmarkService._calculate_customer_return_rate(
+                shop_id, start_date, end_date
+            )
             if rate >= 0:
                 return_rates.append(rate)
 
@@ -816,15 +851,25 @@ class BenchmarkService:
 
         for shop_id in shop_ids:
             if metric == "average_rating":
-                value = BenchmarkService._calculate_average_rating(shop_id, start_date, end_date)
+                value = BenchmarkService._calculate_average_rating(
+                    shop_id, start_date, end_date
+                )
             elif metric == "cancellation_rate":
-                value = BenchmarkService._calculate_cancellation_rate(shop_id, start_date, end_date)
+                value = BenchmarkService._calculate_cancellation_rate(
+                    shop_id, start_date, end_date
+                )
             elif metric == "no_show_rate":
-                value = BenchmarkService._calculate_no_show_rate(shop_id, start_date, end_date)
+                value = BenchmarkService._calculate_no_show_rate(
+                    shop_id, start_date, end_date
+                )
             elif metric == "wait_time":
-                value = BenchmarkService._calculate_wait_time(shop_id, start_date, end_date)
+                value = BenchmarkService._calculate_wait_time(
+                    shop_id, start_date, end_date
+                )
             elif metric == "service_time":
-                value = BenchmarkService._calculate_service_time(shop_id, start_date, end_date)
+                value = BenchmarkService._calculate_service_time(
+                    shop_id, start_date, end_date
+                )
             elif metric == "revenue_per_appointment":
                 value = BenchmarkService._calculate_revenue_per_appointment(
                     shop_id, start_date, end_date
@@ -888,11 +933,17 @@ class BenchmarkService:
                         shop_id, start_date, end_date
                     )
                 elif metric == "no_show_rate":
-                    value = BenchmarkService._calculate_no_show_rate(shop_id, start_date, end_date)
+                    value = BenchmarkService._calculate_no_show_rate(
+                        shop_id, start_date, end_date
+                    )
                 elif metric == "wait_time":
-                    value = BenchmarkService._calculate_wait_time(shop_id, start_date, end_date)
+                    value = BenchmarkService._calculate_wait_time(
+                        shop_id, start_date, end_date
+                    )
                 elif metric == "service_time":
-                    value = BenchmarkService._calculate_service_time(shop_id, start_date, end_date)
+                    value = BenchmarkService._calculate_service_time(
+                        shop_id, start_date, end_date
+                    )
                 elif metric == "revenue_per_appointment":
                     value = BenchmarkService._calculate_revenue_per_appointment(
                         shop_id, start_date, end_date
@@ -909,7 +960,9 @@ class BenchmarkService:
                     value = 0
 
                 # Only include valid values
-                if value > 0 or (metric in ["cancellation_rate", "no_show_rate"] and value >= 0):
+                if value > 0 or (
+                    metric in ["cancellation_rate", "no_show_rate"] and value >= 0
+                ):
                     try:
                         shop = Shop.objects.get(id=shop_id)
                         shop_values.append(
@@ -934,7 +987,9 @@ class BenchmarkService:
 
             # Sort values (ascending or descending based on metric)
             if higher_is_better:
-                sorted_values = sorted(shop_values, key=lambda x: x["value"], reverse=True)
+                sorted_values = sorted(
+                    shop_values, key=lambda x: x["value"], reverse=True
+                )
             else:
                 sorted_values = sorted(shop_values, key=lambda x: x["value"])
 
@@ -1007,9 +1062,9 @@ class BenchmarkService:
         )
 
         # Get specialist reviews for the shop
-        specialist_ids = Specialist.objects.filter(employee__shop_id=shop_id).values_list(
-            "id", flat=True
-        )
+        specialist_ids = Specialist.objects.filter(
+            employee__shop_id=shop_id
+        ).values_list("id", flat=True)
 
         specialist_reviews = Review.objects.filter(
             content_type__model="specialist",
@@ -1019,7 +1074,9 @@ class BenchmarkService:
         )
 
         # Get service reviews for the shop
-        service_ids = Service.objects.filter(shop_id=shop_id).values_list("id", flat=True)
+        service_ids = Service.objects.filter(shop_id=shop_id).values_list(
+            "id", flat=True
+        )
 
         service_reviews = Review.objects.filter(
             content_type__model="service",
@@ -1029,7 +1086,9 @@ class BenchmarkService:
         )
 
         # Combine all reviews
-        all_reviews = list(shop_reviews) + list(specialist_reviews) + list(service_reviews)
+        all_reviews = (
+            list(shop_reviews) + list(specialist_reviews) + list(service_reviews)
+        )
 
         # Calculate average rating
         if all_reviews:
@@ -1101,7 +1160,9 @@ class BenchmarkService:
         count = 0
 
         for ticket in tickets:
-            wait_time = (ticket.serve_time - ticket.join_time).total_seconds() / 60  # in minutes
+            wait_time = (
+                ticket.serve_time - ticket.join_time
+            ).total_seconds() / 60  # in minutes
             total_wait_time += wait_time
             count += 1
 
@@ -1176,7 +1237,9 @@ class BenchmarkService:
     def _calculate_appointments_per_specialist(shop_id, start_date, end_date):
         """Calculate average appointments per specialist for a shop"""
         # Get specialists for the shop
-        specialists = Specialist.objects.filter(employee__shop_id=shop_id, employee__is_active=True)
+        specialists = Specialist.objects.filter(
+            employee__shop_id=shop_id, employee__is_active=True
+        )
 
         if not specialists.exists():
             return 0  # No specialists

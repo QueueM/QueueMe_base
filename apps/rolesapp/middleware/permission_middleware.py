@@ -109,7 +109,9 @@ class PermissionMiddleware(MiddlewareMixin):
 
         return None
 
-    def _check_permission(self, user, resource, action, context_id=None, context_field=None):
+    def _check_permission(
+        self, user, resource, action, context_id=None, context_field=None
+    ):
         """Check if user has permission for resource/action"""
         if "." in resource:
             # Handle format like "shop.service" where "shop" is the context resource

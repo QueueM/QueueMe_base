@@ -130,13 +130,19 @@ class CategorySerializer(serializers.ModelSerializer):
         # Only get children for parent categories
         if obj.parent is None:
             children = obj.children.filter(is_active=True).order_by("position")
-            return ChildCategorySerializer(children, many=True, context=self.context).data
+            return ChildCategorySerializer(
+                children, many=True, context=self.context
+            ).data
         return []
 
     def get_related_categories(self, obj):
         # Get related categories through CategoryRelation
-        relations = CategoryRelation.objects.filter(from_category=obj).order_by("-weight")
-        return CategoryRelationSerializer(relations, many=True, context=self.context).data
+        relations = CategoryRelation.objects.filter(from_category=obj).order_by(
+            "-weight"
+        )
+        return CategoryRelationSerializer(
+            relations, many=True, context=self.context
+        ).data
 
 
 class CategoryListSerializer(serializers.ModelSerializer):
@@ -198,7 +204,9 @@ class CategoryHierarchySerializer(serializers.ModelSerializer):
     def get_children(self, obj):
         # Recursively include children
         children = obj.children.filter(is_active=True).order_by("position")
-        return CategoryHierarchySerializer(children, many=True, context=self.context).data
+        return CategoryHierarchySerializer(
+            children, many=True, context=self.context
+        ).data
 
 
 class CategoryCreateUpdateSerializer(serializers.ModelSerializer):
@@ -229,7 +237,9 @@ class CategoryCreateUpdateSerializer(serializers.ModelSerializer):
         instance = self.instance
 
         if parent and instance and instance.id == parent.id:
-            raise serializers.ValidationError({"parent": "A category cannot be its own parent."})
+            raise serializers.ValidationError(
+                {"parent": "A category cannot be its own parent."}
+            )
 
         if parent and instance:
             # Check if this would create a circular reference in the hierarchy
@@ -274,7 +284,9 @@ class CategoryRelationCreateSerializer(serializers.ModelSerializer):
             to_category=data["to_category"],
             relation_type=data["relation_type"],
         ).exists():
-            raise serializers.ValidationError({"non_field_errors": "This relation already exists."})
+            raise serializers.ValidationError(
+                {"non_field_errors": "This relation already exists."}
+            )
 
         return data
 

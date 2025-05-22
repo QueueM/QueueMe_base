@@ -33,7 +33,9 @@ def log_transaction_save(sender, instance, created, **kwargs):
 
         # If transaction failed, log the failure
         if instance.status == "failed":
-            logger.error(f"Transaction failed: {instance.moyasar_id} - {instance.failure_message}")
+            logger.error(
+                f"Transaction failed: {instance.moyasar_id} - {instance.failure_message}"
+            )
 
     except Exception as e:
         logger.error(f"Error in transaction signal: {str(e)}")
@@ -62,7 +64,9 @@ def log_refund_save(sender, instance, created, **kwargs):
             transaction = instance.transaction
 
             # Calculate total refunded amount
-            total_refunded = sum(r.amount for r in transaction.refunds.filter(status="succeeded"))
+            total_refunded = sum(
+                r.amount for r in transaction.refunds.filter(status="succeeded")
+            )
 
             # Update transaction status
             if total_refunded >= transaction.amount:

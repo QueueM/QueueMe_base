@@ -6,7 +6,6 @@ comprehensive documentation for all endpoints in the QueueMe platform.
 """
 
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -62,7 +61,9 @@ class Command(BaseCommand):
             # Generate documentation based on the specified format
             if output_format == "all" or output_format == "html":
                 generator.generate_documentation()
-                self.stdout.write(self.style.SUCCESS("HTML documentation generated successfully"))
+                self.stdout.write(
+                    self.style.SUCCESS("HTML documentation generated successfully")
+                )
 
             if output_format == "all" or output_format == "json":
                 # If we haven't already generated everything
@@ -72,25 +73,37 @@ class Command(BaseCommand):
                     generator.discover_models_and_serializers()
                     # Then just write the JSON file
                     generator._write_json_data()
-                    self.stdout.write(self.style.SUCCESS("JSON data generated successfully"))
+                    self.stdout.write(
+                        self.style.SUCCESS("JSON data generated successfully")
+                    )
 
                 # Also generate OpenAPI schema as a separate file
                 generator._generate_openapi_schema()
-                self.stdout.write(self.style.SUCCESS("OpenAPI schema generated successfully"))
+                self.stdout.write(
+                    self.style.SUCCESS("OpenAPI schema generated successfully")
+                )
 
             self.stdout.write(
-                self.style.SUCCESS(f"API documentation successfully generated in {output_dir}")
+                self.style.SUCCESS(
+                    f"API documentation successfully generated in {output_dir}"
+                )
             )
 
         except ImportError as e:
-            self.stderr.write(self.style.ERROR(f"Failed to import documentation generator: {e}"))
             self.stderr.write(
-                self.style.WARNING("Make sure api_docs_generator.py is in your project root")
+                self.style.ERROR(f"Failed to import documentation generator: {e}")
+            )
+            self.stderr.write(
+                self.style.WARNING(
+                    "Make sure api_docs_generator.py is in your project root"
+                )
             )
             return
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"Error generating API documentation: {e}"))
+            self.stderr.write(
+                self.style.ERROR(f"Error generating API documentation: {e}")
+            )
             import traceback
 
             self.stderr.write(traceback.format_exc())

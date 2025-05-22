@@ -106,10 +106,14 @@ def validate_password(
         raise ValidationError(_("Password is required"))
 
     if len(value) < min_length:
-        raise ValidationError(_("Password must be at least {0} characters").format(min_length))
+        raise ValidationError(
+            _("Password must be at least {0} characters").format(min_length)
+        )
 
     if len(value) > max_length:
-        raise ValidationError(_("Password cannot exceed {0} characters").format(max_length))
+        raise ValidationError(
+            _("Password cannot exceed {0} characters").format(max_length)
+        )
 
     # Check for at least one digit
     if not any(c.isdigit() for c in value):
@@ -207,10 +211,14 @@ def validate_amount(
         raise ValidationError(_("Invalid amount format"))
 
     if value < min_value:
-        raise ValidationError(_("Amount must be at least {0} {1}").format(min_value, currency))
+        raise ValidationError(
+            _("Amount must be at least {0} {1}").format(min_value, currency)
+        )
 
     if max_value is not None and value > max_value:
-        raise ValidationError(_("Amount cannot exceed {0} {1}").format(max_value, currency))
+        raise ValidationError(
+            _("Amount cannot exceed {0} {1}").format(max_value, currency)
+        )
 
     return True
 
@@ -264,7 +272,9 @@ def validate_time_format(value: str) -> bool:
     return True
 
 
-def validate_file_extension(file_path: str, allowed_extensions: Optional[List[str]] = None) -> bool:
+def validate_file_extension(
+    file_path: str, allowed_extensions: Optional[List[str]] = None
+) -> bool:
     """
     Validate a file extension against a list of allowed extensions.
 
@@ -284,12 +294,15 @@ def validate_file_extension(file_path: str, allowed_extensions: Optional[List[st
     # If no extensions specified, use defaults based on file type
     if allowed_extensions is None:
         allowed_extensions = (
-            ALLOWED_IMAGE_EXTENSIONS + ALLOWED_VIDEO_EXTENSIONS + ALLOWED_AUDIO_EXTENSIONS
+            ALLOWED_IMAGE_EXTENSIONS
+            + ALLOWED_VIDEO_EXTENSIONS
+            + ALLOWED_AUDIO_EXTENSIONS
         )
 
     # Normalize extensions to lowercase with leading dot
     allowed_extensions = [
-        ext.lower() if ext.startswith(".") else f".{ext.lower()}" for ext in allowed_extensions
+        ext.lower() if ext.startswith(".") else f".{ext.lower()}"
+        for ext in allowed_extensions
     ]
 
     # Get file extension
@@ -297,9 +310,9 @@ def validate_file_extension(file_path: str, allowed_extensions: Optional[List[st
 
     if file_ext not in allowed_extensions:
         raise ValidationError(
-            _("File extension '{0}' is not allowed. Allowed extensions are: {1}").format(
-                file_ext, ", ".join(allowed_extensions)
-            )
+            _(
+                "File extension '{0}' is not allowed. Allowed extensions are: {1}"
+            ).format(file_ext, ", ".join(allowed_extensions))
         )
 
     return True
@@ -325,7 +338,9 @@ def validate_file_size(file_obj, max_size_mb: int = MAX_FILE_SIZE_MB) -> bool:
     max_size_bytes = max_size_mb * 1024 * 1024
 
     if file_obj.size > max_size_bytes:
-        raise ValidationError(_("File size exceeds maximum of {0} MB").format(max_size_mb))
+        raise ValidationError(
+            _("File size exceeds maximum of {0} MB").format(max_size_mb)
+        )
 
     return True
 

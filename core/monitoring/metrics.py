@@ -8,7 +8,6 @@ database query times, and other crucial metrics for QueueMe.
 import time
 from functools import wraps
 
-from django.conf import settings
 from django.db import connection
 from prometheus_client import Counter, Gauge, Histogram
 
@@ -25,13 +24,17 @@ API_REQUEST_LATENCY = Histogram(
 )
 
 API_REQUESTS_TOTAL = Counter(
-    "api_requests_total", "Total count of API requests", ["method", "endpoint", "status_code"]
+    "api_requests_total",
+    "Total count of API requests",
+    ["method", "endpoint", "status_code"],
 )
 API_REQUESTS = API_REQUESTS_TOTAL
 
 # Counter for API errors
 API_ERRORS_TOTAL = Counter(
-    "api_errors_total", "Total count of API errors", ["method", "endpoint", "error_type"]
+    "api_errors_total",
+    "Total count of API errors",
+    ["method", "endpoint", "error_type"],
 )
 
 # ===========================================================
@@ -40,7 +43,9 @@ API_ERRORS_TOTAL = Counter(
 
 # Gauge for current queue lengths by shop
 QUEUE_LENGTH = Gauge(
-    "queue_length", "Current number of customers in queue", ["shop_id", "queue_id", "status"]
+    "queue_length",
+    "Current number of customers in queue",
+    ["shop_id", "queue_id", "status"],
 )
 
 # Histogram for customer wait times
@@ -71,11 +76,15 @@ DB_QUERY_LATENCY = Histogram(
 )
 
 # Counter for database query counts
-DB_QUERIES_TOTAL = Counter("db_queries_total", "Total count of database queries", ["query_type"])
+DB_QUERIES_TOTAL = Counter(
+    "db_queries_total", "Total count of database queries", ["query_type"]
+)
 
 # Gauge for database connection pool
 DB_CONNECTIONS = Gauge(
-    "db_connections", "Current number of database connections", ["state"]  # active, idle
+    "db_connections",
+    "Current number of database connections",
+    ["state"],  # active, idle
 )
 
 # ===========================================================
@@ -127,12 +136,16 @@ def track_api_request(view_func):
             method=method, endpoint=endpoint, status_code=status_code
         ).observe(duration)
 
-        API_REQUESTS_TOTAL.labels(method=method, endpoint=endpoint, status_code=status_code).inc()
+        API_REQUESTS_TOTAL.labels(
+            method=method, endpoint=endpoint, status_code=status_code
+        ).inc()
 
         # Track errors separately
         if 400 <= status_code < 600:
             error_type = "client_error" if status_code < 500 else "server_error"
-            API_ERRORS_TOTAL.labels(method=method, endpoint=endpoint, error_type=error_type).inc()
+            API_ERRORS_TOTAL.labels(
+                method=method, endpoint=endpoint, error_type=error_type
+            ).inc()
 
         return response
 
@@ -223,7 +236,9 @@ def update_queue_metrics(shop_id, queue_id, length, status="waiting"):
         length: Current queue length
         status: Queue status
     """
-    QUEUE_LENGTH.labels(shop_id=str(shop_id), queue_id=str(queue_id), status=status).set(length)
+    QUEUE_LENGTH.labels(
+        shop_id=str(shop_id), queue_id=str(queue_id), status=status
+    ).set(length)
 
 
 def record_customer_wait_time(shop_id, service_type, wait_time_minutes):
@@ -249,7 +264,9 @@ def record_queue_operation(operation, shop_id, queue_id):
         shop_id: ID of the shop
         queue_id: ID of the queue
     """
-    QUEUE_OPERATIONS.labels(operation=operation, shop_id=str(shop_id), queue_id=str(queue_id)).inc()
+    QUEUE_OPERATIONS.labels(
+        operation=operation, shop_id=str(shop_id), queue_id=str(queue_id)
+    ).inc()
 
 
 def update_db_connection_metrics():
@@ -259,10 +276,14 @@ def update_db_connection_metrics():
     if hasattr(connection, "connection") and connection.connection:
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT count(*) FROM pg_stat_activity WHERE state = 'active'")
+                cursor.execute(
+                    "SELECT count(*) FROM pg_stat_activity WHERE state = 'active'"
+                )
                 active = cursor.fetchone()[0]
 
-                cursor.execute("SELECT count(*) FROM pg_stat_activity WHERE state = 'idle'")
+                cursor.execute(
+                    "SELECT count(*) FROM pg_stat_activity WHERE state = 'idle'"
+                )
                 idle = cursor.fetchone()[0]
 
                 DB_CONNECTIONS.labels(state="active").set(active)

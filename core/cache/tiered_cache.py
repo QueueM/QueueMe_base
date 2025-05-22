@@ -5,15 +5,13 @@ An optimized multi-level caching system that distributes content across
 different cache backends based on data characteristics.
 """
 
-import hashlib
 import logging
 import pickle
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set
 
-from django.conf import settings
-from django.core.cache import cache, caches
+from django.core.cache import caches
 
 logger = logging.getLogger(__name__)
 
@@ -145,11 +143,16 @@ class TieredCache:
             self.default.set(key, value, timeout=timeout)
 
             # For long-lived static data, also store in persistent cache
-            if key.startswith((SERVICE_PREFIX, "geo:", "static:")) and timeout > MEDIUM_CACHE_TTL:
+            if (
+                key.startswith((SERVICE_PREFIX, "geo:", "static:"))
+                and timeout > MEDIUM_CACHE_TTL
+            ):
                 self.persistent.set(key, value, timeout=timeout)
 
             # For very large objects, store in large object cache
-            if key.startswith(("report:", "complex:", "full_data:")) or _is_large_object(value):
+            if key.startswith(
+                ("report:", "complex:", "full_data:")
+            ) or _is_large_object(value):
                 self.large_objects.set(key, value, timeout=timeout)
 
             # Store in local memory for fastest access, with shorter timeout

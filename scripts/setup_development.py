@@ -64,7 +64,9 @@ class SetupDevelopment:
 
     def _load_config(self):
         """Load configuration from config file"""
-        config_path = os.path.join(BASE_DIR, "config", "development", "setup_config.json")
+        config_path = os.path.join(
+            BASE_DIR, "config", "development", "setup_config.json"
+        )
         default_config = {
             "required_packages": ["git", "pip", "virtualenv"],
             "recommended_python_version": "3.9",
@@ -138,7 +140,9 @@ class SetupDevelopment:
         env = os.environ.copy()
 
         if self.os_type == "Windows":
-            env["PATH"] = os.path.join(self.venv_dir, "Scripts") + os.pathsep + env["PATH"]
+            env["PATH"] = (
+                os.path.join(self.venv_dir, "Scripts") + os.pathsep + env["PATH"]
+            )
             python_path = os.path.join(self.venv_dir, "Scripts", "python.exe")
         else:
             env["PATH"] = os.path.join(self.venv_dir, "bin") + os.pathsep + env["PATH"]
@@ -207,7 +211,9 @@ class SetupDevelopment:
         if success:
             logger.info(f"Redis CLI is available: {redis_version.strip()}")
         else:
-            logger.warning("Redis CLI not found. You will need Redis for Celery background tasks.")
+            logger.warning(
+                "Redis CLI not found. You will need Redis for Celery background tasks."
+            )
 
         self.setup_state["prerequisites_checked"] = True
         self._save_state()
@@ -274,7 +280,9 @@ class SetupDevelopment:
                     f'"{python_path}" -m pip install -r {dev_req}', env=env
                 )
                 if not success:
-                    logger.error(f"Failed to install development requirements: {output}")
+                    logger.error(
+                        f"Failed to install development requirements: {output}"
+                    )
                     return False
         else:
             # Use main requirements file
@@ -339,15 +347,25 @@ class SetupDevelopment:
             # Create minimal .env file
             with open(self.env_file, "w") as f:
                 f.write("DEBUG=True\n")
-                f.write(f"SECRET_KEY=development-secret-key-{datetime.now().strftime('%Y%m%d')}\n")
+                f.write(
+                    f"SECRET_KEY=development-secret-key-{datetime.now().strftime('%Y%m%d')}\n"
+                )
                 f.write("ALLOWED_HOSTS=localhost,127.0.0.1\n")
 
                 f.write("\n# Database settings\n")
-                f.write(f"POSTGRES_HOST={self.config['database'].get('host', 'localhost')}\n")
+                f.write(
+                    f"POSTGRES_HOST={self.config['database'].get('host', 'localhost')}\n"
+                )
                 f.write(f"POSTGRES_PORT={self.config['database'].get('port', 5432)}\n")
-                f.write(f"POSTGRES_DB={self.config['database'].get('name', 'queueme')}\n")
-                f.write(f"POSTGRES_USER={self.config['database'].get('user', 'queueme')}\n")
-                f.write(f"POSTGRES_PASSWORD={self.config['database'].get('password', 'queueme')}\n")
+                f.write(
+                    f"POSTGRES_DB={self.config['database'].get('name', 'queueme')}\n"
+                )
+                f.write(
+                    f"POSTGRES_USER={self.config['database'].get('user', 'queueme')}\n"
+                )
+                f.write(
+                    f"POSTGRES_PASSWORD={self.config['database'].get('password', 'queueme')}\n"
+                )
 
                 f.write("\n# Redis settings\n")
                 f.write(f"REDIS_HOST={self.config['redis'].get('host', 'localhost')}\n")
@@ -379,7 +397,9 @@ class SetupDevelopment:
         env, python_path = self._activate_venv()
 
         # Apply migrations
-        success, output = self._run_command(f'"{python_path}" manage.py migrate', env=env)
+        success, output = self._run_command(
+            f'"{python_path}" manage.py migrate', env=env
+        )
 
         if success:
             logger.info("Migrations applied successfully")
@@ -434,7 +454,9 @@ class SetupDevelopment:
                     if self.args.strict:
                         return False
             else:
-                logger.warning("No fixtures or seed script found. Skipping initial data loading.")
+                logger.warning(
+                    "No fixtures or seed script found. Skipping initial data loading."
+                )
 
         logger.info("Initial data loaded successfully")
         self.setup_state["initial_data_loaded"] = True
@@ -454,7 +476,9 @@ class SetupDevelopment:
 
         # Create superuser with environment variables from .env file
         phone_number = (
-            self.config["initial_superuser"].get("phone_number", "+966555555555").replace("+", "")
+            self.config["initial_superuser"]
+            .get("phone_number", "+966555555555")
+            .replace("+", "")
         )
         password = self.config["initial_superuser"].get("password", "admin123")
 
@@ -473,7 +497,9 @@ class SetupDevelopment:
         success, output = self._run_command(create_cmd, env=env)
 
         if success:
-            logger.info(f"Superuser created with phone: {phone_number} and password: {password}")
+            logger.info(
+                f"Superuser created with phone: {phone_number} and password: {password}"
+            )
             self.setup_state["superuser_created"] = True
             self._save_state()
             return True
@@ -549,7 +575,9 @@ class SetupDevelopment:
         # Check if Redis is available
         success, output = self._run_command("redis-cli ping", env=env)
         if not success or "PONG" not in output:
-            logger.warning("Redis does not appear to be running. Celery requires Redis.")
+            logger.warning(
+                "Redis does not appear to be running. Celery requires Redis."
+            )
             # apps/scripts/setup_development.py (continued)
 
         # Check if celery.py exists
@@ -560,7 +588,9 @@ class SetupDevelopment:
                 return False
 
         # Test Celery configuration
-        success, output = self._run_command(f'"{python_path}" -m celery --version', env=env)
+        success, output = self._run_command(
+            f'"{python_path}" -m celery --version', env=env
+        )
         if not success:
             logger.error(f"Celery is not installed or configured properly: {output}")
             return False
@@ -613,7 +643,9 @@ class SetupDevelopment:
         logger.info(
             f"   Phone: {self.config['initial_superuser'].get('phone_number', '+966555555555')}"
         )
-        logger.info(f"   Password: {self.config['initial_superuser'].get('password', 'admin123')}")
+        logger.info(
+            f"   Password: {self.config['initial_superuser'].get('password', 'admin123')}"
+        )
         logger.info("")
         logger.info("To start Celery worker:")
         logger.info("   celery -A queueme worker -l info")
@@ -630,7 +662,9 @@ class SetupDevelopment:
         """Run the complete setup process"""
         # Check prerequisites
         if not self.check_prerequisites():
-            logger.error("Prerequisites check failed. Please install required dependencies.")
+            logger.error(
+                "Prerequisites check failed. Please install required dependencies."
+            )
             return False
 
         # Create virtual environment
@@ -676,12 +710,18 @@ class SetupDevelopment:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Set up Queue Me development environment.")
+    parser = argparse.ArgumentParser(
+        description="Set up Queue Me development environment."
+    )
     parser.add_argument(
         "--force", action="store_true", help="Force setup even if already completed"
     )
-    parser.add_argument("--strict", action="store_true", help="Fail on any warning or error")
-    parser.add_argument("--skip-data", action="store_true", help="Skip loading initial data")
+    parser.add_argument(
+        "--strict", action="store_true", help="Fail on any warning or error"
+    )
+    parser.add_argument(
+        "--skip-data", action="store_true", help="Skip loading initial data"
+    )
     args = parser.parse_args()
 
     setup = SetupDevelopment(args)

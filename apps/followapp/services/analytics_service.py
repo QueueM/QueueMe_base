@@ -161,7 +161,9 @@ class FollowAnalyticsService:
 
         # Get follow events with source information
         follow_sources = (
-            FollowEvent.objects.filter(shop=shop, event_type="follow", timestamp__gte=start_date)
+            FollowEvent.objects.filter(
+                shop=shop, event_type="follow", timestamp__gte=start_date
+            )
             .exclude(source__isnull=True)
             .values("source")
             .annotate(count=Count("id"))

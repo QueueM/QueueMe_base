@@ -9,7 +9,10 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 from apps.notificationsapp.models import DeviceToken, Notification
 from apps.notificationsapp.serializers import (
     BulkNotificationSerializer,
@@ -24,6 +27,7 @@ from apps.rolesapp.decorators import has_permission
 # ──────────────────────────────────────────────────────────────────────────────
 #  NotificationViewSet
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 @document_api_viewset(
     summary="Notification",
@@ -68,7 +72,9 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
             200: "Success - Returns notification details",
             404: "Not Found - Notification not found",
         },
-        path_params=[{"name": "pk", "description": "Notification ID", "type": "string"}],
+        path_params=[
+            {"name": "pk", "description": "Notification ID", "type": "string"}
+        ],
         tags=["Notifications"],
     )
     def retrieve(self, request, *args, **kwargs):
@@ -104,7 +110,9 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
             200: "Success - Notification marked as read",
             404: "Not Found - Notification not found",
         },
-        path_params=[{"name": "pk", "description": "Notification ID", "type": "string"}],
+        path_params=[
+            {"name": "pk", "description": "Notification ID", "type": "string"}
+        ],
         tags=["Notifications"],
     )
     @action(detail=True, methods=["post"])
@@ -185,9 +193,11 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response({"unread_count": count})
 
+
 # ──────────────────────────────────────────────────────────────────────────────
 #  DeviceTokenViewSet
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 @document_api_viewset(
     summary="Device Token",
@@ -243,7 +253,9 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
             200: "Success - Returns device token details",
             404: "Not Found - Device token not found",
         },
-        path_params=[{"name": "pk", "description": "Device Token ID", "type": "string"}],
+        path_params=[
+            {"name": "pk", "description": "Device Token ID", "type": "string"}
+        ],
         tags=["Notifications", "Devices"],
     )
     def retrieve(self, request, *args, **kwargs):
@@ -258,7 +270,9 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
             400: "Bad Request - Invalid data",
             404: "Not Found - Device token not found",
         },
-        path_params=[{"name": "pk", "description": "Device Token ID", "type": "string"}],
+        path_params=[
+            {"name": "pk", "description": "Device Token ID", "type": "string"}
+        ],
         tags=["Notifications", "Devices"],
     )
     def update(self, request, *args, **kwargs):
@@ -272,7 +286,9 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
             204: "No Content - Device token deleted successfully",
             404: "Not Found - Device token not found",
         },
-        path_params=[{"name": "pk", "description": "Device Token ID", "type": "string"}],
+        path_params=[
+            {"name": "pk", "description": "Device Token ID", "type": "string"}
+        ],
         tags=["Notifications", "Devices"],
     )
     def destroy(self, request, *args, **kwargs):
@@ -318,9 +334,11 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
             }
         )
 
+
 # ──────────────────────────────────────────────────────────────────────────────
 #  AdminNotificationViewSet
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 @document_api_viewset(
     summary="Admin Notification",

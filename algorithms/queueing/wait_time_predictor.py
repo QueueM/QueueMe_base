@@ -14,22 +14,17 @@ Features:
 """
 
 import logging
-from collections import defaultdict
-from datetime import date, datetime, time, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
 
 import numpy as np
-import pandas as pd
 from django.core.cache import cache
-from django.db.models import Avg, Count, ExpressionWrapper, F, Q, StdDev, fields
-from django.db.models.functions import ExtractHour, ExtractWeekDay
+from django.db.models import ExpressionWrapper, F, fields
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
 from apps.queueapp.models import QueueEntry, ServiceQueue
 from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop
-from apps.specialistsapp.models import Specialist
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +70,9 @@ class WaitTimePredictor:
         """
         try:
             # Check cache first
-            cache_key = f"{cls.CACHE_PREFIX}queue:{queue_id}:pos:{position}:pri:{priority}"
+            cache_key = (
+                f"{cls.CACHE_PREFIX}queue:{queue_id}:pos:{position}:pri:{priority}"
+            )
             if specialist_id:
                 cache_key += f":spec:{specialist_id}"
 
@@ -85,7 +82,9 @@ class WaitTimePredictor:
 
             # Get the service queue
             try:
-                service_queue = ServiceQueue.objects.select_related("service").get(id=queue_id)
+                service_queue = ServiceQueue.objects.select_related("service").get(
+                    id=queue_id
+                )
             except ServiceQueue.DoesNotExist:
                 return {
                     "success": False,
@@ -129,7 +128,9 @@ class WaitTimePredictor:
 
             # 5. Apply priority adjustment
             priority_factor = cls._calculate_priority_factor(priority)
-            priority_adjusted_minutes = round(final_prediction["wait_minutes"] * priority_factor)
+            priority_adjusted_minutes = round(
+                final_prediction["wait_minutes"] * priority_factor
+            )
 
             # 6. Add uncertainty range
             uncertainty = round(priority_adjusted_minutes * cls.PREDICTION_UNCERTAINTY)
@@ -420,7 +421,9 @@ class WaitTimePredictor:
             }
 
     @classmethod
-    def update_predictions_with_actual(cls, entry_id: str, actual_wait_time: int) -> bool:
+    def update_predictions_with_actual(
+        cls, entry_id: str, actual_wait_time: int
+    ) -> bool:
         """
         Update prediction models with actual wait time data.
 
@@ -436,7 +439,9 @@ class WaitTimePredictor:
             try:
                 entry = QueueEntry.objects.select_related("queue").get(id=entry_id)
             except QueueEntry.DoesNotExist:
-                logger.warning(f"Queue entry {entry_id} not found for prediction update")
+                logger.warning(
+                    f"Queue entry {entry_id} not found for prediction update"
+                )
                 return False
 
             # Store the actual wait time
@@ -542,7 +547,9 @@ class WaitTimePredictor:
 
                 # Calculate wait time
                 # If specialist is active, they're already serving someone
-                base_waiting_time = (entries_ahead + (1 if is_active else 0)) * service_duration
+                base_waiting_time = (
+                    entries_ahead + (1 if is_active else 0)
+                ) * service_duration
 
                 return {
                     "wait_minutes": base_waiting_time,
@@ -572,7 +579,9 @@ class WaitTimePredictor:
                 )  # Diminishing returns
 
                 # Base wait time calculation
-                wait_minutes = round((effective_entries / parallelism_factor) * service_duration)
+                wait_minutes = round(
+                    (effective_entries / parallelism_factor) * service_duration
+                )
 
                 # Determine confidence based on queue stability
                 if waiting_entries.count() > 0 and active_entries.count() > 0:
@@ -716,7 +725,9 @@ class WaitTimePredictor:
 
         # Get weights for each prediction
         current_weight = confidence_weights.get(current_prediction["confidence"], 0.3)
-        historical_weight = confidence_weights.get(historical_prediction["confidence"], 0.3)
+        historical_weight = confidence_weights.get(
+            historical_prediction["confidence"], 0.3
+        )
         fallback_weight = confidence_weights.get(fallback_prediction["confidence"], 0.3)
 
         # Calculate weighted average
@@ -752,7 +763,9 @@ class WaitTimePredictor:
 
         # If multiple methods have equal highest weight, use "combined"
         weight_counts = sum(
-            1 for w in [current_weight, historical_weight, fallback_weight] if w == highest_weight
+            1
+            for w in [current_weight, historical_weight, fallback_weight]
+            if w == highest_weight
         )
         if weight_counts > 1:
             method = "combined"
@@ -815,7 +828,9 @@ class WaitTimePredictor:
             ).first()
 
             # Check previous appointments today
-            today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            today_start = timezone.now().replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
             previous_appointments = Appointment.objects.filter(
                 specialist_id=specialist_id,
                 start_time__gte=today_start,
@@ -842,10 +857,14 @@ class WaitTimePredictor:
                     remaining_minutes = max(0, service_duration - elapsed_minutes)
 
                     # Add to delay if this would extend past the appointment time
-                    service_end_time = timezone.now() + timedelta(minutes=remaining_minutes)
+                    service_end_time = timezone.now() + timedelta(
+                        minutes=remaining_minutes
+                    )
 
                     if service_end_time > appointment_time:
-                        delay_minutes += (service_end_time - appointment_time).total_seconds() / 60
+                        delay_minutes += (
+                            service_end_time - appointment_time
+                        ).total_seconds() / 60
 
             # Check for running behind on previous appointments
             running_behind = 0
@@ -864,10 +883,14 @@ class WaitTimePredictor:
                     and timezone.now() > prev_appt.start_time
                 ):
                     # Calculate how late it is
-                    late_minutes = (timezone.now() - prev_appt.start_time).total_seconds() / 60
+                    late_minutes = (
+                        timezone.now() - prev_appt.start_time
+                    ).total_seconds() / 60
 
                     # Estimate that the appointment will take its full duration from now
-                    service_duration = prev_appt.service.duration or cls.DEFAULT_SERVICE_TIME
+                    service_duration = (
+                        prev_appt.service.duration or cls.DEFAULT_SERVICE_TIME
+                    )
                     estimated_end = timezone.now() + timedelta(minutes=service_duration)
 
                     # See if this pushes past the scheduled appointment time
@@ -1002,5 +1025,7 @@ class WaitTimePredictor:
         # so we'll just delete the typical pattern-matched keys for positions 1-20
         for position in range(1, 21):
             for priority in range(1, 6):
-                cache_key = f"{cls.CACHE_PREFIX}queue:{queue_id}:pos:{position}:pri:{priority}"
+                cache_key = (
+                    f"{cls.CACHE_PREFIX}queue:{queue_id}:pos:{position}:pri:{priority}"
+                )
                 cache.delete(cache_key)

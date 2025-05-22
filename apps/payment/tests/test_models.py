@@ -11,7 +11,9 @@ from ..models import PaymentMethod, Refund, Transaction
 
 class PaymentMethodTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create(phone_number="+1234567890", user_type="customer")
+        self.user = User.objects.create(
+            phone_number="+1234567890", user_type="customer"
+        )
 
     def test_payment_method_creation(self):
         """Test creating a payment method"""
@@ -65,7 +67,9 @@ class PaymentMethodTest(TestCase):
 
 class TransactionTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create(phone_number="+1234567890", user_type="customer")
+        self.user = User.objects.create(
+            phone_number="+1234567890", user_type="customer"
+        )
 
         self.payment_method = PaymentMethod.objects.create(
             user=self.user,
@@ -118,7 +122,9 @@ class TransactionTest(TestCase):
         self.assertEqual(transaction.status, "initiated")
 
         # Test string representation
-        self.assertEqual(str(transaction), f"{self.user.phone_number} - 100.0 SAR - Initiated")
+        self.assertEqual(
+            str(transaction), f"{self.user.phone_number} - 100.0 SAR - Initiated"
+        )
 
     def test_automatic_halalas_calculation(self):
         """Test automatic calculation of halalas from amount"""
@@ -139,7 +145,9 @@ class TransactionTest(TestCase):
 
 class RefundTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create(phone_number="+1234567890", user_type="customer")
+        self.user = User.objects.create(
+            phone_number="+1234567890", user_type="customer"
+        )
 
         self.admin = User.objects.create(phone_number="+0987654321", user_type="admin")
 

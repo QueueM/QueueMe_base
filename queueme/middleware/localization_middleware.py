@@ -70,7 +70,9 @@ class LocalizationMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         """Set Content-Language header and deactivate translation"""
         # Set Content-Language header if not already set
-        if not response.has_header("Content-Language") and hasattr(request, "LANGUAGE_CODE"):
+        if not response.has_header("Content-Language") and hasattr(
+            request, "LANGUAGE_CODE"
+        ):
             response["Content-Language"] = request.LANGUAGE_CODE
 
         # Deactivate translation after response is generated

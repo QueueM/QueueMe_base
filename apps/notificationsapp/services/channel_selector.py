@@ -83,7 +83,9 @@ class ChannelSelector:
                 score += ChannelSelector.PREFERENCE_WEIGHT * 1.0
 
             # Engagement history factor
-            engagement_rate = engagement.get(channel, 0.5)  # Default to middle if no history
+            engagement_rate = engagement.get(
+                channel, 0.5
+            )  # Default to middle if no history
             score += ChannelSelector.ENGAGEMENT_WEIGHT * engagement_rate
 
             # Cost factor (lower cost is better)

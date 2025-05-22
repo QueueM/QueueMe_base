@@ -111,8 +111,12 @@ class QueueService:
             if active_specialists > 1:
                 # Each specialist can handle customers in parallel
                 # But there's diminishing returns (not linear scaling)
-                parallelism_factor = 0.7 + (0.3 / active_specialists)  # Between 0.7 and 1.0
-                estimated_wait = estimated_wait / (active_specialists * parallelism_factor)
+                parallelism_factor = 0.7 + (
+                    0.3 / active_specialists
+                )  # Between 0.7 and 1.0
+                estimated_wait = estimated_wait / (
+                    active_specialists * parallelism_factor
+                )
 
             # Factor in time of day - certain times might be busier
             now = timezone.now()
@@ -225,7 +229,9 @@ class QueueService:
                 ).count()
 
                 if active_tickets >= queue.max_capacity:
-                    return {"error": "Queue is at maximum capacity. Please try again later."}
+                    return {
+                        "error": "Queue is at maximum capacity. Please try again later."
+                    }
 
             # Get service if provided
             service = None
@@ -243,9 +249,9 @@ class QueueService:
                 # Appointment customers get priority - place them near the front
                 # But not at the very front to maintain fairness for those already waiting
                 highest_position = (
-                    QueueTicket.objects.filter(queue=queue).aggregate(max_position=Max("position"))[
-                        "max_position"
-                    ]
+                    QueueTicket.objects.filter(queue=queue).aggregate(
+                        max_position=Max("position")
+                    )["max_position"]
                     or 0
                 )
 
@@ -263,9 +269,9 @@ class QueueService:
             else:
                 # Regular customer goes to the end of queue
                 highest_position = (
-                    QueueTicket.objects.filter(queue=queue).aggregate(max_position=Max("position"))[
-                        "max_position"
-                    ]
+                    QueueTicket.objects.filter(queue=queue).aggregate(
+                        max_position=Max("position")
+                    )["max_position"]
                     or 0
                 )
                 position = highest_position + 1
@@ -291,14 +297,18 @@ class QueueService:
                         QueueTicket.objects.filter(
                             queue=queue,
                             status__in=["waiting", "called", "serving"],
-                            specialist__in=[sp.specialist for sp in available_specialists],
+                            specialist__in=[
+                                sp.specialist for sp in available_specialists
+                            ],
                         )
                         .values("specialist")
                         .annotate(count=Count("specialist"))
                     )
 
                     # Convert to dict for easier lookup
-                    specialist_load = {sc["specialist"]: sc["count"] for sc in specialist_counts}
+                    specialist_load = {
+                        sc["specialist"]: sc["count"] for sc in specialist_counts
+                    }
 
                     # Find specialist with lowest load
                     min_load = float("inf")
@@ -507,12 +517,14 @@ class QueueService:
         try:
             queue = Queue.objects.get(id=queue_id)
 
-            waiting_tickets = QueueTicket.objects.filter(queue=queue, status="waiting").order_by(
-                "position"
-            )
+            waiting_tickets = QueueTicket.objects.filter(
+                queue=queue, status="waiting"
+            ).order_by("position")
 
             for ticket in waiting_tickets:
-                estimated_wait = QueueService.estimate_wait_time(queue_id, ticket.position)
+                estimated_wait = QueueService.estimate_wait_time(
+                    queue_id, ticket.position
+                )
                 ticket.estimated_wait_time = estimated_wait
                 ticket.save(update_fields=["estimated_wait_time"])
 
@@ -601,11 +613,16 @@ class QueueService:
             skipped_count = tickets.filter(status="skipped").count()
 
             # Calculate completion rate
-            completion_rate = (served_count / total_count * 100) if total_count > 0 else 0
+            completion_rate = (
+                (served_count / total_count * 100) if total_count > 0 else 0
+            )
 
             # Calculate average wait time
             avg_wait = (
-                tickets.filter(status="served").aggregate(avg=Avg("actual_wait_time"))["avg"] or 0
+                tickets.filter(status="served").aggregate(avg=Avg("actual_wait_time"))[
+                    "avg"
+                ]
+                or 0
             )
 
             # Calculate hourly distribution

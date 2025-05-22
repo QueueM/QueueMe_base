@@ -6,7 +6,10 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from apps.notificationsapp.models import Notification
-from apps.notificationsapp.tasks import process_notification, send_scheduled_notification
+from apps.notificationsapp.tasks import (
+    process_notification,
+    send_scheduled_notification,
+)
 
 logger = logging.getLogger("notifications")
 channel_layer = get_channel_layer()
@@ -28,7 +31,9 @@ def handle_notification_created(sender, instance, created, **kwargs):
         # For in-app notifications that were just marked as sent,
         # send unread count update to WebSocket
         if instance.channel == "in_app" and instance.status == "sent":
-            from apps.notificationsapp.services.notification_service import NotificationService
+            from apps.notificationsapp.services.notification_service import (
+                NotificationService,
+            )
 
             unread_count = NotificationService.get_unread_count(instance.user_id)
 
@@ -55,7 +60,9 @@ def handle_notification_status_change(sender, instance, **kwargs):
             # If status changed to 'read'
             if old_instance.status != "read" and instance.status == "read":
                 # Send unread count update to WebSocket
-                from apps.notificationsapp.services.notification_service import NotificationService
+                from apps.notificationsapp.services.notification_service import (
+                    NotificationService,
+                )
 
                 unread_count = NotificationService.get_unread_count(instance.user_id)
 

@@ -172,7 +172,9 @@ class CouponService:
 
             # Check if the coupon is single-use and has been used by this customer
             if customer and coupon.is_single_use:
-                if CouponUsage.objects.filter(coupon=coupon, customer=customer).exists():
+                if CouponUsage.objects.filter(
+                    coupon=coupon, customer=customer
+                ).exists():
                     return False, ERROR_CODE_ALREADY_USED, coupon
 
             # Check minimum purchase amount
@@ -196,7 +198,9 @@ class CouponService:
 
                     coupon_category_ids = coupon.categories.values_list("id", flat=True)
 
-                    if not any(cid in coupon_category_ids for cid in service_category_ids):
+                    if not any(
+                        cid in coupon_category_ids for cid in service_category_ids
+                    ):
                         return False, ERROR_CODE_NOT_ELIGIBLE, coupon
 
             # Coupon is valid
@@ -252,7 +256,9 @@ class CouponService:
         now = timezone.now()
 
         # Base query - active coupons within date range
-        coupons = Coupon.objects.filter(status="active", start_date__lte=now, end_date__gte=now)
+        coupons = Coupon.objects.filter(
+            status="active", start_date__lte=now, end_date__gte=now
+        )
 
         # Filter by shop if provided
         if shop:

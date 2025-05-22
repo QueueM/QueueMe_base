@@ -48,7 +48,9 @@ class ReelServiceTest(TestCase):
 
         # Prepare data
         with open(video_file_path, "rb") as f:
-            video_file = SimpleUploadedFile("test_video.mp4", f.read(), content_type="video/mp4")
+            video_file = SimpleUploadedFile(
+                "test_video.mp4", f.read(), content_type="video/mp4"
+            )
 
             data = {
                 "title": "Test Reel",
@@ -217,7 +219,9 @@ class FeedCuratorServiceTest(TestCase):
         )
 
         # Create a follow relationship
-        cls.follow = Follow.objects.create(user=cls.user, shop=cls.riyadh_shop, is_active=True)
+        cls.follow = Follow.objects.create(
+            user=cls.user, shop=cls.riyadh_shop, is_active=True
+        )
 
     def test_get_nearby_feed(self):
         """Test getting nearby feed in a city"""

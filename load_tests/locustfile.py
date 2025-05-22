@@ -6,7 +6,6 @@ Usage:
     - Run: locust -f load_tests/locustfile.py --host=https://api.queueme.net
 """
 
-import json
 import random
 import time
 
@@ -79,7 +78,10 @@ class QueueMeUser(HttpUser):
         # For load testing purposes, we use a test endpoint that accepts any OTP
         response = self.client.post(
             "/api/v1/auth/verify-otp/",
-            json={"phone_number": self.phone_number, "otp_code": "123456"},  # Test OTP code
+            json={
+                "phone_number": self.phone_number,
+                "otp_code": "123456",
+            },  # Test OTP code
         )
 
         if response.status_code == 200:
@@ -219,8 +221,8 @@ class QueueMeUser(HttpUser):
 
         # Random date in the next 7 days
         days_ahead = random.randint(1, 7)
-        hours = random.choice([10, 11, 12, 13, 14, 15, 16, 17])
-        minutes = random.choice([0, 30])
+        random.choice([10, 11, 12, 13, 14, 15, 16, 17])
+        random.choice([0, 30])
 
         now = time.time()
         booking_time = time.strftime(

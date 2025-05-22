@@ -142,7 +142,9 @@ class EmployeeLeaveTest(TestCase):
         self.user = User.objects.create(phone_number="1234567890", user_type="employee")
 
         # Create approver user
-        self.approver = User.objects.create(phone_number="9876543210", user_type="admin")
+        self.approver = User.objects.create(
+            phone_number="9876543210", user_type="admin"
+        )
 
         # Create shop (mock)
         self.shop = Shop.objects.create(

@@ -49,7 +49,9 @@ class DistanceService:
         return distance
 
     @staticmethod
-    def calculate_distance_matrix_by_ids(origin_id, destination_ids, include_travel_time=False):
+    def calculate_distance_matrix_by_ids(
+        origin_id, destination_ids, include_travel_time=False
+    ):
         """
         Calculate distances between an origin location and multiple destinations
 
@@ -70,7 +72,9 @@ class DistanceService:
 
             for dest in destinations:
                 # Calculate distance using GeoDjango
-                distance_km = origin.coordinates.distance(dest.coordinates) * 100  # Convert to km
+                distance_km = (
+                    origin.coordinates.distance(dest.coordinates) * 100
+                )  # Convert to km
 
                 result = {
                     "destination_id": str(dest.id),
@@ -81,8 +85,10 @@ class DistanceService:
                 if include_travel_time:
                     from .travel_time_service import TravelTimeService
 
-                    result["travel_time_minutes"] = TravelTimeService.estimate_travel_time(
-                        origin.coordinates, dest.coordinates
+                    result["travel_time_minutes"] = (
+                        TravelTimeService.estimate_travel_time(
+                            origin.coordinates, dest.coordinates
+                        )
                     )
 
                 results.append(result)
@@ -134,8 +140,8 @@ class DistanceService:
                 if include_travel_time:
                     from .travel_time_service import TravelTimeService
 
-                    result["travel_time_minutes"] = TravelTimeService.estimate_travel_time(
-                        origin_point, dest_point
+                    result["travel_time_minutes"] = (
+                        TravelTimeService.estimate_travel_time(origin_point, dest_point)
                     )
 
                 results.append(result)

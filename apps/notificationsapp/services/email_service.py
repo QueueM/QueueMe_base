@@ -15,7 +15,9 @@ class EmailService:
     """
 
     @staticmethod
-    def send_email(to_email, subject, template_name, context, from_email=None, attachments=None):
+    def send_email(
+        to_email, subject, template_name, context, from_email=None, attachments=None
+    ):
         """
         Send an email using a template.
 
@@ -41,7 +43,9 @@ class EmailService:
                 template_path = f"notificationsapp/email/{template_name}.html"
                 html_content = render_to_string(template_path, context)
             except Exception as e:
-                logger.warning(f"Error rendering HTML template {template_name}: {str(e)}")
+                logger.warning(
+                    f"Error rendering HTML template {template_name}: {str(e)}"
+                )
 
             # Try to render text template, or fall back to stripping HTML
             text_content = None

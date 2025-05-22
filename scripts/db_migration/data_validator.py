@@ -96,7 +96,8 @@ class DataValidator:
         tables = [
             table[0]
             for table in cursor.fetchall()
-            if table[0] != "sqlite_sequence" and not table[0].startswith("django_migrations")
+            if table[0] != "sqlite_sequence"
+            and not table[0].startswith("django_migrations")
         ]
         cursor.close()
         return tables
@@ -220,7 +221,9 @@ class DataValidator:
             pg_cursor.close()
 
             if not pg_row_tuple:
-                mismatches.append({"id": row_id, "error": "Row not found in PostgreSQL"})
+                mismatches.append(
+                    {"id": row_id, "error": "Row not found in PostgreSQL"}
+                )
                 continue
 
             # Convert PostgreSQL row to dict
@@ -432,7 +435,9 @@ class DataValidator:
         # Print FK violations if any
         if self.validation_results["foreign_keys"]:
             fk_data = []
-            for violation in self.validation_results["foreign_keys"][:10]:  # Show top 10
+            for violation in self.validation_results["foreign_keys"][
+                :10
+            ]:  # Show top 10
                 fk_data.append(
                     [
                         violation["table"],
@@ -470,7 +475,10 @@ class DataValidator:
 
             # Validate each table
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-                futures = {executor.submit(self.validate_table, table): table for table in tables}
+                futures = {
+                    executor.submit(self.validate_table, table): table
+                    for table in tables
+                }
                 for future in concurrent.futures.as_completed(futures):
                     table = futures[future]
                     try:
@@ -491,8 +499,12 @@ class DataValidator:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Validate data between SQLite and PostgreSQL.")
-    parser.add_argument("--sqlite-path", default="db.sqlite3", help="Path to SQLite database file")
+    parser = argparse.ArgumentParser(
+        description="Validate data between SQLite and PostgreSQL."
+    )
+    parser.add_argument(
+        "--sqlite-path", default="db.sqlite3", help="Path to SQLite database file"
+    )
     parser.add_argument(
         "--report", default="validation_report.json", help="Path to output report file"
     )

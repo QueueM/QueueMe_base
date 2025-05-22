@@ -7,8 +7,7 @@ service points.
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 from django.utils import timezone
@@ -61,7 +60,9 @@ class QueueOptimizer:
 
         # Factor 1: Get historical average service times (from past completed services)
         if not historical_data:
-            historical_data = self._get_historical_data(queue_id, service_id, specialist_id)
+            historical_data = self._get_historical_data(
+                queue_id, service_id, specialist_id
+            )
 
         avg_service_time = self._calculate_avg_service_time(historical_data)
 
@@ -72,7 +73,9 @@ class QueueOptimizer:
         time_factor = self._get_time_factor()
 
         # Factor 4: Specialist efficiency if specific specialist requested
-        specialist_factor = self._get_specialist_efficiency(specialist_id) if specialist_id else 1.0
+        specialist_factor = (
+            self._get_specialist_efficiency(specialist_id) if specialist_id else 1.0
+        )
 
         # Combine all factors with weighted average
         base_wait_time = (
@@ -123,7 +126,9 @@ class QueueOptimizer:
                 "id": str(ticket.id),
                 "wait_time": ticket.actual_wait_time,
                 "service_id": str(ticket.service_id) if ticket.service_id else None,
-                "specialist_id": (str(ticket.specialist_id) if ticket.specialist_id else None),
+                "specialist_id": (
+                    str(ticket.specialist_id) if ticket.specialist_id else None
+                ),
                 "join_time": ticket.join_time,
                 "complete_time": ticket.complete_time,
                 "day_of_week": ticket.join_time.weekday(),
@@ -187,7 +192,6 @@ class QueueOptimizer:
             Queue composition factor (multiplier for wait time)
         """
         from apps.queueapp.models import QueueTicket
-        from apps.serviceapp.models import Service
 
         # Get all waiting tickets ahead of this position
         tickets_ahead = QueueTicket.objects.filter(
@@ -244,7 +248,9 @@ class QueueOptimizer:
         remaining_times = []
         for ticket in serving_tickets:
             if ticket.serve_time:
-                elapsed_minutes = (timezone.now() - ticket.serve_time).total_seconds() / 60
+                elapsed_minutes = (
+                    timezone.now() - ticket.serve_time
+                ).total_seconds() / 60
 
                 # Get total expected duration
                 if ticket.service and hasattr(ticket.service, "duration"):
@@ -323,9 +329,9 @@ class QueueOptimizer:
                 return 1.0  # No data, use default factor
 
             # Compare this specialist's average service time to overall average
-            specialist_avg = sum(ticket.actual_wait_time for ticket in historical_tickets) / len(
-                historical_tickets
-            )
+            specialist_avg = sum(
+                ticket.actual_wait_time for ticket in historical_tickets
+            ) / len(historical_tickets)
 
             # Get overall average from specialists in the same shop
             tickets_all_specialists = (
@@ -341,9 +347,9 @@ class QueueOptimizer:
             if not tickets_all_specialists:
                 return 1.0  # No comparison data, use default factor
 
-            overall_avg = sum(ticket.actual_wait_time for ticket in tickets_all_specialists) / len(
-                tickets_all_specialists
-            )
+            overall_avg = sum(
+                ticket.actual_wait_time for ticket in tickets_all_specialists
+            ) / len(tickets_all_specialists)
 
             # Calculate efficiency factor (ratio of overall average to this specialist's average)
             # If specialist is faster, factor will be < 1.0, reducing wait time
@@ -388,7 +394,9 @@ class QueueOptimizer:
             return {specialist_id: [] for specialist_id in specialists}
 
         # Get specialist-service capability mapping
-        specialist_services = SpecialistService.objects.filter(specialist_id__in=specialists)
+        specialist_services = SpecialistService.objects.filter(
+            specialist_id__in=specialists
+        )
 
         capability_map = {}
         for ss in specialist_services:
@@ -415,7 +423,9 @@ class QueueOptimizer:
                 continue
 
             # Select specialist with lowest current load
-            selected_specialist = min(eligible_specialists, key=lambda s: specialist_load[s])
+            selected_specialist = min(
+                eligible_specialists, key=lambda s: specialist_load[s]
+            )
 
             # Add this ticket to selected specialist's assignments
             assignments[selected_specialist].append(str(ticket.id))
@@ -430,7 +440,9 @@ class QueueOptimizer:
 
         return assignments
 
-    def suggest_queue_balancing(self, shop_id: str) -> List[Dict[str, Union[str, int, float]]]:
+    def suggest_queue_balancing(
+        self, shop_id: str
+    ) -> List[Dict[str, Union[str, int, float]]]:
         """
         Suggest queue balancing actions to optimize wait times across multiple queues.
 
@@ -484,14 +496,18 @@ class QueueOptimizer:
             # Compare to queues with lower wait times
             for j in range(len(queue_states) - 1, i, -1):
                 # Skip equally loaded queues
-                wait_diff = queue_states[i]["avg_wait_time"] - queue_states[j]["avg_wait_time"]
+                wait_diff = (
+                    queue_states[i]["avg_wait_time"] - queue_states[j]["avg_wait_time"]
+                )
                 if wait_diff < 5:  # Less than 5 minutes difference is acceptable
                     continue
 
                 # Calculate how many tickets to move for better balance
                 tickets_to_move = min(
                     queue_states[i]["waiting_count"] // 3,  # Move up to 1/3 of tickets
-                    max(1, int(wait_diff / 5)),  # At least 1, more for bigger differences
+                    max(
+                        1, int(wait_diff / 5)
+                    ),  # At least 1, more for bigger differences
                 )
 
                 if tickets_to_move >= 1:
@@ -541,7 +557,9 @@ class QueueOptimizer:
         wait_times = []
         for pos, ticket in enumerate(waiting_tickets, 1):
             wait_times.append(
-                self.estimate_wait_time(queue_id, pos, ticket.service_id, ticket.specialist_id)
+                self.estimate_wait_time(
+                    queue_id, pos, ticket.service_id, ticket.specialist_id
+                )
             )
 
         # Return average wait time

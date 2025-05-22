@@ -28,7 +28,9 @@ class HasCompanyPermission(permissions.BasePermission):
         self.action = action
 
     def has_permission(self, request, view):
-        return PermissionResolver.has_permission(request.user, self.resource, self.action)
+        return PermissionResolver.has_permission(
+            request.user, self.resource, self.action
+        )
 
 
 class IsAdminOrCompanyOwner(permissions.BasePermission):

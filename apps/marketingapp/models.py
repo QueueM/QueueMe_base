@@ -77,11 +77,15 @@ class Campaign(models.Model):
     company = models.ForeignKey(
         "companiesapp.Company", on_delete=models.CASCADE, related_name="campaigns"
     )
-    shop = models.ForeignKey("shopapp.Shop", on_delete=models.CASCADE, related_name="campaigns")
+    shop = models.ForeignKey(
+        "shopapp.Shop", on_delete=models.CASCADE, related_name="campaigns"
+    )
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     budget = models.DecimalField(max_digits=10, decimal_places=2)  # In SAR
-    budget_spent = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # In SAR
+    budget_spent = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )  # In SAR
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -121,7 +125,9 @@ class Advertisement(models.Model):
     )
 
     # Content type
-    ad_type = models.CharField(max_length=20, choices=AdType.choices, default=AdType.IMAGE)
+    ad_type = models.CharField(
+        max_length=20, choices=AdType.choices, default=AdType.IMAGE
+    )
     image = models.ImageField(upload_to="ads/images/", null=True, blank=True)
     video = models.FileField(upload_to="ads/videos/", null=True, blank=True)
 
@@ -129,29 +135,43 @@ class Advertisement(models.Model):
     targeting_type = models.CharField(
         max_length=20, choices=TargetingType.choices, default=TargetingType.ALL
     )
-    target_cities = models.ManyToManyField("geoapp.City", related_name="targeted_ads", blank=True)
+    target_cities = models.ManyToManyField(
+        "geoapp.City", related_name="targeted_ads", blank=True
+    )
     target_categories = models.ManyToManyField(
         "categoriesapp.Category", related_name="targeted_ads", blank=True
     )
 
     # Linked resources (can link to shop, service, or specialist)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True
+    )
     object_id = models.UUIDField(null=True, blank=True)
     linked_object = GenericForeignKey("content_type", "object_id")
 
     # Financial
-    cost_per_view = models.DecimalField(max_digits=6, decimal_places=2, default=0.10)  # In SAR
-    cost_per_click = models.DecimalField(max_digits=6, decimal_places=2, default=1.00)  # In SAR
+    cost_per_view = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0.10
+    )  # In SAR
+    cost_per_click = models.DecimalField(
+        max_digits=6, decimal_places=2, default=1.00
+    )  # In SAR
 
     # Status and billing
-    status = models.CharField(max_length=20, choices=AdStatus.choices, default=AdStatus.DRAFT)
+    status = models.CharField(
+        max_length=20, choices=AdStatus.choices, default=AdStatus.DRAFT
+    )
     payment_date = models.DateTimeField(null=True, blank=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Total amount paid
+    amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )  # Total amount paid
 
     # Metrics
     impression_count = models.PositiveIntegerField(default=0)
     click_count = models.PositiveIntegerField(default=0)
-    conversion_count = models.PositiveIntegerField(default=0)  # Tracked bookings from ad
+    conversion_count = models.PositiveIntegerField(
+        default=0
+    )  # Tracked bookings from ad
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -218,7 +238,9 @@ class AdView(models.Model):
     )
 
     def __str__(self):
-        return f"View of {self.ad.title if self.ad else 'unknown ad'} at {self.viewed_at}"
+        return (
+            f"View of {self.ad.title if self.ad else 'unknown ad'} at {self.viewed_at}"
+        )
 
     def save(self, *args, **kwargs):
         # Ensure advertisement field matches ad field
@@ -259,7 +281,9 @@ class AdClick(models.Model):
     )
     referrer = models.URLField(max_length=500, null=True, blank=True)
     led_to_booking = models.BooleanField(default=False)
-    conversion_value = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    conversion_value = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00
+    )
 
     def __str__(self):
         return f"Click on {self.ad.title if self.ad else 'unknown ad'} at {self.clicked_at}"

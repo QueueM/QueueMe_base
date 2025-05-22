@@ -47,7 +47,9 @@ class AuthMiddleware(MiddlewareMixin):
         auth_header = request.headers.get("Authorization", "")
 
         if not auth_header.startswith("Bearer "):
-            return JsonResponse({"detail": "Authentication credentials not provided."}, status=401)
+            return JsonResponse(
+                {"detail": "Authentication credentials not provided."}, status=401
+            )
 
         token = auth_header.split(" ")[1]
 

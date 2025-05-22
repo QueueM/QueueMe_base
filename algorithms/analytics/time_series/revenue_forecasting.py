@@ -7,17 +7,15 @@ ML-based algorithms for forecasting revenue with various models:
 - Deep learning models for complex pattern recognition
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-import numpy as np
 import pandas as pd
-from django.db.models import Avg, Sum
+from django.db.models import Sum
 from django.db.models.functions import TruncDate, TruncMonth, TruncWeek
 from django.utils import timezone
 from sklearn.ensemble import RandomForestRegressor
 from statsmodels.tsa.arima.model import ARIMA
 
-from apps.bookingapp.models import Booking
 from apps.payment.models import Transaction
 
 
@@ -55,7 +53,9 @@ class RevenueForecaster:
 
         # Base query
         query = Transaction.objects.filter(
-            created_at__date__gte=start_date, created_at__date__lte=end_date, status="completed"
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+            status="completed",
         )
 
         # Filter by shop if specified
@@ -73,7 +73,9 @@ class RevenueForecaster:
             raise ValueError(f"Unsupported granularity: {granularity}")
 
         # Group by period and sum amounts
-        revenue_data = query.values("period").annotate(revenue=Sum("amount")).order_by("period")
+        revenue_data = (
+            query.values("period").annotate(revenue=Sum("amount")).order_by("period")
+        )
 
         # Convert to DataFrame
         df = pd.DataFrame(list(revenue_data))
@@ -132,14 +134,20 @@ class RevenueForecaster:
 
         # Add rolling statistics
         for window in [3, 7, 14]:
-            df[f"revenue_rolling_mean_{window}"] = df["revenue"].rolling(window=window).mean()
-            df[f"revenue_rolling_std_{window}"] = df["revenue"].rolling(window=window).std()
+            df[f"revenue_rolling_mean_{window}"] = (
+                df["revenue"].rolling(window=window).mean()
+            )
+            df[f"revenue_rolling_std_{window}"] = (
+                df["revenue"].rolling(window=window).std()
+            )
 
         # Drop rows with NaN due to lag/rolling features
         df = df.dropna()
 
         if len(df) < 30:
-            raise ValueError("Insufficient data for ML model training after feature engineering")
+            raise ValueError(
+                "Insufficient data for ML model training after feature engineering"
+            )
 
         # Define features and target
         feature_cols = [col for col in df.columns if col not in ["period", "revenue"]]
@@ -197,10 +205,14 @@ class RevenueForecaster:
                 )
 
             # Combine into DataFrame
-            result = pd.DataFrame({"date": future_dates, "forecasted_revenue": forecast.values})
+            result = pd.DataFrame(
+                {"date": future_dates, "forecasted_revenue": forecast.values}
+            )
 
             # Ensure revenues are not negative
-            result["forecasted_revenue"] = result["forecasted_revenue"].apply(lambda x: max(0, x))
+            result["forecasted_revenue"] = result["forecasted_revenue"].apply(
+                lambda x: max(0, x)
+            )
 
             return result
 
@@ -257,10 +269,14 @@ class RevenueForecaster:
             predictions = self.model.predict(X_future)
 
             # Create result DataFrame
-            result = pd.DataFrame({"date": future_dates, "forecasted_revenue": predictions})
+            result = pd.DataFrame(
+                {"date": future_dates, "forecasted_revenue": predictions}
+            )
 
             # Ensure revenues are not negative
-            result["forecasted_revenue"] = result["forecasted_revenue"].apply(lambda x: max(0, x))
+            result["forecasted_revenue"] = result["forecasted_revenue"].apply(
+                lambda x: max(0, x)
+            )
 
             return result
 
@@ -381,9 +397,15 @@ def analyze_revenue_seasonality(historical_data):
 
     dow_patterns = {}
     for day, avg in dow_means.items():
-        day_name = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][
-            day
-        ]
+        day_name = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ][day]
         relative_strength = (avg / overall_mean) if overall_mean else 0
         dow_patterns[day_name] = {
             "average_revenue": round(avg, 2),
@@ -417,7 +439,9 @@ def analyze_revenue_seasonality(historical_data):
 
     # Identify peak periods
     strongest_dow = max(dow_patterns.items(), key=lambda x: x[1]["relative_strength"])
-    strongest_month = max(month_patterns.items(), key=lambda x: x[1]["relative_strength"])
+    strongest_month = max(
+        month_patterns.items(), key=lambda x: x[1]["relative_strength"]
+    )
 
     return {
         "day_of_week_patterns": dow_patterns,

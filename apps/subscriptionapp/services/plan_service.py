@@ -1,7 +1,10 @@
 # apps/subscriptionapp/services/plan_service.py
 import logging
 
-from apps.subscriptionapp.constants import FEATURE_CATEGORY_CHOICES, SUBSCRIPTION_PERIOD_CHOICES
+from apps.subscriptionapp.constants import (
+    FEATURE_CATEGORY_CHOICES,
+    SUBSCRIPTION_PERIOD_CHOICES,
+)
 from apps.subscriptionapp.models import Plan, PlanFeature
 
 logger = logging.getLogger(__name__)

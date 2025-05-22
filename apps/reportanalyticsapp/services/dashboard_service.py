@@ -50,8 +50,12 @@ class DashboardService:
 
         # Get current date for filtering
         now = timezone.now()
-        today_start = timezone.make_aware(datetime.combine(now.date(), datetime.min.time()))
-        today_end = timezone.make_aware(datetime.combine(now.date(), datetime.max.time()))
+        today_start = timezone.make_aware(
+            datetime.combine(now.date(), datetime.min.time())
+        )
+        today_end = timezone.make_aware(
+            datetime.combine(now.date(), datetime.max.time())
+        )
 
         # Get week and month date ranges
         week_start = today_start - timedelta(days=now.weekday())
@@ -59,12 +63,16 @@ class DashboardService:
 
         month_start = today_start.replace(day=1)
         if month_start.month == 12:
-            month_end = month_start.replace(year=month_start.year + 1, month=1, day=1) - timedelta(
-                days=1
-            )
+            month_end = month_start.replace(
+                year=month_start.year + 1, month=1, day=1
+            ) - timedelta(days=1)
         else:
-            month_end = month_start.replace(month=month_start.month + 1, day=1) - timedelta(days=1)
-        month_end = timezone.make_aware(datetime.combine(month_end, datetime.max.time()))
+            month_end = month_start.replace(
+                month=month_start.month + 1, day=1
+            ) - timedelta(days=1)
+        month_end = timezone.make_aware(
+            datetime.combine(month_end, datetime.max.time())
+        )
 
         # Dashboard sections:
         # 1. Overview cards with key metrics
@@ -79,13 +87,17 @@ class DashboardService:
         )
 
         # 2. Today's schedule
-        todays_schedule = DashboardService._get_todays_schedule(shop_id, today_start, today_end)
+        todays_schedule = DashboardService._get_todays_schedule(
+            shop_id, today_start, today_end
+        )
 
         # 3. Live queue status
         queue_status = DashboardService._get_queue_status(shop_id)
 
         # 4. Revenue chart (weekly)
-        revenue_chart = DashboardService._get_revenue_chart(shop_id, week_start, week_end)
+        revenue_chart = DashboardService._get_revenue_chart(
+            shop_id, week_start, week_end
+        )
 
         # 5. Appointment statistics by day of week
         appointment_stats = DashboardService._get_appointment_stats_by_day(
@@ -143,8 +155,12 @@ class DashboardService:
 
         # Get current date for filtering
         now = timezone.now()
-        today_start = timezone.make_aware(datetime.combine(now.date(), datetime.min.time()))
-        today_end = timezone.make_aware(datetime.combine(now.date(), datetime.max.time()))
+        today_start = timezone.make_aware(
+            datetime.combine(now.date(), datetime.min.time())
+        )
+        today_end = timezone.make_aware(
+            datetime.combine(now.date(), datetime.max.time())
+        )
 
         # Get week and month date ranges
         week_start = today_start - timedelta(days=now.weekday())
@@ -152,12 +168,16 @@ class DashboardService:
 
         month_start = today_start.replace(day=1)
         if month_start.month == 12:
-            month_end = month_start.replace(year=month_start.year + 1, month=1, day=1) - timedelta(
-                days=1
-            )
+            month_end = month_start.replace(
+                year=month_start.year + 1, month=1, day=1
+            ) - timedelta(days=1)
         else:
-            month_end = month_start.replace(month=month_start.month + 1, day=1) - timedelta(days=1)
-        month_end = timezone.make_aware(datetime.combine(month_end, datetime.max.time()))
+            month_end = month_start.replace(
+                month=month_start.month + 1, day=1
+            ) - timedelta(days=1)
+        month_end = timezone.make_aware(
+            datetime.combine(month_end, datetime.max.time())
+        )
 
         # Dashboard sections:
         # 1. Overview cards with key metrics
@@ -187,7 +207,9 @@ class DashboardService:
         )
 
         # 5. Recent reviews
-        recent_reviews = DashboardService._get_specialist_reviews(specialist_id, limit=5)
+        recent_reviews = DashboardService._get_specialist_reviews(
+            specialist_id, limit=5
+        )
 
         # 6. Performance comparison with other specialists
         performance_comparison = DashboardService._get_specialist_comparison(
@@ -217,8 +239,12 @@ class DashboardService:
         """
         # Get current date for filtering
         now = timezone.now()
-        today_start = timezone.make_aware(datetime.combine(now.date(), datetime.min.time()))
-        today_end = timezone.make_aware(datetime.combine(now.date(), datetime.max.time()))
+        today_start = timezone.make_aware(
+            datetime.combine(now.date(), datetime.min.time())
+        )
+        today_end = timezone.make_aware(
+            datetime.combine(now.date(), datetime.max.time())
+        )
 
         # Get week and month date ranges
         week_start = today_start - timedelta(days=now.weekday())
@@ -226,12 +252,16 @@ class DashboardService:
 
         month_start = today_start.replace(day=1)
         if month_start.month == 12:
-            month_end = month_start.replace(year=month_start.year + 1, month=1, day=1) - timedelta(
-                days=1
-            )
+            month_end = month_start.replace(
+                year=month_start.year + 1, month=1, day=1
+            ) - timedelta(days=1)
         else:
-            month_end = month_start.replace(month=month_start.month + 1, day=1) - timedelta(days=1)
-        month_end = timezone.make_aware(datetime.combine(month_end, datetime.max.time()))
+            month_end = month_start.replace(
+                month=month_start.month + 1, day=1
+            ) - timedelta(days=1)
+        month_end = timezone.make_aware(
+            datetime.combine(month_end, datetime.max.time())
+        )
 
         # Dashboard sections:
         # 1. Platform overview
@@ -250,13 +280,17 @@ class DashboardService:
         )
 
         # 4. Revenue breakdown
-        revenue_breakdown = DashboardService._get_revenue_breakdown(month_start, month_end)
+        revenue_breakdown = DashboardService._get_revenue_breakdown(
+            month_start, month_end
+        )
 
         # 5. Top performing shops
         top_shops = DashboardService._get_top_performing_shops(month_start, month_end)
 
         # 6. Popular categories
-        popular_categories = DashboardService._get_popular_categories(month_start, month_end)
+        popular_categories = DashboardService._get_popular_categories(
+            month_start, month_end
+        )
 
         # 7. System health
         system_health = DashboardService._get_system_health()
@@ -325,7 +359,9 @@ class DashboardService:
                 "upcoming_appointments": upcoming_appointments,
                 "waiting_customers": waiting_customers,
                 "active_specialists": active_specialists,
-                "estimated_wait_time": DashboardService._estimate_average_wait_time(shop_id),
+                "estimated_wait_time": DashboardService._estimate_average_wait_time(
+                    shop_id
+                ),
             }
 
         elif specialist_id:
@@ -366,14 +402,22 @@ class DashboardService:
                 "is_active": specialist.employee.is_active,
                 "current_appointment": (
                     {
-                        "id": (str(active_appointment.id) if active_appointment else None),
+                        "id": (
+                            str(active_appointment.id) if active_appointment else None
+                        ),
                         "service": (
-                            active_appointment.service.name if active_appointment else None
+                            active_appointment.service.name
+                            if active_appointment
+                            else None
                         ),
                         "customer": (
-                            active_appointment.customer.phone_number if active_appointment else None
+                            active_appointment.customer.phone_number
+                            if active_appointment
+                            else None
                         ),
-                        "end_time": (active_appointment.end_time if active_appointment else None),
+                        "end_time": (
+                            active_appointment.end_time if active_appointment else None
+                        ),
                     }
                     if active_appointment
                     else None
@@ -381,8 +425,12 @@ class DashboardService:
                 "next_appointment": (
                     {
                         "id": str(next_appointment.id) if next_appointment else None,
-                        "service": (next_appointment.service.name if next_appointment else None),
-                        "start_time": (next_appointment.start_time if next_appointment else None),
+                        "service": (
+                            next_appointment.service.name if next_appointment else None
+                        ),
+                        "start_time": (
+                            next_appointment.start_time if next_appointment else None
+                        ),
                     }
                     if next_appointment
                     else None
@@ -440,7 +488,9 @@ class DashboardService:
 
         for metric in metrics:
             if metric in available_metrics:
-                result["metrics"][metric] = available_metrics[metric](shop_id, start_date, end_date)
+                result["metrics"][metric] = available_metrics[metric](
+                    shop_id, start_date, end_date
+                )
 
         return result
 
@@ -505,7 +555,9 @@ class DashboardService:
             created_at__lte=week_end,
         )
 
-        avg_rating = recent_reviews.aggregate(avg_rating=Avg("rating"))["avg_rating"] or 0
+        avg_rating = (
+            recent_reviews.aggregate(avg_rating=Avg("rating"))["avg_rating"] or 0
+        )
 
         return {
             "today_appointments": today_appointment_count,
@@ -555,9 +607,9 @@ class DashboardService:
 
         for queue in queues:
             # Get waiting tickets
-            waiting_tickets = QueueTicket.objects.filter(queue=queue, status="waiting").order_by(
-                "position"
-            )
+            waiting_tickets = QueueTicket.objects.filter(
+                queue=queue, status="waiting"
+            ).order_by("position")
 
             # Get currently serving tickets
             serving_tickets = QueueTicket.objects.filter(
@@ -583,7 +635,9 @@ class DashboardService:
                     "ticket_id": str(next_ticket.id),
                     "ticket_number": next_ticket.ticket_number,
                     "customer_name": next_ticket.customer.phone_number,  # Using phone as fallback
-                    "wait_time_minutes": (timezone.now() - next_ticket.join_time).total_seconds()
+                    "wait_time_minutes": (
+                        timezone.now() - next_ticket.join_time
+                    ).total_seconds()
                     / 60,
                     "position": next_ticket.position,
                 }
@@ -616,7 +670,9 @@ class DashboardService:
         count = 0
 
         for ticket in recent_tickets:
-            wait_time = (ticket.serve_time - ticket.join_time).total_seconds() / 60  # in minutes
+            wait_time = (
+                ticket.serve_time - ticket.join_time
+            ).total_seconds() / 60  # in minutes
             total_wait_time += wait_time
             count += 1
 
@@ -673,7 +729,9 @@ class DashboardService:
         # Format for chart
         chart_data = {
             "labels": list(revenue_by_day.keys()),
-            "datasets": [{"label": "Revenue (SAR)", "data": list(revenue_by_day.values())}],
+            "datasets": [
+                {"label": "Revenue (SAR)", "data": list(revenue_by_day.values())}
+            ],
         }
 
         return chart_data
@@ -794,7 +852,9 @@ class DashboardService:
     def _get_specialist_performance(shop_id, start_date, end_date):
         """Get specialist performance metrics"""
         # Get specialists
-        specialists = Specialist.objects.filter(employee__shop_id=shop_id, employee__is_active=True)
+        specialists = Specialist.objects.filter(
+            employee__shop_id=shop_id, employee__is_active=True
+        )
 
         result = []
 
@@ -849,19 +909,23 @@ class DashboardService:
     def _get_recent_reviews(shop_id, limit=5):
         """Get recent reviews for a shop"""
         # Get shop reviews
-        shop_reviews = Review.objects.filter(content_type__model="shop", object_id=shop_id)
+        shop_reviews = Review.objects.filter(
+            content_type__model="shop", object_id=shop_id
+        )
 
         # Get specialist reviews for the shop
-        specialist_ids = Specialist.objects.filter(employee__shop_id=shop_id).values_list(
-            "id", flat=True
-        )
+        specialist_ids = Specialist.objects.filter(
+            employee__shop_id=shop_id
+        ).values_list("id", flat=True)
 
         specialist_reviews = Review.objects.filter(
             content_type__model="specialist", object_id__in=specialist_ids
         )
 
         # Get service reviews for the shop
-        service_ids = Service.objects.filter(shop_id=shop_id).values_list("id", flat=True)
+        service_ids = Service.objects.filter(shop_id=shop_id).values_list(
+            "id", flat=True
+        )
 
         service_reviews = Review.objects.filter(
             content_type__model="service", object_id__in=service_ids
@@ -888,9 +952,7 @@ class DashboardService:
             elif target_type == "specialist":
                 try:
                     specialist = Specialist.objects.get(id=review.object_id)
-                    target_name = (
-                        f"{specialist.employee.first_name} {specialist.employee.last_name}"
-                    )
+                    target_name = f"{specialist.employee.first_name} {specialist.employee.last_name}"
                 except Specialist.DoesNotExist:
                     pass
             elif target_type == "service":
@@ -920,7 +982,9 @@ class DashboardService:
         alerts = []
 
         # Check for appointment anomalies
-        appointment_anomalies = AnomalyDetector.detect_anomalies(shop_id, "appointment_count")
+        appointment_anomalies = AnomalyDetector.detect_anomalies(
+            shop_id, "appointment_count"
+        )
 
         if (
             "anomalies" in appointment_anomalies
@@ -937,7 +1001,9 @@ class DashboardService:
                     )
 
         # Check for cancellation anomalies
-        cancellation_anomalies = AnomalyDetector.detect_anomalies(shop_id, "cancellation_rate")
+        cancellation_anomalies = AnomalyDetector.detect_anomalies(
+            shop_id, "cancellation_rate"
+        )
 
         if (
             "anomalies" in cancellation_anomalies
@@ -973,7 +1039,10 @@ class DashboardService:
         # Check for low ratings
         rating_anomalies = AnomalyDetector.detect_anomalies(shop_id, "ratings")
 
-        if "anomalies" in rating_anomalies and len(rating_anomalies["anomalies"]["combined"]) > 0:
+        if (
+            "anomalies" in rating_anomalies
+            and len(rating_anomalies["anomalies"]["combined"]) > 0
+        ):
             for anomaly in rating_anomalies["anomalies"]["combined"]:
                 if anomaly["direction"] == "low":
                     alerts.append(
@@ -997,7 +1066,9 @@ class DashboardService:
                     start_time__gte=week_start - timedelta(days=28),  # Last 4 weeks
                     start_time__lte=week_end,
                 )
-                .annotate(hour=TruncHour("start_time"), weekday=Extract("start_time", "dow"))
+                .annotate(
+                    hour=TruncHour("start_time"), weekday=Extract("start_time", "dow")
+                )
                 .values("hour", "weekday")
                 .annotate(count=Count("id"))
                 .order_by("weekday", "hour")
@@ -1085,7 +1156,9 @@ class DashboardService:
 
         # Calculate completion rate
         completion_rate = (
-            (completed_week / week_appointment_count * 100) if week_appointment_count > 0 else 0
+            (completed_week / week_appointment_count * 100)
+            if week_appointment_count > 0
+            else 0
         )
 
         # Recent ratings
@@ -1096,7 +1169,9 @@ class DashboardService:
             created_at__lte=week_end,
         )
 
-        avg_rating = recent_reviews.aggregate(avg_rating=Avg("rating"))["avg_rating"] or 0
+        avg_rating = (
+            recent_reviews.aggregate(avg_rating=Avg("rating"))["avg_rating"] or 0
+        )
 
         return {
             "today_appointments": today_appointment_count,
@@ -1174,7 +1249,11 @@ class DashboardService:
 
             # Find stats for this day
             day_stats = next(
-                (stats for stats in appointments if stats["day"].strftime("%Y-%m-%d") == day_key),
+                (
+                    stats
+                    for stats in appointments
+                    if stats["day"].strftime("%Y-%m-%d") == day_key
+                ),
                 None,
             )
 
@@ -1303,7 +1382,9 @@ class DashboardService:
             shop_avg_bookings += other_bookings
 
         shop_avg_bookings = (
-            shop_avg_bookings / shop_specialists.count() if shop_specialists.count() > 0 else 0
+            shop_avg_bookings / shop_specialists.count()
+            if shop_specialists.count() > 0
+            else 0
         )
 
         comparison["booking_count"] = {
@@ -1322,7 +1403,9 @@ class DashboardService:
 
         specialist_completion_rate = 0
         if specialist_appointments.count() > 0:
-            specialist_completed = specialist_appointments.filter(status="completed").count()
+            specialist_completed = specialist_appointments.filter(
+                status="completed"
+            ).count()
             specialist_completion_rate = (
                 specialist_completed / specialist_appointments.count()
             ) * 100
@@ -1341,13 +1424,17 @@ class DashboardService:
                 shop_completion_rates.append(other_rate)
 
         shop_avg_completion_rate = (
-            sum(shop_completion_rates) / len(shop_completion_rates) if shop_completion_rates else 0
+            sum(shop_completion_rates) / len(shop_completion_rates)
+            if shop_completion_rates
+            else 0
         )
 
         comparison["completion_rate"] = {
             "specialist_value": round(specialist_completion_rate, 2),
             "shop_average": round(shop_avg_completion_rate, 2),
-            "difference": round(specialist_completion_rate - shop_avg_completion_rate, 2),
+            "difference": round(
+                specialist_completion_rate - shop_avg_completion_rate, 2
+            ),
             "is_better": specialist_completion_rate > shop_avg_completion_rate,
         }
 
@@ -1372,7 +1459,9 @@ class DashboardService:
                 created_at__lte=end_date,
             )
 
-            other_rating = other_reviews.aggregate(avg_rating=Avg("rating"))["avg_rating"] or 0
+            other_rating = (
+                other_reviews.aggregate(avg_rating=Avg("rating"))["avg_rating"] or 0
+            )
             if other_rating > 0:
                 shop_ratings.append(other_rating)
 
@@ -1588,15 +1677,21 @@ class DashboardService:
             "breakdown": {
                 "subscription": round(subscription_revenue, 2),
                 "subscription_percent": (
-                    round(subscription_revenue / total_revenue * 100, 2) if total_revenue > 0 else 0
+                    round(subscription_revenue / total_revenue * 100, 2)
+                    if total_revenue > 0
+                    else 0
                 ),
                 "ads": round(ad_revenue, 2),
                 "ads_percent": (
-                    round(ad_revenue / total_revenue * 100, 2) if total_revenue > 0 else 0
+                    round(ad_revenue / total_revenue * 100, 2)
+                    if total_revenue > 0
+                    else 0
                 ),
                 "merchant": round(merchant_revenue, 2),
                 "merchant_percent": (
-                    round(merchant_revenue / total_revenue * 100, 2) if total_revenue > 0 else 0
+                    round(merchant_revenue / total_revenue * 100, 2)
+                    if total_revenue > 0
+                    else 0
                 ),
             },
         }
@@ -1647,9 +1742,13 @@ class DashboardService:
             )
 
         # Sort by different metrics
-        by_bookings = sorted(shop_metrics, key=lambda x: x["booking_count"], reverse=True)[:5]
+        by_bookings = sorted(
+            shop_metrics, key=lambda x: x["booking_count"], reverse=True
+        )[:5]
         by_revenue = sorted(shop_metrics, key=lambda x: x["revenue"], reverse=True)[:5]
-        by_rating = sorted(shop_metrics, key=lambda x: x["avg_rating"], reverse=True)[:5]
+        by_rating = sorted(shop_metrics, key=lambda x: x["avg_rating"], reverse=True)[
+            :5
+        ]
 
         return {
             "by_bookings": by_bookings,
@@ -1665,7 +1764,9 @@ class DashboardService:
         from apps.serviceapp.models import Service
 
         # Get all categories
-        categories = Category.objects.filter(parent__isnull=False)  # Child categories only
+        categories = Category.objects.filter(
+            parent__isnull=False
+        )  # Child categories only
 
         category_metrics = []
 
@@ -1797,8 +1898,7 @@ class DashboardService:
     def _get_comparison_metrics(shop_id, start_date, end_date):
         """Get comparison metrics for custom dashboard"""
         # Get prior period
-        period_length = (end_date - start_date).days
-        prior_end = start_date
+        (end_date - start_date).days
         # unused_unused_prior_start = prior_end - timedelta(days=period_length)
 
         return AnalyticsService.get_comparison_metrics(shop_id, "previous")

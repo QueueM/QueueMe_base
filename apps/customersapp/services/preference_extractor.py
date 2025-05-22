@@ -34,7 +34,9 @@ class PreferenceExtractor:
 
     @staticmethod
     @transaction.atomic
-    def update_from_content_interaction(customer, content_type, content_id, interaction_type):
+    def update_from_content_interaction(
+        customer, content_type, content_id, interaction_type
+    ):
         """
         Update customer preferences based on content interactions (views, likes, etc.)
 
@@ -115,7 +117,9 @@ class PreferenceExtractor:
         # Also update parent category with lower weight
         if category.parent:
             parent_category = category.parent
-            PreferenceExtractor._update_category_affinity(customer, parent_category, weight * 0.3)
+            PreferenceExtractor._update_category_affinity(
+                customer, parent_category, weight * 0.3
+            )
 
     @staticmethod
     def _find_related_categories(customer, category):

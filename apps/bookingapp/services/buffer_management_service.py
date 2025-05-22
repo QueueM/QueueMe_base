@@ -13,14 +13,12 @@ Key features:
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-from django.db.models import Avg, Max, Min, Q
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
 from apps.serviceapp.models import Service
-from apps.specialistsapp.models import Specialist
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +73,9 @@ class BufferManagementService:
                 if previous:
                     previous_service = previous.service
                     previous_end = previous.end_time
-                    previous_buffer = previous_service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                    previous_buffer = (
+                        previous_service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                    )
 
                     # Calculate time between appointments
                     gap = (start_time - previous_end).total_seconds() / 60
@@ -276,8 +276,12 @@ class BufferManagementService:
                     current_service = appt.service
 
                     # Required buffers
-                    previous_buffer_after = previous_service.buffer_after or cls.DEFAULT_MIN_BUFFER
-                    current_buffer_before = current_service.buffer_before or cls.DEFAULT_MIN_BUFFER
+                    previous_buffer_after = (
+                        previous_service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                    )
+                    current_buffer_before = (
+                        current_service.buffer_before or cls.DEFAULT_MIN_BUFFER
+                    )
                     required_buffer = max(previous_buffer_after, current_buffer_before)
 
                     # Actual buffer time in minutes
@@ -340,11 +344,17 @@ class BufferManagementService:
             # Check buffer before
             if previous:
                 previous_end = previous.end_time
-                previous_buffer = previous.service.buffer_after or cls.DEFAULT_MIN_BUFFER
-                current_buffer = appointment.service.buffer_before or cls.DEFAULT_MIN_BUFFER
+                previous_buffer = (
+                    previous.service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                )
+                current_buffer = (
+                    appointment.service.buffer_before or cls.DEFAULT_MIN_BUFFER
+                )
                 required_buffer = max(previous_buffer, current_buffer)
 
-                actual_buffer = (appointment.start_time - previous_end).total_seconds() / 60
+                actual_buffer = (
+                    appointment.start_time - previous_end
+                ).total_seconds() / 60
 
                 if actual_buffer < required_buffer:
                     buffer_before_conflict = True
@@ -353,11 +363,15 @@ class BufferManagementService:
             # Check buffer after
             if next_appt:
                 current_end = appointment.end_time
-                current_buffer = appointment.service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                current_buffer = (
+                    appointment.service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                )
                 next_buffer = next_appt.service.buffer_before or cls.DEFAULT_MIN_BUFFER
                 required_buffer = max(current_buffer, next_buffer)
 
-                actual_buffer = (next_appt.start_time - current_end).total_seconds() / 60
+                actual_buffer = (
+                    next_appt.start_time - current_end
+                ).total_seconds() / 60
 
                 if actual_buffer < required_buffer:
                     buffer_after_conflict = True
@@ -391,19 +405,26 @@ class BufferManagementService:
                 # Delay the appointment start time to resolve buffer_before conflict
                 if buffer_before_conflict and previous:
                     previous_end = previous.end_time
-                    previous_buffer = previous.service.buffer_after or cls.DEFAULT_MIN_BUFFER
-                    current_buffer = appointment.service.buffer_before or cls.DEFAULT_MIN_BUFFER
+                    previous_buffer = (
+                        previous.service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                    )
+                    current_buffer = (
+                        appointment.service.buffer_before or cls.DEFAULT_MIN_BUFFER
+                    )
                     required_buffer = max(previous_buffer, current_buffer)
 
                     new_start_time = previous_end + timedelta(minutes=required_buffer)
-                    new_end_time = new_start_time + timedelta(minutes=appointment.service.duration)
+                    new_end_time = new_start_time + timedelta(
+                        minutes=appointment.service.duration
+                    )
 
                     # Check if this creates a conflict with the next appointment
                     if (
                         next_appt
                         and new_end_time
                         + timedelta(
-                            minutes=appointment.service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                            minutes=appointment.service.buffer_after
+                            or cls.DEFAULT_MIN_BUFFER
                         )
                         > next_appt.start_time
                     ):
@@ -451,8 +472,12 @@ class BufferManagementService:
                 if buffer_after_conflict and next_appt:
                     current_service = appointment.service
                     next_start = next_appt.start_time
-                    current_buffer = current_service.buffer_after or cls.DEFAULT_MIN_BUFFER
-                    next_buffer = next_appt.service.buffer_before or cls.DEFAULT_MIN_BUFFER
+                    current_buffer = (
+                        current_service.buffer_after or cls.DEFAULT_MIN_BUFFER
+                    )
+                    next_buffer = (
+                        next_appt.service.buffer_before or cls.DEFAULT_MIN_BUFFER
+                    )
                     required_buffer = max(current_buffer, next_buffer)
 
                     new_end_time = next_start - timedelta(minutes=required_buffer)
@@ -581,8 +606,12 @@ class BufferManagementService:
             service = Service.objects.get(id=service_id)
 
             # Default values
-            avg_before = service.buffer_before or BufferManagementService.DEFAULT_MIN_BUFFER
-            avg_after = service.buffer_after or BufferManagementService.DEFAULT_MIN_BUFFER
+            avg_before = (
+                service.buffer_before or BufferManagementService.DEFAULT_MIN_BUFFER
+            )
+            avg_after = (
+                service.buffer_after or BufferManagementService.DEFAULT_MIN_BUFFER
+            )
 
             # Attempt to calculate from actual appointments
             appointments = Appointment.objects.filter(
@@ -609,7 +638,9 @@ class BufferManagementService:
 
                 if previous_appt:
                     # Calculate actual buffer time between appointments
-                    actual_buffer = (appt.start_time - previous_appt.end_time).total_seconds() / 60
+                    actual_buffer = (
+                        appt.start_time - previous_appt.end_time
+                    ).total_seconds() / 60
 
                     # Only consider reasonable buffer times (1-60 minutes)
                     if 1 <= actual_buffer <= 60:
@@ -676,7 +707,9 @@ class BufferManagementService:
                 f"Buffer before: {suggested_before} minutes recommended for {' and '.join(before_parts)}"
             )
         else:
-            parts.append(f"Buffer before: {suggested_before} minutes (minimal transition)")
+            parts.append(
+                f"Buffer before: {suggested_before} minutes (minimal transition)"
+            )
 
         # Buffer after explanation
         after_parts = []
@@ -692,6 +725,8 @@ class BufferManagementService:
                 f"Buffer after: {suggested_after} minutes recommended for {' and '.join(after_parts)}"
             )
         else:
-            parts.append(f"Buffer after: {suggested_after} minutes (minimal transition)")
+            parts.append(
+                f"Buffer after: {suggested_after} minutes (minimal transition)"
+            )
 
         return ". ".join(parts) + "."

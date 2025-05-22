@@ -5,12 +5,10 @@ Review validation service with enhanced spam detection and content moderation.
 import logging
 import re
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.reviewapp.models import Review
@@ -73,18 +71,24 @@ class ReviewValidator:
         if len(title) > 100:
             raise ValidationError(_("Title must be at most 100 characters"))
         if len(content) < cls.MIN_REVIEW_LENGTH:
-            raise ValidationError(_(f"Content must be at least {cls.MIN_REVIEW_LENGTH} characters"))
+            raise ValidationError(
+                _(f"Content must be at least {cls.MIN_REVIEW_LENGTH} characters")
+            )
         if len(content) > cls.MAX_REVIEW_LENGTH:
-            raise ValidationError(_(f"Content must be at most {cls.MAX_REVIEW_LENGTH} characters"))
+            raise ValidationError(
+                _(f"Content must be at most {cls.MAX_REVIEW_LENGTH} characters")
+            )
 
         # Check for spam patterns
         if cls._contains_spam_patterns(title) or cls._contains_spam_patterns(content):
-            raise ValidationError(_("Review appears to be spam. Please write a genuine review."))
+            raise ValidationError(
+                _("Review appears to be spam. Please write a genuine review.")
+            )
 
         # Check for inappropriate content
-        if cls._contains_inappropriate_content(title) or cls._contains_inappropriate_content(
-            content
-        ):
+        if cls._contains_inappropriate_content(
+            title
+        ) or cls._contains_inappropriate_content(content):
             raise ValidationError(_("Review contains inappropriate content."))
 
         # Check for duplicate content
@@ -107,7 +111,9 @@ class ReviewValidator:
 
         # Check number of files
         if len(files) > cls.MAX_MEDIA_FILES:
-            raise ValidationError(_("Maximum {} media files allowed").format(cls.MAX_MEDIA_FILES))
+            raise ValidationError(
+                _("Maximum {} media files allowed").format(cls.MAX_MEDIA_FILES)
+            )
 
         # Check each file
         for file in files:
@@ -117,13 +123,21 @@ class ReviewValidator:
                 content_type not in cls.ALLOWED_IMAGE_TYPES
                 and content_type not in cls.ALLOWED_VIDEO_TYPES
             ):
-                raise ValidationError(_("File type not allowed: {}").format(content_type))
+                raise ValidationError(
+                    _("File type not allowed: {}").format(content_type)
+                )
 
             # Check file size
-            if content_type in cls.ALLOWED_IMAGE_TYPES and file.size > cls.MAX_IMAGE_SIZE:
+            if (
+                content_type in cls.ALLOWED_IMAGE_TYPES
+                and file.size > cls.MAX_IMAGE_SIZE
+            ):
                 raise ValidationError(_("Image size must be less than 5 MB"))
 
-            if content_type in cls.ALLOWED_VIDEO_TYPES and file.size > cls.MAX_VIDEO_SIZE:
+            if (
+                content_type in cls.ALLOWED_VIDEO_TYPES
+                and file.size > cls.MAX_VIDEO_SIZE
+            ):
                 raise ValidationError(_("Video size must be less than 50 MB"))
 
             # Check for malicious content
@@ -131,7 +145,9 @@ class ReviewValidator:
                 raise ValidationError(_("File appears to be malicious"))
 
     @classmethod
-    def validate_review_eligibility(cls, entity_type: str, entity_id: str, user: Any) -> None:
+    def validate_review_eligibility(
+        cls, entity_type: str, entity_id: str, user: Any
+    ) -> None:
         """
         Validate if user is eligible to review an entity.
 
@@ -148,16 +164,22 @@ class ReviewValidator:
 
         # Check for duplicate reviews
         if cls._has_existing_review(entity_type, entity_id, user):
-            raise ValidationError(_("You have already reviewed this {}").format(entity_type))
+            raise ValidationError(
+                _("You have already reviewed this {}").format(entity_type)
+            )
 
         # Check if user has used the service/shop
         if not cls._has_used_entity(entity_type, entity_id, user):
-            raise ValidationError(_("You must have used this {} to review it").format(entity_type))
+            raise ValidationError(
+                _("You must have used this {} to review it").format(entity_type)
+            )
 
         # Check review frequency limits
         if cls._exceeds_review_limits(user):
             raise ValidationError(
-                _("You have submitted too many reviews recently. Please try again later.")
+                _(
+                    "You have submitted too many reviews recently. Please try again later."
+                )
             )
 
     @classmethod
@@ -244,7 +266,9 @@ class ReviewValidator:
                 is_owner = Company.objects.filter(id=entity_id, owner=user).exists()
 
                 # Check if user is shop manager for this company
-                is_manager = Shop.objects.filter(company_id=entity_id, manager=user).exists()
+                is_manager = Shop.objects.filter(
+                    company_id=entity_id, manager=user
+                ).exists()
 
                 return is_owner or is_manager
             else:

@@ -71,7 +71,9 @@ class SchedulingDomain:
     In scheduling, this is typically the set of possible time slots.
     """
 
-    def __init__(self, variable: SchedulingVariable, available_slots: List[Dict[str, Any]]):
+    def __init__(
+        self, variable: SchedulingVariable, available_slots: List[Dict[str, Any]]
+    ):
         """
         Initialize a scheduling domain.
 
@@ -207,7 +209,9 @@ class ConstraintSolver:
         Returns:
             List of possible schedules, each a list of service assignments
         """
-        logger.info(f"Solving multi-service scheduling for {len(services)} services on {date}")
+        logger.info(
+            f"Solving multi-service scheduling for {len(services)} services on {date}"
+        )
 
         # 1. Create scheduling variables for each service
         variables = []
@@ -387,16 +391,23 @@ class ConstraintSolver:
             # Check for time overlap
             if assignment.overlaps(existing):
                 # Check if they use the same specialist
-                if assignment.specialist_id and assignment.specialist_id == existing.specialist_id:
+                if (
+                    assignment.specialist_id
+                    and assignment.specialist_id == existing.specialist_id
+                ):
                     return False
 
                 # Check if they use any of the same resources
-                if any(resource in existing.resources for resource in assignment.resources):
+                if any(
+                    resource in existing.resources for resource in assignment.resources
+                ):
                     return False
 
         return True
 
-    def _check_dependencies(self, variable: SchedulingVariable, start_time: datetime) -> bool:
+    def _check_dependencies(
+        self, variable: SchedulingVariable, start_time: datetime
+    ) -> bool:
         """
         Check if all dependencies for a variable are satisfied.
 
@@ -581,7 +592,8 @@ class ConstraintSolver:
                 if not tentative.overlaps(assignment) or (
                     # Allow overlap if not using same specialist or resources
                     assignment.specialist_id is None
-                    or assignment.specialist_id not in domain.variable.required_specialist_ids
+                    or assignment.specialist_id
+                    not in domain.variable.required_specialist_ids
                 ):
                     new_domain.append(slot)
 
@@ -656,7 +668,9 @@ class ConstraintSolver:
             specialist_score = len(variable.required_specialist_ids) * 0.3
 
             # Combine scores
-            constraint_score = domain_score + dependency_score + resource_score + specialist_score
+            constraint_score = (
+                domain_score + dependency_score + resource_score + specialist_score
+            )
 
             variable_constraints.append((variable, constraint_score))
 

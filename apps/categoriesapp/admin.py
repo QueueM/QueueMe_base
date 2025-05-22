@@ -115,4 +115,6 @@ class CategoryRelationAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """Optimize query with related prefetching"""
-        return super().get_queryset(request).select_related("from_category", "to_category")
+        return (
+            super().get_queryset(request).select_related("from_category", "to_category")
+        )

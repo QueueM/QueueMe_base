@@ -9,7 +9,7 @@ import hashlib
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict
 
 # Requires libmagic system library (brew install libmagic on macOS, apt-get install libmagic1 on Debian/Ubuntu)
 import magic
@@ -104,7 +104,9 @@ class ContentModerationService:
         normalized_text = text.lower()
 
         # Check cache first
-        cache_key = f"inappropriate_text:{hashlib.sha256(normalized_text.encode()).hexdigest()}"
+        cache_key = (
+            f"inappropriate_text:{hashlib.sha256(normalized_text.encode()).hexdigest()}"
+        )
         cached_result = cache.get(cache_key)
 
         if cached_result is not None:
@@ -129,7 +131,6 @@ class ContentModerationService:
             except Exception as e:
                 logger.error(f"Error checking text with moderation API: {str(e)}")
                 # Fall back to pattern-based checks
-                pass
 
         # Not inappropriate
         cache.set(cache_key, False, cls.TEXT_MODERATION_CACHE_TTL)
@@ -183,12 +184,17 @@ class ContentModerationService:
             # Check file signature
             for signature in cls.MALICIOUS_SIGNATURES:
                 if file_content.startswith(signature):
-                    logger.warning(f"Blocked file with malicious signature: {signature}")
+                    logger.warning(
+                        f"Blocked file with malicious signature: {signature}"
+                    )
                     cache.set(cache_key, True, cls.FILE_HASH_CACHE_TTL)
                     return True
 
             # Check with external virus scanning API if available
-            if hasattr(settings, "VIRUS_SCAN_API_ENABLED") and settings.VIRUS_SCAN_API_ENABLED:
+            if (
+                hasattr(settings, "VIRUS_SCAN_API_ENABLED")
+                and settings.VIRUS_SCAN_API_ENABLED
+            ):
                 try:
                     result = cls._scan_file_with_api(file)
                     cache.set(cache_key, result, cls.FILE_HASH_CACHE_TTL)
@@ -339,7 +345,9 @@ class ContentModerationService:
             "amazing",
             "incredible",
         ]
-        keyword_count = sum(1 for keyword in promotional_keywords if keyword in combined)
+        keyword_count = sum(
+            1 for keyword in promotional_keywords if keyword in combined
+        )
         score += min(30, keyword_count * 5)
 
         # Check for URL density

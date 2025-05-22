@@ -97,12 +97,18 @@ class UserRoleModelTest(TestCase):
         """Set up test data"""
         # Create users
         self.user = User.objects.create(phone_number="1234567890", user_type="employee")
-        self.assigner = User.objects.create(phone_number="0987654321", user_type="admin")
+        self.assigner = User.objects.create(
+            phone_number="0987654321", user_type="admin"
+        )
 
         # Create roles
-        self.role1 = Role.objects.create(name="Role 1", role_type="custom", is_active=True)
+        self.role1 = Role.objects.create(
+            name="Role 1", role_type="custom", is_active=True
+        )
 
-        self.role2 = Role.objects.create(name="Role 2", role_type="custom", is_active=True)
+        self.role2 = Role.objects.create(
+            name="Role 2", role_type="custom", is_active=True
+        )
 
         # Create shop entity for context testing
         from apps.shopapp.models import Shop
@@ -186,7 +192,9 @@ class RolePermissionLogModelTest(TestCase):
             resource="shop", action="view", description="Can view shops"
         )
 
-        self.role = Role.objects.create(name="Test Role", role_type="custom", is_active=True)
+        self.role = Role.objects.create(
+            name="Test Role", role_type="custom", is_active=True
+        )
 
         # Create log entry
         self.log = RolePermissionLog.objects.create(
@@ -204,7 +212,5 @@ class RolePermissionLogModelTest(TestCase):
         self.assertEqual(self.log.performed_by, self.user)
 
         # Test string representation
-        expected_str = (
-            f"{self.permission} added to {self.role} by {self.user} at {self.log.timestamp}"
-        )
+        expected_str = f"{self.permission} added to {self.role} by {self.user} at {self.log.timestamp}"
         self.assertEqual(str(self.log), expected_str)

@@ -63,17 +63,17 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SMS_BACKEND = "utils.sms.backends.console.ConsoleSMSBackend"
 
 # Static & media config (local storage only in dev)
-STATIC_URL = '/static/'
-STATIC_ROOT = '/opt/queueme/static/'
+STATIC_URL = "/static/"
+STATIC_ROOT = "/opt/queueme/static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-MEDIA_URL = '/media/'
+MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # WhiteNoise for local static serving (always in dev)
-MIDDLEWARE = [m for m in MIDDLEWARE if 'whitenoise' not in m.lower()]
-MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m.lower()]
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 # CORS (restrict as much as you like in dev)
 CORS_ALLOW_ALL_ORIGINS = False
@@ -85,11 +85,23 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
-    "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT",
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
 ]
 CORS_ALLOW_HEADERS = [
-    "accept", "accept-encoding", "authorization", "content-type",
-    "dnt", "origin", "user-agent", "x-csrftoken", "x-requested-with",
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 # Security in development (no SSL, no secure cookies, no HSTS)
@@ -103,43 +115,54 @@ SECURE_HSTS_PRELOAD = False
 # Debug Toolbar (full setup for local debugging)
 if DEBUG:
     try:
-        import debug_toolbar
-        if 'debug_toolbar' not in INSTALLED_APPS:
-            INSTALLED_APPS.append('debug_toolbar')
-        if 'debug_toolbar.middleware.DebugToolbarMiddleware' not in MIDDLEWARE:
-            MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+        pass
+
+        if "debug_toolbar" not in INSTALLED_APPS:
+            INSTALLED_APPS.append("debug_toolbar")
+        if "debug_toolbar.middleware.DebugToolbarMiddleware" not in MIDDLEWARE:
+            MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
         INTERNAL_IPS = ["127.0.0.1", "::1", "localhost"]
         DEBUG_TOOLBAR_CONFIG = {
-            'DISABLE_PANELS': [
-                'debug_toolbar.panels.history.HistoryPanel',
-                'debug_toolbar.panels.redirects.RedirectsPanel',
+            "DISABLE_PANELS": [
+                "debug_toolbar.panels.history.HistoryPanel",
+                "debug_toolbar.panels.redirects.RedirectsPanel",
             ],
-            'SHOW_TOOLBAR_CALLBACK': lambda request: (
+            "SHOW_TOOLBAR_CALLBACK": lambda request: (
                 request.get_host().split(":")[0]
-                in ("admin.queueme.net", "admin.localhost", "admin.127.0.0.1", "127.0.0.1", "localhost")
+                in (
+                    "admin.queueme.net",
+                    "admin.localhost",
+                    "admin.127.0.0.1",
+                    "127.0.0.1",
+                    "localhost",
+                )
                 or (
-                    (request.path.startswith("/admin/") or request.path.startswith("/django-admin/"))
-                    and request.META.get("REMOTE_ADDR") in ["127.0.0.1", "::1", "localhost"]
+                    (
+                        request.path.startswith("/admin/")
+                        or request.path.startswith("/django-admin/")
+                    )
+                    and request.META.get("REMOTE_ADDR")
+                    in ["127.0.0.1", "::1", "localhost"]
                 )
             ),
-            'RENDER_PANELS': False,
-            'ENABLE_STACKTRACES': True,
-            'RESULTS_CACHE_SIZE': 10,
-            'SHOW_COLLAPSED': True,
-            'SQL_WARNING_THRESHOLD': 500,
+            "RENDER_PANELS": False,
+            "ENABLE_STACKTRACES": True,
+            "RESULTS_CACHE_SIZE": 10,
+            "SHOW_COLLAPSED": True,
+            "SQL_WARNING_THRESHOLD": 500,
         }
         DEBUG_TOOLBAR_PANELS = [
-            'debug_toolbar.panels.versions.VersionsPanel',
-            'debug_toolbar.panels.timer.TimerPanel',
-            'debug_toolbar.panels.settings.SettingsPanel',
-            'debug_toolbar.panels.headers.HeadersPanel',
-            'debug_toolbar.panels.request.RequestPanel',
-            'debug_toolbar.panels.sql.SQLPanel',
-            'debug_toolbar.panels.staticfiles.StaticFilesPanel',
-            'debug_toolbar.panels.templates.TemplatesPanel',
-            'debug_toolbar.panels.cache.CachePanel',
-            'debug_toolbar.panels.signals.SignalsPanel',
-            'debug_toolbar.panels.logging.LoggingPanel',
+            "debug_toolbar.panels.versions.VersionsPanel",
+            "debug_toolbar.panels.timer.TimerPanel",
+            "debug_toolbar.panels.settings.SettingsPanel",
+            "debug_toolbar.panels.headers.HeadersPanel",
+            "debug_toolbar.panels.request.RequestPanel",
+            "debug_toolbar.panels.sql.SQLPanel",
+            "debug_toolbar.panels.staticfiles.StaticFilesPanel",
+            "debug_toolbar.panels.templates.TemplatesPanel",
+            "debug_toolbar.panels.cache.CachePanel",
+            "debug_toolbar.panels.signals.SignalsPanel",
+            "debug_toolbar.panels.logging.LoggingPanel",
         ]
     except ImportError:
         pass

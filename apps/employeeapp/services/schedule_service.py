@@ -28,7 +28,9 @@ class ScheduleService:
         # Validate that all weekdays are covered
         weekdays = [hours.get("weekday") for hours in working_hours_data]
         if sorted(weekdays) != list(range(7)):
-            raise ValueError(_("Working hours must be provided for all 7 days of the week."))
+            raise ValueError(
+                _("Working hours must be provided for all 7 days of the week.")
+            )
 
         # Delete existing hours
         EmployeeWorkingHours.objects.filter(employee=employee).delete()
@@ -52,7 +54,9 @@ class ScheduleService:
             EmployeeWorkingHours object or None
         """
         try:
-            return EmployeeWorkingHours.objects.get(employee_id=employee_id, weekday=weekday)
+            return EmployeeWorkingHours.objects.get(
+                employee_id=employee_id, weekday=weekday
+            )
         except EmployeeWorkingHours.DoesNotExist:
             return None
 
@@ -137,10 +141,12 @@ class ScheduleService:
 
         # Add break times if any
         if working_hours.break_start and working_hours.break_end:
-            availability["working_hours"]["break_start"] = working_hours.break_start.strftime(
-                "%H:%M"
+            availability["working_hours"]["break_start"] = (
+                working_hours.break_start.strftime("%H:%M")
             )
-            availability["working_hours"]["break_end"] = working_hours.break_end.strftime("%H:%M")
+            availability["working_hours"]["break_end"] = (
+                working_hours.break_end.strftime("%H:%M")
+            )
 
         # If employee is a specialist, we also need to check their appointments
         if employee.is_specialist:
@@ -256,7 +262,9 @@ class ScheduleService:
 
             # Check if on leave
             day_leaves = [
-                leave for leave in leaves if leave.start_date <= current_date <= leave.end_date
+                leave
+                for leave in leaves
+                if leave.start_date <= current_date <= leave.end_date
             ]
             if day_leaves:
                 day_schedule["is_leave"] = True
@@ -279,10 +287,12 @@ class ScheduleService:
 
                     # Add breaks if any
                     if wh.break_start and wh.break_end:
-                        day_schedule["working_hours"]["break_start"] = wh.break_start.strftime(
-                            "%H:%M"
+                        day_schedule["working_hours"]["break_start"] = (
+                            wh.break_start.strftime("%H:%M")
                         )
-                        day_schedule["working_hours"]["break_end"] = wh.break_end.strftime("%H:%M")
+                        day_schedule["working_hours"]["break_end"] = (
+                            wh.break_end.strftime("%H:%M")
+                        )
 
             # Add appointments for this day
             day_appointments = [
@@ -325,7 +335,9 @@ class ScheduleService:
             Boolean
         """
         # Get availability for date
-        availability = ScheduleService.get_employee_availability(employee_id, check_date)
+        availability = ScheduleService.get_employee_availability(
+            employee_id, check_date
+        )
 
         # If not available for any reason, return False
         if not availability["is_available"]:
@@ -341,7 +353,9 @@ class ScheduleService:
 
         # Check if time overlaps with break
         if "break_start" in working_hours and "break_end" in working_hours:
-            break_start = datetime.strptime(working_hours["break_start"], "%H:%M").time()
+            break_start = datetime.strptime(
+                working_hours["break_start"], "%H:%M"
+            ).time()
             break_end = datetime.strptime(working_hours["break_end"], "%H:%M").time()
 
             # Check if the requested time period overlaps with break

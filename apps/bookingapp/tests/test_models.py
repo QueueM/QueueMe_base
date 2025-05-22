@@ -21,7 +21,9 @@ class AppointmentModelTest(TestCase):
         self.user = User.objects.create(phone_number="1234567890", user_type="customer")
 
         # Create test shop
-        self.shop = Shop.objects.create(id=uuid.uuid4(), name="Test Shop", username="testshop")
+        self.shop = Shop.objects.create(
+            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        )
 
         # Create test service
         self.service = Service.objects.create(
@@ -40,7 +42,9 @@ class AppointmentModelTest(TestCase):
         # Make sure specialist can provide the service
         from apps.specialistsapp.models import SpecialistService
 
-        SpecialistService.objects.create(specialist=self.specialist, service=self.service)
+        SpecialistService.objects.create(
+            specialist=self.specialist, service=self.service
+        )
 
         # Set up times for appointment
         self.start_time = timezone.now() + timedelta(days=1)
@@ -61,7 +65,9 @@ class AppointmentModelTest(TestCase):
         self.assertIsNotNone(appointment.id)
         self.assertEqual(appointment.status, "scheduled")
         self.assertEqual(appointment.payment_status, "pending")
-        self.assertEqual(appointment.total_price, 0)  # Should be updated to service price
+        self.assertEqual(
+            appointment.total_price, 0
+        )  # Should be updated to service price
 
         # Fetch from DB to check save logic worked
         appointment_db = Appointment.objects.get(id=appointment.id)
@@ -138,7 +144,9 @@ class AppointmentReminderTest(TestCase):
         self.user = User.objects.create(phone_number="1234567890", user_type="customer")
 
         # Create test shop
-        self.shop = Shop.objects.create(id=uuid.uuid4(), name="Test Shop", username="testshop")
+        self.shop = Shop.objects.create(
+            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        )
 
         # Create test service
         self.service = Service.objects.create(
@@ -209,7 +217,9 @@ class MultiServiceBookingTest(TestCase):
         self.user = User.objects.create(phone_number="1234567890", user_type="customer")
 
         # Create test shop
-        self.shop = Shop.objects.create(id=uuid.uuid4(), name="Test Shop", username="testshop")
+        self.shop = Shop.objects.create(
+            id=uuid.uuid4(), name="Test Shop", username="testshop"
+        )
 
         # Create test service
         self.service1 = Service.objects.create(
@@ -263,7 +273,9 @@ class MultiServiceBookingTest(TestCase):
 
     def test_multi_booking_creation(self):
         """Test creating a multi-service booking"""
-        multi_booking = MultiServiceBooking.objects.create(customer=self.user, shop=self.shop)
+        multi_booking = MultiServiceBooking.objects.create(
+            customer=self.user, shop=self.shop
+        )
 
         multi_booking.appointments.add(self.appointment1)
         multi_booking.appointments.add(self.appointment2)
@@ -278,7 +290,9 @@ class MultiServiceBookingTest(TestCase):
 
     def test_mark_paid(self):
         """Test marking a multi-service booking as paid"""
-        multi_booking = MultiServiceBooking.objects.create(customer=self.user, shop=self.shop)
+        multi_booking = MultiServiceBooking.objects.create(
+            customer=self.user, shop=self.shop
+        )
 
         multi_booking.appointments.add(self.appointment1)
         multi_booking.appointments.add(self.appointment2)

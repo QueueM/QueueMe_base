@@ -47,7 +47,8 @@ def appointment_post_save(sender, instance, created, **kwargs):
 
     # Check if start_time or specialist changed (reschedule)
     elif not created and (
-        instance.tracker.has_changed("start_time") or instance.tracker.has_changed("specialist_id")
+        instance.tracker.has_changed("start_time")
+        or instance.tracker.has_changed("specialist_id")
     ):
         # Invalidate availability cache for old and new dates
         slot_generator = SlotGenerator()
@@ -97,7 +98,10 @@ def multi_service_booking_post_save(sender, instance, created, **kwargs):
     if created:
         # This is handled by the individual appointment signals
         pass
-    elif instance.tracker.has_changed("payment_status") and instance.payment_status == "paid":
+    elif (
+        instance.tracker.has_changed("payment_status")
+        and instance.payment_status == "paid"
+    ):
         # Send payment confirmation
         NotificationService.send_payment_confirmation(instance)
 

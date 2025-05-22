@@ -6,7 +6,11 @@ from django.utils import timezone
 
 from apps.authapp.models import User
 from apps.companiesapp.models import Company
-from apps.subscriptionapp.constants import FEATURE_CATEGORY_SHOPS, PERIOD_MONTHLY, STATUS_ACTIVE
+from apps.subscriptionapp.constants import (
+    FEATURE_CATEGORY_SHOPS,
+    PERIOD_MONTHLY,
+    STATUS_ACTIVE,
+)
 from apps.subscriptionapp.models import (
     FeatureUsage,
     Plan,

@@ -52,7 +52,9 @@ class AppointmentNoteSerializer(serializers.ModelSerializer):
         is_private = data.get("is_private", False)
 
         if is_private and user.user_type == "customer":
-            raise serializers.ValidationError(_("Customers cannot create private notes"))
+            raise serializers.ValidationError(
+                _("Customers cannot create private notes")
+            )
 
         return data
 
@@ -149,15 +151,21 @@ class AppointmentSerializer(serializers.ModelSerializer):
         ).exists()
 
         if not specialist_service:
-            raise serializers.ValidationError(_("Specialist does not provide this service"))
+            raise serializers.ValidationError(
+                _("Specialist does not provide this service")
+            )
 
         # Validate that service belongs to the shop
         if service.shop != shop:
-            raise serializers.ValidationError(_("Service does not belong to the selected shop"))
+            raise serializers.ValidationError(
+                _("Service does not belong to the selected shop")
+            )
 
         # Validate specialist belongs to the shop
         if specialist.employee.shop != shop:
-            raise serializers.ValidationError(_("Specialist does not belong to the selected shop"))
+            raise serializers.ValidationError(
+                _("Specialist does not belong to the selected shop")
+            )
 
         # Check for scheduling conflicts using conflict service
         from apps.bookingapp.services.conflict_service import ConflictService
@@ -172,7 +180,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
         )
 
         if conflict:
-            raise serializers.ValidationError(_("The specialist is not available at this time"))
+            raise serializers.ValidationError(
+                _("The specialist is not available at this time")
+            )
 
         return data
 
@@ -228,7 +238,9 @@ class BookingCreateSerializer(serializers.Serializer):
         ).exists()
 
         if not specialist_service:
-            raise serializers.ValidationError(_("Specialist does not provide this service"))
+            raise serializers.ValidationError(
+                _("Specialist does not provide this service")
+            )
 
         # Combine date and time
         date = data["date"]
@@ -254,7 +266,9 @@ class BookingCreateSerializer(serializers.Serializer):
         )
 
         if not is_available:
-            raise serializers.ValidationError(_("The selected time slot is not available"))
+            raise serializers.ValidationError(
+                _("The selected time slot is not available")
+            )
 
         # Add shop to validated data
         data["shop"] = service.shop
@@ -342,7 +356,9 @@ class BookingRescheduleSerializer(serializers.Serializer):
         )
 
         if not is_available:
-            raise serializers.ValidationError(_("The selected time slot is not available"))
+            raise serializers.ValidationError(
+                _("The selected time slot is not available")
+            )
 
         # Add to validated data
         data["specialist"] = specialist
@@ -355,21 +371,21 @@ class BookingRescheduleSerializer(serializers.Serializer):
 class MultiServiceBookingSerializer(serializers.ModelSerializer):
     # ──────────────────────────────────────────────────────────────────────────
     # manual fields so DRF won't look for DB columns
-    transaction_id   = serializers.CharField(read_only=True, allow_null=True)
-    payment_status   = serializers.CharField(read_only=True, allow_null=True)
-    created_at       = serializers.DateTimeField(read_only=True)
-    updated_at       = serializers.DateTimeField(read_only=True)
+    transaction_id = serializers.CharField(read_only=True, allow_null=True)
+    payment_status = serializers.CharField(read_only=True, allow_null=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
     # ──────────────────────────────────────────────────────────────────────────
 
-    appointments   = AppointmentSerializer(many=True, read_only=True)
-    shop_details   = serializers.SerializerMethodField()
-    total_price    = serializers.SerializerMethodField()
+    appointments = AppointmentSerializer(many=True, read_only=True)
+    shop_details = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
     payment_status_display = serializers.CharField(
         source="get_payment_status_display", read_only=True
     )
 
     class Meta:
-        model  = MultiServiceBooking
+        model = MultiServiceBooking
         fields = [
             "id",
             "shop_details",
@@ -382,6 +398,7 @@ class MultiServiceBookingSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = fields  # everything is read-only
+
 
 class MultiServiceBookingCreateSerializer(serializers.Serializer):
     """Serializer for creating multiple appointments in one booking"""
@@ -398,7 +415,9 @@ class MultiServiceBookingCreateSerializer(serializers.Serializer):
             shops.add(service_data["shop"].id)
 
         if len(shops) > 1:
-            raise serializers.ValidationError(_("All services must be from the same shop"))
+            raise serializers.ValidationError(
+                _("All services must be from the same shop")
+            )
 
         # Check for conflicts between the services
         from apps.bookingapp.services.multi_service_booker import MultiServiceBooker
@@ -419,7 +438,9 @@ class MultiServiceBookingCreateSerializer(serializers.Serializer):
         conflicts = MultiServiceBooker.check_multi_service_conflicts(booking_requests)
         if conflicts:
             raise serializers.ValidationError(
-                _("There are conflicts between the selected services: {}").format(conflicts)
+                _("There are conflicts between the selected services: {}").format(
+                    conflicts
+                )
             )
 
         return data
@@ -454,15 +475,21 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
         ).exists()
 
         if not specialist_service:
-            raise serializers.ValidationError(_("Specialist does not provide this service"))
+            raise serializers.ValidationError(
+                _("Specialist does not provide this service")
+            )
 
         # Validate that service belongs to the shop
         if service.shop != shop:
-            raise serializers.ValidationError(_("Service does not belong to the selected shop"))
+            raise serializers.ValidationError(
+                _("Service does not belong to the selected shop")
+            )
 
         # Validate specialist belongs to the shop
         if specialist.employee.shop != shop:
-            raise serializers.ValidationError(_("Specialist does not belong to the selected shop"))
+            raise serializers.ValidationError(
+                _("Specialist does not belong to the selected shop")
+            )
 
         # Calculate end time
         end_time = start_time + timezone.timedelta(minutes=service.duration)

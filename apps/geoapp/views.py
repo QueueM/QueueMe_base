@@ -338,7 +338,9 @@ class CheckCityMatchView(APIView):
         try:
             if location1_id and location2_id:
                 # Check by location IDs
-                is_same_city = GeoService.is_same_city_by_locations(location1_id, location2_id)
+                is_same_city = GeoService.is_same_city_by_locations(
+                    location1_id, location2_id
+                )
             elif all([latitude1, longitude1, latitude2, longitude2]):
                 # Check by coordinates
                 is_same_city = GeoService.is_same_city_by_coordinates(
@@ -510,7 +512,9 @@ class GeocodeAddressView(APIView):
         country = request.data.get("country")
 
         if not address:
-            return Response({"error": "Address is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Address is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             result = GeoService.geocode_address(address, city, country)

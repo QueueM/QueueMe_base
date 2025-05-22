@@ -7,7 +7,12 @@ from rest_framework.test import APIClient
 
 from apps.authapp.models import User
 from apps.companiesapp.models import Company
-from apps.reviewapp.models import ReviewHelpfulness, ReviewReport, ShopReview, SpecialistReview
+from apps.reviewapp.models import (
+    ReviewHelpfulness,
+    ReviewReport,
+    ShopReview,
+    SpecialistReview,
+)
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
 from apps.specialistsapp.models import Specialist
@@ -213,7 +218,9 @@ class ReviewViewsTestCase(TestCase):
         # Check that review was updated
         updated_review = ShopReview.objects.get(id=self.shop_review.id)
         self.assertEqual(updated_review.status, "rejected")
-        self.assertEqual(updated_review.moderation_comment, "Contains inappropriate content")
+        self.assertEqual(
+            updated_review.moderation_comment, "Contains inappropriate content"
+        )
 
     def test_get_entity_metrics(self):
         """Test getting metrics for an entity"""

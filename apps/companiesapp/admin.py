@@ -17,7 +17,10 @@ class OwnerRestrictedAdmin(admin.ModelAdmin):
     # -- list view: hide rows the user doesn't own ----------------
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser or getattr(request.user, "user_type", "") == "admin":
+        if (
+            request.user.is_superuser
+            or getattr(request.user, "user_type", "") == "admin"
+        ):
             return qs
         return qs.filter(owner=request.user) if hasattr(qs.model, "owner") else qs
 
@@ -43,7 +46,10 @@ class OwnerRestrictedAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         # company owners may add; employees cannot
-        return request.user.is_superuser or getattr(request.user, "user_type", "") in {"admin", "owner"}
+        return request.user.is_superuser or getattr(request.user, "user_type", "") in {
+            "admin",
+            "owner",
+        }
 
 
 # ────────────────────────────────────────────────────────────────
@@ -86,7 +92,12 @@ class CompanyAdmin(OwnerRestrictedAdmin):
         "is_active",
         "created_at",
     )
-    list_filter = ("is_active", "subscription_status", "created_at", "location__country")
+    list_filter = (
+        "is_active",
+        "subscription_status",
+        "created_at",
+        "location__country",
+    )
     search_fields = ("name", "registration_number", "owner__username", "owner__email")
     autocomplete_fields = ("owner", "location")
     ordering = ("-created_at",)
@@ -99,7 +110,17 @@ class CompanyAdmin(OwnerRestrictedAdmin):
         (_("Legal"), {"fields": ("registration_number",)}),
         (_("Owner & Contact"), {"fields": ("owner", "contact_email", "contact_phone")}),
         (_("Location"), {"fields": ("location",)}),
-        (_("Subscription / Metrics"), {"fields": ("subscription_status", "subscription_end_date", "employee_count", "shop_count")}),
+        (
+            _("Subscription / Metrics"),
+            {
+                "fields": (
+                    "subscription_status",
+                    "subscription_end_date",
+                    "employee_count",
+                    "shop_count",
+                )
+            },
+        ),
         (_("Status"), {"fields": ("is_active", "created_at", "updated_at")}),
     )
 
@@ -119,5 +140,10 @@ class CompanyDocumentAdmin(OwnerRestrictedAdmin):
 # CompanySettings is edited inline, but keep a direct link if you like:
 @admin.register(models.CompanySettings)
 class CompanySettingsAdmin(OwnerRestrictedAdmin):
-    list_display = ("company", "default_language", "notification_email", "auto_approve_bookings")
+    list_display = (
+        "company",
+        "default_language",
+        "notification_email",
+        "auto_approve_bookings",
+    )
     autocomplete_fields = ("company",)

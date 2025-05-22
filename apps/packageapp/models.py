@@ -34,7 +34,9 @@ class Package(models.Model):
     )
     name = models.CharField(_("Name"), max_length=255)
     description = models.TextField(_("Description"), blank=True)
-    image = models.ImageField(_("Image"), upload_to="packages/images/", null=True, blank=True)
+    image = models.ImageField(
+        _("Image"), upload_to="packages/images/", null=True, blank=True
+    )
 
     # Price details
     original_price = models.DecimalField(
@@ -82,7 +84,9 @@ class Package(models.Model):
     )
 
     # Status and dates
-    status = models.CharField(_("Status"), max_length=20, choices=STATUS_CHOICES, default="active")
+    status = models.CharField(
+        _("Status"), max_length=20, choices=STATUS_CHOICES, default="active"
+    )
     start_date = models.DateField(_("Start Date"), null=True, blank=True)
     end_date = models.DateField(_("End Date"), null=True, blank=True)
 
@@ -119,7 +123,11 @@ class Package(models.Model):
 
     def save(self, *args, **kwargs):
         # Calculate discount percentage if not provided
-        if self.original_price and self.discounted_price and (self.discount_percentage is None):
+        if (
+            self.original_price
+            and self.discounted_price
+            and (self.discount_percentage is None)
+        ):
             if self.original_price > 0:
                 discount = (
                     (self.original_price - self.discounted_price) / self.original_price
@@ -128,7 +136,9 @@ class Package(models.Model):
 
         # Calculate total duration if not provided
         if self.total_duration is None:
-            total_mins = sum(service_item.service.duration for service_item in self.services.all())
+            total_mins = sum(
+                service_item.service.duration for service_item in self.services.all()
+            )
             self.total_duration = total_mins if total_mins > 0 else None
 
         super().save(*args, **kwargs)

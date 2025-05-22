@@ -236,7 +236,9 @@ def estimate_eta_for_queue_position(
 
     # Calculate when customer should leave
     # Queue wait minus travel time minus notification lead time
-    leave_in_minutes = max(0, queue_wait_minutes - travel_time_mins - notification_lead_time)
+    leave_in_minutes = max(
+        0, queue_wait_minutes - travel_time_mins - notification_lead_time
+    )
 
     # Determine if customer should leave now
     should_leave_now = leave_in_minutes <= 0

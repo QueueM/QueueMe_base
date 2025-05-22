@@ -428,7 +428,9 @@ class FirebasePushService:
 
                     # Send message
                     response = messaging.send(message)
-                    results.append({"token": token, "message_id": response, "success": True})
+                    results.append(
+                        {"token": token, "message_id": response, "success": True}
+                    )
                 except messaging.ApiCallError as e:
                     results.append({"token": token, "error": str(e), "success": False})
 
@@ -481,7 +483,9 @@ class FirebasePushService:
 
                     # Send message
                     response = messaging.send(message)
-                    results.append({"token": token, "message_id": response, "success": True})
+                    results.append(
+                        {"token": token, "message_id": response, "success": True}
+                    )
                 except messaging.ApiCallError as e:
                     results.append({"token": token, "error": str(e), "success": False})
 

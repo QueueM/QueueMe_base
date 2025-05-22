@@ -41,7 +41,9 @@ def validate_phone_number(value):
 
 
 # Create a reusable RegexValidator
-phone_regex = RegexValidator(regex=r"^\+?[0-9]{8,15}$", message=_("Enter a valid phone number"))
+phone_regex = RegexValidator(
+    regex=r"^\+?[0-9]{8,15}$", message=_("Enter a valid phone number")
+)
 
 
 def validate_uuid(value):
@@ -106,7 +108,9 @@ def validate_image_extension(value):
     ext = value.name.lower().split(".")[-1]
     if f".{ext}" not in valid_extensions:
         raise ValidationError(
-            _("Unsupported file extension. Allowed extensions: jpg, jpeg, png, gif, webp")
+            _(
+                "Unsupported file extension. Allowed extensions: jpg, jpeg, png, gif, webp"
+            )
         )
 
 
@@ -271,7 +275,9 @@ def validate_arabic_text(value):
         return
 
     # Arabic Unicode ranges
-    arabic_regex = r"[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]"
+    arabic_regex = (
+        r"[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]"
+    )
     if not re.search(arabic_regex, value):
         raise ValidationError(_("Text must contain Arabic characters"))
 

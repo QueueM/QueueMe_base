@@ -1,5 +1,14 @@
 from django.core.cache import cache
-from django.db.models import Case, Count, ExpressionWrapper, F, FloatField, Q, Value, When
+from django.db.models import (
+    Case,
+    Count,
+    ExpressionWrapper,
+    F,
+    FloatField,
+    Q,
+    Value,
+    When,
+)
 from django.db.models.functions import Coalesce
 
 from apps.specialistsapp.constants import SPECIALIST_RECOMMENDATIONS_CACHE_KEY
@@ -73,7 +82,9 @@ class SpecialistRecommender:
 
         # Extract customer preferences from booking history
         booked_specialists = set(
-            booking.specialist_id for booking in past_bookings if booking.specialist_id is not None
+            booking.specialist_id
+            for booking in past_bookings
+            if booking.specialist_id is not None
         )
 
         booked_services = set(booking.service_id for booking in past_bookings)
@@ -91,9 +102,13 @@ class SpecialistRecommender:
 
         from apps.reviewapp.models import Review
 
-        specialist_type = ContentType.objects.get(app_label="specialistsapp", model="specialist")
+        specialist_type = ContentType.objects.get(
+            app_label="specialistsapp", model="specialist"
+        )
 
-        customer_reviews = Review.objects.filter(created_by=customer, content_type=specialist_type)
+        customer_reviews = Review.objects.filter(
+            created_by=customer, content_type=specialist_type
+        )
 
         # Get highly rated specialists from customer reviews
         positively_reviewed = set(
@@ -135,7 +150,9 @@ class SpecialistRecommender:
 
         # 3. Category similarity - specialists with same categories
         queryset = queryset.annotate(
-            category_similarity=Count("expertise", filter=Q(expertise__in=booked_categories))
+            category_similarity=Count(
+                "expertise", filter=Q(expertise__in=booked_categories)
+            )
             + Count(
                 "specialist_services__service__category",
                 filter=Q(specialist_services__service__category__in=booked_categories),
@@ -181,7 +198,9 @@ class SpecialistRecommender:
         queryset = queryset.filter(negatively_reviewed=0)
 
         # Get top recommendations based on score
-        recommendations = queryset.order_by("-recommendation_score", "-avg_rating")[:limit]
+        recommendations = queryset.order_by("-recommendation_score", "-avg_rating")[
+            :limit
+        ]
 
         # Cache for 1 hour
         cache.set(cache_key, recommendations, 60 * 60)
@@ -256,7 +275,9 @@ class SpecialistRecommender:
                 # Category match
                 category_match=Count(
                     "specialist_services__service__category",
-                    filter=Q(specialist_services__service__category__in=booked_categories),
+                    filter=Q(
+                        specialist_services__service__category__in=booked_categories
+                    ),
                 )
                 + Count("expertise", filter=Q(expertise__in=booked_categories)),
                 # Personalized score combining standard ranking with preference match
@@ -335,10 +356,14 @@ class SpecialistRecommender:
         if service_categories:
             # Score specialists based on category match
             queryset = queryset.annotate(
-                category_match=Count("expertise", filter=Q(expertise__id__in=service_categories))
+                category_match=Count(
+                    "expertise", filter=Q(expertise__id__in=service_categories)
+                )
                 + Count(
                     "specialist_services__service__category",
-                    filter=Q(specialist_services__service__category__id__in=service_categories),
+                    filter=Q(
+                        specialist_services__service__category__id__in=service_categories
+                    ),
                 ),
                 discovery_score=ExpressionWrapper(
                     # Quality indicators
@@ -352,9 +377,13 @@ class SpecialistRecommender:
             )
 
             # Return new specialists ranked by discovery score
-            return queryset.filter(category_match__gt=0).order_by(  # Ensure some preference match
+            return queryset.filter(
+                category_match__gt=0
+            ).order_by(  # Ensure some preference match
                 "-discovery_score", "-avg_rating"
-            )[:limit]
+            )[
+                :limit
+            ]
         else:
             # No preference data, return top-rated new specialists
             return queryset.order_by("-avg_rating", "-total_bookings")[:limit]

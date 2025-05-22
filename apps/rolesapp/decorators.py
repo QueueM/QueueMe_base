@@ -1,8 +1,10 @@
 from functools import wraps
+
 from rest_framework.exceptions import PermissionDenied
 
 from apps.rolesapp.constants import PERMISSION_DENIED_MESSAGES
 from apps.rolesapp.services.permission_resolver import PermissionResolver
+
 
 def _get_user_from_args(args):
     """
@@ -23,11 +25,13 @@ def _get_user_from_args(args):
         return getattr(request, "user", None)
     return None
 
+
 def has_permission(resource, action):
     """
     Universal decorator to check if user has permission for resource/action.
     Works with both ViewSets and APIView methods.
     """
+
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(*args, **kwargs):
@@ -38,13 +42,17 @@ def has_permission(resource, action):
                 )
                 raise PermissionDenied(message)
             return view_func(*args, **kwargs)
+
         return _wrapped_view
+
     return decorator
+
 
 def has_context_permission(context_resource, context_param, resource, action):
     """
     Universal decorator for context permission.
     """
+
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(*args, **kwargs):
@@ -53,10 +61,9 @@ def has_context_permission(context_resource, context_param, resource, action):
             context_id = kwargs.get(context_param)
             request = args[1] if len(args) > 1 else getattr(args[0], "request", None)
             if not context_id and request is not None:
-                context_id = (
-                    getattr(request, "query_params", {}).get(context_param)
-                    or getattr(request, "data", {}).get(context_param)
-                )
+                context_id = getattr(request, "query_params", {}).get(
+                    context_param
+                ) or getattr(request, "data", {}).get(context_param)
             if not context_id:
                 raise PermissionDenied(f"Missing {context_param} parameter")
             if not PermissionResolver.has_context_permission(
@@ -67,13 +74,17 @@ def has_context_permission(context_resource, context_param, resource, action):
                 )
                 raise PermissionDenied(message)
             return view_func(*args, **kwargs)
+
         return _wrapped_view
+
     return decorator
+
 
 def has_shop_permission(resource, action):
     """
     Universal decorator for shop-specific permission.
     """
+
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(*args, **kwargs):
@@ -82,10 +93,9 @@ def has_shop_permission(resource, action):
             shop_id = kwargs.get("shop_id")
             request = args[1] if len(args) > 1 else getattr(args[0], "request", None)
             if not shop_id and request is not None:
-                shop_id = (
-                    getattr(request, "query_params", {}).get("shop_id")
-                    or getattr(request, "data", {}).get("shop_id")
-                )
+                shop_id = getattr(request, "query_params", {}).get(
+                    "shop_id"
+                ) or getattr(request, "data", {}).get("shop_id")
             if not shop_id:
                 raise PermissionDenied("Shop ID not found in request")
             if not PermissionResolver.has_context_permission(
@@ -96,28 +106,37 @@ def has_shop_permission(resource, action):
                 )
                 raise PermissionDenied(message)
             return view_func(*args, **kwargs)
+
         return _wrapped_view
+
     return decorator
+
 
 def is_queue_me_admin(view_func):
     """Decorator to check if user is a Queue Me Admin (universal)."""
+
     @wraps(view_func)
     def _wrapped_view(*args, **kwargs):
         user = _get_user_from_args(args)
         if not PermissionResolver.is_queue_me_admin(user):
             raise PermissionDenied("Only Queue Me Admins can perform this action.")
         return view_func(*args, **kwargs)
+
     return _wrapped_view
+
 
 def is_queue_me_employee(view_func):
     """Decorator to check if user is a Queue Me Employee (universal)."""
+
     @wraps(view_func)
     def _wrapped_view(*args, **kwargs):
         user = _get_user_from_args(args)
         if not PermissionResolver.is_queue_me_employee(user):
             raise PermissionDenied("Only Queue Me Employees can perform this action.")
         return view_func(*args, **kwargs)
+
     return _wrapped_view
+
 
 def has_role_type(allowed_roles):
     """
@@ -125,6 +144,7 @@ def has_role_type(allowed_roles):
     """
     if not isinstance(allowed_roles, (list, tuple)):
         allowed_roles = [allowed_roles]
+
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(*args, **kwargs):
@@ -135,5 +155,7 @@ def has_role_type(allowed_roles):
                     f"Only users with roles [{role_names}] can perform this action."
                 )
             return view_func(*args, **kwargs)
+
         return _wrapped_view
+
     return decorator

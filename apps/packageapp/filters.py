@@ -11,19 +11,33 @@ class PackageFilter(django_filters.FilterSet):
     """
 
     name = django_filters.CharFilter(lookup_expr="icontains")
-    min_price = django_filters.NumberFilter(field_name="discounted_price", lookup_expr="gte")
-    max_price = django_filters.NumberFilter(field_name="discounted_price", lookup_expr="lte")
-    min_duration = django_filters.NumberFilter(field_name="total_duration", lookup_expr="gte")
-    max_duration = django_filters.NumberFilter(field_name="total_duration", lookup_expr="lte")
-    min_discount = django_filters.NumberFilter(field_name="discount_percentage", lookup_expr="gte")
+    min_price = django_filters.NumberFilter(
+        field_name="discounted_price", lookup_expr="gte"
+    )
+    max_price = django_filters.NumberFilter(
+        field_name="discounted_price", lookup_expr="lte"
+    )
+    min_duration = django_filters.NumberFilter(
+        field_name="total_duration", lookup_expr="gte"
+    )
+    max_duration = django_filters.NumberFilter(
+        field_name="total_duration", lookup_expr="lte"
+    )
+    min_discount = django_filters.NumberFilter(
+        field_name="discount_percentage", lookup_expr="gte"
+    )
     shop = django_filters.UUIDFilter(field_name="shop__id")
-    shop_name = django_filters.CharFilter(field_name="shop__name", lookup_expr="icontains")
+    shop_name = django_filters.CharFilter(
+        field_name="shop__name", lookup_expr="icontains"
+    )
     category = django_filters.UUIDFilter(field_name="primary_category__id")
     location = django_filters.ChoiceFilter(
         field_name="package_location", choices=Package.LOCATION_CHOICES
     )
     available = django_filters.BooleanFilter(method="filter_available")
-    service = django_filters.UUIDFilter(field_name="services__service__id", distinct=True)
+    service = django_filters.UUIDFilter(
+        field_name="services__service__id", distinct=True
+    )
 
     # Advanced search
     search = django_filters.CharFilter(method="filter_search")

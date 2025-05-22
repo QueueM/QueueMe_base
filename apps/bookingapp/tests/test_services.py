@@ -13,7 +13,7 @@ from apps.bookingapp.services.booking_service import BookingService
 from apps.bookingapp.services.conflict_service import ConflictService
 from apps.bookingapp.services.reminder_service import ReminderService
 from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop, ShopHours
+from apps.shopapp.models import ShopHours
 from apps.specialistsapp.models import Specialist, SpecialistService
 
 from .test_fix import create_test_shop
@@ -53,7 +53,9 @@ class AvailabilityServiceTest(TestCase):
         self.specialist = Specialist.objects.create(id=uuid.uuid4())
 
         # Link specialist to service
-        SpecialistService.objects.create(specialist=self.specialist, service=self.service)
+        SpecialistService.objects.create(
+            specialist=self.specialist, service=self.service
+        )
 
         # Create specialist working hours (same as shop hours)
         from apps.specialistsapp.models import SpecialistWorkingHours
@@ -127,7 +129,9 @@ class AvailabilityServiceTest(TestCase):
         )
 
         # Should no longer have the 10 AM slot
-        has_10am_slot = any(slot["start"] == "10:00" for slot in availability_after_booking)
+        has_10am_slot = any(
+            slot["start"] == "10:00" for slot in availability_after_booking
+        )
         self.assertFalse(has_10am_slot)
 
     def test_is_specialist_available(self):
@@ -222,7 +226,9 @@ class BookingServiceTest(TestCase):
         self.specialist = Specialist.objects.create(id=uuid.uuid4())
 
         # Link specialist to service
-        SpecialistService.objects.create(specialist=self.specialist, service=self.service)
+        SpecialistService.objects.create(
+            specialist=self.specialist, service=self.service
+        )
 
         # Create specialist working hours
         from apps.specialistsapp.models import SpecialistWorkingHours
@@ -360,7 +366,9 @@ class ConflictServiceTest(TestCase):
         self.specialist = Specialist.objects.create(id=uuid.uuid4())
 
         # Link specialist to service
-        SpecialistService.objects.create(specialist=self.specialist, service=self.service)
+        SpecialistService.objects.create(
+            specialist=self.specialist, service=self.service
+        )
 
         # Set up test user
         self.user = User.objects.create(phone_number="1234567890", user_type="customer")

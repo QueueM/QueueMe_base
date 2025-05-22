@@ -6,14 +6,19 @@ and campaigns.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
-from apps.marketingapp.models import AdStatus, AdType, Advertisement, Campaign, TargetingType
+from apps.marketingapp.models import (
+    AdStatus,
+    AdType,
+    Advertisement,
+    Campaign,
+    TargetingType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +160,9 @@ class AdManagementService:
             content_type = None
             if linked_object_type and linked_object_id:
                 try:
-                    content_type = ContentType.objects.get(model=linked_object_type.lower())
+                    content_type = ContentType.objects.get(
+                        model=linked_object_type.lower()
+                    )
                 except ContentType.DoesNotExist:
                     return {
                         "success": False,
@@ -329,8 +336,12 @@ class AdManagementService:
             total_conversions = sum(ad.conversion_count for ad in ads)
 
             # Calculate rates
-            ctr = (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
-            conversion_rate = (total_conversions / total_clicks * 100) if total_clicks > 0 else 0
+            ctr = (
+                (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
+            )
+            conversion_rate = (
+                (total_conversions / total_clicks * 100) if total_clicks > 0 else 0
+            )
 
             # Calculate spending
             total_spent = campaign.budget_spent
@@ -350,7 +361,9 @@ class AdManagementService:
                 "total_spent": float(total_spent),
                 "budget_remaining": float(budget_remaining),
                 "budget_percentage_used": (
-                    round((total_spent / campaign.budget * 100), 2) if campaign.budget > 0 else 0
+                    round((total_spent / campaign.budget * 100), 2)
+                    if campaign.budget > 0
+                    else 0
                 ),
                 "days_remaining": (
                     (campaign.end_date - timezone.now()).days

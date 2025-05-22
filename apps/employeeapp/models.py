@@ -49,9 +49,13 @@ class Employee(models.Model):
     position = models.CharField(_("Position"), max_length=50, choices=POSITION_CHOICES)
     hire_date = models.DateField(_("Hire Date"), default=timezone.now)
     date_of_birth = models.DateField(_("Date of Birth"), null=True, blank=True)
-    gender = models.CharField(_("Gender"), max_length=10, choices=GENDER_CHOICES, blank=True)
+    gender = models.CharField(
+        _("Gender"), max_length=10, choices=GENDER_CHOICES, blank=True
+    )
     address = models.TextField(_("Address"), blank=True)
-    avatar = models.ImageField(_("Avatar"), upload_to="employees/avatars/", null=True, blank=True)
+    avatar = models.ImageField(
+        _("Avatar"), upload_to="employees/avatars/", null=True, blank=True
+    )
     employee_id = models.CharField(_("Employee ID"), max_length=50, blank=True)
     national_id = models.CharField(_("National ID"), max_length=20, blank=True)
     emergency_contact_name = models.CharField(
@@ -217,11 +221,15 @@ class EmployeeLeave(models.Model):
         related_name="leaves",
         verbose_name=_("Employee"),
     )
-    leave_type = models.CharField(_("Leave Type"), max_length=20, choices=LEAVE_TYPE_CHOICES)
+    leave_type = models.CharField(
+        _("Leave Type"), max_length=20, choices=LEAVE_TYPE_CHOICES
+    )
     start_date = models.DateField(_("Start Date"))
     end_date = models.DateField(_("End Date"))
     reason = models.TextField(_("Reason"), blank=True)
-    status = models.CharField(_("Status"), max_length=10, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(
+        _("Status"), max_length=10, choices=STATUS_CHOICES, default="pending"
+    )
     approved_by = models.ForeignKey(
         "authapp.User",
         on_delete=models.SET_NULL,

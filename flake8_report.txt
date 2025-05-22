@@ -1,0 +1,559 @@
+./algorithms/analytics/anomaly/fraud_detection.py:545:13: F841 local variable 'actual_avg_bookings_per_user' is assigned to but never used
+./algorithms/analytics/anomaly/fraud_detection.py:701:101: E501 line too long (113 > 100 characters)
+./algorithms/analytics/anomaly/fraud_detection.py:932:101: E501 line too long (102 > 100 characters)
+./algorithms/analytics/anomaly/fraud_detection.py:937:101: E501 line too long (114 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:218:101: E501 line too long (102 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:366:101: E501 line too long (108 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:368:101: E501 line too long (110 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:372:101: E501 line too long (104 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:403:101: E501 line too long (118 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:405:101: E501 line too long (109 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:407:101: E501 line too long (118 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:409:101: E501 line too long (117 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:411:101: E501 line too long (112 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:413:101: E501 line too long (114 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:419:101: E501 line too long (106 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:421:101: E501 line too long (107 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:423:101: E501 line too long (107 > 100 characters)
+./algorithms/analytics/segmentation/customer_clustering.py:636:28: F821 undefined name 'models'
+./algorithms/analytics/segmentation/customer_clustering.py:637:27: F821 undefined name 'models'
+./algorithms/availability/conflict_detector.py:303:101: E501 line too long (102 > 100 characters)
+./algorithms/availability/conflict_detector.py:382:101: E501 line too long (106 > 100 characters)
+./algorithms/availability/conflict_detector.py:397:101: E501 line too long (108 > 100 characters)
+./algorithms/availability/conflict_detector.py:478:101: E501 line too long (104 > 100 characters)
+./algorithms/availability/dynamic_slot_allocator.py:112:13: F841 local variable 'shop' is assigned to but never used
+./algorithms/geo/spatial_indexing.py:264:101: E501 line too long (101 > 100 characters)
+./algorithms/ml/anomaly_detector.py:448:101: E501 line too long (102 > 100 characters)
+./algorithms/ml/anomaly_detector.py:560:101: E501 line too long (102 > 100 characters)
+./algorithms/ml/anomaly_detector.py:563:101: E501 line too long (102 > 100 characters)
+./algorithms/ml/anomaly_detector.py:567:101: E501 line too long (102 > 100 characters)
+./algorithms/ml/booking_pattern_recognition.py:270:101: E501 line too long (117 > 100 characters)
+./algorithms/optimization/multi_service_scheduler.py:64:101: E501 line too long (102 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:113:101: E501 line too long (140 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:114:101: E501 line too long (105 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:443:21: F841 local variable 'hours_to_remove' is assigned to but never used
+./algorithms/optimization/schedule_optimizer.py:448:21: F841 local variable 'hours_to_add' is assigned to but never used
+./algorithms/optimization/schedule_optimizer.py:479:9: F841 local variable 'overloaded_staff' is assigned to but never used
+./algorithms/optimization/schedule_optimizer.py:484:9: F841 local variable 'underutilized_staff' is assigned to but never used
+./algorithms/optimization/schedule_optimizer.py:558:101: E501 line too long (102 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:571:101: E501 line too long (116 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:581:101: E501 line too long (115 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:624:101: E501 line too long (118 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:803:101: E501 line too long (108 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:894:101: E501 line too long (103 > 100 characters)
+./algorithms/optimization/schedule_optimizer.py:946:101: E501 line too long (125 > 100 characters)
+./algorithms/optimization/workload_balancer.py:36:101: E501 line too long (105 > 100 characters)
+./algorithms/optimization/workload_balancer.py:106:9: F841 local variable 'current_workload' is assigned to but never used
+./algorithms/optimization/workload_balancer.py:214:101: E501 line too long (110 > 100 characters)
+./algorithms/optimization/workload_balancer.py:379:101: E501 line too long (127 > 100 characters)
+./algorithms/optimization/workload_balancer.py:391:101: E501 line too long (117 > 100 characters)
+./algorithms/queueing/wait_time_predictor.py:886:21: F841 local variable 'late_minutes' is assigned to but never used
+./algorithms/security/fraud_detector.py:114:101: E501 line too long (106 > 100 characters)
+./api/documentation/openapi.py:44:101: E501 line too long (114 > 100 characters)
+./api/documentation/openapi.py:75:64: NQA102 "# noqa: E501" has no matching violations
+./api/documentation/yasg_patch.py:41:1: E402 module level import not at top of file
+./api/documentation/yasg_patch.py:86:101: E501 line too long (102 > 100 characters)
+./api/v1/urls.py:76:101: E501 line too long (111 > 100 characters)
+./apps/authapp/migrations/0001_initial.py:30:101: E501 line too long (117 > 100 characters)
+./apps/authapp/migrations/0001_initial.py:86:101: E501 line too long (138 > 100 characters)
+./apps/authapp/migrations/0001_initial.py:136:101: E501 line too long (134 > 100 characters)
+./apps/authapp/migrations/0001_initial.py:291:101: E501 line too long (101 > 100 characters)
+./apps/authapp/services/security_service.py:391:101: E501 line too long (101 > 100 characters)
+./apps/authapp/services/security_service.py:616:101: E501 line too long (103 > 100 characters)
+./apps/authapp/services/security_service.py:642:101: E501 line too long (135 > 100 characters)
+./apps/authapp/services/security_service.py:683:101: E501 line too long (104 > 100 characters)
+./apps/authapp/services/security_service.py:692:101: E501 line too long (104 > 100 characters)
+./apps/authapp/services/security_service.py:703:101: E501 line too long (104 > 100 characters)
+./apps/authapp/services/security_service.py:718:13: F841 local variable 'reset_token' is assigned to but never used
+./apps/authapp/services/security_service.py:733:101: E501 line too long (103 > 100 characters)
+./apps/authapp/services/security_service.py:847:101: E501 line too long (103 > 100 characters)
+./apps/authapp/services/security_service.py:877:101: E501 line too long (138 > 100 characters)
+./apps/authapp/services/security_service.py:935:101: E501 line too long (129 > 100 characters)
+./apps/authapp/services/security_service.py:949:101: E501 line too long (133 > 100 characters)
+./apps/authapp/services/security_service.py:952:101: E501 line too long (103 > 100 characters)
+./apps/authapp/signals.py:43:101: E501 line too long (101 > 100 characters)
+./apps/authapp/validators.py:20:101: E501 line too long (120 > 100 characters)
+./apps/authapp/views.py:39:101: E501 line too long (108 > 100 characters)
+./apps/bookingapp/admin.py:165:101: E501 line too long (115 > 100 characters)
+./apps/bookingapp/models.py:141:101: E501 line too long (115 > 100 characters)
+./apps/bookingapp/models.py:270:101: E501 line too long (124 > 100 characters)
+./apps/bookingapp/services/advanced_scheduler.py:52:101: E501 line too long (109 > 100 characters)
+./apps/bookingapp/services/advanced_scheduler.py:726:101: E501 line too long (109 > 100 characters)
+./apps/bookingapp/services/availability_service.py:52:101: E501 line too long (103 > 100 characters)
+./apps/bookingapp/services/availability_service.py:60:101: E501 line too long (124 > 100 characters)
+./apps/bookingapp/services/availability_service.py:115:101: E501 line too long (104 > 100 characters)
+./apps/bookingapp/services/booking_service.py:104:101: E501 line too long (106 > 100 characters)
+./apps/bookingapp/services/booking_service.py:224:101: E501 line too long (130 > 100 characters)
+./apps/bookingapp/services/booking_service.py:231:101: E501 line too long (121 > 100 characters)
+./apps/bookingapp/services/booking_service.py:299:101: E501 line too long (144 > 100 characters)
+./apps/bookingapp/services/booking_service.py:306:101: E501 line too long (131 > 100 characters)
+./apps/bookingapp/services/booking_service.py:322:5: F811 redefinition of unused 'create_appointment' from line 37
+./apps/bookingapp/services/booking_service.py:684:5: F811 redefinition of unused 'reschedule_appointment' from line 161
+./apps/bookingapp/services/booking_service.py:747:101: E501 line too long (103 > 100 characters)
+./apps/bookingapp/services/buffer_management_service.py:433:101: E501 line too long (121 > 100 characters)
+./apps/bookingapp/services/buffer_management_service.py:453:101: E501 line too long (115 > 100 characters)
+./apps/bookingapp/services/buffer_management_service.py:504:101: E501 line too long (120 > 100 characters)
+./apps/bookingapp/services/buffer_management_service.py:516:101: E501 line too long (104 > 100 characters)
+./apps/bookingapp/services/buffer_management_service.py:707:101: E501 line too long (105 > 100 characters)
+./apps/bookingapp/services/buffer_management_service.py:725:101: E501 line too long (102 > 100 characters)
+./apps/bookingapp/services/conflict_detection_service.py:189:101: E501 line too long (101 > 100 characters)
+./apps/bookingapp/services/conflict_detection_service.py:269:101: E501 line too long (108 > 100 characters)
+./apps/bookingapp/services/conflict_detection_service.py:280:101: E501 line too long (116 > 100 characters)
+./apps/bookingapp/services/conflict_service.py:50:101: E501 line too long (104 > 100 characters)
+./apps/bookingapp/services/multi_service_booker.py:135:101: E501 line too long (119 > 100 characters)
+./apps/bookingapp/services/reminder_service.py:33:101: E501 line too long (193 > 100 characters)
+./apps/bookingapp/services/reminder_service.py:44:101: E501 line too long (134 > 100 characters)
+./apps/bookingapp/services/reminder_service.py:72:101: E501 line too long (119 > 100 characters)
+./apps/bookingapp/services/reminder_service.py:75:101: E501 line too long (121 > 100 characters)
+./apps/bookingapp/services/reminder_service.py:78:101: E501 line too long (125 > 100 characters)
+./apps/bookingapp/services/scheduling_optimizer.py:310:101: E501 line too long (105 > 100 characters)
+./apps/bookingapp/services/scheduling_optimizer.py:511:13: F841 local variable 'service' is assigned to but never used
+./apps/bookingapp/services/specialist_allocation_service.py:87:101: E501 line too long (106 > 100 characters)
+./apps/bookingapp/tests/test_services.py:253:101: E501 line too long (111 > 100 characters)
+./apps/bookingapp/tests/test_services.py:298:101: E501 line too long (111 > 100 characters)
+./apps/bookingapp/views.py:95:101: E501 line too long (151 > 100 characters)
+./apps/bookingapp/views.py:442:101: E501 line too long (115 > 100 characters)
+./apps/bookingapp/views.py:636:101: E501 line too long (117 > 100 characters)
+./apps/bookingapp/views.py:748:101: E501 line too long (115 > 100 characters)
+./apps/categoriesapp/migrations/0001_initial.py:160:101: E501 line too long (101 > 100 characters)
+./apps/categoriesapp/serializers.py:253:101: E501 line too long (105 > 100 characters)
+./apps/categoriesapp/serializers.py:294:1: F811 redefinition of unused 'CategorySimpleSerializer' from line 10
+./apps/categoriesapp/services/category_service.py:166:101: E501 line too long (113 > 100 characters)
+./apps/chatapp/consumers.py:47:101: E501 line too long (122 > 100 characters)
+./apps/chatapp/services/response_suggester.py:102:101: E501 line too long (109 > 100 characters)
+./apps/chatapp/services/response_suggester.py:104:101: E501 line too long (157 > 100 characters)
+./apps/chatapp/services/response_suggester.py:111:101: E501 line too long (138 > 100 characters)
+./apps/chatapp/services/response_suggester.py:118:101: E501 line too long (130 > 100 characters)
+./apps/chatapp/services/response_suggester.py:133:101: E501 line too long (148 > 100 characters)
+./apps/chatapp/services/response_suggester.py:147:101: E501 line too long (109 > 100 characters)
+./apps/chatapp/services/response_suggester.py:201:101: E501 line too long (111 > 100 characters)
+./apps/chatapp/services/response_suggester.py:205:101: E501 line too long (107 > 100 characters)
+./apps/chatapp/services/response_suggester.py:206:101: E501 line too long (107 > 100 characters)
+./apps/chatapp/services/response_suggester.py:210:101: E501 line too long (112 > 100 characters)
+./apps/chatapp/services/response_suggester.py:214:101: E501 line too long (104 > 100 characters)
+./apps/chatapp/tests/test_models.py:144:101: E501 line too long (118 > 100 characters)
+./apps/chatapp/tests/test_views.py:236:9: F841 local variable 'no_perm_employee' is assigned to but never used
+./apps/companiesapp/services/multi_branch_service.py:328:101: E501 line too long (120 > 100 characters)
+./apps/companiesapp/services/multi_branch_service.py:664:101: E501 line too long (121 > 100 characters)
+./apps/companiesapp/services/multi_branch_service.py:665:101: E501 line too long (101 > 100 characters)
+./apps/companiesapp/services/multi_branch_service.py:752:17: F841 local variable 'new_role' is assigned to but never used
+./apps/companiesapp/services/subscription_service.py:80:13: F841 local variable 'employee_count' is assigned to but never used
+./apps/companiesapp/services/subscription_service.py:216:101: E501 line too long (136 > 100 characters)
+./apps/companiesapp/services/subscription_service.py:236:101: E501 line too long (127 > 100 characters)
+./apps/companiesapp/views.py:291:101: E501 line too long (101 > 100 characters)
+./apps/customersapp/tests/test_views.py:133:101: E501 line too long (107 > 100 characters)
+./apps/customersapp/tests/test_views.py:223:9: F841 local variable 'favorite' is assigned to but never used
+./apps/customersapp/tests/test_views.py:244:9: F841 local variable 'favorite' is assigned to but never used
+./apps/discountapp/models.py:167:101: E501 line too long (117 > 100 characters)
+./apps/discountapp/models.py:205:101: E501 line too long (117 > 100 characters)
+./apps/discountapp/tests/test_models.py:221:9: F841 local variable 'campaign' is assigned to but never used
+./apps/discountapp/tests/test_models.py:227:13: F841 local variable 'invalid_campaign' is assigned to but never used
+./apps/discountapp/tests/test_services.py:202:9: F841 local variable 'inactive_discount' is assigned to but never used
+./apps/discountapp/tests/test_services.py:206:9: F841 local variable 'expired_discount' is assigned to but never used
+./apps/discountapp/tests/test_services.py:213:9: F841 local variable 'future_discount' is assigned to but never used
+./apps/discountapp/tests/test_services.py:230:9: F841 local variable 'discount' is assigned to but never used
+./apps/discountapp/tests/test_services.py:277:9: F841 local variable 'discount1' is assigned to but never used
+./apps/discountapp/tests/test_services.py:286:9: F841 local variable 'discount2' is assigned to but never used
+./apps/discountapp/tests/test_services.py:333:9: F841 local variable 'non_combinable_discount' is assigned to but never used
+./apps/discountapp/tests/test_services.py:423:9: F841 local variable 'inactive_campaign' is assigned to but never used
+./apps/discountapp/tests/test_services.py:430:9: F841 local variable 'future_campaign' is assigned to but never used
+./apps/discountapp/tests/test_services.py:437:9: F841 local variable 'past_campaign' is assigned to but never used
+./apps/discountapp/tests/test_views.py:37:9: F841 local variable 'discount1' is assigned to but never used
+./apps/discountapp/tests/test_views.py:38:9: F841 local variable 'discount2' is assigned to but never used
+./apps/discountapp/tests/test_views.py:88:9: F841 local variable 'inactive_discount' is assigned to but never used
+./apps/employeeapp/models.py:136:101: E501 line too long (151 > 100 characters)
+./apps/employeeapp/models.py:191:101: E501 line too long (104 > 100 characters)
+./apps/employeeapp/models.py:253:101: E501 line too long (116 > 100 characters)
+./apps/employeeapp/services/workload_optimizer.py:237:101: E501 line too long (185 > 100 characters)
+./apps/employeeapp/services/workload_optimizer.py:249:101: E501 line too long (194 > 100 characters)
+./apps/employeeapp/services/workload_optimizer.py:267:101: E501 line too long (180 > 100 characters)
+./apps/employeeapp/services/workload_optimizer.py:292:101: E501 line too long (207 > 100 characters)
+./apps/employeeapp/tests/test_views.py:294:9: F841 local variable 'leave' is assigned to but never used
+./apps/followapp/migrations/0001_initial.py:97:101: E501 line too long (113 > 100 characters)
+./apps/geoapp/services/location_content_filter.py:258:101: E501 line too long (107 > 100 characters)
+./apps/geoapp/services/routing_service.py:48:101: E501 line too long (101 > 100 characters)
+./apps/geoapp/services/routing_service.py:67:101: E501 line too long (102 > 100 characters)
+./apps/geoapp/services/routing_service.py:292:101: E501 line too long (101 > 100 characters)
+./apps/geoapp/utils/coordinate_utils.py:71:101: E501 line too long (118 > 100 characters)
+./apps/geoapp/utils/spatial_optimizations.py:187:5: F841 local variable 'distance_expr' is assigned to but never used
+./apps/geoapp/utils/spatial_optimizations.py:190:5: F841 local variable 'radius_expr' is assigned to but never used
+./apps/geoapp/utils/spatial_optimizations.py:241:101: E501 line too long (123 > 100 characters)
+./apps/geoapp/views.py:4:101: E501 line too long (101 > 100 characters)
+./apps/marketingapp/services/ad_analytics_service.py:441:101: E501 line too long (102 > 100 characters)
+./apps/marketingapp/services/ad_analytics_service.py:683:101: E501 line too long (108 > 100 characters)
+./apps/marketingapp/services/ad_analytics_service.py:695:101: E501 line too long (109 > 100 characters)
+./apps/marketingapp/services/ad_payment_service.py:153:101: E501 line too long (103 > 100 characters)
+./apps/notificationsapp/models.py:322:101: E501 line too long (123 > 100 characters)
+./apps/notificationsapp/models.py:470:5: F811 redefinition of unused 'channels' from line 375
+./apps/notificationsapp/models.py:1885:101: E501 line too long (132 > 100 characters)
+./apps/notificationsapp/models.py:1944:101: E501 line too long (117 > 100 characters)
+./apps/notificationsapp/models.py:2313:17: F841 local variable 'current_month' is assigned to but never used
+./apps/notificationsapp/services/async_notification_service.py:18:1: F401 'apps.notificationsapp.enums.NotificationType' imported but unused
+./apps/notificationsapp/services/async_notification_service.py:420:9: F841 local variable 'user_ids' is assigned to but never used
+./apps/notificationsapp/services/campaign_service.py:301:17: E722 do not use bare 'except'
+./apps/notificationsapp/services/campaign_service.py:833:101: E501 line too long (115 > 100 characters)
+./apps/notificationsapp/services/campaign_service.py:843:32: F541 f-string is missing placeholders
+./apps/notificationsapp/services/campaign_service.py:853:32: F541 f-string is missing placeholders
+./apps/notificationsapp/services/campaign_service.py:863:101: E501 line too long (123 > 100 characters)
+./apps/notificationsapp/services/campaign_service.py:873:101: E501 line too long (130 > 100 characters)
+./apps/notificationsapp/services/dead_letter_service.py:125:17: F841 local variable 'notification' is assigned to but never used
+./apps/notificationsapp/services/firebase_service.py:209:101: E501 line too long (103 > 100 characters)
+./apps/notificationsapp/services/firebase_service.py:240:101: E501 line too long (107 > 100 characters)
+./apps/notificationsapp/services/firebase_service.py:271:101: E501 line too long (109 > 100 characters)
+./apps/notificationsapp/services/notification_service.py:139:40: F821 undefined name 'notification'
+./apps/notificationsapp/services/notification_service.py:169:25: F821 undefined name 'notification'
+./apps/notificationsapp/services/notification_service.py:178:13: F821 undefined name 'notification'
+./apps/notificationsapp/services/notification_service.py:179:13: F821 undefined name 'notification'
+./apps/notificationsapp/services/notification_service.py:180:13: F821 undefined name 'notification'
+./apps/notificationsapp/services/notification_service.py:184:40: F821 undefined name 'notification'
+./apps/notificationsapp/services/notification_service.py:291:101: E501 line too long (103 > 100 characters)
+./apps/notificationsapp/services/notification_service.py:751:101: E501 line too long (136 > 100 characters)
+./apps/notificationsapp/services/notification_service.py:834:101: E501 line too long (113 > 100 characters)
+./apps/notificationsapp/services/notification_service.py:856:101: E501 line too long (105 > 100 characters)
+./apps/notificationsapp/services/notification_service.py:874:101: E501 line too long (114 > 100 characters)
+./apps/notificationsapp/signals.py:48:101: E501 line too long (108 > 100 characters)
+./apps/notificationsapp/signals.py:77:101: E501 line too long (119 > 100 characters)
+./apps/notificationsapp/signals.py:83:101: E501 line too long (125 > 100 characters)
+./apps/notificationsapp/tasks.py:35:101: E501 line too long (104 > 100 characters)
+./apps/notificationsapp/tests/test_firebase_integration.py:86:101: E501 line too long (145 > 100 characters)
+./apps/notificationsapp/tests/test_services.py:249:13: F841 local variable 'unused_notification' is assigned to but never used
+./apps/notificationsapp/tests/test_services.py:261:13: F841 local variable 'unused_evening_notification' is assigned to but never used
+./apps/notificationsapp/views.py:322:27: F823 local variable '_' defined in enclosing scope on line 7 referenced before assignment
+./apps/packageapp/models.py:258:101: E501 line too long (145 > 100 characters)
+./apps/packageapp/services/package_service.py:13:1: F811 redefinition of unused 'PackageService' from line 9
+./apps/packageapp/tests/test_services.py:13:1: F811 redefinition of unused 'PackageService' from line 9
+./apps/packageapp/tests/test_services.py:480:9: F841 local variable 'appointment1' is assigned to but never used
+./apps/packageapp/tests/test_services.py:491:9: F841 local variable 'appointment2' is assigned to but never used
+./apps/packageapp/tests/test_services.py:590:101: E501 line too long (104 > 100 characters)
+./apps/packageapp/tests/test_views.py:311:101: E501 line too long (104 > 100 characters)
+./apps/packageapp/validators.py:91:101: E501 line too long (117 > 100 characters)
+./apps/packageapp/views.py:34:101: E501 line too long (123 > 100 characters)
+./apps/payment/management/commands/check_moyasar_config.py:122:9: E303 too many blank lines (2)
+./apps/payment/management/commands/check_moyasar_config.py:165:101: E501 line too long (111 > 100 characters)
+./apps/payment/models.py:219:101: E501 line too long (105 > 100 characters)
+./apps/payment/services/moyasar_service.py:272:101: E501 line too long (105 > 100 characters)
+./apps/payment/services/payment_service.py:1:1: F401 'json' imported but unused
+./apps/payment/services/payment_service.py:283:77: NQA102 "# noqa: E501" has no matching violations
+./apps/payment/services/payment_service.py:391:17: F402 import 'transaction' from line 10 shadowed by loop variable
+./apps/payment/tests/test_moyasar_integration.py:211:9: F841 local variable 'subscription_transaction' is assigned to but never used
+./apps/payment/tests/test_moyasar_integration.py:224:9: F841 local variable 'ads_transaction' is assigned to but never used
+./apps/payment/transaction.py:74:101: E501 line too long (123 > 100 characters)
+./apps/payment/transaction.py:157:101: E501 line too long (126 > 100 characters)
+./apps/payment/views.py:39:101: E501 line too long (116 > 100 characters)
+./apps/payment/views/payment_views.py:38:101: E501 line too long (116 > 100 characters)
+./apps/payment/views/webhook_views.py:58:101: E501 line too long (102 > 100 characters)
+./apps/payment/webhooks.py:49:101: E501 line too long (107 > 100 characters)
+./apps/payment/webhooks.py:66:101: E501 line too long (102 > 100 characters)
+./apps/queueapp/services/hybrid_queue_manager.py:340:101: E501 line too long (146 > 100 characters)
+./apps/queueapp/services/hybrid_queue_manager.py:350:101: E501 line too long (137 > 100 characters)
+./apps/queueapp/services/hybrid_queue_manager.py:359:101: E501 line too long (138 > 100 characters)
+./apps/queueapp/services/hybrid_queue_manager.py:372:101: E501 line too long (132 > 100 characters)
+./apps/queueapp/services/hybrid_queue_manager.py:393:101: E501 line too long (163 > 100 characters)
+./apps/queueapp/services/queue_manager.py:648:101: E501 line too long (104 > 100 characters)
+./apps/queueapp/services/queue_manager.py:1171:101: E501 line too long (103 > 100 characters)
+./apps/queueapp/services/queue_manager.py:1173:101: E501 line too long (117 > 100 characters)
+./apps/queueapp/services/queue_optimizer.py:100:101: E501 line too long (106 > 100 characters)
+./apps/queueapp/services/queue_optimizer.py:183:101: E501 line too long (112 > 100 characters)
+./apps/queueapp/services/queue_optimizer.py:561:101: E501 line too long (102 > 100 characters)
+./apps/queueapp/services/queue_service.py:414:101: E501 line too long (115 > 100 characters)
+./apps/queueapp/services/queue_service.py:498:101: E501 line too long (105 > 100 characters)
+./apps/queueapp/services/ticket_service.py:183:101: E501 line too long (109 > 100 characters)
+./apps/queueapp/services/ticket_service.py:281:101: E501 line too long (105 > 100 characters)
+./apps/queueapp/services/wait_time_predictor.py:256:101: E501 line too long (108 > 100 characters)
+./apps/queueapp/services/wait_time_predictor.py:343:13: F841 local variable 'model' is assigned to but never used
+./apps/queueapp/utils/queue_utils.py:32:101: E501 line too long (123 > 100 characters)
+./apps/reelsapp/models.py:14:1: F401 'core.storage.MediaStorage' imported but unused
+./apps/reelsapp/models.py:98:47: NQA102 "# noqa: D401" has no matching violations
+./apps/reelsapp/services/media_service.py:116:101: E501 line too long (104 > 100 characters)
+./apps/reelsapp/views.py:4:101: E501 line too long (103 > 100 characters)
+./apps/reportanalyticsapp/models.py:160:101: E501 line too long (108 > 100 characters)
+./apps/reportanalyticsapp/models.py:239:101: E501 line too long (103 > 100 characters)
+./apps/reportanalyticsapp/models.py:490:101: E501 line too long (109 > 100 characters)
+./apps/reportanalyticsapp/queries/business_queries.py:1161:101: E501 line too long (149 > 100 characters)
+./apps/reportanalyticsapp/queries/business_queries.py:1352:101: E501 line too long (135 > 100 characters)
+./apps/reportanalyticsapp/services/advanced_analytics_service.py:948:57: F841 local variable 'opening_seconds' is assigned to but never used
+./apps/reportanalyticsapp/services/advanced_analytics_service.py:959:57: F841 local variable 'closing_seconds' is assigned to but never used
+./apps/reportanalyticsapp/services/analytics_service.py:60:101: E501 line too long (133 > 100 characters)
+./apps/reportanalyticsapp/services/analytics_service.py:152:101: E501 line too long (105 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:65:101: E501 line too long (120 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:86:101: E501 line too long (117 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:262:101: E501 line too long (120 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:896:101: E501 line too long (102 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:913:101: E501 line too long (113 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:930:101: E501 line too long (116 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:947:101: E501 line too long (115 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:964:101: E501 line too long (109 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:981:101: E501 line too long (112 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:987:101: E501 line too long (105 > 100 characters)
+./apps/reportanalyticsapp/services/anomaly_detector.py:990:101: E501 line too long (120 > 100 characters)
+./apps/reportanalyticsapp/services/benchmark_service.py:204:101: E501 line too long (114 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:589:101: E501 line too long (126 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:955:101: E501 line too long (101 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:998:101: E501 line too long (107 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:999:101: E501 line too long (113 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:1017:101: E501 line too long (105 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:1018:101: E501 line too long (127 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:1052:101: E501 line too long (113 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:1101:101: E501 line too long (108 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:1102:101: E501 line too long (113 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:1111:101: E501 line too long (107 > 100 characters)
+./apps/reportanalyticsapp/services/dashboard_service.py:1356:13: F841 local variable 'specialist' is assigned to but never used
+./apps/reportanalyticsapp/services/demand_forecaster.py:47:13: F841 local variable 'shop' is assigned to but never used
+./apps/reportanalyticsapp/services/demand_forecaster.py:269:13: F841 local variable 'shop' is assigned to but never used
+./apps/reportanalyticsapp/services/demand_forecaster.py:357:13: F841 local variable 'shop' is assigned to but never used
+./apps/reportanalyticsapp/services/demand_forecaster.py:434:13: F841 local variable 'shop' is assigned to but never used
+./apps/reportanalyticsapp/services/demand_forecaster.py:1015:101: E501 line too long (106 > 100 characters)
+./apps/reportanalyticsapp/services/demand_forecaster.py:1023:101: E501 line too long (106 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:107:101: E501 line too long (151 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:388:101: E501 line too long (109 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:393:101: E501 line too long (104 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:405:101: E501 line too long (115 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:409:101: E501 line too long (124 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:421:101: E501 line too long (130 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:478:101: E501 line too long (113 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:490:101: E501 line too long (127 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:494:101: E501 line too long (114 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:553:101: E501 line too long (120 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:567:101: E501 line too long (114 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:596:101: E501 line too long (111 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:607:101: E501 line too long (113 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:751:101: E501 line too long (140 > 100 characters)
+./apps/reportanalyticsapp/services/report_service.py:779:101: E501 line too long (122 > 100 characters)
+./apps/reviewapp/models.py:56:101: E501 line too long (133 > 100 characters)
+./apps/reviewapp/models.py:197:101: E501 line too long (101 > 100 characters)
+./apps/reviewapp/services/content_moderation.py:14:101: E501 line too long (111 > 100 characters)
+./apps/reviewapp/services/rating_aggregator.py:609:101: E501 line too long (106 > 100 characters)
+./apps/reviewapp/services/rating_aggregator.py:635:101: E501 line too long (105 > 100 characters)
+./apps/reviewapp/services/review_service.py:57:101: E501 line too long (138 > 100 characters)
+./apps/reviewapp/tests/test_services.py:160:101: E501 line too long (103 > 100 characters)
+./apps/reviewapp/tests/test_services.py:167:101: E501 line too long (105 > 100 characters)
+./apps/reviewapp/tests/test_services.py:222:9: F841 local variable 'image' is assigned to but never used
+./apps/reviewapp/views.py:55:101: E501 line too long (120 > 100 characters)
+./apps/rolesapp/tests/test_models.py:215:101: E501 line too long (103 > 100 characters)
+./apps/serviceapp/models.py:262:101: E501 line too long (145 > 100 characters)
+./apps/serviceapp/models.py:289:101: E501 line too long (149 > 100 characters)
+./apps/serviceapp/services/service_service.py:143:101: E501 line too long (101 > 100 characters)
+./apps/serviceapp/views.py:59:101: E501 line too long (111 > 100 characters)
+./apps/serviceapp/views.py:213:101: E501 line too long (103 > 100 characters)
+./apps/serviceapp/views.py:439:101: E501 line too long (112 > 100 characters)
+./apps/serviceapp/views.py:713:9: F841 local variable 'updated_service' is assigned to but never used
+./apps/shopDashboardApp/serializers.py:10:1: F401 'apps.reportanalyticsapp.models.ScheduledReport as AnalyticsScheduledReport' imported but unused
+./apps/shopDashboardApp/services/kpi_service.py:632:101: E501 line too long (115 > 100 characters)
+./apps/shopDashboardApp/services/stats_service.py:697:101: E501 line too long (108 > 100 characters)
+./apps/shopDashboardApp/services/stats_service.py:1101:101: E501 line too long (105 > 100 characters)
+./apps/shopDashboardApp/services/stats_service.py:1108:101: E501 line too long (117 > 100 characters)
+./apps/shopDashboardApp/services/stats_service.py:1506:101: E501 line too long (105 > 100 characters)
+./apps/shopapp/models.py:189:101: E501 line too long (142 > 100 characters)
+./apps/shopapp/services/hours_optimizer.py:110:101: E501 line too long (111 > 100 characters)
+./apps/shopapp/services/hours_optimizer.py:120:101: E501 line too long (124 > 100 characters)
+./apps/shopapp/services/hours_optimizer.py:166:101: E501 line too long (124 > 100 characters)
+./apps/shopapp/services/hours_optimizer.py:178:101: E501 line too long (123 > 100 characters)
+./apps/shopapp/services/hours_optimizer.py:365:101: E501 line too long (142 > 100 characters)
+./apps/shopapp/services/hours_optimizer.py:394:101: E501 line too long (147 > 100 characters)
+./apps/shopapp/services/shop_service.py:57:13: F841 local variable 'employee' is assigned to but never used
+./apps/shopapp/services/verification_service.py:140:101: E501 line too long (103 > 100 characters)
+./apps/shopapp/views.py:254:101: E501 line too long (107 > 100 characters)
+./apps/shopapp/views.py:902:101: E501 line too long (103 > 100 characters)
+./apps/specialistsapp/models.py:192:101: E501 line too long (103 > 100 characters)
+./apps/specialistsapp/models.py:193:101: E501 line too long (143 > 100 characters)
+./apps/specialistsapp/services/specialist_service.py:18:1: F811 redefinition of unused 'SpecialistService' from line 11
+./apps/specialistsapp/services/specialist_service.py:163:101: E501 line too long (103 > 100 characters)
+./apps/specialistsapp/tests/test_models.py:275:101: E501 line too long (108 > 100 characters)
+./apps/specialistsapp/views.py:1049:13: F841 local variable 'specialist' is assigned to but never used
+./apps/specialistsapp/views.py:1128:101: E501 line too long (103 > 100 characters)
+./apps/storiesapp/tests/test_services.py:135:9: F841 local variable 'active_story' is assigned to but never used
+./apps/subscriptionapp/models.py:239:101: E501 line too long (112 > 100 characters)
+./apps/subscriptionapp/services/invoice_service.py:195:101: E501 line too long (121 > 100 characters)
+./apps/subscriptionapp/services/renewal_manager.py:36:101: E501 line too long (104 > 100 characters)
+./apps/subscriptionapp/services/renewal_manager.py:136:101: E501 line too long (102 > 100 characters)
+./apps/subscriptionapp/services/subscription_service.py:296:101: E501 line too long (101 > 100 characters)
+./apps/subscriptionapp/services/subscription_service.py:867:9: F841 local variable 'context' is assigned to but never used
+./apps/subscriptionapp/services/subscription_service.py:910:9: F841 local variable 'context' is assigned to but never used
+./apps/subscriptionapp/services/subscription_service.py:952:9: F841 local variable 'context' is assigned to but never used
+./apps/subscriptionapp/services/subscription_service.py:991:9: F841 local variable 'headers' is assigned to but never used
+./apps/subscriptionapp/tests/test_services.py:143:101: E501 line too long (104 > 100 characters)
+./apps/subscriptionapp/tests/test_services.py:205:101: E501 line too long (108 > 100 characters)
+./audit_swagger_actions.py:72:101: E501 line too long (114 > 100 characters)
+./audit_swagger_actions.py:77:101: E501 line too long (110 > 100 characters)
+./core/exceptions/exception_handler.py:37:1: F811 redefinition of unused 'APIException' from line 26
+./core/exceptions/exception_handler.py:261:101: E501 line too long (103 > 100 characters)
+./core/management/commands/validate_swagger.py:122:101: E501 line too long (120 > 100 characters)
+./core/middleware/performance_middleware.py:125:101: E501 line too long (109 > 100 characters)
+./core/middleware/security.py:44:101: E501 line too long (138 > 100 characters)
+./core/middleware/security.py:45:101: E501 line too long (104 > 100 characters)
+./core/middleware/security.py:193:101: E501 line too long (119 > 100 characters)
+./core/middleware/security.py:195:101: E501 line too long (179 > 100 characters)
+./core/middleware/security.py:196:101: E501 line too long (209 > 100 characters)
+./core/middleware/security.py:197:101: E501 line too long (209 > 100 characters)
+./core/middleware/security.py:198:101: E501 line too long (209 > 100 characters)
+./core/middleware/security.py:199:101: E501 line too long (209 > 100 characters)
+./core/monkey_patches.py:5:101: E501 line too long (113 > 100 characters)
+./core/storage/cdn_storage.py:332:9: F841 local variable 'policy' is assigned to but never used
+./core/storage/media_processor.py:307:101: E501 line too long (101 > 100 characters)
+./core/storage/media_processor.py:444:101: E501 line too long (111 > 100 characters)
+./core/storage/media_processor.py:464:101: E501 line too long (103 > 100 characters)
+./core/storage/media_processor.py:472:101: E501 line too long (104 > 100 characters)
+./core/storage/media_processor.py:516:101: E501 line too long (111 > 100 characters)
+./core/tasks/worker_new.py:18:101: E501 line too long (101 > 100 characters)
+./core/tasks/worker_new.py:277:101: E501 line too long (123 > 100 characters)
+./core/tasks/worker_new.py:279:101: E501 line too long (123 > 100 characters)
+./core/tasks/worker_new.py:302:101: E501 line too long (102 > 100 characters)
+./core/tasks/worker_new.py:494:101: E501 line too long (125 > 100 characters)
+./core/utils/query_optimizer.py:103:101: E501 line too long (105 > 100 characters)
+./core/utils/query_optimizer.py:378:101: E501 line too long (129 > 100 characters)
+./core/utils/query_optimizer.py:389:101: E501 line too long (118 > 100 characters)
+./core/utils/query_optimizer.py:420:101: E501 line too long (118 > 100 characters)
+./core/utils/query_optimizer.py:443:101: E501 line too long (109 > 100 characters)
+./core/utils/query_optimizer.py:460:101: E501 line too long (130 > 100 characters)
+./integration_tests/notification_integration_test.py:22:1: E402 module level import not at top of file
+./integration_tests/notification_integration_test.py:26:1: E402 module level import not at top of file
+./integration_tests/notification_integration_test.py:27:1: E402 module level import not at top of file
+./integration_tests/notification_integration_test.py:29:1: E402 module level import not at top of file
+./integration_tests/notification_integration_test.py:30:1: E402 module level import not at top of file
+./integration_tests/notification_integration_test.py:35:1: E402 module level import not at top of file
+./integration_tests/notification_integration_test.py:36:1: E402 module level import not at top of file
+./integration_tests/notification_integration_test.py:295:101: E501 line too long (101 > 100 characters)
+./integration_tests/notification_integration_test.py:312:101: E501 line too long (104 > 100 characters)
+./integration_tests/payment_integration_test.py:25:1: E402 module level import not at top of file
+./integration_tests/payment_integration_test.py:29:1: E402 module level import not at top of file
+./integration_tests/payment_integration_test.py:31:1: E402 module level import not at top of file
+./integration_tests/payment_integration_test.py:32:1: E402 module level import not at top of file
+./monitoring/alert_monitor.py:284:101: E501 line too long (111 > 100 characters)
+./monitoring/alert_monitor.py:351:101: E501 line too long (110 > 100 characters)
+./monitoring/alert_monitor.py:391:101: E501 line too long (113 > 100 characters)
+./monitoring/alert_monitor.py:415:101: E501 line too long (117 > 100 characters)
+./monitoring/alert_monitor.py:439:101: E501 line too long (103 > 100 characters)
+./monitoring/alert_monitor.py:455:101: E501 line too long (117 > 100 characters)
+./monitoring/alert_monitor.py:466:101: E501 line too long (112 > 100 characters)
+./monitoring/alert_monitor.py:481:101: E501 line too long (126 > 100 characters)
+./monitoring/alert_monitor.py:492:101: E501 line too long (121 > 100 characters)
+./monitoring/alert_monitor.py:507:101: E501 line too long (120 > 100 characters)
+./monitoring/alert_monitor.py:518:101: E501 line too long (115 > 100 characters)
+./monitoring/alert_monitor.py:545:101: E501 line too long (109 > 100 characters)
+./monitoring/alert_monitor.py:708:101: E501 line too long (119 > 100 characters)
+./monitoring/health_check.py:88:101: E501 line too long (104 > 100 characters)
+./queueme/asgi.py:28:1: E402 module level import not at top of file
+./queueme/settings/base.py:510:101: E501 line too long (120 > 100 characters)
+./queueme/settings/base.py:514:5: F601 dictionary key 'USE_SESSION_AUTH' repeated with different values
+./queueme/settings/base.py:519:5: F601 dictionary key 'USE_SESSION_AUTH' repeated with different values
+./queueme/settings/base.py:523:101: E501 line too long (108 > 100 characters)
+./queueme/settings/development.py:9:1: F403 'from .base import *' used; unable to detect undefined names
+./queueme/settings/development.py:12:14: F405 'env' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:15:9: F405 'env' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:53:101: E501 line too long (108 > 100 characters)
+./queueme/settings/development.py:68:34: F405 'BASE_DIR' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:72:27: F405 'BASE_DIR' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:75:26: F405 'MIDDLEWARE' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:120:35: F405 'INSTALLED_APPS' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:121:13: F405 'INSTALLED_APPS' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:204:1: F405 'LOGGING' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:205:1: F405 'LOGGING' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:206:1: F405 'LOGGING' may be undefined, or defined from star imports: .base
+./queueme/settings/development.py:211:1: F405 'LOGGING' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:12:1: F403 'from .base import *' used; unable to detect undefined names
+./queueme/settings/production.py:29:34: F405 'BASE_DIR' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:59:101: E501 line too long (108 > 100 characters)
+./queueme/settings/production.py:123:26: F405 'MIDDLEWARE' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:135:101: E501 line too long (111 > 100 characters)
+./queueme/settings/production.py:149:9: F405 'INSTALLED_APPS' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:170:20: F405 'INSTALLED_APPS' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:236:1: F405 'REST_FRAMEWORK' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:240:1: F405 'REST_FRAMEWORK' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:406:1: F405 'LOGGING' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:411:1: F405 'LOGGING' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:415:1: F405 'LOGGING' may be undefined, or defined from star imports: .base
+./queueme/settings/production.py:420:1: F405 'LOGGING' may be undefined, or defined from star imports: .base
+./queueme/settings/test.py:7:1: F403 'from .base import *' used; unable to detect undefined names
+./queueme/settings/test.py:13:17: F405 'BASE_DIR' may be undefined, or defined from star imports: .base
+./queueme/settings/test.py:56:1: F405 'REST_FRAMEWORK' may be undefined, or defined from star imports: .base
+./queueme/settings/test.py:66:1: F405 'TEMPLATES' may be undefined, or defined from star imports: .base
+./scripts/audit_api_docs.py:268:101: E501 line too long (103 > 100 characters)
+./scripts/audit_api_docs.py:272:101: E501 line too long (110 > 100 characters)
+./scripts/database_backup.py:226:9: F841 local variable 'result' is assigned to but never used
+./scripts/database_backup.py:589:101: E501 line too long (106 > 100 characters)
+./scripts/database_backup.py:603:101: E501 line too long (106 > 100 characters)
+./scripts/db_migration/data_validator.py:390:101: E501 line too long (120 > 100 characters)
+./scripts/db_migration/data_validator.py:395:101: E501 line too long (150 > 100 characters)
+./scripts/db_migration/data_validator.py:461:101: E501 line too long (128 > 100 characters)
+./scripts/db_migration/sqlite_to_postgres.py:323:101: E501 line too long (119 > 100 characters)
+./scripts/db_migration/sqlite_to_postgres.py:388:101: E501 line too long (130 > 100 characters)
+./scripts/db_migration/sqlite_to_postgresql.py:171:101: E501 line too long (126 > 100 characters)
+./scripts/db_migration/sqlite_to_postgresql.py:782:101: E501 line too long (129 > 100 characters)
+./scripts/db_migration/sqlite_to_postgresql.py:835:101: E501 line too long (111 > 100 characters)
+./scripts/migrate_sqlite_to_postgres.py:38:1: E402 module level import not at top of file
+./scripts/migrate_sqlite_to_postgres.py:39:1: E402 module level import not at top of file
+./scripts/migrate_sqlite_to_postgres.py:41:1: E402 module level import not at top of file
+./scripts/migrate_sqlite_to_postgres.py:189:101: E501 line too long (111 > 100 characters)
+./scripts/migrate_sqlite_to_postgres.py:201:101: E501 line too long (107 > 100 characters)
+./scripts/restore_backup.py:107:101: E501 line too long (105 > 100 characters)
+./scripts/restore_backup.py:351:101: E501 line too long (116 > 100 characters)
+./scripts/seed_data.py:148:9: F821 undefined name 'Location'
+./scripts/seed_data.py:159:24: F821 undefined name 'Location'
+./scripts/seed_data.py:518:101: E501 line too long (107 > 100 characters)
+./scripts/seed_data.py:766:17: F841 local variable 'appointment' is assigned to but never used
+./scripts/seed_data.py:866:17: F841 local variable 'ticket' is assigned to but never used
+./scripts/seed_data.py:947:17: F841 local variable 'shop_review' is assigned to but never used
+./scripts/seed_data.py:1035:101: E501 line too long (103 > 100 characters)
+./scripts/seed_data.py:1037:101: E501 line too long (112 > 100 characters)
+./scripts/seed_data.py:1060:17: F841 local variable 'story' is assigned to but never used
+./scripts/seed_data.py:1065:101: E501 line too long (105 > 100 characters)
+./scripts/seed_data.py:1136:21: F841 local variable 'message' is assigned to but never used
+./scripts/seed_data.py:1194:101: E501 line too long (128 > 100 characters)
+./scripts/seed_data.py:1195:101: E501 line too long (111 > 100 characters)
+./scripts/seed_data.py:1210:101: E501 line too long (160 > 100 characters)
+./scripts/seed_data.py:1211:101: E501 line too long (146 > 100 characters)
+./scripts/setup_development.py:112:101: E501 line too long (136 > 100 characters)
+./scripts/setup_development.py:206:101: E501 line too long (106 > 100 characters)
+./scripts/setup_development.py:329:101: E501 line too long (119 > 100 characters)
+./scripts/setup_development.py:330:101: E501 line too long (108 > 100 characters)
+./scripts/setup_development.py:331:101: E501 line too long (107 > 100 characters)
+./scripts/setup_development.py:332:101: E501 line too long (111 > 100 characters)
+./scripts/setup_development.py:333:101: E501 line too long (123 > 100 characters)
+./scripts/setup_development.py:334:101: E501 line too long (102 > 100 characters)
+./scripts/setup_development.py:336:101: E501 line too long (172 > 100 characters)
+./scripts/setup_development.py:337:101: E501 line too long (150 > 100 characters)
+./scripts/setup_development.py:376:101: E501 line too long (136 > 100 characters)
+./scripts/setup_development.py:379:101: E501 line too long (113 > 100 characters)
+./scripts/setup_development.py:486:101: E501 line too long (295 > 100 characters)
+./scripts/setup_development.py:496:101: E501 line too long (294 > 100 characters)
+./scripts/setup_development.py:601:101: E501 line too long (207 > 100 characters)
+./scripts/setup_development.py:655:101: E501 line too long (107 > 100 characters)
+./scripts/update_env.py:75:101: E501 line too long (101 > 100 characters)
+./security/api_security_test.py:87:101: E501 line too long (101 > 100 characters)
+./security/api_security_test.py:88:101: E501 line too long (103 > 100 characters)
+./security/api_security_test.py:125:101: E501 line too long (116 > 100 characters)
+./security/api_security_test.py:261:101: E501 line too long (106 > 100 characters)
+./security/api_security_test.py:262:101: E501 line too long (104 > 100 characters)
+./security/api_security_test.py:285:101: E501 line too long (111 > 100 characters)
+./security/api_security_test.py:301:19: F541 f-string is missing placeholders
+./security/api_security_test.py:414:101: E501 line too long (119 > 100 characters)
+./security/api_security_test.py:474:11: F541 f-string is missing placeholders
+./security/security_audit.py:23:1: F401 'requests' imported but unused
+./security/security_audit.py:26:1: F401 'django.core.exceptions.ImproperlyConfigured' imported but unused
+./security/security_audit.py:27:1: F401 'django.core.management.call_command' imported but unused
+./security/security_audit.py:29:1: F401 'django.middleware.security.SecurityMiddleware' imported but unused
+./security/security_audit.py:95:101: E501 line too long (101 > 100 characters)
+./security/security_audit.py:162:101: E501 line too long (103 > 100 characters)
+./security/security_audit.py:186:101: E501 line too long (121 > 100 characters)
+./security/security_audit.py:198:101: E501 line too long (103 > 100 characters)
+./security/security_audit.py:199:101: E501 line too long (102 > 100 characters)
+./security/security_audit.py:248:101: E501 line too long (107 > 100 characters)
+./security/security_audit.py:249:101: E501 line too long (106 > 100 characters)
+./security/security_audit.py:259:101: E501 line too long (117 > 100 characters)
+./security/security_audit.py:310:101: E501 line too long (106 > 100 characters)
+./security/security_audit.py:431:101: E501 line too long (112 > 100 characters)
+./security/security_audit.py:460:101: E501 line too long (112 > 100 characters)
+./tests/integration/test_api_integration.py:567:101: E501 line too long (102 > 100 characters)
+./tests/security/test_security.py:69:9: F841 local variable 'expired_otp' is assigned to but never used
+./tests/security/test_security.py:91:101: E501 line too long (195 > 100 characters)
+./tests/security/test_security.py:280:9: F841 local variable 'service2' is assigned to but never used
+./utils/decorators.py:127:101: E501 line too long (106 > 100 characters)
+./utils/error_handling.py:264:101: E501 line too long (104 > 100 characters)
+./websockets/consumers.py:254:9: E722 do not use bare 'except'
+./websockets/consumers/chat.py:72:101: E501 line too long (121 > 100 characters)
+./websockets/consumers/chat.py:94:101: E501 line too long (109 > 100 characters)
+./websockets/consumers/chat.py:116:101: E501 line too long (104 > 100 characters)
+./websockets/consumers/notifications.py:65:101: E501 line too long (111 > 100 characters)
+./websockets/consumers/queue_consumer.py:110:101: E501 line too long (127 > 100 characters)
+./websockets/consumers/queue_status.py:76:101: E501 line too long (115 > 100 characters)
+./websockets/consumers/queue_status.py:94:101: E501 line too long (103 > 100 characters)

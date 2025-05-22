@@ -13,7 +13,10 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 from apps.rolesapp.decorators import has_permission, has_shop_permission
 from apps.rolesapp.permissions import IsAuthenticated, IsShopStaffOrAdmin
 
@@ -334,14 +337,18 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        specialist_ids = AvailabilityService.get_available_specialists(service.id, date, start, end)
+        specialist_ids = AvailabilityService.get_available_specialists(
+            service.id, date, start, end
+        )
 
         # Get specialist details
         from apps.specialistsapp.models import Specialist
         from apps.specialistsapp.serializers import SpecialistListSerializer
 
         specialists = Specialist.objects.filter(id__in=specialist_ids)
-        serializer = SpecialistListSerializer(specialists, many=True, context={"request": request})
+        serializer = SpecialistListSerializer(
+            specialists, many=True, context={"request": request}
+        )
 
         return Response(serializer.data)
 
@@ -408,7 +415,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 time_slot = {"date": date, "start_time": start, "end_time": end}
             except ValueError:
                 return Response(
-                    {"detail": _("Invalid date or time format. Use YYYY-MM-DD and HH:MM")},
+                    {
+                        "detail": _(
+                            "Invalid date or time format. Use YYYY-MM-DD and HH:MM"
+                        )
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -417,7 +428,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
         if request.user.is_authenticated and request.user.user_type == "customer":
             customer_id = request.user.id
 
-        specialists = ServiceMatcher.find_optimal_specialist(service.id, time_slot, customer_id)
+        specialists = ServiceMatcher.find_optimal_specialist(
+            service.id, time_slot, customer_id
+        )
 
         return Response(specialists)
 
@@ -445,7 +458,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
         if request.user.is_authenticated and request.user.user_type == "customer":
             customer_id = request.user.id
 
-        complementary = ServiceMatcher.find_complementary_services(service.id, customer_id)
+        complementary = ServiceMatcher.find_complementary_services(
+            service.id, customer_id
+        )
 
         return Response(complementary)
 
@@ -561,7 +576,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        updated_service = DurationRefiner.apply_recommended_duration(service.id, new_duration)
+        updated_service = DurationRefiner.apply_recommended_duration(
+            service.id, new_duration
+        )
         serializer = ServiceDetailSerializer(updated_service)
 
         return Response(serializer.data)
@@ -597,7 +614,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 buffer_before = int(buffer_before)
                 if buffer_before < 0 or buffer_before > 120:
                     return Response(
-                        {"detail": _("Buffer before must be between 0 and 120 minutes")},
+                        {
+                            "detail": _(
+                                "Buffer before must be between 0 and 120 minutes"
+                            )
+                        },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
@@ -648,7 +669,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         from .services.service_service import ServiceService
 
-        duplicated = ServiceService.duplicate_service(service.id, new_name, include_specialists)
+        duplicated = ServiceService.duplicate_service(
+            service.id, new_name, include_specialists
+        )
 
         serializer = ServiceDetailSerializer(duplicated)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -687,7 +710,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         from .services.service_service import ServiceService
 
-        updated_service = ServiceService.manage_specialists(service.id, specialist_ids, replace)
+        updated_service = ServiceService.manage_specialists(
+            service.id, specialist_ids, replace
+        )
 
         return Response({"detail": _("Specialists assigned successfully")})
 
@@ -731,7 +756,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
         try:
             start_date_str = request.query_params.get("start_date")
             if start_date_str:
-                start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+                start_date = datetime.datetime.strptime(
+                    start_date_str, "%Y-%m-%d"
+                ).date()
             else:
                 start_date = datetime.date.today()
 
@@ -773,7 +800,9 @@ class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
         summary="List service availability settings",
         description="Retrieve availability settings for a specific service",
         responses={200: "Success - Returns list of availability settings"},
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Availability"],
     )
     def get_queryset(self):
@@ -805,7 +834,9 @@ class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Availability"],
     )
     @transaction.atomic
@@ -901,7 +932,9 @@ class ServiceExceptionViewSet(viewsets.ModelViewSet):
         summary="List service exceptions",
         description="Retrieve exceptions for a specific service",
         responses={200: "Success - Returns list of service exceptions"},
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Exceptions"],
     )
     def get_queryset(self):
@@ -934,7 +967,9 @@ class ServiceExceptionViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Exceptions"],
     )
     @transaction.atomic
@@ -956,9 +991,13 @@ class ServiceExceptionViewSet(viewsets.ModelViewSet):
             return Response(ServiceExceptionSerializer(existing).data)
 
         # Create new exception
-        exception = ServiceException.objects.create(service=service, **serializer.validated_data)
+        exception = ServiceException.objects.create(
+            service=service, **serializer.validated_data
+        )
 
-        return Response(ServiceExceptionSerializer(exception).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ServiceExceptionSerializer(exception).data, status=status.HTTP_201_CREATED
+        )
 
     @document_api_endpoint(
         summary="Update service exception",
@@ -1006,7 +1045,9 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
         summary="List service FAQs",
         description="Retrieve FAQs for a specific service",
         responses={200: "Success - Returns list of service FAQs"},
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "FAQs"],
     )
     def get_queryset(self):
@@ -1038,7 +1079,9 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "FAQs"],
     )
     @transaction.atomic
@@ -1051,9 +1094,9 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data.copy()
         if "order" not in data or data["order"] is None:
             max_order = (
-                ServiceFAQ.objects.filter(service=service).aggregate(max_order=models.Max("order"))[
-                    "max_order"
-                ]
+                ServiceFAQ.objects.filter(service=service).aggregate(
+                    max_order=models.Max("order")
+                )["max_order"]
                 or 0
             )
             data["order"] = max_order + 1
@@ -1101,7 +1144,9 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "FAQs"],
     )
     @action(detail=False, methods=["post"], url_path="reorder")
@@ -1123,7 +1168,9 @@ class ServiceFAQViewSet(viewsets.ModelViewSet):
             )
 
         # Verify all FAQs belong to this service
-        service_faqs = set(ServiceFAQ.objects.filter(service=service).values_list("id", flat=True))
+        service_faqs = set(
+            ServiceFAQ.objects.filter(service=service).values_list("id", flat=True)
+        )
 
         for faq_id in faq_order:
             if str(faq_id) not in map(str, service_faqs):
@@ -1159,7 +1206,9 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
         summary="List service overviews",
         description="Retrieve overview items for a specific service",
         responses={200: "Success - Returns list of service overviews"},
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Overviews"],
     )
     def get_queryset(self):
@@ -1191,7 +1240,9 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Overviews"],
     )
     @transaction.atomic
@@ -1214,7 +1265,9 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
         # Create overview
         overview = ServiceOverview.objects.create(service=service, **data)
 
-        return Response(ServiceOverviewSerializer(overview).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ServiceOverviewSerializer(overview).data, status=status.HTTP_201_CREATED
+        )
 
     @document_api_endpoint(
         summary="Update service overview",
@@ -1254,7 +1307,9 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Overviews"],
     )
     @action(detail=False, methods=["post"], url_path="reorder")
@@ -1292,7 +1347,9 @@ class ServiceOverviewViewSet(viewsets.ModelViewSet):
             ServiceOverview.objects.filter(id=overview_id).update(order=i)
 
         # Return updated overviews
-        updated_overviews = ServiceOverview.objects.filter(service=service).order_by("order")
+        updated_overviews = ServiceOverview.objects.filter(service=service).order_by(
+            "order"
+        )
         serializer = ServiceOverviewSerializer(updated_overviews, many=True)
 
         return Response(serializer.data)
@@ -1314,7 +1371,9 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
         summary="List service steps",
         description="Retrieve steps for a specific service",
         responses={200: "Success - Returns list of service steps"},
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Steps"],
     )
     def get_queryset(self):
@@ -1346,7 +1405,9 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Steps"],
     )
     @transaction.atomic
@@ -1369,7 +1430,9 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
         # Create step
         step = ServiceStep.objects.create(service=service, **data)
 
-        return Response(ServiceStepSerializer(step).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ServiceStepSerializer(step).data, status=status.HTTP_201_CREATED
+        )
 
     @document_api_endpoint(
         summary="Update service step",
@@ -1409,7 +1472,9 @@ class ServiceStepViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Steps"],
     )
     @action(detail=False, methods=["post"], url_path="reorder")
@@ -1469,7 +1534,9 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
         summary="List service aftercare tips",
         description="Retrieve aftercare tips for a specific service",
         responses={200: "Success - Returns list of service aftercare tips"},
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Aftercare"],
     )
     def get_queryset(self):
@@ -1501,7 +1568,9 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Aftercare"],
     )
     @transaction.atomic
@@ -1524,7 +1593,9 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
         # Create aftercare tip
         tip = ServiceAftercare.objects.create(service=service, **data)
 
-        return Response(ServiceAftercareSerializer(tip).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ServiceAftercareSerializer(tip).data, status=status.HTTP_201_CREATED
+        )
 
     @document_api_endpoint(
         summary="Update service aftercare tip",
@@ -1564,7 +1635,9 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Service not found",
         },
-        path_params=[{"name": "service_id", "description": "Service ID", "type": "string"}],
+        path_params=[
+            {"name": "service_id", "description": "Service ID", "type": "string"}
+        ],
         tags=["Services", "Aftercare"],
     )
     @action(detail=False, methods=["post"], url_path="reorder")
@@ -1587,7 +1660,9 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
 
         # Verify all tips belong to this service
         service_tips = set(
-            ServiceAftercare.objects.filter(service=service).values_list("id", flat=True)
+            ServiceAftercare.objects.filter(service=service).values_list(
+                "id", flat=True
+            )
         )
 
         for tip_id in tip_order:
@@ -1602,7 +1677,9 @@ class ServiceAftercareViewSet(viewsets.ModelViewSet):
             ServiceAftercare.objects.filter(id=tip_id).update(order=i)
 
         # Return updated tips
-        updated_tips = ServiceAftercare.objects.filter(service=service).order_by("order")
+        updated_tips = ServiceAftercare.objects.filter(service=service).order_by(
+            "order"
+        )
         serializer = ServiceAftercareSerializer(updated_tips, many=True)
 
         return Response(serializer.data)

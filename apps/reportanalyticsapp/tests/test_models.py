@@ -15,7 +15,9 @@ from apps.shopapp.models import Shop
 class ReportModelTest(TestCase):
     def setUp(self):
         # Create test user
-        self.user = User.objects.create(phone_number="1234567890", is_active=True, is_verified=True)
+        self.user = User.objects.create(
+            phone_number="1234567890", is_active=True, is_verified=True
+        )
 
         # Create test company
         self.company = Company.objects.create(
@@ -72,7 +74,9 @@ class ReportModelTest(TestCase):
 class ReportScheduleTest(TestCase):
     def setUp(self):
         # Create test user
-        self.user = User.objects.create(phone_number="1234567890", is_active=True, is_verified=True)
+        self.user = User.objects.create(
+            phone_number="1234567890", is_active=True, is_verified=True
+        )
 
         # Create test company
         self.company = Company.objects.create(
@@ -129,7 +133,9 @@ class ReportScheduleTest(TestCase):
 class ReportExecutionTest(TestCase):
     def setUp(self):
         # Create test user
-        self.user = User.objects.create(phone_number="1234567890", is_active=True, is_verified=True)
+        self.user = User.objects.create(
+            phone_number="1234567890", is_active=True, is_verified=True
+        )
 
         # Create test company
         self.company = Company.objects.create(

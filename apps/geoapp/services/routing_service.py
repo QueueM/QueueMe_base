@@ -193,7 +193,9 @@ class RoutingService:
             return None
 
     @staticmethod
-    def optimize_waypoints(origin, destination, waypoints, optimization_type="shortest"):
+    def optimize_waypoints(
+        origin, destination, waypoints, optimization_type="shortest"
+    ):
         """
         Optimize the order of waypoints for a route
 
@@ -382,7 +384,9 @@ class RoutingService:
             raise ValueError(f"Unsupported point format: {point}")
 
     @staticmethod
-    def _calculate_simple_route(origin, destination, waypoints=None, route_type="fastest"):
+    def _calculate_simple_route(
+        origin, destination, waypoints=None, route_type="fastest"
+    ):
         """
         Calculate a simplified route (without external API)
 
@@ -435,7 +439,9 @@ class RoutingService:
         # Estimate duration (using TravelTimeService)
         from ..services.travel_time_service import TravelTimeService
 
-        duration = TravelTimeService.estimate_travel_time(origin, destination, mode="driving")
+        duration = TravelTimeService.estimate_travel_time(
+            origin, destination, mode="driving"
+        )
 
         return {
             "path": path,
@@ -463,7 +469,9 @@ class RoutingService:
         logger.info("External routing API would be called here in production")
 
         # Fall back to simple implementation
-        return RoutingService._calculate_simple_route(origin, destination, waypoints, route_type)
+        return RoutingService._calculate_simple_route(
+            origin, destination, waypoints, route_type
+        )
 
     @staticmethod
     def _find_nearest_waypoint(point, waypoints):

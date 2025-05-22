@@ -56,7 +56,9 @@ class OTPService:
         ).update(is_used=True)
 
         # Create OTP record
-        OTP.objects.create(user=user, phone_number=phone_number, code=code, expires_at=expires_at)
+        OTP.objects.create(
+            user=user, phone_number=phone_number, code=code, expires_at=expires_at
+        )
 
         # OTP will be sent via signals.py
         logger.info(f"OTP generated for {phone_number}: {code}")
@@ -138,7 +140,11 @@ class OTPService:
         phone_number = normalize_phone_number(phone_number)
 
         # Find the latest OTP for this phone number
-        latest_otp = OTP.objects.filter(phone_number=phone_number).order_by("-created_at").first()
+        latest_otp = (
+            OTP.objects.filter(phone_number=phone_number)
+            .order_by("-created_at")
+            .first()
+        )
 
         if not latest_otp:
             return {"exists": False, "valid": False, "time_to_expiry": None}

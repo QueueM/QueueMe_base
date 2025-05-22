@@ -81,7 +81,9 @@ class OTPMaxAttemptsError(OTPError):
     """Exception raised when max OTP attempts are reached."""
 
     status_code = status.HTTP_429_TOO_MANY_REQUESTS
-    default_detail = _("Maximum OTP verification attempts reached. Please request a new OTP.")
+    default_detail = _(
+        "Maximum OTP verification attempts reached. Please request a new OTP."
+    )
     default_code = "otp_max_attempts"
 
 

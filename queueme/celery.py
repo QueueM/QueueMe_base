@@ -19,7 +19,9 @@ stub_worker = types.ModuleType("core.tasks.worker")
 stub_worker.WorkerManager = type(
     "WorkerManager", (), {"get_active_workers": staticmethod(lambda: {})}
 )
-stub_worker.task_with_lock = lambda func=None, **kwargs: ((lambda f: f) if func is None else func)
+stub_worker.task_with_lock = lambda func=None, **kwargs: (
+    (lambda f: f) if func is None else func
+)
 stub_worker.task_with_retry = lambda **kwargs: lambda f: f
 
 # Register stub modules to prevent import errors
@@ -97,7 +99,9 @@ try:
             "task": "core.tasks.cache_management.monitor_cache_size",
             "schedule": 1800.0,  # Every 30 minutes
             "kwargs": {},
-            "options": {"expires": 900},  # Task expires after 15 minutes if not executed
+            "options": {
+                "expires": 900
+            },  # Task expires after 15 minutes if not executed
         },
         "cleanup-expired-sessions": {
             "task": "core.tasks.cache_management.cleanup_expired_sessions",

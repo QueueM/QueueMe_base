@@ -172,7 +172,9 @@ class WeightedRating:
             review_average = weighted_sum / weight_sum
 
             # Apply Bayesian adjustment
-            final_rating = (confidence * review_average) + ((1 - confidence) * prior_mean)
+            final_rating = (confidence * review_average) + (
+                (1 - confidence) * prior_mean
+            )
 
             # Round to one decimal place
             result["weighted_rating"] = round(final_rating * 10) / 10
@@ -186,7 +188,9 @@ class WeightedRating:
                 "review_weights": review_details,
                 "bayesian_prior": prior_mean,
                 "confidence_factor": self.confidence_factor,
-                "weighted_average": (weighted_sum / weight_sum if weight_sum > 0 else 0.0),
+                "weighted_average": (
+                    weighted_sum / weight_sum if weight_sum > 0 else 0.0
+                ),
                 "confidence_adjustment": confidence,
             }
 
@@ -313,7 +317,9 @@ class WeightedRating:
 
         # Apply a mild correction (pulling toward the average)
         # stronger for extreme ratings
-        correction_strength = abs(deviation) / 4.0  # 4.0 = max possible deviation on 1-5 scale
+        correction_strength = (
+            abs(deviation) / 4.0
+        )  # 4.0 = max possible deviation on 1-5 scale
         correction = deviation * self.bias_correction_factor * correction_strength
 
         # Apply correction (subtract because we want to pull toward mean)

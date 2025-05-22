@@ -1,14 +1,16 @@
 # api/v1/utils.py
-from rest_framework.views import exception_handler as drf_exception_handler
 import logging
 
+from rest_framework.views import exception_handler as drf_exception_handler
+
 logger = logging.getLogger(__name__)
+
 
 def custom_exception_handler(exc, context):
     """
     Wrap DRF’s default exception handler so we can
     * add extra diagnostics to the response
-    * push the error to Sentry / log file / Prometheus, …  
+    * push the error to Sentry / log file / Prometheus, …
     """
     response = drf_exception_handler(exc, context)
 

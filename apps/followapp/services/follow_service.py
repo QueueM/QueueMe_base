@@ -74,7 +74,9 @@ class FollowService:
         Returns:
             List of shop IDs the customer follows
         """
-        return list(Follow.objects.filter(customer=customer).values_list("shop_id", flat=True))
+        return list(
+            Follow.objects.filter(customer=customer).values_list("shop_id", flat=True)
+        )
 
     @staticmethod
     def update_notification_preference(follow_id, preference: bool) -> bool:

@@ -91,7 +91,9 @@ urlpatterns = [
         PopularTimeSlotsAPIView.as_view(),
         name="popular-slots",
     ),
-    path("availability/quiet-slots/", QuietTimeSlotsAPIView.as_view(), name="quiet-slots"),
+    path(
+        "availability/quiet-slots/", QuietTimeSlotsAPIView.as_view(), name="quiet-slots"
+    ),
     path(
         "availability/best-specialist/",
         BestSpecialistAPIView.as_view(),

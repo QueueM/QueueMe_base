@@ -21,7 +21,9 @@ class PackageBookingService:
 
     @staticmethod
     @transaction.atomic
-    def book_package(customer_id, package_id, date_str, time_str, specialist_assignments=None):
+    def book_package(
+        customer_id, package_id, date_str, time_str, specialist_assignments=None
+    ):
         """
         Book all services in a package as sequential appointments.
 
@@ -50,19 +52,25 @@ class PackageBookingService:
 
         # Make timezone-aware
         tz = timezone.get_default_timezone()
-        current_datetime = timezone.make_aware(datetime.combine(booking_date, start_time), tz)
+        current_datetime = timezone.make_aware(
+            datetime.combine(booking_date, start_time), tz
+        )
 
         # If specialist assignments not provided, check availability and get assignments
         if specialist_assignments is None:
-            specialist_assignments = PackageAvailabilityService.check_package_service_availability(
-                package_id, date_str, time_str
+            specialist_assignments = (
+                PackageAvailabilityService.check_package_service_availability(
+                    package_id, date_str, time_str
+                )
             )
 
         if not specialist_assignments:
             raise ValueError(_("Package is not available at the selected time"))
 
         # Get package services in sequence order
-        package_services = PackageService.objects.filter(package=package).order_by("sequence")
+        package_services = PackageService.objects.filter(package=package).order_by(
+            "sequence"
+        )
 
         # Create appointments for each service
         appointments = []
@@ -74,7 +82,9 @@ class PackageBookingService:
             # Get specialist for this service
             specialist_id = specialist_assignments.get(str(service.id))
             if not specialist_id:
-                raise ValueError(_("No specialist assigned for service: {0}").format(service.name))
+                raise ValueError(
+                    _("No specialist assigned for service: {0}").format(service.name)
+                )
 
             specialist = Specialist.objects.get(id=specialist_id)
 
@@ -146,7 +156,9 @@ class PackageBookingService:
             # Notify shop about new package booking
             from apps.employeeapp.models import Employee
 
-            shop_manager = Employee.objects.filter(shop=package.shop, position="manager").first()
+            shop_manager = Employee.objects.filter(
+                shop=package.shop, position="manager"
+            ).first()
 
             if shop_manager and shop_manager.user:
                 NotificationService.send_notification(
@@ -193,7 +205,9 @@ class PackageBookingService:
             appointment.status = "cancelled"
             appointment.cancelled_by = customer
             appointment.cancellation_reason = reason
-            appointment.save(update_fields=["status", "cancelled_by", "cancellation_reason"])
+            appointment.save(
+                update_fields=["status", "cancelled_by", "cancellation_reason"]
+            )
             cancel_count += 1
 
         # If at least one appointment was cancelled, decrement package purchase count
@@ -246,8 +260,10 @@ class PackageBookingService:
             raise ValueError(_("No active package bookings found"))
 
         # Check availability for new date/time
-        specialist_assignments = PackageAvailabilityService.check_package_service_availability(
-            package_id, new_date_str, new_time_str
+        specialist_assignments = (
+            PackageAvailabilityService.check_package_service_availability(
+                package_id, new_date_str, new_time_str
+            )
         )
 
         if not specialist_assignments:
@@ -259,7 +275,9 @@ class PackageBookingService:
 
         # Make timezone-aware
         tz = timezone.get_default_timezone()
-        new_datetime = timezone.make_aware(datetime.combine(new_date, new_start_time), tz)
+        new_datetime = timezone.make_aware(
+            datetime.combine(new_date, new_start_time), tz
+        )
 
         # Get time difference between old and new start time
         old_first_appointment = appointments.first()
@@ -357,8 +375,8 @@ class PackageBookingService:
 
             # Update first appointment time
             if package_bookings[pkg_id]["appointments"]:
-                package_bookings[pkg_id]["first_appointment_time"] = package_bookings[pkg_id][
-                    "appointments"
-                ][0].start_time
+                package_bookings[pkg_id]["first_appointment_time"] = package_bookings[
+                    pkg_id
+                ]["appointments"][0].start_time
 
         return package_bookings

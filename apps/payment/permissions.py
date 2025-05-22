@@ -24,9 +24,13 @@ class PaymentPermission(permissions.BasePermission):
         # Allow shop managers and employees with appropriate permissions
         if request.user.user_type in ["employee", "admin"]:
             if view.action in ["list", "retrieve"]:
-                return PermissionResolver.has_permission(request.user, "payment", "view")
+                return PermissionResolver.has_permission(
+                    request.user, "payment", "view"
+                )
             elif view.action in ["create_refund"]:
-                return PermissionResolver.has_permission(request.user, "payment", "edit")
+                return PermissionResolver.has_permission(
+                    request.user, "payment", "edit"
+                )
 
         # QueueMe admin and employees with appropriate role can do anything
         if request.user.user_type == "admin":

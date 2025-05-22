@@ -14,12 +14,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from apps.notificationsapp.models import DeviceToken, Notification, NotificationTemplate
-from apps.notificationsapp.services.notification_service import NotificationService
-from apps.notificationsapp.services.push_service import FirebasePushService
-from apps.notificationsapp.services.sms_service import SMSService
-from apps.payment.models import PaymentWalletType, Transaction
-from apps.payment.services.moyasar_service import MoyasarService
-from apps.payment.services.payment_service import PaymentService
+from apps.payment.models import Transaction
 from apps.payment.views.webhook_views import subscription_webhook
 from apps.subscriptionapp.models import Subscription, SubscriptionPlan
 
@@ -115,7 +110,9 @@ class E2EPaymentNotificationTests(TestCase):
         }
 
     @mock.patch("apps.payment.services.moyasar_service.requests.post")
-    @mock.patch("apps.payment.services.moyasar_service.MoyasarService.get_wallet_config")
+    @mock.patch(
+        "apps.payment.services.moyasar_service.MoyasarService.get_wallet_config"
+    )
     def test_payment_flow_creation(self, mock_wallet_config, mock_post):
         """Test the initial payment creation flow"""
         # Mock wallet config
@@ -263,7 +260,9 @@ class E2EPaymentNotificationTests(TestCase):
 
     @mock.patch("apps.payment.services.moyasar_service.requests.post")
     @mock.patch("apps.payment.services.moyasar_service.requests.get")
-    @mock.patch("apps.payment.services.moyasar_service.MoyasarService.get_wallet_config")
+    @mock.patch(
+        "apps.payment.services.moyasar_service.MoyasarService.get_wallet_config"
+    )
     @mock.patch(
         "apps.notificationsapp.services.push_service.FirebasePushService.send_push_notification"
     )

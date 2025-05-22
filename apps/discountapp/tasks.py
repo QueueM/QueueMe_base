@@ -26,7 +26,9 @@ def expire_ended_campaigns():
     now = timezone.now()
 
     # Find campaigns that are active but ended
-    ended_campaigns = PromotionalCampaign.objects.filter(is_active=True, end_date__lt=now)
+    ended_campaigns = PromotionalCampaign.objects.filter(
+        is_active=True, end_date__lt=now
+    )
 
     # Mark them as inactive
     count = ended_campaigns.update(is_active=False)
@@ -136,10 +138,14 @@ def cleanup_expired_discounts(days_threshold=30):
     cleanup_threshold = now - timezone.timedelta(days=days_threshold)
 
     # Find long-expired discounts
-    old_discounts = ServiceDiscount.objects.filter(status="expired", end_date__lt=cleanup_threshold)
+    old_discounts = ServiceDiscount.objects.filter(
+        status="expired", end_date__lt=cleanup_threshold
+    )
 
     # Find long-expired coupons
-    old_coupons = Coupon.objects.filter(status="expired", end_date__lt=cleanup_threshold)
+    old_coupons = Coupon.objects.filter(
+        status="expired", end_date__lt=cleanup_threshold
+    )
 
     # Delete only if configured (could be skipped or archived instead)
     discount_count = old_discounts.count()

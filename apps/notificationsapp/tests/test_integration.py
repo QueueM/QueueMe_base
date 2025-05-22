@@ -14,7 +14,9 @@ class NotificationIntegrationTestCase(SimpleTestCase):
     def setUp(self):
         """Set up test environment."""
         # Store original SMS provider
-        self.original_sms_provider = getattr(settings, "SMS_PROVIDER", SMSProvider.TWILIO)
+        self.original_sms_provider = getattr(
+            settings, "SMS_PROVIDER", SMSProvider.TWILIO
+        )
 
         # Mock user data
         self.user_id = "test-user-id"
@@ -26,9 +28,15 @@ class NotificationIntegrationTestCase(SimpleTestCase):
         settings.SMS_PROVIDER = self.original_sms_provider
 
     @patch("apps.notificationsapp.services.notification_service.User.objects.get")
-    @patch("apps.notificationsapp.services.notification_service.NotificationTemplate.objects.get")
-    @patch("apps.notificationsapp.services.notification_service.Notification.objects.create")
-    @patch("apps.notificationsapp.services.notification_service.send_sms_notification_task")
+    @patch(
+        "apps.notificationsapp.services.notification_service.NotificationTemplate.objects.get"
+    )
+    @patch(
+        "apps.notificationsapp.services.notification_service.Notification.objects.create"
+    )
+    @patch(
+        "apps.notificationsapp.services.notification_service.send_sms_notification_task"
+    )
     def test_notification_service_sends_sms(
         self,
         mock_send_sms_task,
@@ -45,7 +53,9 @@ class NotificationIntegrationTestCase(SimpleTestCase):
 
         mock_template = MagicMock()
         mock_template.subject = "Test Notification"
-        mock_template.render_body.return_value = "This is a test notification with test value."
+        mock_template.render_body.return_value = (
+            "This is a test notification with test value."
+        )
         mock_get_template.return_value = mock_template
 
         mock_notification = MagicMock()

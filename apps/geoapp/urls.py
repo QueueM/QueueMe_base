@@ -16,8 +16,14 @@ urlpatterns = [
         views.NearbyEntitiesView.as_view(),
         name="nearby-entities",
     ),
-    path("check-city-match/", views.CheckCityMatchView.as_view(), name="check-city-match"),
-    path("distance-matrix/", views.DistanceMatrixView.as_view(), name="distance-matrix"),
+    path(
+        "check-city-match/", views.CheckCityMatchView.as_view(), name="check-city-match"
+    ),
+    path(
+        "distance-matrix/", views.DistanceMatrixView.as_view(), name="distance-matrix"
+    ),
     path("geocode/", views.GeocodeAddressView.as_view(), name="geocode-address"),
-    path("reverse-geocode/", views.ReverseGeocodeView.as_view(), name="reverse-geocode"),
+    path(
+        "reverse-geocode/", views.ReverseGeocodeView.as_view(), name="reverse-geocode"
+    ),
 ]

@@ -8,7 +8,9 @@ class CountryModelTest(TestCase):
     """Test the Country model"""
 
     def setUp(self):
-        self.country = Country.objects.create(name="Saudi Arabia", code="SA", is_active=True)
+        self.country = Country.objects.create(
+            name="Saudi Arabia", code="SA", is_active=True
+        )
 
     def test_country_creation(self):
         """Test creating a country"""

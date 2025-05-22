@@ -9,14 +9,11 @@ This test verifies that:
 4. Rate limiting works correctly
 """
 
-import json
 import os
 import sys
-import time
 import unittest
 import uuid
-from datetime import datetime, timedelta
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import patch
 
 # Add project to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -26,16 +23,17 @@ import django
 
 django.setup()
 
-from django.conf import settings
 from django.core.cache import cache
 from django.test import override_settings
-from django.utils import timezone
 
 from apps.authapp.models import User
-from apps.notificationsapp.models import DeadLetterNotification, DeviceToken, Notification
+from apps.notificationsapp.models import (
+    DeadLetterNotification,
+    DeviceToken,
+    Notification,
+)
 from apps.notificationsapp.services.notification_service import NotificationService
 from apps.notificationsapp.services.push_service import FirebasePushService
-from apps.notificationsapp.services.sms_service import SMSService
 
 # Test constants
 TEST_MODE = True  # Set to True to use mocks, False to test against real services
@@ -111,7 +109,9 @@ class NotificationIntegrationTest(unittest.TestCase):
             cls.firebase_messaging_mock = cls.firebase_messaging_patcher.start()
 
             # Mock SMS service
-            cls.sms_service_patcher = patch("apps.notificationsapp.tasks.SMSService.send_sms")
+            cls.sms_service_patcher = patch(
+                "apps.notificationsapp.tasks.SMSService.send_sms"
+            )
             cls.sms_service_mock = cls.sms_service_patcher.start()
             cls.sms_service_mock.return_value = {
                 "success": True,
@@ -140,7 +140,9 @@ class NotificationIntegrationTest(unittest.TestCase):
 
         # Clear notifications created by tests
         Notification.objects.filter(title__startswith="Test Notification").delete()
-        DeadLetterNotification.objects.filter(title__startswith="Test Notification").delete()
+        DeadLetterNotification.objects.filter(
+            title__startswith="Test Notification"
+        ).delete()
 
     def test_send_notification_all_channels(self):
         """Test sending a notification through all channels"""
@@ -156,13 +158,21 @@ class NotificationIntegrationTest(unittest.TestCase):
 
         # Check result
         self.assertTrue(result["success"], "Notification sending should succeed")
-        self.assertIsNotNone(result["notification_id"], "Notification ID should be returned")
+        self.assertIsNotNone(
+            result["notification_id"], "Notification ID should be returned"
+        )
 
         # Verify notification in database
         notification = Notification.objects.get(id=result["notification_id"])
-        self.assertEqual(notification.title, "Test Notification All Channels", "Title should match")
-        self.assertEqual(notification.recipient_id, self.user.id, "Recipient should match")
-        self.assertEqual(notification.status, "processing", "Status should be processing")
+        self.assertEqual(
+            notification.title, "Test Notification All Channels", "Title should match"
+        )
+        self.assertEqual(
+            notification.recipient_id, self.user.id, "Recipient should match"
+        )
+        self.assertEqual(
+            notification.status, "processing", "Status should be processing"
+        )
         self.assertIn("in_app", notification.channels, "in_app should be in channels")
 
         # Check in_app channel status (should be immediate)
@@ -198,7 +208,9 @@ class NotificationIntegrationTest(unittest.TestCase):
             )
 
             self.assertTrue(multi_result["success"], "Multi-device push should succeed")
-            self.assertEqual(multi_result["success_count"], 3, "All devices should succeed")
+            self.assertEqual(
+                multi_result["success_count"], 3, "All devices should succeed"
+            )
 
     def test_idempotency_key(self):
         """Test idempotency key functionality"""
@@ -233,9 +245,13 @@ class NotificationIntegrationTest(unittest.TestCase):
         )
 
         # Count notifications - there should only be one
-        count = Notification.objects.filter(title="Test Notification Idempotency").count()
+        count = Notification.objects.filter(
+            title="Test Notification Idempotency"
+        ).count()
 
-        self.assertEqual(count, 1, "Only one notification should exist despite multiple API calls")
+        self.assertEqual(
+            count, 1, "Only one notification should exist despite multiple API calls"
+        )
 
     def test_rate_limiting(self):
         """Test notification rate limiting"""
@@ -262,7 +278,9 @@ class NotificationIntegrationTest(unittest.TestCase):
                         "SMS should be in channels status",
                     )
                 else:
-                    self.assertNotIn("sms", result["channels_status"], "SMS should be rate limited")
+                    self.assertNotIn(
+                        "sms", result["channels_status"], "SMS should be rate limited"
+                    )
 
             # Send email notifications up to limit
             for i in range(4):  # One more than the limit
@@ -353,7 +371,9 @@ class NotificationIntegrationTest(unittest.TestCase):
             original_notification_id=notification.id, channel="push"
         ).first()
 
-        self.assertIsNotNone(dlq_notification, "Notification should be in dead letter queue")
+        self.assertIsNotNone(
+            dlq_notification, "Notification should be in dead letter queue"
+        )
         self.assertEqual(
             dlq_notification.error_message,
             "Test error for dead letter queue",

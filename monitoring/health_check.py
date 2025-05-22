@@ -17,7 +17,6 @@ import json
 import logging
 import os
 import socket
-import subprocess
 import sys
 import time
 from io import StringIO
@@ -156,13 +155,16 @@ def check_redis():
             redis_urls.append(("default", settings.REDIS_URL))
 
         # Celery Redis URL
-        if hasattr(settings, "CELERY_BROKER_URL") and "redis://" in settings.CELERY_BROKER_URL:
+        if (
+            hasattr(settings, "CELERY_BROKER_URL")
+            and "redis://" in settings.CELERY_BROKER_URL
+        ):
             redis_urls.append(("celery", settings.CELERY_BROKER_URL))
 
         # Cache Redis URL
-        if hasattr(settings, "CACHES") and "RedisCache" in settings.CACHES.get("default", {}).get(
-            "BACKEND", ""
-        ):
+        if hasattr(settings, "CACHES") and "RedisCache" in settings.CACHES.get(
+            "default", {}
+        ).get("BACKEND", ""):
             redis_cache_url = settings.CACHES["default"].get("LOCATION", "")
             if isinstance(redis_cache_url, list):
                 redis_cache_url = redis_cache_url[0]
@@ -171,7 +173,9 @@ def check_redis():
         # Channel layers Redis URL
         if hasattr(
             settings, "CHANNEL_LAYERS"
-        ) and "RedisChannelLayer" in settings.CHANNEL_LAYERS.get("default", {}).get("BACKEND", ""):
+        ) and "RedisChannelLayer" in settings.CHANNEL_LAYERS.get("default", {}).get(
+            "BACKEND", ""
+        ):
             config = settings.CHANNEL_LAYERS["default"].get("CONFIG", {})
             if "hosts" in config:
                 host = config["hosts"][0]
@@ -202,9 +206,13 @@ def check_redis():
                     "status": "healthy",
                     "response_time": round(ping_time * 1000, 2),  # ms
                     "version": info.get("redis_version"),
-                    "memory_used_mb": round(info.get("used_memory", 0) / (1024 * 1024), 2),
+                    "memory_used_mb": round(
+                        info.get("used_memory", 0) / (1024 * 1024), 2
+                    ),
                     "clients_connected": info.get("connected_clients"),
-                    "uptime_days": round(info.get("uptime_in_seconds", 0) / (24 * 3600), 2),
+                    "uptime_days": round(
+                        info.get("uptime_in_seconds", 0) / (24 * 3600), 2
+                    ),
                 }
 
             except Exception as e:
@@ -274,7 +282,9 @@ def check_celery():
                     current_worker = line.strip().split("-> ")[1].strip(":")
                     worker_stats[current_worker] = {}
                 elif current_worker:
-                    if line.strip().startswith(("prefetch_count:", "pool:", "processed:")):
+                    if line.strip().startswith(
+                        ("prefetch_count:", "pool:", "processed:")
+                    ):
                         key, value = line.strip().split(":", 1)
                         worker_stats[current_worker][key.strip()] = value.strip()
 
@@ -323,7 +333,9 @@ def check_integrations():
             headers = {"Authorization": f"Basic {moyasar_key}"}
 
             start_time = time.time()
-            response = requests.get(url, headers=headers, params={"limit": 1}, timeout=10)
+            response = requests.get(
+                url, headers=headers, params={"limit": 1}, timeout=10
+            )
 
             response_time = time.time() - start_time
 
@@ -388,7 +400,9 @@ def check_integrations():
     return {
         "status": (
             "healthy"
-            if all(i["status"] in ("healthy", "configured") for i in integrations.values())
+            if all(
+                i["status"] in ("healthy", "configured") for i in integrations.values()
+            )
             else "unhealthy"
         ),
         "integrations": integrations,
@@ -586,7 +600,9 @@ def perform_health_check(output_format="json"):
                 for db_name, db_info in check_result["databases"].items():
                     output.write(f"Database {db_name}: {db_info['status']}\n")
                     if "response_time" in db_info:
-                        output.write(f"  Response Time: {db_info['response_time']} ms\n")
+                        output.write(
+                            f"  Response Time: {db_info['response_time']} ms\n"
+                        )
                     if "error" in db_info:
                         output.write(f"  Error: {db_info['error']}\n")
 
@@ -594,7 +610,9 @@ def perform_health_check(output_format="json"):
                 for redis_name, redis_info in check_result["instances"].items():
                     output.write(f"Redis {redis_name}: {redis_info['status']}\n")
                     if "response_time" in redis_info:
-                        output.write(f"  Response Time: {redis_info['response_time']} ms\n")
+                        output.write(
+                            f"  Response Time: {redis_info['response_time']} ms\n"
+                        )
                     if "error" in redis_info:
                         output.write(f"  Error: {redis_info['error']}\n")
 
@@ -603,9 +621,13 @@ def perform_health_check(output_format="json"):
 
             if check_name == "system":
                 if "cpu" in check_result:
-                    output.write(f"CPU Usage: {check_result['cpu']['usage_percent']}%\n")
+                    output.write(
+                        f"CPU Usage: {check_result['cpu']['usage_percent']}%\n"
+                    )
                 if "memory" in check_result:
-                    output.write(f"Memory Usage: {check_result['memory']['percent']}%\n")
+                    output.write(
+                        f"Memory Usage: {check_result['memory']['percent']}%\n"
+                    )
                 if "disk" in check_result:
                     output.write(f"Disk Usage: {check_result['disk']['percent']}%\n")
                 if "warnings" in check_result and check_result["warnings"]:
@@ -615,9 +637,13 @@ def perform_health_check(output_format="json"):
 
             if check_name == "queueme_app":
                 if "active_queue_tickets" in check_result:
-                    output.write(f"Active Queue Tickets: {check_result['active_queue_tickets']}\n")
+                    output.write(
+                        f"Active Queue Tickets: {check_result['active_queue_tickets']}\n"
+                    )
                 if "todays_appointments" in check_result:
-                    output.write(f"Today's Appointments: {check_result['todays_appointments']}\n")
+                    output.write(
+                        f"Today's Appointments: {check_result['todays_appointments']}\n"
+                    )
 
             output.write("\n")
 

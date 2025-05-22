@@ -160,7 +160,9 @@ class ServiceSearch:
 
         # If no query and no filters, return all services sorted by rating
         if not query and not filters:
-            sorted_services = sorted(services, key=lambda s: s.get("rating", 0), reverse=True)
+            sorted_services = sorted(
+                services, key=lambda s: s.get("rating", 0), reverse=True
+            )
 
             # Apply pagination
             paginated = sorted_services[offset : offset + limit]
@@ -193,7 +195,9 @@ class ServiceSearch:
                 continue
 
             # Calculate base text matching score
-            text_match_score = self._calculate_text_match(service, query_terms, search_intent)
+            text_match_score = self._calculate_text_match(
+                service, query_terms, search_intent
+            )
 
             # Calculate category match score
             category_match_score = self._calculate_category_match(
@@ -247,7 +251,9 @@ class ServiceSearch:
 
         # Sort services by score or specified field
         if sort_by and sort_by != "relevance":
-            sorted_services = sorted(scored_services, key=lambda s: s.get(sort_by, 0), reverse=True)
+            sorted_services = sorted(
+                scored_services, key=lambda s: s.get(sort_by, 0), reverse=True
+            )
         else:
             # Sort by relevance score
             sorted_services = sorted(
@@ -351,10 +357,17 @@ class ServiceSearch:
         lower_query = query.lower()
 
         # Check for price sensitivity
-        if any(term in lower_query for term in ["cheap", "affordable", "budget", "inexpensive"]):
+        if any(
+            term in lower_query
+            for term in ["cheap", "affordable", "budget", "inexpensive"]
+        ):
             intent["price_sensitivity"] = 0.8  # High price sensitivity
-        elif any(term in lower_query for term in ["luxury", "premium", "high-end", "best"]):
-            intent["price_sensitivity"] = 0.2  # Low price sensitivity (willing to pay more)
+        elif any(
+            term in lower_query for term in ["luxury", "premium", "high-end", "best"]
+        ):
+            intent["price_sensitivity"] = (
+                0.2  # Low price sensitivity (willing to pay more)
+            )
 
         # Check for service type hints
         if "home" in lower_query or "at home" in lower_query:
@@ -412,7 +425,9 @@ class ServiceSearch:
 
         return intent
 
-    def _calculate_text_match(self, service: Dict, query_terms: set, search_intent: Dict) -> float:
+    def _calculate_text_match(
+        self, service: Dict, query_terms: set, search_intent: Dict
+    ) -> float:
         """
         Calculate text matching score between service and query.
         """
@@ -581,7 +596,9 @@ class ServiceSearch:
             return 0.5
 
         # Calculate distance in kilometers
-        distance_km = self._calculate_distance(customer_lat, customer_lng, shop_lat, shop_lng)
+        distance_km = self._calculate_distance(
+            customer_lat, customer_lng, shop_lat, shop_lng
+        )
 
         # Convert distance to score (closer is better)
         # Using exponential decay function
@@ -589,7 +606,9 @@ class ServiceSearch:
 
         return location_score
 
-    def _calculate_distance(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    def _calculate_distance(
+        self, lat1: float, lng1: float, lat2: float, lng2: float
+    ) -> float:
         """
         Calculate distance between two points using Haversine formula.
         """

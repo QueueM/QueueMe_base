@@ -98,7 +98,9 @@ class PlanRecommender:
             total_services += service_count
 
         avg_services_per_shop = total_services / shop_count if shop_count > 0 else 0
-        max_services_per_shop = max(services_per_shop.values()) if services_per_shop else 0
+        max_services_per_shop = (
+            max(services_per_shop.values()) if services_per_shop else 0
+        )
 
         # Count specialists per shop
         specialists_per_shop = {}
@@ -109,8 +111,12 @@ class PlanRecommender:
             specialists_per_shop[str(shop.id)] = specialist_count
             total_specialists += specialist_count
 
-        avg_specialists_per_shop = total_specialists / shop_count if shop_count > 0 else 0
-        max_specialists_per_shop = max(specialists_per_shop.values()) if specialists_per_shop else 0
+        avg_specialists_per_shop = (
+            total_specialists / shop_count if shop_count > 0 else 0
+        )
+        max_specialists_per_shop = (
+            max(specialists_per_shop.values()) if specialists_per_shop else 0
+        )
 
         # Estimate growth (basic - could be more sophisticated in a real implementation)
         growth_factor = 1.2  # Assume 20% growth
@@ -139,7 +145,9 @@ class PlanRecommender:
         else:
             # Plan has enough capacity
             # Optimize for not over-provisioning too much
-            over_provision_factor = plan.max_shops / max(usage_data["projected_shop_count"], 1)
+            over_provision_factor = plan.max_shops / max(
+                usage_data["projected_shop_count"], 1
+            )
             if over_provision_factor > 3:
                 shop_score = 0.7  # Too much wasted capacity
             else:
@@ -178,17 +186,25 @@ class PlanRecommender:
         # Pricing score (lower is better)
         # Get min and max prices from active plans for normalization
         min_price = (
-            Plan.objects.filter(is_active=True).order_by("monthly_price").first().monthly_price
+            Plan.objects.filter(is_active=True)
+            .order_by("monthly_price")
+            .first()
+            .monthly_price
         )
         max_price = (
-            Plan.objects.filter(is_active=True).order_by("-monthly_price").first().monthly_price
+            Plan.objects.filter(is_active=True)
+            .order_by("-monthly_price")
+            .first()
+            .monthly_price
         )
 
         # Normalize price between 0 and 1, then invert so lower price = higher score
         if max_price == min_price:
             price_score = 1.0  # Only one price point
         else:
-            price_normalized = (plan.monthly_price - min_price) / (max_price - min_price)
+            price_normalized = (plan.monthly_price - min_price) / (
+                max_price - min_price
+            )
             price_score = 1.0 - price_normalized
 
         # Combined weighted score
@@ -216,8 +232,10 @@ class PlanRecommender:
                 "current_max": usage_data["max_services_per_shop"],
                 "projected_max": usage_data["projected_max_services"],
                 "plan_limit": plan.max_services_per_shop,
-                "sufficient": plan.max_services_per_shop >= usage_data["max_services_per_shop"],
-                "future_proof": plan.max_services_per_shop >= usage_data["projected_max_services"],
+                "sufficient": plan.max_services_per_shop
+                >= usage_data["max_services_per_shop"],
+                "future_proof": plan.max_services_per_shop
+                >= usage_data["projected_max_services"],
             },
             "specialists": {
                 "current_max": usage_data["max_specialists_per_shop"],
@@ -246,17 +264,26 @@ class PlanRecommender:
 
         # Services analysis
         if analysis["services"]["sufficient"] and analysis["services"]["future_proof"]:
-            strengths.append(_("Fully supports your service offerings across all shops"))
+            strengths.append(
+                _("Fully supports your service offerings across all shops")
+            )
         elif analysis["services"]["sufficient"]:
-            weaknesses.append(_("Supports your current services but may limit future expansion"))
+            weaknesses.append(
+                _("Supports your current services but may limit future expansion")
+            )
         else:
             weaknesses.append(_("Insufficient services limit for your needs"))
 
         # Specialists analysis
-        if analysis["specialists"]["sufficient"] and analysis["specialists"]["future_proof"]:
+        if (
+            analysis["specialists"]["sufficient"]
+            and analysis["specialists"]["future_proof"]
+        ):
             strengths.append(_("Fully supports your specialist team size"))
         elif analysis["specialists"]["sufficient"]:
-            weaknesses.append(_("Supports your current specialists but may limit future hiring"))
+            weaknesses.append(
+                _("Supports your current specialists but may limit future hiring")
+            )
         else:
             weaknesses.append(_("Insufficient specialists limit for your needs"))
 

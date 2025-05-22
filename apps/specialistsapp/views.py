@@ -95,7 +95,9 @@ class SpecialistViewSet(viewsets.ModelViewSet):
             QuerySet: Filtered specialists with related objects
         """
         queryset = (
-            Specialist.objects.select_related("employee", "employee__shop", "employee__user")
+            Specialist.objects.select_related(
+                "employee", "employee__shop", "employee__user"
+            )
             .prefetch_related(
                 "specialist_services",
                 "specialist_services__service",
@@ -206,7 +208,9 @@ class ShopSpecialistsView(generics.ListAPIView):
         """
         shop_id = self.kwargs.get("shop_id")
         return (
-            Specialist.objects.filter(employee__shop_id=shop_id, employee__is_active=True)
+            Specialist.objects.filter(
+                employee__shop_id=shop_id, employee__is_active=True
+            )
             .select_related("employee", "employee__shop")
             .prefetch_related(
                 "specialist_services",
@@ -303,7 +307,9 @@ class TopRatedSpecialistsView(generics.ListAPIView):
         limit = int(self.request.query_params.get("limit", 10))
 
         # Try to get from cache
-        cache_key = SPECIALIST_TOP_RATED_CACHE_KEY.format(shop_id=shop_id or "all", limit=limit)
+        cache_key = SPECIALIST_TOP_RATED_CACHE_KEY.format(
+            shop_id=shop_id or "all", limit=limit
+        )
         cached_results = cache.get(cache_key)
 
         if cached_results:
@@ -468,10 +474,14 @@ class SpecialistServicesView(generics.ListCreateAPIView):
         specialist = get_object_or_404(Specialist, id=specialist_id)
 
         # Check if user has permission to manage this specialist
-        if not CanManageSpecialist().has_object_permission(self.request, self, specialist):
+        if not CanManageSpecialist().has_object_permission(
+            self.request, self, specialist
+        ):
             from rest_framework.exceptions import PermissionDenied
 
-            raise PermissionDenied(_("You don't have permission to manage this specialist."))
+            raise PermissionDenied(
+                _("You don't have permission to manage this specialist.")
+            )
 
         serializer.save()
 
@@ -510,9 +520,9 @@ class SpecialistServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
             QuerySet: Services for the specialist
         """
         specialist_id = self.kwargs.get("specialist_id")
-        return SpecialistService.objects.filter(specialist_id=specialist_id).select_related(
-            "service", "service__category"
-        )
+        return SpecialistService.objects.filter(
+            specialist_id=specialist_id
+        ).select_related("service", "service__category")
 
     def get_permissions(self):
         """
@@ -558,10 +568,14 @@ class SpecialistServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
         specialist = serializer.instance.specialist
 
         # Check if user has permission to manage this specialist
-        if not CanManageSpecialist().has_object_permission(self.request, self, specialist):
+        if not CanManageSpecialist().has_object_permission(
+            self.request, self, specialist
+        ):
             from rest_framework.exceptions import PermissionDenied
 
-            raise PermissionDenied(_("You don't have permission to manage this specialist."))
+            raise PermissionDenied(
+                _("You don't have permission to manage this specialist.")
+            )
 
         serializer.save()
 
@@ -597,9 +611,9 @@ class SpecialistWorkingHoursView(generics.ListCreateAPIView):
             QuerySet: Working hours for the specialist
         """
         specialist_id = self.kwargs.get("specialist_id")
-        return SpecialistWorkingHours.objects.filter(specialist_id=specialist_id).order_by(
-            "weekday", "from_hour"
-        )
+        return SpecialistWorkingHours.objects.filter(
+            specialist_id=specialist_id
+        ).order_by("weekday", "from_hour")
 
     def get_permissions(self):
         """
@@ -662,10 +676,14 @@ class SpecialistWorkingHoursView(generics.ListCreateAPIView):
         specialist = get_object_or_404(Specialist, id=specialist_id)
 
         # Check if user has permission to manage this specialist
-        if not CanManageSpecialist().has_object_permission(self.request, self, specialist):
+        if not CanManageSpecialist().has_object_permission(
+            self.request, self, specialist
+        ):
             from rest_framework.exceptions import PermissionDenied
 
-            raise PermissionDenied(_("You don't have permission to manage this specialist."))
+            raise PermissionDenied(
+                _("You don't have permission to manage this specialist.")
+            )
 
         # Check if working hours already exist for this weekday
         weekday = serializer.validated_data.get("weekday")
@@ -779,10 +797,14 @@ class SpecialistWorkingHoursDetailView(generics.RetrieveUpdateDestroyAPIView):
         specialist = serializer.instance.specialist
 
         # Check if user has permission to manage this specialist
-        if not CanManageSpecialist().has_object_permission(self.request, self, specialist):
+        if not CanManageSpecialist().has_object_permission(
+            self.request, self, specialist
+        ):
             from rest_framework.exceptions import PermissionDenied
 
-            raise PermissionDenied(_("You don't have permission to manage this specialist."))
+            raise PermissionDenied(
+                _("You don't have permission to manage this specialist.")
+            )
 
         serializer.save()
 
@@ -1094,7 +1116,9 @@ class SpecialistVerificationView(APIView):
         specialist.save()
 
         # Send notification to specialist's user
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         NotificationService.send_notification(
             user_id=specialist.employee.user.id,
@@ -1106,4 +1130,6 @@ class SpecialistVerificationView(APIView):
             },
         )
 
-        return Response({"message": _("Specialist has been verified.")}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": _("Specialist has been verified.")}, status=status.HTTP_200_OK
+        )

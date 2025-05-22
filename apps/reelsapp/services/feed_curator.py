@@ -57,7 +57,9 @@ class FeedCuratorService:
                         "latitude": shop.location.latitude,
                         "longitude": shop.location.longitude,
                     }
-                    distance = DistanceService.calculate_distance(location, shop_location)
+                    distance = DistanceService.calculate_distance(
+                        location, shop_location
+                    )
                     shop_distances[str(shop.id)] = distance
 
             # Order queryset based on distances
@@ -65,16 +67,23 @@ class FeedCuratorService:
             # then ordering by it
 
             # First, get the IDs in the order we want
-            ordered_shop_ids = sorted(shop_distances.keys(), key=lambda x: shop_distances[x])
+            ordered_shop_ids = sorted(
+                shop_distances.keys(), key=lambda x: shop_distances[x]
+            )
 
             # Then use Case/When to order the queryset
             case_statement = Case(
-                *[When(shop_id=pk, then=Value(i)) for i, pk in enumerate(ordered_shop_ids)],
+                *[
+                    When(shop_id=pk, then=Value(i))
+                    for i, pk in enumerate(ordered_shop_ids)
+                ],
                 default=Value(len(ordered_shop_ids)),
                 output_field=IntegerField()
             )
 
-            queryset = queryset.annotate(distance_order=case_statement).order_by("distance_order")
+            queryset = queryset.annotate(distance_order=case_statement).order_by(
+                "distance_order"
+            )
         else:
             # Default ordering if no location
             queryset = queryset.order_by("-created_at")
@@ -119,7 +128,9 @@ class FeedCuratorService:
                     customer=user.customer, preference_type="category"
                 )
                 category_ids = set(
-                    category_preferences.values_list("category_id", flat=True).distinct()
+                    category_preferences.values_list(
+                        "category_id", flat=True
+                    ).distinct()
                 )
         except Exception:
             # If customer preferences are not accessible, continue without them
@@ -154,7 +165,9 @@ class FeedCuratorService:
 
             # Recency factor - newer reels get higher score
             days_old = (timezone.now() - reel.created_at).days
-            recency_score = max(10 - (days_old / 2), 0)  # Newer = higher score, 0 after 20 days
+            recency_score = max(
+                10 - (days_old / 2), 0
+            )  # Newer = higher score, 0 after 20 days
             score += recency_score
 
             # Service match - if reel features services user has booked
@@ -213,12 +226,14 @@ class FeedCuratorService:
             QuerySet of Reel objects
         """
         # Get shops user is following
-        followed_shop_ids = Follow.objects.filter(user_id=user_id, is_active=True).values_list(
-            "shop_id", flat=True
-        )
+        followed_shop_ids = Follow.objects.filter(
+            user_id=user_id, is_active=True
+        ).values_list("shop_id", flat=True)
 
         # Get reels from followed shops
-        queryset = Reel.objects.filter(status="published", shop_id__in=followed_shop_ids)
+        queryset = Reel.objects.filter(
+            status="published", shop_id__in=followed_shop_ids
+        )
 
         # Add engagement metrics
         queryset = queryset.annotate(

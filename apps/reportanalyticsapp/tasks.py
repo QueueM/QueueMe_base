@@ -27,7 +27,9 @@ def update_shop_analytics(shop_id, date):
         shop = Shop.objects.get(id=shop_id)
 
         # Get or create analytics record
-        analytics, created = ShopAnalytics.objects.get_or_create(shop=shop, date=date_obj)
+        analytics, created = ShopAnalytics.objects.get_or_create(
+            shop=shop, date=date_obj
+        )
 
         # Time range for the day
         # unused_unused_day_start = datetime.combine(date_obj, datetime.min.time())
@@ -43,7 +45,10 @@ def update_shop_analytics(shop_id, date):
 
         # Update revenue metrics
         revenue = (
-            bookings.filter(status="completed").aggregate(total=Sum("service__price"))["total"] or 0
+            bookings.filter(status="completed").aggregate(total=Sum("service__price"))[
+                "total"
+            ]
+            or 0
         )
         analytics.total_revenue = revenue
 
@@ -51,9 +56,9 @@ def update_shop_analytics(shop_id, date):
         tickets = QueueTicket.objects.filter(queue__shop=shop, join_time__date=date_obj)
 
         # Average wait time
-        wait_time_data = tickets.filter(status="served", actual_wait_time__isnull=False).aggregate(
-            avg_wait=Avg("actual_wait_time")
-        )
+        wait_time_data = tickets.filter(
+            status="served", actual_wait_time__isnull=False
+        ).aggregate(avg_wait=Avg("actual_wait_time"))
 
         if wait_time_data["avg_wait"] is not None:
             analytics.avg_wait_time = wait_time_data["avg_wait"]
@@ -143,7 +148,9 @@ def update_specialist_analytics(specialist_id, date):
         # unused_unused_day_end = datetime.combine(date_obj, datetime.max.time())
 
         # Update booking metrics
-        bookings = Appointment.objects.filter(specialist=specialist, start_time__date=date_obj)
+        bookings = Appointment.objects.filter(
+            specialist=specialist, start_time__date=date_obj
+        )
 
         analytics.total_bookings = bookings.count()
         analytics.bookings_completed = bookings.filter(status="completed").count()
@@ -163,7 +170,9 @@ def update_specialist_analytics(specialist_id, date):
             analytics.total_service_time = int(total_time)
 
             # Average service duration
-            analytics.avg_service_duration = int(total_time / completed_bookings.count())
+            analytics.avg_service_duration = int(
+                total_time / completed_bookings.count()
+            )
 
         # Customer ratings
         specialist_content_type = ContentType.objects.get_for_model(Specialist)
@@ -207,7 +216,9 @@ def update_specialist_analytics(specialist_id, date):
 
                 # Calculate utilization
                 if total_available_minutes > 0:
-                    utilization = (analytics.total_service_time / total_available_minutes) * 100
+                    utilization = (
+                        analytics.total_service_time / total_available_minutes
+                    ) * 100
                     analytics.utilization_rate = min(utilization, 100)  # Cap at 100%
         except Exception as e:
             logger.warning(f"Error calculating utilization rate: {e}")
@@ -295,7 +306,9 @@ def generate_weekly_analytics_snapshot():
             end_date=last_saturday,
         )
 
-        logger.info(f"Generated weekly analytics snapshots for week ending {last_saturday}")
+        logger.info(
+            f"Generated weekly analytics snapshots for week ending {last_saturday}"
+        )
         return "Weekly analytics snapshots generated successfully"
     except Exception as e:
         logger.error(f"Error generating weekly analytics snapshots: {e}")
@@ -342,7 +355,9 @@ def generate_monthly_analytics_snapshot():
             end_date=last_month_end,
         )
 
-        logger.info(f"Generated monthly analytics snapshots for month ending {last_month_end}")
+        logger.info(
+            f"Generated monthly analytics snapshots for month ending {last_month_end}"
+        )
         return "Monthly analytics snapshots generated successfully"
     except Exception as e:
         logger.error(f"Error generating monthly analytics snapshots: {e}")
@@ -396,7 +411,9 @@ def detect_anomalies(entity_type, entity_id, metric_type, reference_date):
         )
 
         if anomalies:
-            logger.info(f"Detected {len(anomalies)} anomalies for {entity_type} {entity_id}")
+            logger.info(
+                f"Detected {len(anomalies)} anomalies for {entity_type} {entity_id}"
+            )
 
         return f"Anomaly detection completed for {entity_type} {entity_id} on {reference_date}"
     except Exception as e:

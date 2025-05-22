@@ -12,7 +12,9 @@ from .models import Shop, ShopFollower, ShopHours, ShopSettings, ShopVerificatio
 
 
 class ShopHoursSerializer(serializers.ModelSerializer):
-    weekday_display = serializers.CharField(source="get_weekday_display", read_only=True)
+    weekday_display = serializers.CharField(
+        source="get_weekday_display", read_only=True
+    )
     from_hour_display = serializers.SerializerMethodField()
     to_hour_display = serializers.SerializerMethodField()
 
@@ -62,7 +64,9 @@ class ShopSettingsSerializer(serializers.ModelSerializer):
 
 
 class ShopFollowerSerializer(serializers.ModelSerializer):
-    customer_phone = serializers.CharField(source="customer.phone_number", read_only=True)
+    customer_phone = serializers.CharField(
+        source="customer.phone_number", read_only=True
+    )
 
     class Meta:
         model = ShopFollower

@@ -199,7 +199,9 @@ class StoryService:
         # Get followers of this shop
         from apps.followapp.models import Follow
 
-        followers = Follow.objects.filter(content_type=shop_content_type, object_id=story.shop_id)
+        followers = Follow.objects.filter(
+            content_type=shop_content_type, object_id=story.shop_id
+        )
 
         # Send notification to each follower
         for follow in followers:
@@ -250,7 +252,9 @@ class StoryService:
         from apps.followapp.models import Follow
 
         shop_content_type = ContentType.objects.get_for_model(Shop)
-        followers = Follow.objects.filter(content_type=shop_content_type, object_id=story.shop_id)
+        followers = Follow.objects.filter(
+            content_type=shop_content_type, object_id=story.shop_id
+        )
 
         for follow in followers:
             followed_group = f"stories_followed_{follow.follower_id}"

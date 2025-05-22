@@ -8,19 +8,18 @@ Machine learning algorithms for detecting potential fraud:
 - Device and location anomalies
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-import numpy as np
 import pandas as pd
-from django.db.models import Avg, Count, F, Max, Min, Q, Sum
+from django.db.models import Count
 from django.utils import timezone
 from scipy import stats
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
-from apps.authapp.models import User, UserActivity, UserSession
+from apps.authapp.models import UserSession
 from apps.bookingapp.models import Booking
-from apps.payment.models import PaymentTransaction, Transaction
+from apps.payment.models import PaymentTransaction
 
 
 class AnomalyDetector:
@@ -270,7 +269,8 @@ class AnomalyDetector:
         anomaly_scores = self.model.decision_function(X_scaled)
         # Invert and rescale to 0-1 range where 1 is most anomalous
         anomaly_scores = 1 - (
-            (anomaly_scores - anomaly_scores.min()) / (anomaly_scores.max() - anomaly_scores.min())
+            (anomaly_scores - anomaly_scores.min())
+            / (anomaly_scores.max() - anomaly_scores.min())
         )
 
         # Add results back to DataFrame
@@ -428,7 +428,9 @@ class BookingAnomalyDetector:
         start_date = end_date - timedelta(days=self.lookback_days)
 
         # Base query
-        bookings = Booking.objects.filter(created_at__gte=start_date, created_at__lte=end_date)
+        bookings = Booking.objects.filter(
+            created_at__gte=start_date, created_at__lte=end_date
+        )
 
         # Filter by shop if provided
         if shop_id:
@@ -446,9 +448,9 @@ class BookingAnomalyDetector:
         # Bookings per user
         user_booking_counts = bookings.values("user_id").annotate(count=Count("id"))
         if user_booking_counts:
-            avg_bookings_per_user = sum(item["count"] for item in user_booking_counts) / len(
-                user_booking_counts
-            )
+            avg_bookings_per_user = sum(
+                item["count"] for item in user_booking_counts
+            ) / len(user_booking_counts)
             max_bookings_per_user = max(item["count"] for item in user_booking_counts)
         else:
             avg_bookings_per_user = 0
@@ -474,7 +476,9 @@ class BookingAnomalyDetector:
 
         for i in range(24):
             hour_count = bookings.filter(booking_time__hour=i).count()
-            hour_distribution[i] = hour_count / booking_count if booking_count > 0 else 0
+            hour_distribution[i] = (
+                hour_count / booking_count if booking_count > 0 else 0
+            )
 
         return {
             "success": True,
@@ -513,7 +517,9 @@ class BookingAnomalyDetector:
             return {"success": False, "error": baseline_stats["error"]}
 
         # Get bookings for analysis period
-        bookings = Booking.objects.filter(created_at__gte=start_date, created_at__lte=end_date)
+        bookings = Booking.objects.filter(
+            created_at__gte=start_date, created_at__lte=end_date
+        )
 
         # Filter by shop if provided
         if shop_id:
@@ -536,10 +542,12 @@ class BookingAnomalyDetector:
         # Bookings per user
         user_booking_counts = bookings.values("user_id").annotate(count=Count("id"))
         if user_booking_counts:
-            actual_avg_bookings_per_user = sum(item["count"] for item in user_booking_counts) / len(
-                user_booking_counts
+            actual_avg_bookings_per_user = sum(
+                item["count"] for item in user_booking_counts
+            ) / len(user_booking_counts)
+            actual_max_bookings_per_user = max(
+                item["count"] for item in user_booking_counts
             )
-            actual_max_bookings_per_user = max(item["count"] for item in user_booking_counts)
             # Find user with max bookings
             max_user_id = next(
                 (
@@ -550,7 +558,6 @@ class BookingAnomalyDetector:
                 None,
             )
         else:
-            actual_avg_bookings_per_user = 0
             actual_max_bookings_per_user = 0
             max_user_id = None
 
@@ -562,7 +569,9 @@ class BookingAnomalyDetector:
 
         # No-show rate
         actual_no_show_count = bookings.filter(status__name="No-show").count()
-        actual_no_show_rate = actual_no_show_count / booking_count if booking_count > 0 else 0
+        actual_no_show_rate = (
+            actual_no_show_count / booking_count if booking_count > 0 else 0
+        )
 
         # Detect anomalies
         anomalies = []
@@ -578,7 +587,10 @@ class BookingAnomalyDetector:
                         "actual": actual_avg_bookings_per_day,
                         "baseline": baseline_stats["avg_bookings_per_day"],
                         "percent_increase": (
-                            (actual_avg_bookings_per_day / baseline_stats["avg_bookings_per_day"])
+                            (
+                                actual_avg_bookings_per_day
+                                / baseline_stats["avg_bookings_per_day"]
+                            )
                             - 1
                         )
                         * 100,
@@ -598,7 +610,10 @@ class BookingAnomalyDetector:
                         "booking_count": actual_max_bookings_per_user,
                         "baseline_max": baseline_stats["max_bookings_per_user"],
                         "percent_increase": (
-                            (actual_max_bookings_per_user / baseline_stats["max_bookings_per_user"])
+                            (
+                                actual_max_bookings_per_user
+                                / baseline_stats["max_bookings_per_user"]
+                            )
                             - 1
                         )
                         * 100,
@@ -625,7 +640,10 @@ class BookingAnomalyDetector:
             )
 
         # Check for unusual no-show rate
-        if actual_no_show_rate > baseline_stats["no_show_rate"] * 2 and actual_no_show_rate > 0.1:
+        if (
+            actual_no_show_rate > baseline_stats["no_show_rate"] * 2
+            and actual_no_show_rate > 0.1
+        ):
             anomalies.append(
                 {
                     "type": "no_shows",
@@ -640,7 +658,9 @@ class BookingAnomalyDetector:
             )
 
         # Check for sequential bookings (potential bots or automated booking)
-        sequential_threshold = 3  # Number of bookings in rapid succession to consider anomalous
+        sequential_threshold = (
+            3  # Number of bookings in rapid succession to consider anomalous
+        )
         rapid_booking_users = []
 
         # Group bookings by user and sort by time
@@ -715,11 +735,16 @@ def detect_payment_fraud(lookback_days=30, anomaly_threshold=0.8):
         features_df = detector.get_transaction_features(days_lookback=lookback_days)
 
         if features_df.empty:
-            return {"success": False, "error": "Not enough transaction data for analysis"}
+            return {
+                "success": False,
+                "error": "Not enough transaction data for analysis",
+            }
 
         # Train model and detect anomalies
         detector.train_model(features_df)
-        anomalies = detector.detect_anomalies(threshold=anomaly_threshold, features_df=features_df)
+        anomalies = detector.detect_anomalies(
+            threshold=anomaly_threshold, features_df=features_df
+        )
 
         if anomalies.empty:
             return {
@@ -792,12 +817,15 @@ def check_account_takeover_risk(user_id):
         end_date = timezone.now()
         start_date = end_date - timedelta(days=30)
 
-        sessions = UserSession.objects.filter(user_id=user_id, created_at__gte=start_date).order_by(
-            "created_at"
-        )
+        sessions = UserSession.objects.filter(
+            user_id=user_id, created_at__gte=start_date
+        ).order_by("created_at")
 
         if not sessions:
-            return {"success": False, "error": "No session data available for this user"}
+            return {
+                "success": False,
+                "error": "No session data available for this user",
+            }
 
         # Get latest session
         latest_session = sessions.last()

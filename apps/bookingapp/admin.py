@@ -74,7 +74,9 @@ class AppointmentAdmin(admin.ModelAdmin):
 
     def specialist_name(self, obj):
         """Get specialist name for display"""
-        return f"{obj.specialist.employee.first_name} {obj.specialist.employee.last_name}"
+        return (
+            f"{obj.specialist.employee.first_name} {obj.specialist.employee.last_name}"
+        )
 
     specialist_name.short_description = _("Specialist")
 

@@ -11,10 +11,14 @@ from apps.notificationsapp.models import DeviceToken, Notification
 class NotificationViewSetTest(TestCase):
     def setUp(self):
         # Create a user
-        self.user = User.objects.create(phone_number="1234567890", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="1234567890", email="test@example.com"
+        )
 
         # Create another user (for isolation testing)
-        self.other_user = User.objects.create(phone_number="9876543210", email="other@example.com")
+        self.other_user = User.objects.create(
+            phone_number="9876543210", email="other@example.com"
+        )
 
         # Create notifications for the user
         for i in range(5):
@@ -92,7 +96,9 @@ class NotificationViewSetTest(TestCase):
     def test_mark_notification_read(self):
         """Test marking a notification as read"""
         # Get first sent notification
-        notification = Notification.objects.filter(user=self.user, status="sent").first()
+        notification = Notification.objects.filter(
+            user=self.user, status="sent"
+        ).first()
 
         url = reverse("notification-mark-read", args=[notification.id])
         response = self.client.post(url)
@@ -132,7 +138,9 @@ class NotificationViewSetTest(TestCase):
 class DeviceTokenViewSetTest(TestCase):
     def setUp(self):
         # Create a user
-        self.user = User.objects.create(phone_number="1234567890", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="1234567890", email="test@example.com"
+        )
 
         # Create a device token
         self.device_token = DeviceToken.objects.create(
@@ -210,5 +218,7 @@ class DeviceTokenViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Token should be deleted
-        token_exists = DeviceToken.objects.filter(device_id=self.device_token.device_id).exists()
+        token_exists = DeviceToken.objects.filter(
+            device_id=self.device_token.device_id
+        ).exists()
         self.assertFalse(token_exists)

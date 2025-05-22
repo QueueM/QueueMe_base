@@ -1,24 +1,19 @@
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.conf import settings
-from django.db.models import Avg, Count, F, Q, Sum
+from django.db.models import Count, Q, Sum
 from django.utils import timezone
 
 from apps.customersapp.models import Customer
-from apps.employeeapp.models import Employee
 from apps.notificationsapp.models import (
     ABTest,
     Campaign,
     CampaignRecipient,
-    EmailTemplate,
     NotificationEvent,
-    PushNotificationTemplate,
-    SMSTemplate,
 )
 from apps.notificationsapp.services.notification_service import NotificationService
-from apps.shopapp.models import Shop
 
 logger = logging.getLogger(__name__)
 
@@ -164,26 +159,36 @@ class CampaignService:
                         min_birth_date = timezone.now().date() - timedelta(
                             days=365 * int(age_range["min_age"])
                         )
-                        customers_query = customers_query.filter(birth_date__lte=min_birth_date)
+                        customers_query = customers_query.filter(
+                            birth_date__lte=min_birth_date
+                        )
 
                     if "max_age" in age_range and age_range["max_age"]:
                         max_birth_date = timezone.now().date() - timedelta(
                             days=365 * int(age_range["max_age"])
                         )
-                        customers_query = customers_query.filter(birth_date__gte=max_birth_date)
+                        customers_query = customers_query.filter(
+                            birth_date__gte=max_birth_date
+                        )
 
             # Process location filters
             if "location" in segments:
                 location = segments["location"]
 
                 if "cities" in location and location["cities"]:
-                    customers_query = customers_query.filter(city__in=location["cities"])
+                    customers_query = customers_query.filter(
+                        city__in=location["cities"]
+                    )
 
                 if "countries" in location and location["countries"]:
-                    customers_query = customers_query.filter(country__in=location["countries"])
+                    customers_query = customers_query.filter(
+                        country__in=location["countries"]
+                    )
 
                 if "regions" in location and location["regions"]:
-                    customers_query = customers_query.filter(region__in=location["regions"])
+                    customers_query = customers_query.filter(
+                        region__in=location["regions"]
+                    )
 
             # Process behavior filters
             if "behavior" in segments:
@@ -192,7 +197,9 @@ class CampaignService:
                 if "has_booked" in behavior and behavior["has_booked"] is not None:
                     has_booked = behavior["has_booked"]
                     if has_booked:
-                        customers_query = customers_query.filter(bookings__isnull=False).distinct()
+                        customers_query = customers_query.filter(
+                            bookings__isnull=False
+                        ).distinct()
                     else:
                         customers_query = customers_query.filter(bookings__isnull=True)
 
@@ -233,12 +240,16 @@ class CampaignService:
             # Process custom segment
             if "custom_segment" in segments and segments["custom_segment"]:
                 segment_id = segments["custom_segment"]
-                from apps.customersapp.services.segmentation_service import SegmentationService
+                from apps.customersapp.services.segmentation_service import (
+                    SegmentationService,
+                )
 
                 segmentation_service = SegmentationService()
 
                 # Get customers in the custom segment
-                segment_customers = segmentation_service.get_segment_customers(segment_id)
+                segment_customers = segmentation_service.get_segment_customers(
+                    segment_id
+                )
                 customers_query = customers_query.filter(id__in=segment_customers)
 
         elif audience_type == "specific_customers":
@@ -249,7 +260,9 @@ class CampaignService:
         elif audience_type == "shop_customers":
             # Customers who have interacted with specific shops
             shop_ids = target_audience.get("shop_ids", [])
-            customers_query = customers_query.filter(bookings__shop_id__in=shop_ids).distinct()
+            customers_query = customers_query.filter(
+                bookings__shop_id__in=shop_ids
+            ).distinct()
 
         # Get the final list of customers
         customers = customers_query.distinct()
@@ -271,13 +284,19 @@ class CampaignService:
                 try:
                     notification_settings = customer.get_notification_settings()
 
-                    if "email" in campaign.channels and notification_settings.email_enabled:
+                    if (
+                        "email" in campaign.channels
+                        and notification_settings.email_enabled
+                    ):
                         channels.append("email")
 
                     if "sms" in campaign.channels and notification_settings.sms_enabled:
                         channels.append("sms")
 
-                    if "push" in campaign.channels and notification_settings.push_enabled:
+                    if (
+                        "push" in campaign.channels
+                        and notification_settings.push_enabled
+                    ):
                         channels.append("push")
                 except:
                     # If no settings found, use all campaign channels
@@ -316,7 +335,9 @@ class CampaignService:
         campaign = Campaign.objects.get(id=campaign_id)
 
         if campaign.status not in ["draft"]:
-            raise ValueError(f"Cannot schedule campaign with status '{campaign.status}'")
+            raise ValueError(
+                f"Cannot schedule campaign with status '{campaign.status}'"
+            )
 
         # Set scheduling options from data
         campaign.scheduling = schedule_data
@@ -446,7 +467,6 @@ class CampaignService:
                         push_template = campaign.push_template
 
                 recipient_data = recipient.recipient_data or {}
-                success = False
 
                 try:
                     # Send notifications through each channel
@@ -469,7 +489,6 @@ class CampaignService:
                     recipient.sent_at = timezone.now()
                     recipient.save()
                     sent_count += 1
-                    success = True
 
                 except Exception as e:
                     logger.error(f"Failed to send campaign notification: {str(e)}")
@@ -488,7 +507,11 @@ class CampaignService:
 
         campaign.save()
 
-        return {"sent_count": sent_count, "failed_count": failed_count, "status": campaign.status}
+        return {
+            "sent_count": sent_count,
+            "failed_count": failed_count,
+            "status": campaign.status,
+        }
 
     @classmethod
     def _send_email_notification(cls, campaign, recipient, template, recipient_data):
@@ -636,9 +659,13 @@ class CampaignService:
         delivery_rate = (delivered / total * 100) if total > 0 else 0
 
         # Calculate metrics by channel
-        email_sent = recipients.filter(status="sent", channels__contains=["email"]).count()
+        email_sent = recipients.filter(
+            status="sent", channels__contains=["email"]
+        ).count()
         sms_sent = recipients.filter(status="sent", channels__contains=["sms"]).count()
-        push_sent = recipients.filter(status="sent", channels__contains=["push"]).count()
+        push_sent = recipients.filter(
+            status="sent", channels__contains=["push"]
+        ).count()
 
         # Calculate bounces and failures
         bounces = NotificationEvent.objects.filter(
@@ -672,16 +699,26 @@ class CampaignService:
 
         # Get events for these notifications
         if not recipient_notification_ids:
-            return {"open_rate": 0, "click_rate": 0, "opens": 0, "clicks": 0, "unsubscribes": 0}
+            return {
+                "open_rate": 0,
+                "click_rate": 0,
+                "opens": 0,
+                "clicks": 0,
+                "unsubscribes": 0,
+            }
 
-        events = NotificationEvent.objects.filter(notification_id__in=recipient_notification_ids)
+        events = NotificationEvent.objects.filter(
+            notification_id__in=recipient_notification_ids
+        )
 
         # Calculate metrics
         opens = events.filter(event_type="open").count()
         clicks = events.filter(event_type="click").count()
         unsubscribes = events.filter(event_type="unsubscribe").count()
 
-        total_delivered = CampaignRecipient.objects.filter(campaign=campaign, status="sent").count()
+        total_delivered = CampaignRecipient.objects.filter(
+            campaign=campaign, status="sent"
+        ).count()
         open_rate = (opens / total_delivered * 100) if total_delivered > 0 else 0
         click_rate = (clicks / total_delivered * 100) if total_delivered > 0 else 0
 
@@ -725,7 +762,9 @@ class CampaignService:
             from apps.bookingapp.models import Booking
 
             bookings = Booking.objects.filter(
-                user_id__in=recipient_ids, created_at__gte=start_time, created_at__lte=end_time
+                user_id__in=recipient_ids,
+                created_at__gte=start_time,
+                created_at__lte=end_time,
             )
 
             booking_count = bookings.count()
@@ -735,7 +774,8 @@ class CampaignService:
                 "booking_count": booking_count,
                 "booking_value": booking_value,
                 "conversion_rate": round(
-                    (booking_count / len(recipient_ids) * 100) if recipient_ids else 0, 2
+                    (booking_count / len(recipient_ids) * 100) if recipient_ids else 0,
+                    2,
                 ),
             }
 
@@ -745,11 +785,15 @@ class CampaignService:
             from apps.shopapp.models import ShopVisit
 
             shop_visits = ShopVisit.objects.filter(
-                customer_id__in=recipient_ids, visited_at__gte=start_time, visited_at__lte=end_time
+                customer_id__in=recipient_ids,
+                visited_at__gte=start_time,
+                visited_at__lte=end_time,
             )
 
             bookings = Booking.objects.filter(
-                user_id__in=recipient_ids, created_at__gte=start_time, created_at__lte=end_time
+                user_id__in=recipient_ids,
+                created_at__gte=start_time,
+                created_at__lte=end_time,
             )
 
             visit_count = shop_visits.count()
@@ -762,7 +806,8 @@ class CampaignService:
                     (visit_count / len(recipient_ids) * 100) if recipient_ids else 0, 2
                 ),
                 "booking_rate": round(
-                    (booking_count / len(recipient_ids) * 100) if recipient_ids else 0, 2
+                    (booking_count / len(recipient_ids) * 100) if recipient_ids else 0,
+                    2,
                 ),
             }
 

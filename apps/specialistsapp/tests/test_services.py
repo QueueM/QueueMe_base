@@ -57,7 +57,9 @@ class AvailabilityServiceTests(TestCase):
             buffer_after=5,
             service_location="in_shop",
         )
-        self.employee_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.employee_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
         self.employee = Employee.objects.create(
             user=self.employee_user,
             shop=self.shop,
@@ -226,7 +228,9 @@ class SpecialistManagerTests(TestCase):
             duration=60,
             service_location="in_shop",
         )
-        self.employee_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.employee_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
         self.employee = Employee.objects.create(
             user=self.employee_user,
             shop=self.shop,
@@ -360,7 +364,9 @@ class SpecialistManagerTests(TestCase):
         data = {"is_primary": True, "proficiency_level": 5, "custom_duration": 45}
 
         # Update service
-        updated_service = self.specialist_manager.update_service(specialist_service, data)
+        updated_service = self.specialist_manager.update_service(
+            specialist_service, data
+        )
 
         # Check that service was updated correctly
         self.assertEqual(updated_service.is_primary, True)
@@ -396,7 +402,9 @@ class SpecialistRankerTests(TestCase):
         # Create specialists with different ratings and experience
         self.specialists = []
         for i in range(5):
-            employee_user = User.objects.create(phone_number=f"123456789{i}", user_type="employee")
+            employee_user = User.objects.create(
+                phone_number=f"123456789{i}", user_type="employee"
+            )
             employee = Employee.objects.create(
                 user=employee_user,
                 shop=self.shop,
@@ -460,7 +468,9 @@ class SpecialistRankerTests(TestCase):
     def test_rank_specialists_for_service(self):
         """Test ranking specialists for a specific service."""
         # Get top specialists for the service
-        service_specialists = self.ranker.rank_specialists_for_service(self.service.id, limit=3)
+        service_specialists = self.ranker.rank_specialists_for_service(
+            self.service.id, limit=3
+        )
 
         # Should have specialists that provide this service
         self.assertEqual(len(service_specialists), 3)
@@ -473,7 +483,9 @@ class SpecialistRankerTests(TestCase):
     def test_get_similar_specialists(self):
         """Test finding specialists similar to a given specialist."""
         # Get specialists similar to specialist 2
-        similar_specialists = self.ranker.get_similar_specialists(self.specialists[2].id, limit=2)
+        similar_specialists = self.ranker.get_similar_specialists(
+            self.specialists[2].id, limit=2
+        )
 
         # Should have 2 specialists
         self.assertEqual(len(similar_specialists), 2)

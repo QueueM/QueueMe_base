@@ -9,19 +9,10 @@ import logging
 import os
 import threading
 import time
-from typing import Any, Callable, Dict, List, Optional, Type
 
 try:
-    from celery import Task, shared_task
-    from celery.signals import (
-        task_failure,
-        task_postrun,
-        task_prerun,
-        worker_process_init,
-        worker_ready,
-    )
-    from django.db import OperationalError, connection, connections, transaction
-    from django.db.models import Max
+    from celery import shared_task
+    from django.db import connection, connections
 
     CELERY_AVAILABLE = True
 except ImportError:
@@ -116,10 +107,14 @@ def task_with_lock(func=None, lock_timeout=60, lock_id=None):
                     from django_redis import get_redis_connection
 
                     redis = get_redis_connection("default")
-                    lock_acquired = redis.set(f"task_lock:{task_id}", 1, ex=lock_timeout, nx=True)
+                    lock_acquired = redis.set(
+                        f"task_lock:{task_id}", 1, ex=lock_timeout, nx=True
+                    )
 
                     if not lock_acquired:
-                        logger.warning(f"Task {task_id} is already running, skipping execution")
+                        logger.warning(
+                            f"Task {task_id} is already running, skipping execution"
+                        )
                         return None
 
                     try:
@@ -172,7 +167,9 @@ def task_with_retry(max_retries=3, backoff=2, max_backoff=3600):
                     retry_count = self.request.retries
                     retry_delay = min(backoff**retry_count, max_backoff)
 
-                    logger.warning(f"Task {self.name} failed, retrying in {retry_delay}s: {exc}")
+                    logger.warning(
+                        f"Task {self.name} failed, retrying in {retry_delay}s: {exc}"
+                    )
 
                     raise self.retry(exc=exc, countdown=retry_delay)
 

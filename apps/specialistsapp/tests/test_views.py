@@ -11,7 +11,11 @@ from apps.companiesapp.models import Company
 from apps.employeeapp.models import Employee
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
-from apps.specialistsapp.models import Specialist, SpecialistService, SpecialistWorkingHours
+from apps.specialistsapp.models import (
+    Specialist,
+    SpecialistService,
+    SpecialistWorkingHours,
+)
 
 
 class SpecialistViewSetTests(TestCase):
@@ -115,8 +119,12 @@ class SpecialistViewSetTests(TestCase):
         from apps.rolesapp.models import Permission, Role, UserRole
 
         # Create necessary permissions
-        self.view_specialist_perm = Permission.objects.create(resource="specialist", action="view")
-        self.edit_specialist_perm = Permission.objects.create(resource="specialist", action="edit")
+        self.view_specialist_perm = Permission.objects.create(
+            resource="specialist", action="view"
+        )
+        self.edit_specialist_perm = Permission.objects.create(
+            resource="specialist", action="edit"
+        )
         self.verify_specialist_perm = Permission.objects.create(
             resource="specialist", action="verify"
         )
@@ -132,7 +140,9 @@ class SpecialistViewSetTests(TestCase):
         self.shop_manager_role = Role.objects.create(
             name="Shop Manager", role_type="shop_manager", shop=self.shop
         )
-        self.shop_manager_role.permissions.add(self.view_specialist_perm, self.edit_specialist_perm)
+        self.shop_manager_role.permissions.add(
+            self.view_specialist_perm, self.edit_specialist_perm
+        )
 
         # Assign roles
         UserRole.objects.create(user=self.owner, role=self.admin_role)
@@ -342,12 +352,18 @@ class SpecialistServicesViewTests(TestCase):
         from apps.rolesapp.models import Permission, Role, UserRole
 
         # Create necessary permissions
-        self.view_specialist_perm = Permission.objects.create(resource="specialist", action="view")
-        self.edit_specialist_perm = Permission.objects.create(resource="specialist", action="edit")
+        self.view_specialist_perm = Permission.objects.create(
+            resource="specialist", action="view"
+        )
+        self.edit_specialist_perm = Permission.objects.create(
+            resource="specialist", action="edit"
+        )
 
         # Create roles
         self.admin_role = Role.objects.create(name="Admin", role_type="queue_me_admin")
-        self.admin_role.permissions.add(self.view_specialist_perm, self.edit_specialist_perm)
+        self.admin_role.permissions.add(
+            self.view_specialist_perm, self.edit_specialist_perm
+        )
 
         # Assign roles
         UserRole.objects.create(user=self.owner, role=self.admin_role)
@@ -379,7 +395,9 @@ class SpecialistServicesViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check that service was added
-        self.assertEqual(SpecialistService.objects.filter(specialist=self.specialist).count(), 2)
+        self.assertEqual(
+            SpecialistService.objects.filter(specialist=self.specialist).count(), 2
+        )
 
         # Check details of added service
         new_service = SpecialistService.objects.get(

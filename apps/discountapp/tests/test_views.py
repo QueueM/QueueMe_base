@@ -8,7 +8,12 @@ from rest_framework.test import APITestCase
 
 from apps.authapp.tests.factories import UserFactory
 from apps.bookingapp.tests.factories import AppointmentFactory
-from apps.discountapp.models import Coupon, CouponUsage, PromotionalCampaign, ServiceDiscount
+from apps.discountapp.models import (
+    Coupon,
+    CouponUsage,
+    PromotionalCampaign,
+    ServiceDiscount,
+)
 from apps.discountapp.tests.factories import CouponFactory, ServiceDiscountFactory
 from apps.serviceapp.tests.factories import ServiceFactory
 from apps.shopapp.tests.factories import ShopFactory
@@ -181,7 +186,9 @@ class CouponViewSetTestCase(APITestCase):
         self.client.force_authenticate(user=self.customer)
 
         # Create a booking
-        booking = AppointmentFactory(customer=self.customer, shop=self.shop, service=self.service)
+        booking = AppointmentFactory(
+            customer=self.customer, shop=self.shop, service=self.service
+        )
 
         # Create a valid coupon
         coupon = CouponFactory(
@@ -204,7 +211,9 @@ class CouponViewSetTestCase(APITestCase):
         self.assertEqual(response.data["final_amount"], "85.00")
 
         # Verify usage record was created
-        usage = CouponUsage.objects.filter(coupon=coupon, customer=self.customer).first()
+        usage = CouponUsage.objects.filter(
+            coupon=coupon, customer=self.customer
+        ).first()
         self.assertIsNotNone(usage)
 
 
@@ -289,7 +298,9 @@ class DiscountCalculationViewSetTestCase(APITestCase):
         # Check response
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["original_price"], "100.00")
-        self.assertEqual(response.data["discounted_price"], "80.00")  # 20% off for coupon
+        self.assertEqual(
+            response.data["discounted_price"], "80.00"
+        )  # 20% off for coupon
         self.assertEqual(response.data["discount_amount"], "20.00")
         self.assertIsNotNone(response.data["discount_info"])
         self.assertEqual(response.data["discount_info"]["type"], "coupon")

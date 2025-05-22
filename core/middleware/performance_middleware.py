@@ -8,7 +8,7 @@ import logging
 import os
 import re
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import psutil
 from django.conf import settings
@@ -48,10 +48,14 @@ class PerformanceMonitoringMiddleware(MiddlewareMixin):
         super().__init__(get_response)
         self.get_response = get_response
         self.enabled = getattr(settings, "PERFORMANCE_MONITORING", settings.DEBUG)
-        self.slow_request_threshold = getattr(settings, "SLOW_REQUEST_THRESHOLD", 1.0)  # seconds
+        self.slow_request_threshold = getattr(
+            settings, "SLOW_REQUEST_THRESHOLD", 1.0
+        )  # seconds
 
         # Paths to exclude from detailed monitoring
-        exclude_paths = getattr(settings, "PERFORMANCE_EXCLUDE_PATHS", DEFAULT_EXCLUDE_PATHS)
+        exclude_paths = getattr(
+            settings, "PERFORMANCE_EXCLUDE_PATHS", DEFAULT_EXCLUDE_PATHS
+        )
         self.exclude_patterns = [re.compile(pattern) for pattern in exclude_paths]
 
         # Statistics tracking
@@ -118,13 +122,13 @@ class PerformanceMonitoringMiddleware(MiddlewareMixin):
                 # Log detailed info for slow requests
                 query_info = ""
                 if db_stats and db_stats["query_count"] > 0:
-                    query_info = (
-                        f" | DB: {db_stats['query_count']} queries in {db_stats['query_time']:.3f}s"
-                    )
+                    query_info = f" | DB: {db_stats['query_count']} queries in {db_stats['query_time']:.3f}s"
                     if db_stats["slow_queries"]:
                         slow_count = len(db_stats["slow_queries"])
                         slow_time = db_stats["total_slow_query_time"]
-                        query_info += f", {slow_count} slow queries taking {slow_time:.3f}s"
+                        query_info += (
+                            f", {slow_count} slow queries taking {slow_time:.3f}s"
+                        )
 
                 logger.warning(
                     f"Slow request: {request.method} {request.path} "

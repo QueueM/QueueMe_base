@@ -35,9 +35,9 @@ class HasResourcePermission(permissions.BasePermission):
 
         # If context field is specified, check context-specific permission
         if self.context_field:
-            context_id = view.kwargs.get(self.context_field) or request.query_params.get(
+            context_id = view.kwargs.get(
                 self.context_field
-            )
+            ) or request.query_params.get(self.context_field)
 
             if context_id:
                 resource_parts = self.resource.split(".")
@@ -103,7 +103,9 @@ class IsCompanyOwner(permissions.BasePermission):
 
         # For shop-owned objects
         if hasattr(obj, "shop") and obj.shop and hasattr(obj.shop, "company"):
-            return PermissionResolver.is_company_owner_for(request.user, obj.shop.company.id)
+            return PermissionResolver.is_company_owner_for(
+                request.user, obj.shop.company.id
+            )
 
         return False
 
@@ -144,7 +146,9 @@ class HasRolePermission(permissions.BasePermission):
             allowed_roles: List of role types that are allowed to access
         """
         self.allowed_roles = (
-            allowed_roles if isinstance(allowed_roles, (list, tuple)) else [allowed_roles]
+            allowed_roles
+            if isinstance(allowed_roles, (list, tuple))
+            else [allowed_roles]
         )
 
     def has_permission(self, request, view):
@@ -184,9 +188,9 @@ class IsShopStaffOrAdmin(permissions.BasePermission):
             return True
 
         # Check if user has any shop staff role
-        return PermissionResolver.is_shop_manager(user) or PermissionResolver.has_permission(
-            user, "shop", "manage"
-        )
+        return PermissionResolver.is_shop_manager(
+            user
+        ) or PermissionResolver.has_permission(user, "shop", "manage")
 
     def has_object_permission(self, request, view, obj):
         user = request.user
@@ -206,7 +210,9 @@ class IsShopStaffOrAdmin(permissions.BasePermission):
         if shop_id:
             return PermissionResolver.is_shop_manager_for(
                 user, shop_id
-            ) or PermissionResolver.has_context_permission(user, "shop", shop_id, "shop", "manage")
+            ) or PermissionResolver.has_context_permission(
+                user, "shop", shop_id, "shop", "manage"
+            )
 
         return False
 
@@ -234,9 +240,9 @@ class IsShopStaffOrReadOnly(permissions.BasePermission):
             return True
 
         # Check if user has any shop staff role for write operations
-        return PermissionResolver.is_shop_manager(user) or PermissionResolver.has_permission(
-            user, "shop", "manage"
-        )
+        return PermissionResolver.is_shop_manager(
+            user
+        ) or PermissionResolver.has_permission(user, "shop", "manage")
 
     def has_object_permission(self, request, view, obj):
         # Allow read permissions for any request
@@ -260,6 +266,8 @@ class IsShopStaffOrReadOnly(permissions.BasePermission):
         if shop_id:
             return PermissionResolver.is_shop_manager_for(
                 user, shop_id
-            ) or PermissionResolver.has_context_permission(user, "shop", shop_id, "shop", "manage")
+            ) or PermissionResolver.has_context_permission(
+                user, "shop", shop_id, "shop", "manage"
+            )
 
         return False

@@ -8,15 +8,13 @@ multi-service bookings with optimized time slots and resource allocation.
 import datetime
 import logging
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Count, F, Max, Min, Q, Sum
-from django.utils import timezone
+from django.db.models import Count, Q
 
 from apps.bookingapp.models import Appointment, AppointmentItem, TimeSlot
-from apps.employeeapp.models import Employee
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
 from apps.specialistsapp.models import Specialist
@@ -51,9 +49,7 @@ class MultiServiceScheduler:
         self.services = []
         self.specialists = {}  # service_id -> specialist_id mapping
         self.service_order = self.ORDER_DEPENDENCIES
-        self.optimize_for = (
-            "minimize_duration"  # or "minimize_wait_time", "maximize_specialist_utilization"
-        )
+        self.optimize_for = "minimize_duration"  # or "minimize_wait_time", "maximize_specialist_utilization"
         self.allow_parallel = True  # Allow parallel services when possible
 
         # Cached data
@@ -93,7 +89,9 @@ class MultiServiceScheduler:
         ]
 
         if order_method not in valid_methods:
-            raise ValueError(f"Invalid ordering method. Must be one of: {', '.join(valid_methods)}")
+            raise ValueError(
+                f"Invalid ordering method. Must be one of: {', '.join(valid_methods)}"
+            )
 
         self.service_order = order_method
         return self
@@ -153,13 +151,17 @@ class MultiServiceScheduler:
 
         for start_time in start_times:
             # Try to create a schedule starting at this time
-            schedule = self._create_schedule(start_time, ordered_services, all_time_slots)
+            schedule = self._create_schedule(
+                start_time, ordered_services, all_time_slots
+            )
 
             if schedule:
                 # Calculate metrics for evaluation
                 total_duration = self._calculate_total_duration(schedule)
                 total_wait_time = self._calculate_wait_time(schedule)
-                specialist_utilization = self._calculate_specialist_utilization(schedule)
+                specialist_utilization = self._calculate_specialist_utilization(
+                    schedule
+                )
 
                 best_schedules.append(
                     {
@@ -216,7 +218,9 @@ class MultiServiceScheduler:
         schedule = self._create_schedule(start_time, ordered_services, all_time_slots)
 
         if not schedule:
-            raise ValueError("Unable to create schedule with the requested services and start time")
+            raise ValueError(
+                "Unable to create schedule with the requested services and start time"
+            )
 
         # Create main appointment
         total_duration = self._calculate_total_duration(schedule)
@@ -303,7 +307,9 @@ class MultiServiceScheduler:
                 )
 
                 if not specialists.exists():
-                    raise ValueError(f"No specialists available for service {service_id}")
+                    raise ValueError(
+                        f"No specialists available for service {service_id}"
+                    )
 
                 # Select the specialist with lowest booking count for the day
                 specialist = (
@@ -353,7 +359,9 @@ class MultiServiceScheduler:
         # Check if all specialists have slots
         for specialist_id in specialist_ids:
             if specialist_id not in specialist_slots:
-                logger.warning(f"No time slots found for specialist {specialist_id} on {self.date}")
+                logger.warning(
+                    f"No time slots found for specialist {specialist_id} on {self.date}"
+                )
                 specialist_slots[specialist_id] = []
 
         return specialist_slots
@@ -367,11 +375,15 @@ class MultiServiceScheduler:
         """
         if self.service_order == self.ORDER_SHORTEST_FIRST:
             # Order by duration (shortest first)
-            return sorted(self.services, key=lambda x: self._service_durations.get(x, 0))
+            return sorted(
+                self.services, key=lambda x: self._service_durations.get(x, 0)
+            )
 
         elif self.service_order == self.ORDER_LONGEST_FIRST:
             # Order by duration (longest first)
-            return sorted(self.services, key=lambda x: -self._service_durations.get(x, 0))
+            return sorted(
+                self.services, key=lambda x: -self._service_durations.get(x, 0)
+            )
 
         elif self.service_order == self.ORDER_HIGHEST_PRIORITY:
             # Order by priority (if set in service)
@@ -398,7 +410,9 @@ class MultiServiceScheduler:
 
             # Then add remaining services
             ordered.extend(
-                sorted(list(remaining), key=lambda x: -self._service_durations.get(x, 0))
+                sorted(
+                    list(remaining), key=lambda x: -self._service_durations.get(x, 0)
+                )
             )
 
             return ordered
@@ -525,7 +539,9 @@ class MultiServiceScheduler:
 
             # Move current time to end of this service if not allowing parallel
             if not self.allow_parallel:
-                current_time = end_time + datetime.timedelta(minutes=self.DEFAULT_TRANSITION_BUFFER)
+                current_time = end_time + datetime.timedelta(
+                    minutes=self.DEFAULT_TRANSITION_BUFFER
+                )
 
         return schedule
 
@@ -650,7 +666,9 @@ class MultiServiceScheduler:
 
         return total_wait
 
-    def _calculate_specialist_utilization(self, schedule: List[Dict[str, Any]]) -> float:
+    def _calculate_specialist_utilization(
+        self, schedule: List[Dict[str, Any]]
+    ) -> float:
         """
         Calculate specialist utilization as a percentage
 

@@ -7,16 +7,15 @@ recommendations, and automatic query optimization.
 """
 
 import functools
-import inspect
 import logging
 import time
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import connection, models, transaction
-from django.db.models import Count, F, Q, QuerySet
+from django.db import connection, models
+from django.db.models import QuerySet
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,9 @@ SLOW_QUERY_THRESHOLD_MS = getattr(
 MAX_QUERIES_PER_REQUEST = getattr(
     settings, "MAX_QUERIES_PER_REQUEST", 50
 )  # Warning threshold for queries per request
-QUERY_LOG_SIZE = getattr(settings, "QUERY_LOG_SIZE", 1000)  # Keep the most recent 1000 slow queries
+QUERY_LOG_SIZE = getattr(
+    settings, "QUERY_LOG_SIZE", 1000
+)  # Keep the most recent 1000 slow queries
 ENABLE_QUERY_OPTIMIZATION = getattr(
     settings, "ENABLE_QUERY_OPTIMIZATION", True
 )  # Auto-optimization is enabled by default
@@ -120,13 +121,24 @@ class QueryTracker:
 
         # Check for common issues
         if "SELECT" in sql and "WHERE" not in sql and "LIMIT" not in sql:
-            self._add_suggestion(sql, "Consider adding filters or limits to avoid full table scans")
+            self._add_suggestion(
+                sql, "Consider adding filters or limits to avoid full table scans"
+            )
 
         if "SELECT *" in sql:
-            self._add_suggestion(sql, "Select only needed columns instead of using SELECT *")
+            self._add_suggestion(
+                sql, "Select only needed columns instead of using SELECT *"
+            )
 
-        if "WHERE" in sql and "LIKE" in sql and sql.count("%") > 0 and "LIKE '%%'" in sql:
-            self._add_suggestion(sql, "Leading wildcard LIKE filters are inefficient for indexing")
+        if (
+            "WHERE" in sql
+            and "LIKE" in sql
+            and sql.count("%") > 0
+            and "LIKE '%%'" in sql
+        ):
+            self._add_suggestion(
+                sql, "Leading wildcard LIKE filters are inefficient for indexing"
+            )
 
         if "COUNT(*)" in sql and "GROUP BY" in sql:
             self._add_suggestion(
@@ -224,10 +236,14 @@ class QueryTracker:
 
         # Calculate averages
         for path_stats in paths_with_slow_queries.values():
-            path_stats["avg_duration_ms"] = path_stats["total_duration_ms"] / path_stats["count"]
+            path_stats["avg_duration_ms"] = (
+                path_stats["total_duration_ms"] / path_stats["count"]
+            )
 
         # Get top slowest queries
-        top_slowest = sorted(self.slow_queries, key=lambda q: q["duration_ms"], reverse=True)[:10]
+        top_slowest = sorted(
+            self.slow_queries, key=lambda q: q["duration_ms"], reverse=True
+        )[:10]
 
         # Format optimization suggestions
         formatted_suggestions = []
@@ -256,7 +272,8 @@ class QueryTracker:
             ],
             "top_slowest_queries": [
                 {
-                    "sql": query["sql"][:200] + ("..." if len(query["sql"]) > 200 else ""),
+                    "sql": query["sql"][:200]
+                    + ("..." if len(query["sql"]) > 200 else ""),
                     "duration_ms": query["duration_ms"],
                     "path": query["path"] or "unknown",
                 }
@@ -362,7 +379,9 @@ def analyze_queryset(queryset: QuerySet) -> Dict[str, Any]:
                     }
                 )
             else:
-                missing_fields = [f for f in foreign_key_fields if f not in current_select_related]
+                missing_fields = [
+                    f for f in foreign_key_fields if f not in current_select_related
+                ]
                 if missing_fields:
                     suggestions.append(
                         {
@@ -377,15 +396,21 @@ def analyze_queryset(queryset: QuerySet) -> Dict[str, Any]:
             m2m_fields.append(field.name)
 
         reverse_relations = [
-            f.name for f in model._meta.related_objects if f.related_model and f.field.many_to_many
+            f.name
+            for f in model._meta.related_objects
+            if f.related_model and f.field.many_to_many
         ]
 
         potential_prefetch_fields = m2m_fields + reverse_relations
 
         if potential_prefetch_fields:
-            current_prefetch_related = getattr(queryset, "_prefetch_related_lookups", [])
+            current_prefetch_related = getattr(
+                queryset, "_prefetch_related_lookups", []
+            )
             missing_prefetch = [
-                f for f in potential_prefetch_fields if f not in current_prefetch_related
+                f
+                for f in potential_prefetch_fields
+                if f not in current_prefetch_related
             ]
 
             if missing_prefetch:
@@ -403,7 +428,9 @@ def analyze_queryset(queryset: QuerySet) -> Dict[str, Any]:
 
             # Basic check for potential non-indexed fields
             filter_fields = [
-                name.split("__")[0] for name in queryset.query.annotations.keys() if "__" in name
+                name.split("__")[0]
+                for name in queryset.query.annotations.keys()
+                if "__" in name
             ]
 
             indexed_fields = _get_indexed_fields(model)
@@ -422,7 +449,8 @@ def analyze_queryset(queryset: QuerySet) -> Dict[str, Any]:
         if hasattr(queryset, "query"):
             has_high_offset = queryset.query.low_mark and queryset.query.low_mark > 1000
             query_info["has_slicing"] = (
-                queryset.query.low_mark is not None or queryset.query.high_mark is not None
+                queryset.query.low_mark is not None
+                or queryset.query.high_mark is not None
             )
 
             if has_high_offset:
@@ -547,7 +575,9 @@ def _get_indexed_fields(model_class) -> List[str]:
         if hasattr(index, "fields"):
             for field_name in index.fields:
                 # Strip ordering indicators (e.g., '-created_at')
-                clean_name = field_name[1:] if field_name.startswith("-") else field_name
+                clean_name = (
+                    field_name[1:] if field_name.startswith("-") else field_name
+                )
                 indexed_fields.append(clean_name)
 
     # Primary key is always indexed
@@ -712,7 +742,9 @@ class CachingQuerySetMixin:
         def cached_iterator():
             # Generate cache key
             query_str = str(self.query)
-            cache_key = f"queryset:{key_prefix or self.model.__name__}:{hash(query_str)}"
+            cache_key = (
+                f"queryset:{key_prefix or self.model.__name__}:{hash(query_str)}"
+            )
 
             # Check cache
             cached_result = cache.get(cache_key)

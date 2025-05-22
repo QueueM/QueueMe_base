@@ -5,7 +5,6 @@ This backend uses Firebase Cloud Functions to send SMS messages,
 replacing the Twilio backend.
 """
 
-import json
 import logging
 
 import requests
@@ -74,7 +73,9 @@ class FirebaseSMSBackend:
             headers = {"Content-Type": "application/json", "X-API-Key": self.api_key}
 
             # Make the request to Firebase Function
-            response = requests.post(self.api_url, json=payload, headers=headers, timeout=30)
+            response = requests.post(
+                self.api_url, json=payload, headers=headers, timeout=30
+            )
 
             # Parse the response
             if response.status_code == 200:

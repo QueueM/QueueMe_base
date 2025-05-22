@@ -29,7 +29,9 @@ SPECIALIST_CACHE_KEY = "specialist_{id}"
 SPECIALIST_SERVICES_CACHE_KEY = "specialist_{id}_services"
 SPECIALIST_AVAILABILITY_CACHE_KEY = "specialist_{id}_availability_{date}"
 SPECIALIST_TOP_RATED_CACHE_KEY = "top_specialists_{shop_id}_{limit}"
-SPECIALIST_RECOMMENDATIONS_CACHE_KEY = "specialist_recommendations_{customer_id}_{category_id}"
+SPECIALIST_RECOMMENDATIONS_CACHE_KEY = (
+    "specialist_recommendations_{customer_id}_{category_id}"
+)
 
 # Default buffer time (in minutes)
 DEFAULT_BUFFER_BEFORE = 5

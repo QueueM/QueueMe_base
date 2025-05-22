@@ -9,9 +9,15 @@ from .models import City, Location
 class CityFilter(django_filters.FilterSet):
     """Filter for City model"""
 
-    country_name = django_filters.CharFilter(field_name="country__name", lookup_expr="icontains")
-    population_gt = django_filters.NumberFilter(field_name="population", lookup_expr="gt")
-    population_lt = django_filters.NumberFilter(field_name="population", lookup_expr="lt")
+    country_name = django_filters.CharFilter(
+        field_name="country__name", lookup_expr="icontains"
+    )
+    population_gt = django_filters.NumberFilter(
+        field_name="population", lookup_expr="gt"
+    )
+    population_lt = django_filters.NumberFilter(
+        field_name="population", lookup_expr="lt"
+    )
 
     class Meta:
         model = City
@@ -25,14 +31,22 @@ class CityFilter(django_filters.FilterSet):
 class LocationFilter(django_filters.FilterSet):
     """Filter for Location model"""
 
-    city_name = django_filters.CharFilter(field_name="city__name", lookup_expr="icontains")
-    country_name = django_filters.CharFilter(field_name="country__name", lookup_expr="icontains")
-    address = django_filters.CharFilter(field_name="address_line1", lookup_expr="icontains")
+    city_name = django_filters.CharFilter(
+        field_name="city__name", lookup_expr="icontains"
+    )
+    country_name = django_filters.CharFilter(
+        field_name="country__name", lookup_expr="icontains"
+    )
+    address = django_filters.CharFilter(
+        field_name="address_line1", lookup_expr="icontains"
+    )
 
     # Distance filter parameters
     lat = django_filters.NumberFilter(method="filter_by_distance", label="Latitude")
     lng = django_filters.NumberFilter(method="filter_by_distance", label="Longitude")
-    radius = django_filters.NumberFilter(method="filter_by_distance", label="Radius (km)")
+    radius = django_filters.NumberFilter(
+        method="filter_by_distance", label="Radius (km)"
+    )
 
     def filter_by_distance(self, queryset, name, value):
         """Filter locations by distance from point"""

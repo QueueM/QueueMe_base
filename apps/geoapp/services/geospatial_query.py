@@ -63,7 +63,9 @@ class GeospatialQueryService:
             )
 
             # Apply city filter if enabled
-            same_city_only = filters.get("same_city_only") == "true" if filters else False
+            same_city_only = (
+                filters.get("same_city_only") == "true" if filters else False
+            )
             if same_city_only:
                 # Find the city for the reference point
                 from ..models import City
@@ -79,7 +81,9 @@ class GeospatialQueryService:
                     if entity_type == "shop":
                         queryset = queryset.filter(location__city=ref_city)
                     elif entity_type == "specialist":
-                        queryset = queryset.filter(employee__shop__location__city=ref_city)
+                        queryset = queryset.filter(
+                            employee__shop__location__city=ref_city
+                        )
                     elif entity_type == "service":
                         queryset = queryset.filter(shop__location__city=ref_city)
 
@@ -103,7 +107,9 @@ class GeospatialQueryService:
             queryset = queryset.order_by("distance")[:max_results]
 
             # Include travel time if requested
-            include_travel_time = filters.get("include_travel_time") == "true" if filters else False
+            include_travel_time = (
+                filters.get("include_travel_time") == "true" if filters else False
+            )
 
             # Prepare results
             results = []
@@ -128,8 +134,8 @@ class GeospatialQueryService:
                         entity_point = entity.shop.location.coordinates
 
                     # Calculate travel time
-                    entity_data["travel_time_minutes"] = TravelTimeService.estimate_travel_time(
-                        point, entity_point
+                    entity_data["travel_time_minutes"] = (
+                        TravelTimeService.estimate_travel_time(point, entity_point)
                     )
 
                 results.append(entity_data)
@@ -171,13 +177,18 @@ class GeospatialQueryService:
             customer_locations = []
             for booking in booking_query:
                 # Skip if customer has no location
-                if not hasattr(booking.customer, "location") or not booking.customer.location:
+                if (
+                    not hasattr(booking.customer, "location")
+                    or not booking.customer.location
+                ):
                     continue
 
                 customer_location = booking.customer.location.coordinates
 
                 # Calculate distance
-                distance_km = shop_location.distance(customer_location) * 100  # Convert to km
+                distance_km = (
+                    shop_location.distance(customer_location) * 100
+                )  # Convert to km
 
                 customer_locations.append(
                     {
@@ -210,7 +221,9 @@ class GeospatialQueryService:
 
                 # Estimate cost (simplified)
                 # Assume cost increases with distance
-                avg_distance = sum(loc["distance_km"] for loc in bookings_within) / count
+                avg_distance = (
+                    sum(loc["distance_km"] for loc in bookings_within) / count
+                )
                 estimated_cost = avg_distance * 5  # Simplified cost model
 
                 profit = revenue - estimated_cost

@@ -1,5 +1,4 @@
 from django.db.models import Avg, Count, Q
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
@@ -23,15 +22,17 @@ def calculate_package_metrics(package):
     cancelled_bookings = bookings.filter(status="cancelled").count()
 
     # Calculate completion rate
-    completion_rate = (completed_bookings / total_bookings * 100) if total_bookings > 0 else 0
+    completion_rate = (
+        (completed_bookings / total_bookings * 100) if total_bookings > 0 else 0
+    )
 
     # Calculate average rating if available
     from apps.reviewapp.models import Review
 
     avg_rating = (
-        Review.objects.filter(content_type__model="package", object_id=str(package.id)).aggregate(
-            avg_rating=Avg("rating")
-        )["avg_rating"]
+        Review.objects.filter(
+            content_type__model="package", object_id=str(package.id)
+        ).aggregate(avg_rating=Avg("rating"))["avg_rating"]
         or 0
     )
 
@@ -156,7 +157,9 @@ def check_package_availability(package_id, date_str):
 
         # Check custom availability
         try:
-            availability = PackageAvailability.objects.get(package=package, weekday=weekday)
+            availability = PackageAvailability.objects.get(
+                package=package, weekday=weekday
+            )
             if availability.is_closed:
                 return False
         except PackageAvailability.DoesNotExist:

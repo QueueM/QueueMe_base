@@ -77,8 +77,12 @@ class PackageViewSetTests(TestCase):
 
         # API endpoints
         self.package_list_url = reverse("package-list")
-        self.package_detail_url = reverse("package-detail", kwargs={"pk": self.package.id})
-        self.package_services_url = reverse("package-services", kwargs={"pk": self.package.id})
+        self.package_detail_url = reverse(
+            "package-detail", kwargs={"pk": self.package.id}
+        )
+        self.package_services_url = reverse(
+            "package-services", kwargs={"pk": self.package.id}
+        )
 
     def test_get_package_list(self):
         """Test retrieving a list of packages"""
@@ -173,7 +177,9 @@ class PackageViewSetTests(TestCase):
         self.assertEqual(self.package.name, "Updated Package")
 
         # Update services
-        data = {"service_ids": [str(self.service1.id)]}  # Only include the first service
+        data = {
+            "service_ids": [str(self.service1.id)]
+        }  # Only include the first service
 
         response = self.client.patch(self.package_detail_url, data, format="json")
 
@@ -195,7 +201,9 @@ class PackageViewSetTests(TestCase):
             Package.objects.get(id=self.package.id)
 
         # Verify package services were deleted
-        self.assertEqual(PackageService.objects.filter(package_id=self.package.id).count(), 0)
+        self.assertEqual(
+            PackageService.objects.filter(package_id=self.package.id).count(), 0
+        )
 
     def test_get_package_services(self):
         """Test retrieving services for a package"""
@@ -281,7 +289,9 @@ class PackageAvailabilityViewTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # API endpoints
-        self.availability_url = reverse("package-availability", kwargs={"pk": self.package.id})
+        self.availability_url = reverse(
+            "package-availability", kwargs={"pk": self.package.id}
+        )
         self.booking_url = reverse("package-book", kwargs={"pk": self.package.id})
 
     def test_get_package_availability(self):
@@ -289,7 +299,9 @@ class PackageAvailabilityViewTests(TestCase):
         # Specify date parameter - use a Sunday to match availability
         # Find the next Sunday
         today = timezone.now().date()
-        days_until_sunday = (6 - today.weekday()) % 7  # 6 is Sunday in Python's weekday()
+        days_until_sunday = (
+            6 - today.weekday()
+        ) % 7  # 6 is Sunday in Python's weekday()
         next_sunday = today + timedelta(days=days_until_sunday)
 
         url = f"{self.availability_url}?date={next_sunday.isoformat()}"
@@ -366,7 +378,9 @@ class PackageAvailabilityViewTests(TestCase):
         with patch(
             "apps.packageapp.services.package_booking_service.PackageBookingService.book_package"
         ) as mock_book:
-            mock_book.side_effect = ValueError("Specialist is not available for this time slot")
+            mock_book.side_effect = ValueError(
+                "Specialist is not available for this time slot"
+            )
 
             response = self.client.post(self.booking_url, data, format="json")
 

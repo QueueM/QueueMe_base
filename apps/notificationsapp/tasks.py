@@ -23,7 +23,9 @@ def send_scheduled_notification(notification_id):
     """
     try:
         # Import inside the function to avoid circular import
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         notification = Notification.objects.get(id=notification_id)
 
@@ -108,7 +110,9 @@ def send_scheduled_notification(notification_id):
             "message": f"Notification {notification_id} not found",
         }
     except Exception as e:
-        logger.exception(f"Error processing scheduled notification {notification_id}: {str(e)}")
+        logger.exception(
+            f"Error processing scheduled notification {notification_id}: {str(e)}"
+        )
         return {"success": False, "message": f"Error processing notification: {str(e)}"}
 
 
@@ -122,7 +126,9 @@ def process_notification(notification_id):
     """
     try:
         # Import inside the function to avoid circular import
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         notification = Notification.objects.get(id=notification_id, status="pending")
 
@@ -149,7 +155,7 @@ def cleanup_old_notifications():
     Keeps the last 100 read notifications per user and deletes the rest.
     """
     try:
-        from django.db import connection
+        pass
 
         # Use Django ORM instead of raw SQL for this operation for better security
         # First, find notifications to keep (latest 100 read notifications)
@@ -202,7 +208,9 @@ def send_pending_notifications():
     """
     try:
         # Import inside the function to avoid circular import
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         # Get pending notifications that should have been sent already
         pending_notifications = Notification.objects.filter(
@@ -241,7 +249,9 @@ def send_email_notification_task(notification_id, recipient_id=None, **kwargs):
         from django.conf import settings
         from django.core.mail import send_mail
 
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         # Get user's email
         try:
@@ -265,7 +275,9 @@ def send_email_notification_task(notification_id, recipient_id=None, **kwargs):
         notification = Notification.objects.get(id=notification_id)
 
         # Update status to sending
-        NotificationService.update_notification_status(notification_id, "email", "sending")
+        NotificationService.update_notification_status(
+            notification_id, "email", "sending"
+        )
 
         # Send email
         try:
@@ -278,7 +290,9 @@ def send_email_notification_task(notification_id, recipient_id=None, **kwargs):
             )
 
             # Update status to delivered
-            NotificationService.update_notification_status(notification_id, "email", "delivered")
+            NotificationService.update_notification_status(
+                notification_id, "email", "delivered"
+            )
             return True
 
         except Exception as e:
@@ -305,7 +319,9 @@ def send_sms_notification_task(notification_id, recipient_id=None, **kwargs):
     """
     try:
         # Import inside the function to avoid circular import
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         # Get user's phone number
         try:
@@ -329,14 +345,18 @@ def send_sms_notification_task(notification_id, recipient_id=None, **kwargs):
         notification = Notification.objects.get(id=notification_id)
 
         # Update status to sending
-        NotificationService.update_notification_status(notification_id, "sms", "sending")
+        NotificationService.update_notification_status(
+            notification_id, "sms", "sending"
+        )
 
         # Send SMS
         result = SMSService.send_sms(phone_number=phone, message=notification.message)
 
         if result.get("success"):
             # Update status to delivered
-            NotificationService.update_notification_status(notification_id, "sms", "delivered")
+            NotificationService.update_notification_status(
+                notification_id, "sms", "delivered"
+            )
             return True
         else:
             # Update status to error
@@ -362,7 +382,9 @@ def send_push_notification_task(notification_id, recipient_id=None, **kwargs):
     """
     try:
         # Import inside the function to avoid circular import
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         # Get user's device tokens
         device_tokens = DeviceToken.objects.filter(user_id=recipient_id, is_active=True)
@@ -378,7 +400,9 @@ def send_push_notification_task(notification_id, recipient_id=None, **kwargs):
         notification = Notification.objects.get(id=notification_id)
 
         # Update status to sending
-        NotificationService.update_notification_status(notification_id, "push", "sending")
+        NotificationService.update_notification_status(
+            notification_id, "push", "sending"
+        )
 
         # Extract FCM tokens
         token_strings = [token.token for token in device_tokens]
@@ -393,7 +417,9 @@ def send_push_notification_task(notification_id, recipient_id=None, **kwargs):
 
         if result.get("success"):
             # Update status to delivered
-            NotificationService.update_notification_status(notification_id, "push", "delivered")
+            NotificationService.update_notification_status(
+                notification_id, "push", "delivered"
+            )
             return True
         else:
             # Update status to error
@@ -418,7 +444,7 @@ def retry_failed_notification_task(notification_id, channel):
     """
     try:
         # Import inside the function to avoid circular import
-        from apps.notificationsapp.services.notification_service import NotificationService
+        pass
 
         # Get notification
         notification = Notification.objects.get(id=notification_id)
@@ -443,7 +469,9 @@ def retry_failed_notification_task(notification_id, channel):
         return True
 
     except Exception as e:
-        logger.exception(f"Error retrying notification {notification_id} on {channel}: {str(e)}")
+        logger.exception(
+            f"Error retrying notification {notification_id} on {channel}: {str(e)}"
+        )
         return False
 
 
@@ -459,7 +487,9 @@ def clean_old_notifications():
         from django.db.models import Count
 
         # Get retention configuration
-        max_notifications_per_user = getattr(settings, "MAX_NOTIFICATIONS_PER_USER", 100)
+        max_notifications_per_user = getattr(
+            settings, "MAX_NOTIFICATIONS_PER_USER", 100
+        )
         retention_days = getattr(settings, "NOTIFICATION_RETENTION_DAYS", 90)
 
         # Delete notifications older than retention period
@@ -486,10 +516,14 @@ def clean_old_notifications():
 
             # Delete excess notifications
             excess_count = (
-                Notification.objects.filter(recipient_id=user.id).exclude(id__in=keep_ids).count()
+                Notification.objects.filter(recipient_id=user.id)
+                .exclude(id__in=keep_ids)
+                .count()
             )
 
-            Notification.objects.filter(recipient_id=user.id).exclude(id__in=keep_ids).delete()
+            Notification.objects.filter(recipient_id=user.id).exclude(
+                id__in=keep_ids
+            ).delete()
 
             deleted_count += excess_count
 

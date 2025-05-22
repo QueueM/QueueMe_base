@@ -11,7 +11,7 @@ from rest_framework.test import APIClient
 from apps.authapp.models import User
 from apps.bookingapp.models import Appointment, MultiServiceBooking
 from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop, ShopHours
+from apps.shopapp.models import ShopHours
 from apps.specialistsapp.models import Specialist, SpecialistService
 
 from .test_fix import create_test_shop
@@ -68,7 +68,9 @@ class AppointmentViewSetTest(TestCase):
         self.specialist = Specialist.objects.create(id=uuid.uuid4())
 
         # Link specialist to service
-        SpecialistService.objects.create(specialist=self.specialist, service=self.service)
+        SpecialistService.objects.create(
+            specialist=self.specialist, service=self.service
+        )
 
         # Create specialist working hours
         from apps.specialistsapp.models import SpecialistWorkingHours
@@ -270,9 +272,13 @@ class MultiServiceBookingViewSetTest(TestCase):
         self.specialist = Specialist.objects.create(id=uuid.uuid4())
 
         # Link specialist to services
-        SpecialistService.objects.create(specialist=self.specialist, service=self.service1)
+        SpecialistService.objects.create(
+            specialist=self.specialist, service=self.service1
+        )
 
-        SpecialistService.objects.create(specialist=self.specialist, service=self.service2)
+        SpecialistService.objects.create(
+            specialist=self.specialist, service=self.service2
+        )
 
         # Set up test date (tomorrow)
         self.test_date = timezone.now().date() + timedelta(days=1)

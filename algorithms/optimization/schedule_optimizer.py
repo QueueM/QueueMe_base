@@ -102,7 +102,9 @@ class ScheduleOptimizer:
 
         # Step 3: Check staff capacity
         total_staff_capacity = sum(staff["max_weekly_hours"] for staff in staff_members)
-        total_hours_needed = sum(sum(hours.values()) for hours in staff_coverage_needed.values())
+        total_hours_needed = sum(
+            sum(hours.values()) for hours in staff_coverage_needed.values()
+        )
 
         if total_staff_capacity < total_hours_needed:
             result["warnings"].append(
@@ -131,7 +133,9 @@ class ScheduleOptimizer:
             schedule = initial_schedule
 
         # Step 6: Optimize and balance workload
-        optimized_schedule = self._balance_workload(schedule, staff_members, staff_coverage_needed)
+        optimized_schedule = self._balance_workload(
+            schedule, staff_members, staff_coverage_needed
+        )
 
         # Step 7: Validate and fix any remaining issues
         final_schedule, validation_issues = self._validate_schedule(
@@ -264,7 +268,9 @@ class ScheduleOptimizer:
         schedule = {}
 
         # Track remaining weekly hours for each staff member
-        remaining_hours = {staff["id"]: staff["max_weekly_hours"] for staff in staff_members}
+        remaining_hours = {
+            staff["id"]: staff["max_weekly_hours"] for staff in staff_members
+        }
 
         # Create a list of (date, hour, required_staff) sorted by demand (highest first)
         demand_slots = []
@@ -276,7 +282,9 @@ class ScheduleOptimizer:
             if weekday in shop_hours:
                 shop_open, shop_close = shop_hours[weekday]
                 open_hour = shop_open.hour
-                close_hour = shop_close.hour if shop_close.hour > 0 else 24  # Handle midnight
+                close_hour = (
+                    shop_close.hour if shop_close.hour > 0 else 24
+                )  # Handle midnight
 
                 for hour in range(open_hour, close_hour):
                     required_staff = hours.get(hour, 0)
@@ -304,7 +312,11 @@ class ScheduleOptimizer:
 
             # Sort staff by remaining hours (most hours first)
             available_staff = sorted(
-                [(staff_id, hours) for staff_id, hours in remaining_hours.items() if hours > 0],
+                [
+                    (staff_id, hours)
+                    for staff_id, hours in remaining_hours.items()
+                    if hours > 0
+                ],
                 key=lambda x: x[1],
                 reverse=True,
             )
@@ -312,7 +324,10 @@ class ScheduleOptimizer:
             # Assign staff until coverage requirement met
             for staff_id, hours_left in available_staff:
                 # Check if this staff member is already working this hour
-                if staff_id in schedule.get(date_str, {}) and hour in schedule[date_str][staff_id]:
+                if (
+                    staff_id in schedule.get(date_str, {})
+                    and hour in schedule[date_str][staff_id]
+                ):
                     continue
 
                 # Check if this assignment would form a valid shift
@@ -339,7 +354,9 @@ class ScheduleOptimizer:
 
         return schedule
 
-    def _forms_valid_shift(self, schedule: Dict, date_str: str, hour: int, staff_id: str) -> bool:
+    def _forms_valid_shift(
+        self, schedule: Dict, date_str: str, hour: int, staff_id: str
+    ) -> bool:
         """
         Check if assigning this hour forms a valid shift for this staff member.
         A valid shift is continuous and between min_shift_hours and max_shift_hours.
@@ -423,15 +440,18 @@ class ScheduleOptimizer:
                     preferred_range = list(range(pref_start.hour, pref_end.hour))
 
                     # Hours to remove (outside preferred range)
-                    hours_to_remove = [h for h in current_hours if h not in preferred_range]
+                    hours_to_remove = [
+                        h for h in current_hours if h not in preferred_range
+                    ]
 
                     # Hours to potentially add (within preferred range but not scheduled)
-                    hours_to_add = [h for h in preferred_range if h not in current_hours]
+                    hours_to_add = [
+                        h for h in preferred_range if h not in current_hours
+                    ]
 
                     # In a real implementation, would have logic to balance these changes
                     # while maintaining coverage requirements
                     # For this simplified version, we'll prioritize keeping coverage
-                    pass
 
         return adjusted_schedule
 
@@ -578,7 +598,9 @@ class ScheduleOptimizer:
             # Get shop hours
             shop_open, shop_close = shop_hours[weekday]
             open_hour = shop_open.hour
-            close_hour = shop_close.hour if shop_close.hour > 0 else 24  # Handle midnight
+            close_hour = (
+                shop_close.hour if shop_close.hour > 0 else 24
+            )  # Handle midnight
 
             # Check each hour during shop hours
             for hour in range(open_hour, close_hour):
@@ -687,7 +709,9 @@ class ScheduleOptimizer:
 
         # Calculate peak hours coverage
         if peak_hours_required > 0:
-            stats["peak_hours_coverage"] = (peak_hours_assigned / peak_hours_required) * 100
+            stats["peak_hours_coverage"] = (
+                peak_hours_assigned / peak_hours_required
+            ) * 100
 
         # Calculate staff utilization percentages
         for staff_id, hours in stats["staff_utilization"].items():
@@ -698,7 +722,9 @@ class ScheduleOptimizer:
                 stats["staff_utilization"][staff_id] = {
                     "hours": hours,
                     "max_hours": max_hours,
-                    "utilization_percentage": ((hours / max_hours) * 100 if max_hours > 0 else 0),
+                    "utilization_percentage": (
+                        (hours / max_hours) * 100 if max_hours > 0 else 0
+                    ),
                 }
 
         return stats
@@ -729,7 +755,9 @@ class ScheduleOptimizer:
             # Get shop hours
             shop_open, shop_close = shop_hours[weekday]
             open_hour = shop_open.hour
-            close_hour = shop_close.hour if shop_close.hour > 0 else 24  # Handle midnight
+            close_hour = (
+                shop_close.hour if shop_close.hour > 0 else 24
+            )  # Handle midnight
 
             # Check each hour during shop hours
             for hour in range(open_hour, close_hour):
@@ -817,7 +845,9 @@ class ScheduleOptimizer:
             # Get shop hours
             shop_open, shop_close = shop_hours[weekday]
             open_hour = shop_open.hour
-            close_hour = shop_close.hour if shop_close.hour > 0 else 24  # Handle midnight
+            close_hour = (
+                shop_close.hour if shop_close.hour > 0 else 24
+            )  # Handle midnight
 
             # Check each hour during shop hours
             for hour in range(open_hour, close_hour):

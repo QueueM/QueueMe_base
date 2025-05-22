@@ -15,7 +15,9 @@ from apps.shopapp.models import Shop
 class ReportServiceTest(TestCase):
     def setUp(self):
         # Create test user
-        self.user = User.objects.create(phone_number="1234567890", is_active=True, is_verified=True)
+        self.user = User.objects.create(
+            phone_number="1234567890", is_active=True, is_verified=True
+        )
 
         # Create test company
         self.company = Company.objects.create(
@@ -30,8 +32,12 @@ class ReportServiceTest(TestCase):
             username="testshop",
         )
 
-    @patch("apps.reportanalyticsapp.queries.business_queries.BusinessQueries.get_business_overview")
-    @patch("apps.reportanalyticsapp.services.report_service.ReportService._generate_report_file")
+    @patch(
+        "apps.reportanalyticsapp.queries.business_queries.BusinessQueries.get_business_overview"
+    )
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.ReportService._generate_report_file"
+    )
     def test_generate_report(self, mock_generate_file, mock_get_overview):
         """Test report generation"""
         # Mock the business overview data
@@ -67,8 +73,12 @@ class ReportServiceTest(TestCase):
         mock_get_overview.assert_called_once()
         mock_generate_file.assert_called_once()
 
-    @patch("apps.reportanalyticsapp.services.report_service.ReportService.generate_report")
-    @patch("apps.reportanalyticsapp.services.report_service.NotificationService.send_notification")
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.ReportService.generate_report"
+    )
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.NotificationService.send_notification"
+    )
     def test_schedule_report(self, mock_send_notification, mock_generate_report):
         """Test report scheduling"""
         # Mock generate report
@@ -97,7 +107,9 @@ class ReportServiceTest(TestCase):
         self.assertEqual(schedule.recipients, ["test@example.com"])
         self.assertTrue(schedule.is_active)
 
-    @patch("apps.reportanalyticsapp.services.report_service.ReportService._calculate_date_range")
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.ReportService._calculate_date_range"
+    )
     def test_calculate_date_range(self, mock_calculate_date_range):
         """Test date range calculation"""
         # Mock date range
@@ -112,7 +124,9 @@ class ReportServiceTest(TestCase):
         self.assertEqual(date_range, mock_date_range)
         mock_calculate_date_range.assert_called_once_with("weekly", None, None)
 
-    @patch("apps.reportanalyticsapp.services.report_service.S3Storage.upload_file_object")
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.S3Storage.upload_file_object"
+    )
     def test_generate_report_file(self, mock_upload):
         """Test report file generation"""
         # Mock S3 upload
@@ -139,7 +153,9 @@ class ReportServiceTest(TestCase):
         self.assertEqual(file_url, "https://example.com/reports/test.pdf")
         mock_upload.assert_called_once()
 
-    @patch("apps.reportanalyticsapp.services.report_service.ReportService.get_report_data")
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.ReportService.get_report_data"
+    )
     def test_get_report_data(self, mock_get_data):
         """Test getting report data"""
         # Mock report data

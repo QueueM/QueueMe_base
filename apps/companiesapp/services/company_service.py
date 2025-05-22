@@ -78,7 +78,9 @@ class CompanyService:
         # For example, we could update the company's subscription status
 
         # Send notification to company owner
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         NotificationService.send_notification(
             user_id=company.owner.id,
@@ -135,7 +137,8 @@ class CompanyService:
 
             limitations = {
                 "max_shops": subscription.plan.max_shops,
-                "max_specialists": subscription.plan.max_specialists_per_shop * total_shops,
+                "max_specialists": subscription.plan.max_specialists_per_shop
+                * total_shops,
                 "max_services": subscription.plan.max_services_per_shop * total_shops,
                 "current_shops": total_shops,
                 "current_specialists": total_specialists,
@@ -215,18 +218,23 @@ class CompanyService:
 
             weekly_bookings = booking_stats.filter(start_time__gte=last_7_days).count()
 
-            monthly_bookings = booking_stats.filter(start_time__gte=last_30_days).count()
+            monthly_bookings = booking_stats.filter(
+                start_time__gte=last_30_days
+            ).count()
 
             completed_bookings = booking_stats.filter(status="completed").count()
 
             # Calculate no-show rate
             no_shows = booking_stats.filter(status="no_show").count()
             all_past_bookings = booking_stats.filter(
-                Q(status__in=["completed", "no_show", "cancelled"]) | Q(start_time__lt=now)
+                Q(status__in=["completed", "no_show", "cancelled"])
+                | Q(start_time__lt=now)
             ).count()
 
             no_show_rate = (
-                round((no_shows / all_past_bookings) * 100, 2) if all_past_bookings > 0 else 0
+                round((no_shows / all_past_bookings) * 100, 2)
+                if all_past_bookings > 0
+                else 0
             )
 
             # Calculate popular times
@@ -273,7 +281,9 @@ class CompanyService:
                     status="succeeded",
                 ).aggregate(
                     total_revenue=Sum("amount"),
-                    monthly_revenue=Sum("amount", filter=Q(created_at__gte=last_30_days)),
+                    monthly_revenue=Sum(
+                        "amount", filter=Q(created_at__gte=last_30_days)
+                    ),
                     weekly_revenue=Sum("amount", filter=Q(created_at__gte=last_7_days)),
                     today_revenue=Sum("amount", filter=Q(created_at__gte=today)),
                 )
@@ -295,9 +305,12 @@ class CompanyService:
 
                 review_stats = {
                     "shop_reviews": shop_reviews.count(),
-                    "shop_avg_rating": shop_reviews.aggregate(avg=Avg("rating"))["avg"] or 0,
+                    "shop_avg_rating": shop_reviews.aggregate(avg=Avg("rating"))["avg"]
+                    or 0,
                     "specialist_reviews": specialist_reviews.count(),
-                    "specialist_avg_rating": specialist_reviews.aggregate(avg=Avg("rating"))["avg"]
+                    "specialist_avg_rating": specialist_reviews.aggregate(
+                        avg=Avg("rating")
+                    )["avg"]
                     or 0,
                 }
             except Exception as e:

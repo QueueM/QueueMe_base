@@ -11,7 +11,6 @@ This module provides sophisticated rate limiting capabilities with:
 
 import hashlib
 import json
-import logging
 from functools import wraps
 from typing import Optional, Tuple
 
@@ -131,7 +130,11 @@ class RateLimiter:
 
         # Get user if authenticated
         user = getattr(request, "user", None)
-        user_id = str(user.id) if user and hasattr(user, "id") and user.is_authenticated else None
+        user_id = (
+            str(user.id)
+            if user and hasattr(user, "id") and user.is_authenticated
+            else None
+        )
 
         # Determine user role
         role = (
@@ -237,7 +240,9 @@ class RateLimiter:
         violations = cache.get(violation_key, 0) + 1
 
         # Calculate backoff time (exponential)
-        backoff_minutes = min(BACKOFF_MULTIPLIER ** (violations - 1), MAX_BACKOFF_MINUTES)
+        backoff_minutes = min(
+            BACKOFF_MULTIPLIER ** (violations - 1), MAX_BACKOFF_MINUTES
+        )
         backoff_seconds = int(backoff_minutes * 60)
 
         # Store updated violation count with expiry
@@ -261,7 +266,9 @@ class RateLimiter:
 
         if violations > 0:
             # Calculate current backoff time
-            backoff_minutes = min(BACKOFF_MULTIPLIER ** (violations - 1), MAX_BACKOFF_MINUTES)
+            backoff_minutes = min(
+                BACKOFF_MULTIPLIER ** (violations - 1), MAX_BACKOFF_MINUTES
+            )
             return int(backoff_minutes * 60)
 
         return 0
@@ -425,7 +432,9 @@ def otp_rate_limit(phone_number: str) -> Tuple[bool, Optional[int]]:
         if current_count >= otp_limit * 2:
             violation_key = f"ratelimit_violations:{identifier}"
             violations = cache.get(violation_key, 0) + 1
-            backoff_minutes = min(BACKOFF_MULTIPLIER ** (violations - 1), MAX_BACKOFF_MINUTES)
+            backoff_minutes = min(
+                BACKOFF_MULTIPLIER ** (violations - 1), MAX_BACKOFF_MINUTES
+            )
             retry_after = int(backoff_minutes * 60)
 
             # Update violation count
@@ -480,9 +489,9 @@ class RateLimitMiddleware:
                 )
             else:
                 # Return simple HTTP response for other requests
-                content = _("Too many requests. Please try again in {seconds} seconds.").format(
-                    seconds=retry_after
-                )
+                content = _(
+                    "Too many requests. Please try again in {seconds} seconds."
+                ).format(seconds=retry_after)
                 return HttpResponse(
                     content=content,
                     status=status.HTTP_429_TOO_MANY_REQUESTS,

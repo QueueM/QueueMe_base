@@ -16,7 +16,9 @@ from .views import (
 router = DefaultRouter()
 router.register(r"plans", PlanViewSet, basename="plan")
 router.register(r"subscriptions", SubscriptionViewSet, basename="subscription")
-router.register(r"invoices", SubscriptionInvoiceViewSet, basename="subscription-invoice")
+router.register(
+    r"invoices", SubscriptionInvoiceViewSet, basename="subscription-invoice"
+)
 router.register(r"usage", FeatureUsageViewSet, basename="feature-usage")
 
 urlpatterns = [

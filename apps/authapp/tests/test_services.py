@@ -19,7 +19,9 @@ class OTPServiceTest(TestCase):
 
     def setUp(self):
         # Create a user
-        self.user = User.objects.create(phone_number="966501234567", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="966501234567", email="test@example.com"
+        )
 
         # Clear cache to avoid rate limiting issues
         cache.clear()
@@ -34,9 +36,9 @@ class OTPServiceTest(TestCase):
         self.assertTrue(result)
 
         # Verify OTP was created in database
-        otp = OTP.objects.filter(phone_number=self.user.phone_number, is_used=False).latest(
-            "created_at"
-        )
+        otp = OTP.objects.filter(
+            phone_number=self.user.phone_number, is_used=False
+        ).latest("created_at")
 
         self.assertIsNotNone(otp)
         self.assertEqual(len(otp.code), 6)  # Default length
@@ -199,10 +201,14 @@ class PhoneVerificationServiceTest(TestCase):
 
     def setUp(self):
         # Create a user
-        self.user = User.objects.create(phone_number="966501234567", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="966501234567", email="test@example.com"
+        )
 
         # Create another user for phone change tests
-        self.user2 = User.objects.create(phone_number="966507654321", email="test2@example.com")
+        self.user2 = User.objects.create(
+            phone_number="966507654321", email="test2@example.com"
+        )
 
         # Clear cache
         cache.clear()
@@ -241,7 +247,9 @@ class PhoneVerificationServiceTest(TestCase):
         mock_verify_otp.return_value = self.user
 
         # Complete verification
-        result = PhoneVerificationService.complete_verification(self.user.phone_number, "123456")
+        result = PhoneVerificationService.complete_verification(
+            self.user.phone_number, "123456"
+        )
 
         # Check results
         self.assertEqual(result["status"], "verified")
@@ -258,7 +266,9 @@ class PhoneVerificationServiceTest(TestCase):
         mock_verify_otp.return_value = None
 
         # Complete verification with invalid code
-        result = PhoneVerificationService.complete_verification(self.user.phone_number, "invalid")
+        result = PhoneVerificationService.complete_verification(
+            self.user.phone_number, "invalid"
+        )
 
         # Check results
         self.assertEqual(result["status"], "invalid_code")
@@ -271,7 +281,9 @@ class PhoneVerificationServiceTest(TestCase):
 
         # Verify phone change
         new_phone = "966500000000"
-        result = PhoneVerificationService.verify_phone_change(self.user, new_phone, "123456")
+        result = PhoneVerificationService.verify_phone_change(
+            self.user, new_phone, "123456"
+        )
 
         # Check results
         self.assertEqual(result["status"], "changed")

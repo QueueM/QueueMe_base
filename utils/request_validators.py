@@ -2,7 +2,7 @@ import json
 import logging
 import re
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List
 
 from django.http import JsonResponse
 from rest_framework import status
@@ -168,7 +168,9 @@ def validate_request_schema(schema: Dict, schema_id: str = None) -> Callable:
 
             except Exception as e:
                 log_prefix = f"[{schema_id}] " if schema_id else ""
-                logger.exception(f"{log_prefix}Error during request validation: {str(e)}")
+                logger.exception(
+                    f"{log_prefix}Error during request validation: {str(e)}"
+                )
                 return JsonResponse(
                     {
                         "success": False,

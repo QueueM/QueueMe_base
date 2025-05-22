@@ -158,7 +158,9 @@ def to_date(value: Any) -> Optional[datetime.date]:
     return None
 
 
-def to_datetime(value: Any, default_timezone: bool = True) -> Optional[datetime.datetime]:
+def to_datetime(
+    value: Any, default_timezone: bool = True
+) -> Optional[datetime.datetime]:
     """
     Convert a value to datetime.
 
@@ -337,7 +339,9 @@ def format_phone_number(phone: str, country_code: str = "SA") -> str:
         elif len(digits) == 10 and digits.startswith("05"):
             # Replace leading 0 with country code
             return f"+966{digits[1:]}"
-        elif len(digits) >= 11 and (digits.startswith("966") or digits.startswith("00966")):
+        elif len(digits) >= 11 and (
+            digits.startswith("966") or digits.startswith("00966")
+        ):
             # Normalize existing country code
             return f"+966{digits[-9:]}"
 

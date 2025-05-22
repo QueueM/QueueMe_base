@@ -3,8 +3,6 @@ Tests for Moyasar payment integration with multiple wallet types.
 """
 
 import json
-import uuid
-from decimal import Decimal
 from unittest import mock
 
 from django.conf import settings
@@ -12,9 +10,13 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from apps.payment.models import PaymentWalletType, Transaction
+from apps.payment.models import Transaction
 from apps.payment.services.moyasar_service import MoyasarService
-from apps.payment.views.webhook_views import ads_webhook, merchant_webhook, subscription_webhook
+from apps.payment.views.webhook_views import (
+    ads_webhook,
+    merchant_webhook,
+    subscription_webhook,
+)
 
 User = get_user_model()
 

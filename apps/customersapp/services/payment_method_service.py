@@ -86,9 +86,9 @@ class PaymentMethodService:
         Set a payment method as the default
         """
         # Unset current default
-        SavedPaymentMethod.objects.filter(customer=payment_method.customer, is_default=True).update(
-            is_default=False
-        )
+        SavedPaymentMethod.objects.filter(
+            customer=payment_method.customer, is_default=True
+        ).update(is_default=False)
 
         # Set new default
         payment_method.is_default = True
@@ -101,7 +101,9 @@ class PaymentMethodService:
         """
         Get the customer's default payment method
         """
-        return SavedPaymentMethod.objects.filter(customer=customer, is_default=True).first()
+        return SavedPaymentMethod.objects.filter(
+            customer=customer, is_default=True
+        ).first()
 
     @staticmethod
     def recommend_payment_method(customer, amount=None):
@@ -118,7 +120,9 @@ class PaymentMethodService:
 
         # If no default, get most recently added
         latest_method = (
-            SavedPaymentMethod.objects.filter(customer=customer).order_by("-created_at").first()
+            SavedPaymentMethod.objects.filter(customer=customer)
+            .order_by("-created_at")
+            .first()
         )
 
         if latest_method:
@@ -134,7 +138,9 @@ class PaymentMethodService:
         Remove a payment method
         """
         try:
-            payment_method = SavedPaymentMethod.objects.get(id=payment_method_id, customer=customer)
+            payment_method = SavedPaymentMethod.objects.get(
+                id=payment_method_id, customer=customer
+            )
 
             was_default = payment_method.is_default
             payment_method.delete()
@@ -142,7 +148,9 @@ class PaymentMethodService:
             # If deleted method was default, set another as default
             if was_default:
                 # Get another payment method if available
-                another_method = SavedPaymentMethod.objects.filter(customer=customer).first()
+                another_method = SavedPaymentMethod.objects.filter(
+                    customer=customer
+                ).first()
 
                 if another_method:
                     another_method.is_default = True

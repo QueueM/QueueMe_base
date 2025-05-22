@@ -84,14 +84,18 @@ class PersonalizationEngine:
                 output_field=FloatField(),
             ),
             # Rating score (0-5)
-            rating_score=Coalesce(Avg("reviews__rating"), Value(0.0), output_field=FloatField()),
+            rating_score=Coalesce(
+                Avg("reviews__rating"), Value(0.0), output_field=FloatField()
+            ),
             # Popularity score based on booking count
             popularity=Count("appointments"),
             # Calculate overall relevance score
             relevance_score=(
                 F("category_match") * 0.4  # 40% weight to category match
                 + F("rating_score") * 0.3  # 30% weight to ratings
-                + F("popularity") * 0.0001 * 0.3  # 30% weight to popularity (normalized)
+                + F("popularity")
+                * 0.0001
+                * 0.3  # 30% weight to popularity (normalized)
             ),
         ).order_by("-relevance_score", "-is_verified")
 
@@ -119,7 +123,9 @@ class PersonalizationEngine:
         customer_city = customer.city
 
         # Get customer's category preferences
-        category_interests = list(customer.category_interests.order_by("-affinity_score")[:3])
+        category_interests = list(
+            customer.category_interests.order_by("-affinity_score")[:3]
+        )
         category_ids = [interest.category_id for interest in category_interests]
 
         # Start with verified specialists
@@ -148,9 +154,12 @@ class PersonalizationEngine:
                 output_field=FloatField(),
             ),
             # Rating score (0-5)
-            rating_score=Coalesce(Avg("reviews__rating"), Value(0.0), output_field=FloatField()),
+            rating_score=Coalesce(
+                Avg("reviews__rating"), Value(0.0), output_field=FloatField()
+            ),
             # Experience score based on years
-            experience_score=F("experience_years") * 0.1,  # 0.1 per year, up to 1.0 for 10+ years
+            experience_score=F("experience_years")
+            * 0.1,  # 0.1 per year, up to 1.0 for 10+ years
             # Calculate overall relevance score
             relevance_score=(
                 F("category_match") * 0.4  # 40% weight to category match
@@ -175,7 +184,9 @@ class PersonalizationEngine:
         from apps.serviceapp.serializers import ServiceMiniSerializer
 
         # Get customer's favorite service IDs to exclude
-        favorite_service_ids = customer.favorite_services.values_list("service_id", flat=True)
+        favorite_service_ids = customer.favorite_services.values_list(
+            "service_id", flat=True
+        )
 
         # Get customer's city for localized recommendations
         customer_city = customer.city
@@ -201,13 +212,17 @@ class PersonalizationEngine:
         # Get top services based on category match and ratings
         queryset = queryset.annotate(
             # Rating score (0-5)
-            rating_score=Coalesce(Avg("reviews__rating"), Value(0.0), output_field=FloatField()),
+            rating_score=Coalesce(
+                Avg("reviews__rating"), Value(0.0), output_field=FloatField()
+            ),
             # Booking popularity
             booking_count=Count("appointments"),
         )
 
         # Apply category weights - this is a sophisticated approach that requires custom sorting
-        services = list(queryset[: limit * 3])  # Get more than needed for post-processing
+        services = list(
+            queryset[: limit * 3]
+        )  # Get more than needed for post-processing
 
         # Calculate custom relevance score including category weights
         for service in services:
@@ -268,7 +283,9 @@ class PersonalizationEngine:
             like_count=Count("likes"),
             comment_count=Count("comments"),
             share_count=Count("shares"),
-            engagement_score=(F("like_count") * 1 + F("comment_count") * 2 + F("share_count") * 3),
+            engagement_score=(
+                F("like_count") * 1 + F("comment_count") * 2 + F("share_count") * 3
+            ),
         )
 
         # If we have category preferences, boost relevant reels

@@ -6,14 +6,14 @@ This module provides analysis and reporting of advertisement performance.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from django.db import models, transaction
-from django.db.models import Avg, Case, Count, F, Q, Sum, When, Window
-from django.db.models.functions import Round, TruncDate, TruncHour
+from django.db.models import Case, Count, F, Sum, When
+from django.db.models.functions import TruncDate, TruncHour
 from django.utils import timezone
 
-from apps.marketingapp.models import AdClick, AdStatus, Advertisement, AdView, Campaign
+from apps.marketingapp.models import AdClick, Advertisement, AdView, Campaign
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,9 @@ class AdAnalyticsService:
 
             # Calculate rates
             ctr = (total_clicks / total_views * 100) if total_views > 0 else 0
-            conversion_rate = (total_conversions / total_clicks * 100) if total_clicks > 0 else 0
+            conversion_rate = (
+                (total_conversions / total_clicks * 100) if total_clicks > 0 else 0
+            )
 
             # Calculate costs
             view_cost = total_views * ad.cost_per_view
@@ -92,7 +94,9 @@ class AdAnalyticsService:
             cpa = (total_cost / total_conversions) if total_conversions > 0 else 0
 
             # Get daily breakdown
-            daily_metrics = cls._get_daily_metrics(ad, views, clicks, start_date, end_date)
+            daily_metrics = cls._get_daily_metrics(
+                ad, views, clicks, start_date, end_date
+            )
 
             # Get audience breakdown
             audience_metrics = cls._get_audience_metrics(views, clicks)
@@ -163,7 +167,9 @@ class AdAnalyticsService:
                 start_date = campaign.start_date
             if not end_date:
                 end_date = (
-                    campaign.end_date if campaign.end_date > timezone.now() else timezone.now()
+                    campaign.end_date
+                    if campaign.end_date > timezone.now()
+                    else timezone.now()
                 )
 
             # Validate date range
@@ -209,11 +215,15 @@ class AdAnalyticsService:
                     total_cost += metrics["total_cost"]
 
             # Calculate overall campaign metrics - with safe division
-            overall_ctr = (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
+            overall_ctr = (
+                (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
+            )
             overall_conversion_rate = (
                 (total_conversions / total_clicks * 100) if total_clicks > 0 else 0
             )
-            overall_cpa = (total_cost / total_conversions) if total_conversions > 0 else 0
+            overall_cpa = (
+                (total_cost / total_conversions) if total_conversions > 0 else 0
+            )
 
             # Get budget information
             budget_total = float(campaign.budget)
@@ -247,7 +257,9 @@ class AdAnalyticsService:
                     "budget_spent": round(budget_spent, 2),
                     "budget_remaining": round(budget_remaining, 2),
                     "budget_percentage_used": (
-                        round((budget_spent / budget_total * 100), 2) if budget_total > 0 else 0
+                        round((budget_spent / budget_total * 100), 2)
+                        if budget_total > 0
+                        else 0
                     ),
                 },
                 "ad_metrics": ad_metrics,
@@ -315,7 +327,7 @@ class AdAnalyticsService:
                 }
 
             # Get all ads from these campaigns
-            campaign_ids = [str(c.id) for c in campaigns]
+            [str(c.id) for c in campaigns]
             ads = Advertisement.objects.filter(campaign__in=campaigns)
 
             # Get aggregate metrics
@@ -328,7 +340,9 @@ class AdAnalyticsService:
             campaign_summaries = []
             for campaign in campaigns:
                 # Get campaign performance
-                camp_perf = cls.get_campaign_performance(str(campaign.id), start_date, end_date)
+                camp_perf = cls.get_campaign_performance(
+                    str(campaign.id), start_date, end_date
+                )
                 if camp_perf["success"]:
                     metrics = camp_perf["overall_metrics"]
                     budget = camp_perf["budget_metrics"]
@@ -358,7 +372,9 @@ class AdAnalyticsService:
                     total_spent += budget["budget_spent"]
 
             # Calculate overall CTR - with safe division
-            overall_ctr = (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
+            overall_ctr = (
+                (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
+            )
 
             return {
                 "success": True,
@@ -388,7 +404,9 @@ class AdAnalyticsService:
 
     @classmethod
     @transaction.atomic
-    def update_campaign_budget_spent(cls, campaign_id: str, additional_spend: float) -> bool:
+    def update_campaign_budget_spent(
+        cls, campaign_id: str, additional_spend: float
+    ) -> bool:
         """
         Atomically update a campaign's spent budget.
 
@@ -415,7 +433,9 @@ class AdAnalyticsService:
                 # Deactivate campaign if budget is exceeded
                 campaign.is_active = False
                 campaign.save(update_fields=["is_active"])
-                logger.info(f"Campaign {campaign_id} deactivated due to budget depletion")
+                logger.info(
+                    f"Campaign {campaign_id} deactivated due to budget depletion"
+                )
 
             logger.info(
                 f"Updated budget spent for campaign {campaign_id}, new total: {campaign.budget_spent}"
@@ -478,11 +498,15 @@ class AdAnalyticsService:
         for date in date_range:
             views_count = views_dict.get(date, 0)
             clicks_count = clicks_dict.get(date, 0)
-            conversions_count = conversions_dict.get(date, 0) if date in conversions_dict else 0
+            conversions_count = (
+                conversions_dict.get(date, 0) if date in conversions_dict else 0
+            )
 
             # Safe calculation of rates
             ctr = (clicks_count / views_count * 100) if views_count > 0 else 0
-            conversion_rate = (conversions_count / clicks_count * 100) if clicks_count > 0 else 0
+            conversion_rate = (
+                (conversions_count / clicks_count * 100) if clicks_count > 0 else 0
+            )
 
             daily_metrics.append(
                 {
@@ -493,7 +517,8 @@ class AdAnalyticsService:
                     "ctr": round(ctr, 2),
                     "conversion_rate": round(conversion_rate, 2),
                     "cost": round(
-                        (views_count * ad.cost_per_view) + (clicks_count * ad.cost_per_click),
+                        (views_count * ad.cost_per_view)
+                        + (clicks_count * ad.cost_per_click),
                         2,
                     ),
                 }
@@ -509,7 +534,9 @@ class AdAnalyticsService:
         # City breakdown
         city_metrics = []
         cities_with_views = (
-            views.filter(city__isnull=False).values("city").annotate(impressions=Count("id"))
+            views.filter(city__isnull=False)
+            .values("city")
+            .annotate(impressions=Count("id"))
         )
 
         for city_data in cities_with_views:
@@ -528,7 +555,9 @@ class AdAnalyticsService:
                 city_name = city.name
             except Exception as e:
                 # Log the error instead of silently ignoring it
-                logger.warning(f"Failed to get city name for city_id {city_id}: {str(e)}")
+                logger.warning(
+                    f"Failed to get city name for city_id {city_id}: {str(e)}"
+                )
                 # Set a fallback city name that indicates the issue
                 city_name = f"Unknown (ID: {city_id})"
 
@@ -667,6 +696,8 @@ class AdAnalyticsService:
                         )
                         continue
 
-            daily_spend.append({"date": date.isoformat(), "spend": round(date_spend, 2)})
+            daily_spend.append(
+                {"date": date.isoformat(), "spend": round(date_spend, 2)}
+            )
 
         return daily_spend

@@ -8,14 +8,13 @@ configuration, staff reassignment, resource sharing, and cross-branch analytics.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
 from django.db import transaction
-from django.db.models import Avg, Case, Count, F, IntegerField, Q, Sum, Value, When
+from django.db.models import Avg, F, Sum
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
-from apps.companiesapp.models import Company
 from apps.employeeapp.models import Employee
 from apps.rolesapp.models import Role
 from apps.serviceapp.models import Service
@@ -49,7 +48,9 @@ class MultiBranchService:
         """
         try:
             # Get all shops/branches for the company
-            shops = Shop.objects.filter(company_id=company_id).select_related("location")
+            shops = Shop.objects.filter(company_id=company_id).select_related(
+                "location"
+            )
 
             # Get metrics for each branch
             result = []
@@ -84,12 +85,12 @@ class MultiBranchService:
                     from apps.reviewapp.models import Review
 
                     avg_rating = (
-                        Review.objects.filter(shop_id=shop.id).aggregate(avg_rating=Avg("rating"))[
-                            "avg_rating"
-                        ]
+                        Review.objects.filter(shop_id=shop.id).aggregate(
+                            avg_rating=Avg("rating")
+                        )["avg_rating"]
                         or 0
                     )
-                except Exception as e:
+                except Exception:
                     avg_rating = 0
 
                 # Add metrics to branch info
@@ -236,7 +237,7 @@ class MultiBranchService:
                         employee = Employee.objects.get(id=staff_id)
 
                         # Store original branch ID for service lookup
-                        original_branch_id = employee.shop_id
+                        employee.shop_id
 
                         # Check if employee belongs to the same company
                         if employee.shop.company_id != target_branch.company_id:
@@ -253,7 +254,9 @@ class MultiBranchService:
                             # Get employee's roles in previous branch
                             from apps.rolesapp.models import RoleAssignment
 
-                            role_assignments = RoleAssignment.objects.filter(employee_id=staff_id)
+                            role_assignments = RoleAssignment.objects.filter(
+                                employee_id=staff_id
+                            )
 
                             # For each role, check if it exists in target branch
                             for assignment in role_assignments:
@@ -424,7 +427,7 @@ class MultiBranchService:
                         )
                         branch_metrics["avg_rating"] = float(avg_rating)
                         # Don't sum avg_rating for totals
-                    except Exception as e:
+                    except Exception:
                         branch_metrics["avg_rating"] = 0
 
                 if "service_count" in metrics:
@@ -433,7 +436,9 @@ class MultiBranchService:
                     totals["service_count"] += service_count
 
                 if "specialist_count" in metrics:
-                    specialist_count = Specialist.objects.filter(shop_id=branch_id).count()
+                    specialist_count = Specialist.objects.filter(
+                        shop_id=branch_id
+                    ).count()
                     branch_metrics["specialist_count"] = specialist_count
                     totals["specialist_count"] += specialist_count
 
@@ -494,9 +499,9 @@ class MultiBranchService:
             specialist_utilization = {}
 
             # Get all specialists for this company
-            specialists = Specialist.objects.filter(shop__company_id=company_id).select_related(
-                "shop", "employee"
-            )
+            specialists = Specialist.objects.filter(
+                shop__company_id=company_id
+            ).select_related("shop", "employee")
 
             # Process each branch
             for branch in branches:
@@ -558,8 +563,12 @@ class MultiBranchService:
 
             # Calculate branch load and identify overloaded/underloaded branches
             branch_load = {}
-            total_bookings = sum(data["total_bookings"] for data in branch_booking_data.values())
-            total_specialists = sum(data["specialists"] for data in branch_booking_data.values())
+            total_bookings = sum(
+                data["total_bookings"] for data in branch_booking_data.values()
+            )
+            total_specialists = sum(
+                data["specialists"] for data in branch_booking_data.values()
+            )
 
             if total_bookings == 0 or total_specialists == 0:
                 return {
@@ -576,7 +585,9 @@ class MultiBranchService:
             # Calculate load factor for each branch
             for branch_id, data in branch_booking_data.items():
                 if data["specialists"] > 0:
-                    bookings_per_specialist = data["total_bookings"] / data["specialists"]
+                    bookings_per_specialist = (
+                        data["total_bookings"] / data["specialists"]
+                    )
                     load_factor = (
                         bookings_per_specialist / expected_bookings_per_specialist
                         if expected_bookings_per_specialist > 0
@@ -596,11 +607,15 @@ class MultiBranchService:
 
             # Find overloaded and underloaded branches
             overloaded_branches = [
-                branch_id for branch_id, data in branch_load.items() if data["is_overloaded"]
+                branch_id
+                for branch_id, data in branch_load.items()
+                if data["is_overloaded"]
             ]
 
             underloaded_branches = [
-                branch_id for branch_id, data in branch_load.items() if data["is_underloaded"]
+                branch_id
+                for branch_id, data in branch_load.items()
+                if data["is_underloaded"]
             ]
 
             # Find underutilized specialists in overloaded branches
@@ -639,12 +654,18 @@ class MultiBranchService:
                                     "specialist_id": candidate,
                                     "specialist_name": specialist_data["name"],
                                     "source_branch_id": branch_id,
-                                    "source_branch_name": branch_load[branch_id]["name"],
+                                    "source_branch_name": branch_load[branch_id][
+                                        "name"
+                                    ],
                                     "target_branch_id": target_branch_id,
-                                    "target_branch_name": branch_load[target_branch_id]["name"],
+                                    "target_branch_name": branch_load[target_branch_id][
+                                        "name"
+                                    ],
                                     "reason": f"Specialist has only {hours_booked:.1f} hours booked in the next 7 days, "
                                     + f"while branch {branch_load[branch_id]['name']} is overloaded",
-                                    "priority": ("high" if hours_booked < 5 else "medium"),
+                                    "priority": (
+                                        "high" if hours_booked < 5 else "medium"
+                                    ),
                                 }
                             )
 
@@ -697,7 +718,10 @@ class MultiBranchService:
                 )
 
                 # Copy service images if any
-                if hasattr(template_service, "images") and template_service.images.exists():
+                if (
+                    hasattr(template_service, "images")
+                    and template_service.images.exists()
+                ):
                     from apps.serviceapp.models import ServiceImage
 
                     for image in template_service.images.all():

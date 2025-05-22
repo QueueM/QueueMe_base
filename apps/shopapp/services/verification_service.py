@@ -15,7 +15,9 @@ class VerificationService:
         shop = Shop.objects.get(id=shop_id)
 
         # Check if there's an active verification request
-        existing_request = ShopVerification.objects.filter(shop=shop, status="pending").first()
+        existing_request = ShopVerification.objects.filter(
+            shop=shop, status="pending"
+        ).first()
 
         if existing_request:
             return existing_request

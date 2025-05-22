@@ -29,4 +29,6 @@ class CanViewFollowers(permissions.BasePermission):
         # Check if user is shop manager/employee
         from apps.rolesapp.services.permission_resolver import PermissionResolver
 
-        return PermissionResolver.has_shop_permission(request.user, shop_id, "shop", "view")
+        return PermissionResolver.has_shop_permission(
+            request.user, shop_id, "shop", "view"
+        )

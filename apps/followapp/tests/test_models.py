@@ -11,9 +11,13 @@ User = get_user_model()
 class FollowModelTestCase(TestCase):
     def setUp(self):
         # Create test users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.company_owner = User.objects.create(phone_number="9876543210", user_type="admin")
+        self.company_owner = User.objects.create(
+            phone_number="9876543210", user_type="admin"
+        )
 
         # Create test company and shop
         self.company = Company.objects.create(
@@ -36,7 +40,9 @@ class FollowModelTestCase(TestCase):
         self.assertTrue(follow.notification_preference)
 
         # Test string representation
-        self.assertEqual(str(follow), f"{self.customer.phone_number} → {self.shop.name}")
+        self.assertEqual(
+            str(follow), f"{self.customer.phone_number} → {self.shop.name}"
+        )
 
     def test_unique_constraint(self):
         """Test that a customer can't follow the same shop twice"""

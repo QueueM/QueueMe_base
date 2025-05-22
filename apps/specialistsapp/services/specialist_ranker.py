@@ -1,4 +1,15 @@
-from django.db.models import Case, Count, ExpressionWrapper, F, FloatField, Max, Q, Sum, Value, When
+from django.db.models import (
+    Case,
+    Count,
+    ExpressionWrapper,
+    F,
+    FloatField,
+    Max,
+    Q,
+    Sum,
+    Value,
+    When,
+)
 from django.db.models.functions import Cast, Coalesce
 from django.utils import timezone
 
@@ -39,15 +50,22 @@ class SpecialistRanker:
         # Select related/prefetch common relationships
         queryset = queryset.select_related(
             "employee", "employee__shop", "employee__user"
-        ).prefetch_related("specialist_services", "specialist_services__service", "expertise")
+        ).prefetch_related(
+            "specialist_services", "specialist_services__service", "expertise"
+        )
 
         # Add normalized score components
         max_booking_count = (
-            queryset.aggregate(max_count=Coalesce(Max("total_bookings"), Value(1)))["max_count"]
+            queryset.aggregate(max_count=Coalesce(Max("total_bookings"), Value(1)))[
+                "max_count"
+            ]
             or 1
         )
         max_experience = (
-            queryset.aggregate(max_exp=Coalesce(Max("experience_years"), Value(1)))["max_exp"] or 1
+            queryset.aggregate(max_exp=Coalesce(Max("experience_years"), Value(1)))[
+                "max_exp"
+            ]
+            or 1
         )
 
         # Start by annotating score components
@@ -59,12 +77,16 @@ class SpecialistRanker:
             ),
             # 2. Booking count component (normalized)
             booking_component=ExpressionWrapper(
-                Coalesce(F("total_bookings"), 0) / float(max_booking_count) * BOOKING_COUNT_WEIGHT,
+                Coalesce(F("total_bookings"), 0)
+                / float(max_booking_count)
+                * BOOKING_COUNT_WEIGHT,
                 output_field=FloatField(),
             ),
             # 3. Experience component (normalized)
             experience_component=ExpressionWrapper(
-                Coalesce(F("experience_years"), 0) / float(max_experience) * EXPERIENCE_WEIGHT,
+                Coalesce(F("experience_years"), 0)
+                / float(max_experience)
+                * EXPERIENCE_WEIGHT,
                 output_field=FloatField(),
             ),
             # 4. Portfolio component (based on count & featured)
@@ -79,7 +101,10 @@ class SpecialistRanker:
 
         # Calculate portfolio component
         max_portfolio = (
-            queryset.aggregate(max_port=Coalesce(Max("portfolio_count"), Value(1)))["max_port"] or 1
+            queryset.aggregate(max_port=Coalesce(Max("portfolio_count"), Value(1)))[
+                "max_port"
+            ]
+            or 1
         )
 
         queryset = queryset.annotate(
@@ -99,7 +124,9 @@ class SpecialistRanker:
         )
 
         # Order by total score and return limited results
-        return queryset.order_by("-total_score", "-avg_rating", "-total_bookings")[:limit]
+        return queryset.order_by("-total_score", "-avg_rating", "-total_bookings")[
+            :limit
+        ]
 
     def rank_specialists_for_service(self, service_id, limit=5):
         """
@@ -130,7 +157,9 @@ class SpecialistRanker:
             # Service-specific booking count
             service_bookings=Count(
                 "appointments",
-                filter=Q(appointments__service=service, appointments__status="completed"),
+                filter=Q(
+                    appointments__service=service, appointments__status="completed"
+                ),
             ),
             # Service proficiency level from specialist_service relation
             proficiency=Coalesce(
@@ -144,7 +173,8 @@ class SpecialistRanker:
                 filter=Q(
                     appointments__service=service,
                     appointments__status="completed",
-                    appointments__end_time__gte=timezone.now() - timezone.timedelta(days=30),
+                    appointments__end_time__gte=timezone.now()
+                    - timezone.timedelta(days=30),
                 ),
             ),
             # No-show rate for this service (negative impact)
@@ -156,15 +186,15 @@ class SpecialistRanker:
 
         # Calculate normalized scores for service-specific ranking
         max_service_bookings = (
-            specialists.aggregate(max_count=Coalesce(Max("service_bookings"), Value(1)))[
-                "max_count"
-            ]
+            specialists.aggregate(
+                max_count=Coalesce(Max("service_bookings"), Value(1))
+            )["max_count"]
             or 1
         )
         max_recent = (
-            specialists.aggregate(max_recent=Coalesce(Max("recent_completions"), Value(1)))[
-                "max_recent"
-            ]
+            specialists.aggregate(
+                max_recent=Coalesce(Max("recent_completions"), Value(1))
+            )["max_recent"]
             or 1
         )
 
@@ -196,7 +226,8 @@ class SpecialistRanker:
             reliability_score=ExpressionWrapper(
                 Case(
                     When(service_bookings=0, then=0.1),  # Default if no bookings
-                    default=Value(0.1) * (Value(1) - F("no_show_count") / F("service_bookings")),
+                    default=Value(0.1)
+                    * (Value(1) - F("no_show_count") / F("service_bookings")),
                     output_field=FloatField(),
                 ),
                 output_field=FloatField(),
@@ -212,7 +243,9 @@ class SpecialistRanker:
         )
 
         # Return specialists ranked for this specific service
-        return specialists.order_by("-service_score", "-avg_rating", "-service_bookings")[:limit]
+        return specialists.order_by(
+            "-service_score", "-avg_rating", "-service_bookings"
+        )[:limit]
 
     def get_similar_specialists(self, specialist_id, limit=5):
         """
@@ -254,7 +287,9 @@ class SpecialistRanker:
                     filter=Q(specialist_services__service_id__in=service_ids),
                 ),
                 # Count matching categories
-                matching_categories=Count("expertise", filter=Q(expertise__id__in=category_ids)),
+                matching_categories=Count(
+                    "expertise", filter=Q(expertise__id__in=category_ids)
+                ),
             )
             .annotate(
                 # Calculate similarity score
@@ -281,7 +316,8 @@ class SpecialistRanker:
         """
         # Get specialists in this category (both via expertise and services)
         specialists = Specialist.objects.filter(
-            Q(expertise__id=category_id) | Q(specialist_services__service__category_id=category_id),
+            Q(expertise__id=category_id)
+            | Q(specialist_services__service__category_id=category_id),
             employee__is_active=True,
             employee__shop__is_active=True,
         ).distinct()
@@ -350,7 +386,8 @@ class SpecialistRanker:
             ),
             # Combine for trend score (weighted)
             trend_score=ExpressionWrapper(
-                (F("booking_growth") * 0.7) + (Coalesce(F("recent_portfolio_likes"), 0) * 0.3),
+                (F("booking_growth") * 0.7)
+                + (Coalesce(F("recent_portfolio_likes"), 0) * 0.3),
                 output_field=FloatField(),
             ),
         )

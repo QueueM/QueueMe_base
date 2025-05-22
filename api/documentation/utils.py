@@ -4,30 +4,49 @@ API Documentation Utilities
 Common utility functions for working with drf-yasg API documentation.
 """
 
-from drf_yasg import openapi
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
+from drf_yasg import openapi
 from drf_yasg.inspectors import SwaggerAutoSchema
+
 _real_get_operation = SwaggerAutoSchema.get_operation
+
 
 def debug_get_operation(self, operation_keys=None):
     op = _real_get_operation(self, operation_keys)
     try:
-        print("\n==== YASG DEBUG: Endpoint:", getattr(self.view, '__class__', type(self.view)).__name__)
+        print(
+            "\n==== YASG DEBUG: Endpoint:",
+            getattr(self.view, "__class__", type(self.view)).__name__,
+        )
         if hasattr(op, "parameters"):
-            names = [(getattr(p, "name", None), getattr(p, "in_", None)) for p in op.parameters]
-            print("OpenAPI params for", getattr(self.view, '__class__', type(self.view)).__name__, ":", names)
+            names = [
+                (getattr(p, "name", None), getattr(p, "in_", None))
+                for p in op.parameters
+            ]
+            print(
+                "OpenAPI params for",
+                getattr(self.view, "__class__", type(self.view)).__name__,
+                ":",
+                names,
+            )
         else:
-            print("No op.parameters for", getattr(self.view, '__class__', type(self.view)).__name__)
+            print(
+                "No op.parameters for",
+                getattr(self.view, "__class__", type(self.view)).__name__,
+            )
     except Exception as e:
         print("DEBUG ERROR", e)
     return op
+
 
 SwaggerAutoSchema.get_operation = debug_get_operation
 print("Swagger debug patch applied (views file)")
 
 
-def dedupe_manual_parameters(params: List[openapi.Parameter]) -> List[openapi.Parameter]:
+def dedupe_manual_parameters(
+    params: List[openapi.Parameter],
+) -> List[openapi.Parameter]:
     """
     Remove duplicate openapi.Parameters by (name, in_) tuple.
 
@@ -68,15 +87,16 @@ def dedupe_operation_params(operation: Dict[str, Any], **kwargs) -> Dict[str, An
     Returns:
         The operation with deduplicated parameters
     """
-    if 'parameters' in operation and operation['parameters']:
+    if "parameters" in operation and operation["parameters"]:
         param_ids = set()
         unique_params = []
-        for param in operation['parameters']:
-            param_id = (param.get('name'), param.get('in'))
+        for param in operation["parameters"]:
+            param_id = (param.get("name"), param.get("in"))
             if param_id not in param_ids:
                 param_ids.add(param_id)
                 unique_params.append(param)
-        operation['parameters'] = unique_params
+        operation["parameters"] = unique_params
     return operation
+
 
 # END OF FILE

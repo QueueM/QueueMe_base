@@ -158,7 +158,9 @@ class ReviewModelsTestCase(TestCase):
         )
 
         # Create another user
-        other_user = User.objects.create(phone_number="5555555555", user_type="customer")
+        other_user = User.objects.create(
+            phone_number="5555555555", user_type="customer"
+        )
 
         # Get content type
         content_type = ContentType.objects.get_for_model(review)
@@ -227,6 +229,8 @@ class ReviewModelsTestCase(TestCase):
         self.assertEqual(metrics.avg_rating, 4.5)
         self.assertEqual(metrics.weighted_rating, 4.2)
         self.assertEqual(metrics.review_count, 10)
-        self.assertEqual(metrics.rating_distribution, {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4})
+        self.assertEqual(
+            metrics.rating_distribution, {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}
+        )
         self.assertEqual(metrics.content_type, content_type)
         self.assertEqual(str(metrics.object_id), str(self.shop.id))

@@ -6,18 +6,15 @@ predictive analytics, trend detection, segmentation, and data visualization
 for detailed business insights.
 """
 
-import calendar
-import json
 import logging
-from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
 
-from django.db import connection, models
+from django.db import models
 from django.db.models import (
     Avg,
     Case,
     Count,
-    DateField,
     DecimalField,
     ExpressionWrapper,
     F,
@@ -38,7 +35,7 @@ from apps.reviewapp.models import Review
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
 from apps.specialistsapp.models import Specialist
-from core.cache.advanced_cache import AdvancedCache, cache_key, cached
+from core.cache.advanced_cache import AdvancedCache, cached
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +115,9 @@ class AdvancedAnalyticsService:
                         )
                     ),
                     no_show=Count(
-                        Case(When(status="no_show", then=1), output_field=IntegerField())
+                        Case(
+                            When(status="no_show", then=1), output_field=IntegerField()
+                        )
                     ),
                     total=Count("id"),
                     distinct_customers=Count("customer_id", distinct=True),
@@ -155,7 +154,9 @@ class AdvancedAnalyticsService:
                 "cancelled": appointments.filter(status="cancelled").count(),
                 "no_show": appointments.filter(status="no_show").count(),
                 "total": appointments.count(),
-                "distinct_customers": appointments.values("customer_id").distinct().count(),
+                "distinct_customers": appointments.values("customer_id")
+                .distinct()
+                .count(),
                 "avg_utilization": None,  # Calculated below
             }
 
@@ -164,7 +165,9 @@ class AdvancedAnalyticsService:
                 revenue_metrics = appointments.filter(payment_status="paid").aggregate(
                     revenue=Sum("service__price")
                 )
-                expected_revenue = appointments.aggregate(expected_revenue=Sum("service__price"))
+                expected_revenue = appointments.aggregate(
+                    expected_revenue=Sum("service__price")
+                )
                 lost_revenue = appointments.filter(
                     Q(status="cancelled") | Q(status="no_show")
                 ).aggregate(lost_revenue=Sum("service__price"))
@@ -189,13 +192,15 @@ class AdvancedAnalyticsService:
                 previous_to = date_from - timedelta(days=1)
 
                 # Get previous period metrics
-                previous_period_data = AdvancedAnalyticsService.get_business_performance_metrics(
-                    shop_id=shop_id,
-                    date_from=previous_from,
-                    date_to=previous_to,
-                    granularity=granularity,
-                    include_financials=include_financials,
-                    compare_to_previous=False,  # Prevent infinite recursion
+                previous_period_data = (
+                    AdvancedAnalyticsService.get_business_performance_metrics(
+                        shop_id=shop_id,
+                        date_from=previous_from,
+                        date_to=previous_to,
+                        granularity=granularity,
+                        include_financials=include_financials,
+                        compare_to_previous=False,  # Prevent infinite recursion
+                    )
                 )
 
             # Calculate staff utilization
@@ -217,7 +222,9 @@ class AdvancedAnalyticsService:
                 "period_name": period_name,
                 "totals": totals,
                 "previous_period": (
-                    previous_period_data.get("totals", None) if previous_period_data else None
+                    previous_period_data.get("totals", None)
+                    if previous_period_data
+                    else None
                 ),
                 "utilization": utilization_data,
             }
@@ -291,7 +298,9 @@ class AdvancedAnalyticsService:
                     "customer_id", flat=True
                 )
             )
-            retained_customers = len(first_half_customers.intersection(second_half_customers))
+            retained_customers = len(
+                first_half_customers.intersection(second_half_customers)
+            )
             retention_rate = (
                 (retained_customers / len(first_half_customers)) * 100
                 if first_half_customers
@@ -323,7 +332,9 @@ class AdvancedAnalyticsService:
                 if reviews.exists():
                     avg_rating = reviews.aggregate(avg_rating=Avg("rating"))
                     rating_distribution = list(
-                        reviews.values("rating").annotate(count=Count("id")).order_by("rating")
+                        reviews.values("rating")
+                        .annotate(count=Count("id"))
+                        .order_by("rating")
                     )
 
                     customer_satisfaction = {
@@ -331,7 +342,7 @@ class AdvancedAnalyticsService:
                         "rating_distribution": rating_distribution,
                         "review_count": reviews.count(),
                     }
-            except Exception as e:
+            except Exception:
                 # Review model might not be available
                 pass
 
@@ -342,9 +353,13 @@ class AdvancedAnalyticsService:
                 "repeat_bookers": repeat_bookers,
                 "retention_rate": retention_rate,
                 "avg_bookings_per_customer": (
-                    booking_frequency["avg_bookings"] if booking_frequency["avg_bookings"] else 0
+                    booking_frequency["avg_bookings"]
+                    if booking_frequency["avg_bookings"]
+                    else 0
                 ),
-                "avg_spend_per_customer": (avg_spend["avg_spend"] if avg_spend["avg_spend"] else 0),
+                "avg_spend_per_customer": (
+                    avg_spend["avg_spend"] if avg_spend["avg_spend"] else 0
+                ),
                 "customer_satisfaction": customer_satisfaction,
             }
 
@@ -419,11 +434,14 @@ class AdvancedAnalyticsService:
                 date_counts[item["date"]] = item["count"]
 
             historical_data = [
-                {"date": date.isoformat(), "bookings": count} for date, count in date_counts.items()
+                {"date": date.isoformat(), "bookings": count}
+                for date, count in date_counts.items()
             ]
 
             # Calculate moving average
-            window_size = min(14, len(historical_data))  # 2 weeks or less if not enough data
+            window_size = min(
+                14, len(historical_data)
+            )  # 2 weeks or less if not enough data
             if window_size < 3:
                 return {
                     "success": False,
@@ -444,7 +462,9 @@ class AdvancedAnalyticsService:
                 # Group historical data by day of week
                 dow_counts = (
                     historical_bookings.annotate(
-                        dow=models.functions.Extract("start_time", "dow")  # 0=Sunday, 6=Saturday
+                        dow=models.functions.Extract(
+                            "start_time", "dow"
+                        )  # 0=Sunday, 6=Saturday
                     )
                     .values("dow")
                     .annotate(count=Count("id"))
@@ -464,7 +484,9 @@ class AdvancedAnalyticsService:
 
                 # Calculate day of week factors (relative to overall average)
                 for dow, count in dow_avg.items():
-                    day_of_week_factors[dow] = count / overall_avg if overall_avg > 0 else 1
+                    day_of_week_factors[dow] = (
+                        count / overall_avg if overall_avg > 0 else 1
+                    )
 
             # Predict future bookings
             prediction = []
@@ -523,7 +545,9 @@ class AdvancedAnalyticsService:
                 "historical_data": historical_data,
                 "prediction": prediction,
                 "moving_average": moving_avg,
-                "day_of_week_factors": (day_of_week_factors if include_seasonality else None),
+                "day_of_week_factors": (
+                    day_of_week_factors if include_seasonality else None
+                ),
             }
 
         except Exception as e:
@@ -575,7 +599,8 @@ class AdvancedAnalyticsService:
 
             # Calculate total revenue
             total_revenue = (
-                completed_appointments.aggregate(total=Sum("service__price"))["total"] or 0
+                completed_appointments.aggregate(total=Sum("service__price"))["total"]
+                or 0
             )
 
             # Get revenue by period
@@ -602,7 +627,9 @@ class AdvancedAnalyticsService:
 
             # Calculate revenue by specialist
             revenue_by_specialist = (
-                completed_appointments.values("specialist__id", "specialist__employee__name")
+                completed_appointments.values(
+                    "specialist__id", "specialist__employee__name"
+                )
                 .annotate(revenue=Sum("service__price"), appointments=Count("id"))
                 .order_by("-revenue")
             )
@@ -636,7 +663,8 @@ class AdvancedAnalyticsService:
                 growth = 0
                 if previous_revenue > 0:
                     growth = (
-                        (float(total_revenue) - float(previous_revenue)) / float(previous_revenue)
+                        (float(total_revenue) - float(previous_revenue))
+                        / float(previous_revenue)
                     ) * 100
 
                 previous_period_data = {
@@ -657,7 +685,8 @@ class AdvancedAnalyticsService:
             )
 
             potential_revenue = (
-                potential_appointments.aggregate(total=Sum("service__price"))["total"] or 0
+                potential_appointments.aggregate(total=Sum("service__price"))["total"]
+                or 0
             )
 
             lost_revenue = (
@@ -680,7 +709,9 @@ class AdvancedAnalyticsService:
                 "potential_revenue": potential_revenue,
                 "lost_revenue": lost_revenue,
                 "revenue_realization": (
-                    (total_revenue / potential_revenue * 100) if potential_revenue > 0 else 0
+                    (total_revenue / potential_revenue * 100)
+                    if potential_revenue > 0
+                    else 0
                 ),
                 "avg_service_price": avg_metrics["avg_price"] or 0,
                 "total_paid_appointments": avg_metrics["total_services"] or 0,
@@ -727,13 +758,19 @@ class AdvancedAnalyticsService:
             no_show_appointments = appointments.filter(status="no_show").count()
 
             completion_rate = (
-                (completed_appointments / total_appointments * 100) if total_appointments > 0 else 0
+                (completed_appointments / total_appointments * 100)
+                if total_appointments > 0
+                else 0
             )
             cancellation_rate = (
-                (cancelled_appointments / total_appointments * 100) if total_appointments > 0 else 0
+                (cancelled_appointments / total_appointments * 100)
+                if total_appointments > 0
+                else 0
             )
             no_show_rate = (
-                (no_show_appointments / total_appointments * 100) if total_appointments > 0 else 0
+                (no_show_appointments / total_appointments * 100)
+                if total_appointments > 0
+                else 0
             )
 
             # Calculate buffer time metrics
@@ -755,8 +792,10 @@ class AdvancedAnalyticsService:
             )
 
             # Calculate time slot utilization
-            all_possible_slots = AdvancedAnalyticsService._calculate_total_available_slots(
-                shop_id, date_from, date_to
+            all_possible_slots = (
+                AdvancedAnalyticsService._calculate_total_available_slots(
+                    shop_id, date_from, date_to
+                )
             )
 
             if all_possible_slots and all_possible_slots > 0:
@@ -773,7 +812,9 @@ class AdvancedAnalyticsService:
             )
 
             # Find peak hours (top 3)
-            peak_hours = sorted(hour_distribution, key=lambda x: x["count"], reverse=True)[:3]
+            peak_hours = sorted(
+                hour_distribution, key=lambda x: x["count"], reverse=True
+            )[:3]
 
             # Calculate average durations
             duration_metrics = (
@@ -829,7 +870,8 @@ class AdvancedAnalyticsService:
                         if duration_metrics["avg_duration"]
                         else 0
                     ),
-                    "avg_scheduled_minutes": duration_metrics["scheduled_duration"] or 0,
+                    "avg_scheduled_minutes": duration_metrics["scheduled_duration"]
+                    or 0,
                     "scheduling_accuracy": (
                         (duration_metrics["avg_duration"].total_seconds() / 60)
                         / duration_metrics["scheduled_duration"]
@@ -945,9 +987,13 @@ class AdvancedAnalyticsService:
             for appointment in appointments:
                 # Use actual duration if available, otherwise use service duration
                 if appointment.end_time and appointment.start_time:
-                    duration = (appointment.end_time - appointment.start_time).total_seconds() / 60
+                    duration = (
+                        appointment.end_time - appointment.start_time
+                    ).total_seconds() / 60
                 else:
-                    duration = appointment.service.duration if appointment.service else 0
+                    duration = (
+                        appointment.service.duration if appointment.service else 0
+                    )
 
                 total_booked_minutes += duration
 
@@ -973,7 +1019,9 @@ class AdvancedAnalyticsService:
                             appointment.end_time - appointment.start_time
                         ).total_seconds() / 60
                     else:
-                        duration = appointment.service.duration if appointment.service else 0
+                        duration = (
+                            appointment.service.duration if appointment.service else 0
+                        )
 
                     specialist_booked_minutes += duration
 
@@ -1076,7 +1124,7 @@ class AdvancedAnalyticsService:
                     "type": "location",
                     "distribution": location_distribution,
                 }
-            except Exception as e:
+            except Exception:
                 # Customer model might not have location fields
                 segmentation = {
                     "type": "location",
@@ -1173,7 +1221,9 @@ class AdvancedAnalyticsService:
                 current_date += timedelta(days=1)
 
             # Calculate total possible slots
-            total_possible_slots = working_day_count * slots_per_day_per_specialist * specialists
+            total_possible_slots = (
+                working_day_count * slots_per_day_per_specialist * specialists
+            )
 
             return total_possible_slots
 

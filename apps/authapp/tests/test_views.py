@@ -236,7 +236,9 @@ class UserProfileViewsTest(APITestCase):
         self.assertEqual(self.user.first_name, "Partial")
         self.assertEqual(self.user.email, "test@example.com")  # Unchanged
 
-    @patch("apps.authapp.services.phone_verification.PhoneVerificationService.start_verification")
+    @patch(
+        "apps.authapp.services.phone_verification.PhoneVerificationService.start_verification"
+    )
     def test_change_phone_request(self, mock_start):
         """Test requesting phone number change."""
         # Setup mock
@@ -254,7 +256,9 @@ class UserProfileViewsTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_start.assert_called_once_with("966500000000")
 
-    @patch("apps.authapp.services.phone_verification.PhoneVerificationService.verify_phone_change")
+    @patch(
+        "apps.authapp.services.phone_verification.PhoneVerificationService.verify_phone_change"
+    )
     def test_verify_new_phone(self, mock_verify):
         """Test verifying new phone number."""
         # Setup mock

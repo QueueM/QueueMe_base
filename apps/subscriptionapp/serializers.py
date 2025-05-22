@@ -182,7 +182,9 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         ).first()
 
         if existing:
-            raise serializers.ValidationError(_("Company already has an active subscription"))
+            raise serializers.ValidationError(
+                _("Company already has an active subscription")
+            )
 
         return value
 
@@ -197,7 +199,9 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        from apps.subscriptionapp.services.subscription_service import SubscriptionService
+        from apps.subscriptionapp.services.subscription_service import (
+            SubscriptionService,
+        )
 
         # Create subscription via service
         subscription = SubscriptionService.create_subscription(
@@ -218,12 +222,16 @@ class SubscriptionUpdateSerializer(serializers.ModelSerializer):
     def validate_status(self, value):
         # Only admins can change certain statuses
         if value in ["active", "trial"] and not self.context["request"].user.is_staff:
-            raise serializers.ValidationError(_("You don't have permission to set this status"))
+            raise serializers.ValidationError(
+                _("You don't have permission to set this status")
+            )
 
         return value
 
     def update(self, instance, validated_data):
-        from apps.subscriptionapp.services.subscription_service import SubscriptionService
+        from apps.subscriptionapp.services.subscription_service import (
+            SubscriptionService,
+        )
 
         # Track old status for change detection
         old_status = instance.status
@@ -258,7 +266,9 @@ class SubscriptionUpdateSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionInvoiceSerializer(serializers.ModelSerializer):
-    company_name = serializers.CharField(source="subscription.company.name", read_only=True)
+    company_name = serializers.CharField(
+        source="subscription.company.name", read_only=True
+    )
     plan_name = serializers.CharField(source="subscription.plan_name", read_only=True)
     transaction_id = serializers.UUIDField(source="transaction.id", read_only=True)
 

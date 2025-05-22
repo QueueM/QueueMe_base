@@ -23,8 +23,6 @@ import os
 import socket
 import subprocess
 import sys
-import time
-from pathlib import Path
 
 # Add project to path for imports
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -221,7 +219,9 @@ def send_alert(alert_id, title, message, severity, config):
 
         django.setup()
 
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         # Choose priority based on severity
         if severity == "critical":
@@ -236,7 +236,9 @@ def send_alert(alert_id, title, message, severity, config):
             title=title,
             message=message,
             channels=(
-                ["email", "in_app", "sms"] if severity == "critical" else ["email", "in_app"]
+                ["email", "in_app", "sms"]
+                if severity == "critical"
+                else ["email", "in_app"]
             ),
             priority=priority,
             data={"alert_id": alert_id, "severity": severity},
@@ -330,7 +332,9 @@ def process_database_alerts(db_data, config, state):
 
         if not check_alert_cooldown(alert_id, severity, config, state):
             title = "Database Connection Error"
-            message = f"Database connection failed: {db_data.get('error', 'Unknown error')}"
+            message = (
+                f"Database connection failed: {db_data.get('error', 'Unknown error')}"
+            )
 
             if send_alert(alert_id, title, message, severity, config):
                 update_alert_state(alert_id, severity, state, message)
@@ -368,7 +372,9 @@ def process_redis_alerts(redis_data, config, state):
 
         if not check_alert_cooldown(alert_id, severity, config, state):
             title = "Redis Connection Error"
-            message = f"Redis connection failed: {redis_data.get('error', 'Unknown error')}"
+            message = (
+                f"Redis connection failed: {redis_data.get('error', 'Unknown error')}"
+            )
 
             if send_alert(alert_id, title, message, severity, config):
                 update_alert_state(alert_id, severity, state, message)
@@ -430,9 +436,7 @@ def process_system_resource_alerts(system_data, config, state):
 
         if not check_alert_cooldown(alert_id, severity, config, state):
             title = "System Resource Monitoring Error"
-            message = (
-                f"Error monitoring system resources: {system_data.get('error', 'Unknown error')}"
-            )
+            message = f"Error monitoring system resources: {system_data.get('error', 'Unknown error')}"
 
             if send_alert(alert_id, title, message, severity, config):
                 update_alert_state(alert_id, severity, state, message)
@@ -562,7 +566,9 @@ def process_app_alerts(app_data, config, state):
 
         if not check_alert_cooldown(alert_id, severity, config, state):
             title = "Application Error"
-            message = f"QueueMe application error: {app_data.get('error', 'Unknown error')}"
+            message = (
+                f"QueueMe application error: {app_data.get('error', 'Unknown error')}"
+            )
 
             if send_alert(alert_id, title, message, severity, config):
                 update_alert_state(alert_id, severity, state, message)
@@ -668,7 +674,11 @@ def main():
                 custom_config = json.load(f)
                 # Merge configurations
                 for key, value in custom_config.items():
-                    if isinstance(value, dict) and key in config and isinstance(config[key], dict):
+                    if (
+                        isinstance(value, dict)
+                        and key in config
+                        and isinstance(config[key], dict)
+                    ):
                         config[key].update(value)
                     else:
                         config[key] = value

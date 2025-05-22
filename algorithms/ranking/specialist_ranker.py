@@ -153,16 +153,22 @@ class SpecialistRanker:
             category_match_score = self._calculate_category_match(
                 specialist, service_id, category_id
             )
-            factors["category_match"] = category_match_score * self.category_match_weight
+            factors["category_match"] = (
+                category_match_score * self.category_match_weight
+            )
 
             # 8. Location/distance score (if location provided)
             distance_score = 1.0
             if location_data:
-                distance_score = self._calculate_distance_score(specialist, location_data)
+                distance_score = self._calculate_distance_score(
+                    specialist, location_data
+                )
             factors["distance"] = distance_score * self.distance_weight
 
             # 9. Verification boost
-            verified_boost = self.verified_boost if specialist.get("is_verified", False) else 1.0
+            verified_boost = (
+                self.verified_boost if specialist.get("is_verified", False) else 1.0
+            )
             factors["verified_boost"] = verified_boost
 
             # 10. Customer personalization (if customer data provided)
@@ -195,7 +201,9 @@ class SpecialistRanker:
             scored_specialists.append(specialist_copy)
 
         # Sort by score (highest first)
-        ranked_specialists = sorted(scored_specialists, key=lambda x: x["_score"], reverse=True)
+        ranked_specialists = sorted(
+            scored_specialists, key=lambda x: x["_score"], reverse=True
+        )
 
         # Apply limit if provided
         if limit:
@@ -287,7 +295,9 @@ class SpecialistRanker:
 
         return normalized_portfolio
 
-    def _calculate_availability_score(self, specialist: Dict, date: datetime.date) -> float:
+    def _calculate_availability_score(
+        self, specialist: Dict, date: datetime.date
+    ) -> float:
         """
         Calculate score based on specialist availability on the given date.
         Higher score for more available slots.
@@ -367,7 +377,12 @@ class SpecialistRanker:
         specialist_lng = specialist_location.get("longitude")
 
         # If either location is missing, return neutral score
-        if not customer_lat or not customer_lng or not specialist_lat or not specialist_lng:
+        if (
+            not customer_lat
+            or not customer_lng
+            or not specialist_lat
+            or not specialist_lng
+        ):
             return 0.5
 
         # Calculate distance in kilometers
@@ -382,7 +397,9 @@ class SpecialistRanker:
 
         return normalized_distance
 
-    def _calculate_distance(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    def _calculate_distance(
+        self, lat1: float, lng1: float, lat2: float, lng2: float
+    ) -> float:
         """
         Calculate distance between two points using Haversine formula.
         """
@@ -409,7 +426,9 @@ class SpecialistRanker:
 
         return distance
 
-    def _calculate_personalization_score(self, specialist: Dict, customer_data: Dict) -> float:
+    def _calculate_personalization_score(
+        self, specialist: Dict, customer_data: Dict
+    ) -> float:
         """
         Calculate personalization score based on customer history and preferences.
         """
@@ -435,7 +454,9 @@ class SpecialistRanker:
             personalization_score *= booking_boost
 
             # Check if previous experiences were positive
-            positive_bookings = [b for b in specialist_bookings if b.get("rating", 0) >= 4.0]
+            positive_bookings = [
+                b for b in specialist_bookings if b.get("rating", 0) >= 4.0
+            ]
 
             if positive_bookings:
                 # Additional boost for positive experiences

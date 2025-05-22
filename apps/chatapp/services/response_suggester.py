@@ -92,7 +92,9 @@ class ResponseSuggester:
         # Add context-specific suggestions
         if intent == "availability_question":
             # Check for service references
-            service_matches = ResponseSuggester._detect_service_references(content, shop.id)
+            service_matches = ResponseSuggester._detect_service_references(
+                content, shop.id
+            )
             for service in service_matches:
                 # Get next available slots
                 pass
@@ -115,11 +117,15 @@ class ResponseSuggester:
             suggestions.append(
                 "I can see you have an appointment scheduled for [Date] at [Time]. Is there anything you'd like to know about it?"
             )
-            suggestions.append("Would you like to reschedule or cancel your appointment?")
+            suggestions.append(
+                "Would you like to reschedule or cancel your appointment?"
+            )
 
         elif intent == "service_question":
             # Service-specific responses
-            service_matches = ResponseSuggester._detect_service_references(content, shop.id)
+            service_matches = ResponseSuggester._detect_service_references(
+                content, shop.id
+            )
             for service in service_matches:
                 duration = service.duration
                 price = service.price
@@ -157,7 +163,9 @@ class ResponseSuggester:
         suggestions.extend(custom_replies)
 
         # Remove duplicates and limit suggestions
-        suggestions = list(dict.fromkeys(suggestions))  # Remove duplicates while preserving order
+        suggestions = list(
+            dict.fromkeys(suggestions)
+        )  # Remove duplicates while preserving order
         return suggestions[:5]  # Limit to 5 suggestions
 
     @staticmethod

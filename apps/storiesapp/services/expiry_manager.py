@@ -38,7 +38,9 @@ class StoryExpiryManager:
         seconds_until_expiry = max(0, (story.expires_at - now).total_seconds())
 
         # Schedule task to run at expiry time
-        deactivate_story_task.apply_async(args=[str(story.id)], countdown=seconds_until_expiry)
+        deactivate_story_task.apply_async(
+            args=[str(story.id)], countdown=seconds_until_expiry
+        )
 
     @staticmethod
     def schedule_all_pending_expirations():

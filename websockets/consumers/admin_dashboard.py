@@ -1,16 +1,13 @@
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.utils import timezone
 from django.utils.timesince import timesince
 
 from apps.bookingapp.models import Booking
-from apps.customersapp.models import Customer
-from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop
 
 
 class BookingStatsConsumer(AsyncWebsocketConsumer):
@@ -129,7 +126,9 @@ class BookingStatsConsumer(AsyncWebsocketConsumer):
         # Get booking counts for each date
         date_counts = {}
         bookings_by_date = (
-            Booking.objects.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
+            Booking.objects.filter(
+                created_at__date__gte=start_date, created_at__date__lte=end_date
+            )
             .values("created_at__date")
             .annotate(count=Count("id"))
         )
@@ -148,14 +147,16 @@ class BookingStatsConsumer(AsyncWebsocketConsumer):
         """
         Get recent booking activity.
         """
-        recent_bookings = Booking.objects.select_related("customer__user", "service").order_by(
-            "-created_at"
-        )[:limit]
+        recent_bookings = Booking.objects.select_related(
+            "customer__user", "service"
+        ).order_by("-created_at")[:limit]
 
         activity = []
 
         for booking in recent_bookings:
-            customer_name = booking.customer.user.get_full_name() or booking.customer.user.username
+            customer_name = (
+                booking.customer.user.get_full_name() or booking.customer.user.username
+            )
 
             activity_item = {
                 "id": booking.id,

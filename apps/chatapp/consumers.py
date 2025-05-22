@@ -50,7 +50,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
         # Join conversation group
-        await self.channel_layer.group_add(self.conversation_group_name, self.channel_name)
+        await self.channel_layer.group_add(
+            self.conversation_group_name, self.channel_name
+        )
 
         # Mark user as online
         await database_sync_to_async(PresenceService.set_user_online)(
@@ -89,7 +91,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
             # Leave conversation group
-            await self.channel_layer.group_discard(self.conversation_group_name, self.channel_name)
+            await self.channel_layer.group_discard(
+                self.conversation_group_name, self.channel_name
+            )
 
     async def receive(self, text_data):
         """Handle incoming WebSocket messages"""
@@ -124,9 +128,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 # Get employee details if applicable
                 employee_details = None
                 if message.employee:
-                    employee_details = await database_sync_to_async(self.get_employee_details)(
-                        message.employee
-                    )
+                    employee_details = await database_sync_to_async(
+                        self.get_employee_details
+                    )(message.employee)
 
                 # Broadcast message to conversation group
                 await self.channel_layer.group_send(
@@ -137,14 +141,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             "id": str(message.id),
                             "sender_id": str(message.sender.id),
                             "sender_type": (
-                                "customer" if message.sender == conversation.customer else "shop"
+                                "customer"
+                                if message.sender == conversation.customer
+                                else "shop"
                             ),
                             "content": message.content,
                             "message_type": message.message_type,
                             "media_url": message.media_url,
                             "created_at": created_at,
                             "is_read": message.is_read,
-                            "employee": (str(message.employee.id) if message.employee else None),
+                            "employee": (
+                                str(message.employee.id) if message.employee else None
+                            ),
                             "employee_details": employee_details,
                         },
                     },
@@ -183,11 +191,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         """Send message to WebSocket"""
-        await self.send(text_data=json.dumps({"type": "message", "message": event["message"]}))
+        await self.send(
+            text_data=json.dumps({"type": "message", "message": event["message"]})
+        )
 
     async def read_receipt(self, event):
         """Send read receipt to WebSocket"""
-        await self.send(text_data=json.dumps({"type": "read_receipt", "user_id": event["user_id"]}))
+        await self.send(
+            text_data=json.dumps({"type": "read_receipt", "user_id": event["user_id"]})
+        )
 
     async def typing_indicator(self, event):
         """Send typing indicator to WebSocket"""
@@ -234,7 +246,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     return False
 
                 # Check if employee has chat permission
-                from apps.rolesapp.services.permission_resolver import PermissionResolver
+                from apps.rolesapp.services.permission_resolver import (
+                    PermissionResolver,
+                )
 
                 return PermissionResolver.has_permission(user, "chat", "view")
         except Exception as e:

@@ -79,7 +79,9 @@ class TaskScheduler:
             result = task_func.apply_async(args=args, kwargs=kwargs, eta=eta)
             logger.info(f"Scheduled task {task_func.__name__} for {eta}")
         elif countdown:
-            result = task_func.apply_async(args=args, kwargs=kwargs, countdown=countdown)
+            result = task_func.apply_async(
+                args=args, kwargs=kwargs, countdown=countdown
+            )
             logger.info(f"Scheduled task {task_func.__name__} in {countdown} seconds")
         else:
             result = task_func.apply_async(args=args, kwargs=kwargs)
@@ -116,20 +118,28 @@ class TaskScheduler:
             target_dt = datetime(now.year, month, day, hour, minute, tzinfo=now.tzinfo)
         elif day:
             # Specific day of current month
-            target_dt = datetime(now.year, now.month, day, hour, minute, tzinfo=now.tzinfo)
+            target_dt = datetime(
+                now.year, now.month, day, hour, minute, tzinfo=now.tzinfo
+            )
         else:
             # Today at the specified time
-            target_dt = datetime(now.year, now.month, now.day, hour, minute, tzinfo=now.tzinfo)
+            target_dt = datetime(
+                now.year, now.month, now.day, hour, minute, tzinfo=now.tzinfo
+            )
 
         # If target time is in the past, move to next day/month/year
         if target_dt < now:
             if day and month:
                 # Move to next year
-                target_dt = datetime(now.year + 1, month, day, hour, minute, tzinfo=now.tzinfo)
+                target_dt = datetime(
+                    now.year + 1, month, day, hour, minute, tzinfo=now.tzinfo
+                )
             elif day:
                 # Move to next month
                 if now.month == 12:
-                    target_dt = datetime(now.year + 1, 1, day, hour, minute, tzinfo=now.tzinfo)
+                    target_dt = datetime(
+                        now.year + 1, 1, day, hour, minute, tzinfo=now.tzinfo
+                    )
                 else:
                     target_dt = datetime(
                         now.year, now.month + 1, day, hour, minute, tzinfo=now.tzinfo
@@ -163,7 +173,11 @@ class TaskScheduler:
         """
         import json
 
-        from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
+        from django_celery_beat.models import (
+            CrontabSchedule,
+            IntervalSchedule,
+            PeriodicTask,
+        )
 
         args = args or []
         kwargs = kwargs or {}
@@ -307,7 +321,9 @@ class TaskScheduler:
 
 
 @shared_task
-def schedule_task_in_future(task_name, args=None, kwargs=None, countdown=None, eta=None):
+def schedule_task_in_future(
+    task_name, args=None, kwargs=None, countdown=None, eta=None
+):
     """
     Meta-task to schedule another task in the future.
 

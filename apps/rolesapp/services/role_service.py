@@ -26,7 +26,9 @@ class RoleService:
             Role: The highest role the user has, or None
         """
         # Get all active roles
-        user_roles = UserRole.objects.filter(user=user, role__is_active=True).select_related("role")
+        user_roles = UserRole.objects.filter(
+            user=user, role__is_active=True
+        ).select_related("role")
 
         if not user_roles:
             return None
@@ -58,7 +60,9 @@ class RoleService:
         Returns:
             Role: The primary role, or None
         """
-        content_type = ContentType.objects.get(app_label="apps", model=context_type.lower())
+        content_type = ContentType.objects.get(
+            app_label="apps", model=context_type.lower()
+        )
 
         # Try to find primary role first
         primary_user_role = UserRole.objects.filter(

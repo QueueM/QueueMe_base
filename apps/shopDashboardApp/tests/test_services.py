@@ -64,7 +64,9 @@ class DashboardServicesTestCase(TestCase):
         # Test 'custom' period
         start_date = "2023-01-01"
         end_date = "2023-01-31"
-        date_range = self.dashboard_service.calculate_date_range("custom", start_date, end_date)
+        date_range = self.dashboard_service.calculate_date_range(
+            "custom", start_date, end_date
+        )
         self.assertEqual(date_range["start_date"], date(2023, 1, 1))
         self.assertEqual(date_range["end_date"], date(2023, 1, 31))
 

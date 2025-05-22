@@ -8,10 +8,8 @@ strategies with intelligent invalidation patterns for optimal performance.
 import hashlib
 import json
 import logging
-import time
-from datetime import datetime, timedelta
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Union
 
 from django.conf import settings
 from django.core.cache import cache, caches
@@ -57,7 +55,9 @@ TTL_MAPPING = {
 }
 
 
-def secure_hash(data: Union[str, bytes], length: int = 8, used_for_security: bool = False) -> str:
+def secure_hash(
+    data: Union[str, bytes], length: int = 8, used_for_security: bool = False
+) -> str:
     """
     Create a secure hash of data
 
@@ -234,17 +234,23 @@ class CacheManager:
             redis_cache = caches[DEFAULT_CACHE]
 
             # Access Redis client directly
-            if hasattr(redis_cache, "client") and hasattr(redis_cache.client, "delete_pattern"):
+            if hasattr(redis_cache, "client") and hasattr(
+                redis_cache.client, "delete_pattern"
+            ):
                 count = redis_cache.client.delete_pattern(pattern)
 
                 # Debugging if enabled
                 if settings.DEBUG and getattr(settings, "CACHE_DEBUG", False):
-                    logger.debug(f"Cache DELETE_PATTERN: {pattern}, deleted {count} keys")
+                    logger.debug(
+                        f"Cache DELETE_PATTERN: {pattern}, deleted {count} keys"
+                    )
 
                 return count
             else:
                 # Fallback for non-Redis backends or if delete_pattern is not available
-                logger.warning("Cache delete_pattern not available for the cache backend")
+                logger.warning(
+                    "Cache delete_pattern not available for the cache backend"
+                )
                 return 0
         except Exception as e:
             logger.warning(f"Cache delete_pattern error for pattern '{pattern}': {e}")
@@ -371,7 +377,9 @@ class CacheManager:
 
             # Debugging if enabled
             if settings.DEBUG and getattr(settings, "CACHE_DEBUG", False):
-                logger.debug(f"Cache invalidated {count} keys for {model_name} {model_id}")
+                logger.debug(
+                    f"Cache invalidated {count} keys for {model_name} {model_id}"
+                )
 
             return count
         except Exception as e:
@@ -533,7 +541,9 @@ class CacheManager:
                     # Convert kwargs to stable string representation
                     if kwargs:
                         sorted_kwargs = dict(sorted(kwargs.items()))
-                        kwargs_str = ",".join(f"{k}={v}" for k, v in sorted_kwargs.items())
+                        kwargs_str = ",".join(
+                            f"{k}={v}" for k, v in sorted_kwargs.items()
+                        )
                         key_parts.append(f"kwargs={kwargs_str}")
 
                 # Final key

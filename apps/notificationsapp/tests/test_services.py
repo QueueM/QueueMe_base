@@ -13,7 +13,9 @@ from apps.notificationsapp.services.timing_optimizer import TimingOptimizer
 class NotificationServiceTest(TestCase):
     def setUp(self):
         # Create test data
-        self.user = User.objects.create(phone_number="1234567890", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="1234567890", email="test@example.com"
+        )
 
         # Create notification templates
         self.sms_template = NotificationTemplate.objects.create(
@@ -60,11 +62,21 @@ class NotificationServiceTest(TestCase):
             device_id="iPhone12-ABCDEF",
         )
 
-    @patch("apps.notificationsapp.services.notification_service.NotificationService._send_sms")
-    @patch("apps.notificationsapp.services.notification_service.NotificationService._send_email")
-    @patch("apps.notificationsapp.services.notification_service.NotificationService._send_push")
-    @patch("apps.notificationsapp.services.notification_service.NotificationService._send_in_app")
-    def test_send_notification_all_channels(self, mock_in_app, mock_push, mock_email, mock_sms):
+    @patch(
+        "apps.notificationsapp.services.notification_service.NotificationService._send_sms"
+    )
+    @patch(
+        "apps.notificationsapp.services.notification_service.NotificationService._send_email"
+    )
+    @patch(
+        "apps.notificationsapp.services.notification_service.NotificationService._send_push"
+    )
+    @patch(
+        "apps.notificationsapp.services.notification_service.NotificationService._send_in_app"
+    )
+    def test_send_notification_all_channels(
+        self, mock_in_app, mock_push, mock_email, mock_sms
+    ):
         """Test sending notification through all channels"""
         # Set up mocks to return True (success)
         mock_sms.return_value = True
@@ -94,7 +106,9 @@ class NotificationServiceTest(TestCase):
             self.assertEqual(notification.status, "sent")
             self.assertIsNotNone(notification.sent_at)
 
-    @patch("apps.notificationsapp.services.notification_service.NotificationService._send_sms")
+    @patch(
+        "apps.notificationsapp.services.notification_service.NotificationService._send_sms"
+    )
     def test_notification_template_rendering(self, mock_sms):
         """Test that templates are correctly rendered with data"""
         mock_sms.return_value = True
@@ -112,9 +126,13 @@ class NotificationServiceTest(TestCase):
         notification = notifications[0]
 
         # Check that template was rendered with data
-        self.assertEqual(notification.body, "This is a test notification with test value.")
+        self.assertEqual(
+            notification.body, "This is a test notification with test value."
+        )
 
-    @patch("apps.notificationsapp.services.notification_service.NotificationService._send_sms")
+    @patch(
+        "apps.notificationsapp.services.notification_service.NotificationService._send_sms"
+    )
     def test_scheduled_notification(self, mock_sms):
         """Test scheduling a notification for future delivery"""
         # Don't call the send method yet
@@ -145,7 +163,9 @@ class NotificationServiceTest(TestCase):
 class ChannelSelectorTest(TestCase):
     def setUp(self):
         # Create test data
-        self.user = User.objects.create(phone_number="1234567890", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="1234567890", email="test@example.com"
+        )
 
         # Create device token for push
         self.device_token = DeviceToken.objects.create(
@@ -188,7 +208,9 @@ class ChannelSelectorTest(TestCase):
     def test_channel_availability_check(self):
         """Test that channel selection respects channel availability"""
         # Create user without email
-        user_no_email = User.objects.create(phone_number="0987654321", email=None)  # No email
+        user_no_email = User.objects.create(
+            phone_number="0987654321", email=None
+        )  # No email
 
         # No device token either
 
@@ -205,7 +227,9 @@ class ChannelSelectorTest(TestCase):
 class TimingOptimizerTest(TestCase):
     def setUp(self):
         # Create test data
-        self.user = User.objects.create(phone_number="1234567890", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="1234567890", email="test@example.com"
+        )
 
         # Create some read notifications to establish pattern
         template = NotificationTemplate.objects.create(

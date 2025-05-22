@@ -95,7 +95,9 @@ class PackageDetailSerializer(serializers.ModelSerializer):
     shop = ShopLightSerializer(read_only=True)
     shop_id = serializers.UUIDField(write_only=True)
     primary_category = CategoryLightSerializer(read_only=True)
-    primary_category_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
+    primary_category_id = serializers.UUIDField(
+        write_only=True, required=False, allow_null=True
+    )
     services = PackageServiceSerializer(many=True, required=False)
     availability = PackageAvailabilitySerializer(many=True, required=False)
     faqs = PackageFAQSerializer(many=True, required=False)
@@ -181,7 +183,9 @@ class PackageDetailSerializer(serializers.ModelSerializer):
         # Create services
         for service_data in services_data:
             service_id = service_data.pop("service_id")
-            PackageService.objects.create(package=package, service_id=service_id, **service_data)
+            PackageService.objects.create(
+                package=package, service_id=service_id, **service_data
+            )
 
         # Create availability
         for avail_data in availability_data:
@@ -301,7 +305,9 @@ class PackageCreateSerializer(serializers.ModelSerializer):
         validate_discount_price(original_price, validated_data["discounted_price"])
 
         # Create package
-        package = Package.objects.create(original_price=original_price, **validated_data)
+        package = Package.objects.create(
+            original_price=original_price, **validated_data
+        )
 
         # Add services with optimal sequence
         optimal_sequence = BundleOptimizer.optimize_service_sequence(services)

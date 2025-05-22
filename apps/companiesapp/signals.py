@@ -30,7 +30,9 @@ def update_company_subscription_status(sender, instance, **kwargs):
 
         # If subscription became inactive, update shop status
         if instance.status != "active":
-            from apps.subscriptionapp.services.subscription_service import SubscriptionService
+            from apps.subscriptionapp.services.subscription_service import (
+                SubscriptionService,
+            )
 
             SubscriptionService.handle_inactive_subscription(company)
     except Exception as e:
@@ -79,7 +81,9 @@ def handle_document_verification(sender, instance, created, **kwargs):
 
         # Send notification
         try:
-            from apps.notificationsapp.services.notification_service import NotificationService
+            from apps.notificationsapp.services.notification_service import (
+                NotificationService,
+            )
 
             NotificationService.send_notification(
                 user_id=instance.company.owner.id,

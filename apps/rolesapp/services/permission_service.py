@@ -66,7 +66,9 @@ class PermissionService:
 
         # Create resource wildcards
         for resource in resources:
-            PermissionService.get_or_create_permission(resource, "*", f"All actions on {resource}")
+            PermissionService.get_or_create_permission(
+                resource, "*", f"All actions on {resource}"
+            )
 
         # Create action wildcards
         for action in actions:
@@ -83,7 +85,9 @@ class PermissionService:
 
     @staticmethod
     @transaction.atomic
-    def create_default_role(role_type, name=None, description=None, entity=None, performed_by=None):
+    def create_default_role(
+        role_type, name=None, description=None, entity=None, performed_by=None
+    ):
         """
         Create a default role with standard permissions
 
@@ -139,11 +143,15 @@ class PermissionService:
                         role.permissions.add(permission)
                     elif action == "*":
                         # All actions for specific resource
-                        permission = Permission.objects.get(resource=resource, action="*")
+                        permission = Permission.objects.get(
+                            resource=resource, action="*"
+                        )
                         role.permissions.add(permission)
                 else:
                     # Regular permission
-                    permission = Permission.objects.get(resource=resource, action=action)
+                    permission = Permission.objects.get(
+                        resource=resource, action=action
+                    )
                     role.permissions.add(permission)
 
                 # Log permission addition

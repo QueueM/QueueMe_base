@@ -105,7 +105,9 @@ class AuthenticationSecurityTest(TestCase):
 
         # Generate a short-lived token for testing
         # Note: This requires modifying the token service to allow short lifetimes for testing
-        token = TokenService.get_test_token_with_short_lifetime(self.user, lifetime_seconds=1)
+        token = TokenService.get_test_token_with_short_lifetime(
+            self.user, lifetime_seconds=1
+        )
 
         # Wait for token to expire
         time.sleep(2)
@@ -210,7 +212,9 @@ class AuthorizationSecurityTest(TestCase):
         # Add permissions
         for resource in ["booking", "service", "specialist", "employee"]:
             for action in ["view", "add", "edit", "delete"]:
-                permission, _ = Permission.objects.get_or_create(resource=resource, action=action)
+                permission, _ = Permission.objects.get_or_create(
+                    resource=resource, action=action
+                )
                 self.shop_manager_role.permissions.add(permission)
 
         # Assign role to employee
@@ -234,7 +238,9 @@ class AuthorizationSecurityTest(TestCase):
         from apps.authapp.services.token_service import TokenService
 
         self.customer_token = TokenService.get_tokens_for_user(self.customer)["access"]
-        self.employee_token = TokenService.get_tokens_for_user(self.employee_user)["access"]
+        self.employee_token = TokenService.get_tokens_for_user(self.employee_user)[
+            "access"
+        ]
         self.admin_token = TokenService.get_tokens_for_user(self.admin_user)["access"]
 
     def test_role_based_access_control(self):
@@ -689,7 +695,9 @@ class PermissionsIntegrityTest(TestCase):
     def test_permission_boundaries_respected(self):
         """Test that users can only perform actions they have permission for."""
         # Should be able to view employees
-        view_response = self.client.get(reverse("shop-employees-list", args=[self.shop.id]))
+        view_response = self.client.get(
+            reverse("shop-employees-list", args=[self.shop.id])
+        )
         self.assertEqual(view_response.status_code, 200)
 
         # Should not be able to create employees

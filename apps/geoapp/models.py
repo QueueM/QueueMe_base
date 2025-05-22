@@ -75,7 +75,11 @@ class City(models.Model):
 
     def save(self, *args, **kwargs):
         # Sync latitude/longitude with location
-        if not self.location and self.latitude is not None and self.longitude is not None:
+        if (
+            not self.location
+            and self.latitude is not None
+            and self.longitude is not None
+        ):
             self.location = Point(self.longitude, self.latitude, srid=4326)
         elif self.location and (self.latitude is None or self.longitude is None):
             self.latitude = self.location.y
@@ -191,7 +195,11 @@ class Location(models.Model):
         self.country = self.city.country
 
         # Sync latitude/longitude with coordinates
-        if not self.coordinates and self.latitude is not None and self.longitude is not None:
+        if (
+            not self.coordinates
+            and self.latitude is not None
+            and self.longitude is not None
+        ):
             self.coordinates = Point(self.longitude, self.latitude, srid=4326)
         elif self.coordinates and (self.latitude is None or self.longitude is None):
             self.latitude = self.coordinates.y
@@ -326,4 +334,6 @@ class Geofence(models.Model):
         # Otherwise calculate using center and radius
         # Convert km to degrees (approximation, better to use geodesic distance)
         # This will return True if the point is within radius_km of center
-        return self.center.distance(point) <= (self.radius_km / 111.32)  # approx km per degree
+        return self.center.distance(point) <= (
+            self.radius_km / 111.32
+        )  # approx km per degree

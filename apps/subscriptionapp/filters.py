@@ -40,7 +40,9 @@ class PlanFilter(django_filters.FilterSet):
         field_name="price", lookup_expr="lte", label=_("Max Price")
     )
     name = django_filters.CharFilter(lookup_expr="icontains", label=_("Name"))
-    feature = django_filters.UUIDFilter(field_name="plan_features__feature", label=_("Has Feature"))
+    feature = django_filters.UUIDFilter(
+        field_name="plan_features__feature", label=_("Has Feature")
+    )
 
     class Meta:
         model = Plan
@@ -50,7 +52,9 @@ class PlanFilter(django_filters.FilterSet):
 class SubscriptionFilter(django_filters.FilterSet):
     """Filter for subscriptions"""
 
-    status = django_filters.ChoiceFilter(choices=Subscription.STATUS_CHOICES, label=_("Status"))
+    status = django_filters.ChoiceFilter(
+        choices=Subscription.STATUS_CHOICES, label=_("Status")
+    )
     company = django_filters.UUIDFilter(label=_("Company"))
     plan = django_filters.UUIDFilter(label=_("Plan"))
     is_auto_renew = django_filters.BooleanFilter(label=_("Auto Renew"))
@@ -79,7 +83,9 @@ class SubscriptionInvoiceFilter(django_filters.FilterSet):
         choices=SubscriptionInvoice.STATUS_CHOICES, label=_("Status")
     )
     subscription = django_filters.UUIDFilter(label=_("Subscription"))
-    company = django_filters.UUIDFilter(field_name="subscription__company", label=_("Company"))
+    company = django_filters.UUIDFilter(
+        field_name="subscription__company", label=_("Company")
+    )
     issue_date_after = django_filters.DateFilter(
         field_name="issue_date", lookup_expr="gte", label=_("Issue Date After")
     )
@@ -105,7 +111,9 @@ class SubscriptionEventFilter(django_filters.FilterSet):
         choices=SubscriptionEvent.EVENT_TYPE_CHOICES, label=_("Event Type")
     )
     subscription = django_filters.UUIDFilter(label=_("Subscription"))
-    company = django_filters.UUIDFilter(field_name="subscription__company", label=_("Company"))
+    company = django_filters.UUIDFilter(
+        field_name="subscription__company", label=_("Company")
+    )
     created_at_after = django_filters.DateFilter(
         field_name="created_at", lookup_expr="gte", label=_("Created After")
     )

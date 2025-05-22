@@ -7,9 +7,8 @@ that have been moved to the dead letter queue after exceeding retry limits.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
-from django.db import transaction
 from django.utils import timezone
 
 from apps.notificationsapp.models import DeadLetterNotification, Notification
@@ -78,7 +77,9 @@ class DeadLetterQueueService:
         total_count = query.count()
 
         # Apply pagination
-        dead_letter_notifications = query.order_by("-created_at")[offset : offset + limit]
+        dead_letter_notifications = query.order_by("-created_at")[
+            offset : offset + limit
+        ]
 
         # Format response
         results = []
@@ -129,7 +130,9 @@ class DeadLetterQueueService:
                 }
 
             # Import here to avoid circular imports
-            from apps.notificationsapp.services.notification_service import NotificationService
+            from apps.notificationsapp.services.notification_service import (
+                NotificationService,
+            )
 
             # Retry the notification
             result = NotificationService.retry_notification(
@@ -159,7 +162,9 @@ class DeadLetterQueueService:
                 "message": f"Dead letter notification with ID {dead_letter_id} not found",
             }
         except Exception as e:
-            logger.error(f"Error retrying dead letter notification: {str(e)}", exc_info=True)
+            logger.error(
+                f"Error retrying dead letter notification: {str(e)}", exc_info=True
+            )
             return {
                 "success": False,
                 "message": f"Error retrying dead letter notification: {str(e)}",

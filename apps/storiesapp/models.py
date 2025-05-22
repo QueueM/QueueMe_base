@@ -29,10 +29,14 @@ class Story(models.Model):
         related_name="stories",
         verbose_name=_("Shop"),
     )
-    story_type = models.CharField(_("Story Type"), max_length=10, choices=STORY_TYPE_CHOICES)
+    story_type = models.CharField(
+        _("Story Type"), max_length=10, choices=STORY_TYPE_CHOICES
+    )
     media_url = models.URLField(_("Media URL"))
     thumbnail_url = models.URLField(_("Thumbnail URL"), null=True, blank=True)
-    created_at = models.DateTimeField(_("Created At"), auto_now_add=True, editable=False)
+    created_at = models.DateTimeField(
+        _("Created At"), auto_now_add=True, editable=False
+    )
     expires_at = models.DateTimeField(_("Expires At"), null=True, blank=True)
     is_active = models.BooleanField(_("Active"), default=True)
 

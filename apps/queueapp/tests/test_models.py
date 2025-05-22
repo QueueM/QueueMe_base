@@ -76,7 +76,9 @@ class QueueTicketModelTest(TestCase):
         )
 
         # Create a queue
-        self.queue = Queue.objects.create(name="Test Queue", shop=self.shop, status="open")
+        self.queue = Queue.objects.create(
+            name="Test Queue", shop=self.shop, status="open"
+        )
 
         # Create a ticket
         self.ticket = QueueTicket.objects.create(

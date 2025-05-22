@@ -43,10 +43,18 @@ def update_trending_reels():
     recent_reels = (
         Reel.objects.filter(status="published", created_at__gte=three_days_ago)
         .annotate(
-            recent_views=Count("views", filter=Q(views__created_at__gte=three_days_ago)),
-            recent_likes=Count("likes", filter=Q(likes__created_at__gte=three_days_ago)),
-            recent_comments=Count("comments", filter=Q(comments__created_at__gte=three_days_ago)),
-            recent_shares=Count("shares", filter=Q(shares__created_at__gte=three_days_ago)),
+            recent_views=Count(
+                "views", filter=Q(views__created_at__gte=three_days_ago)
+            ),
+            recent_likes=Count(
+                "likes", filter=Q(likes__created_at__gte=three_days_ago)
+            ),
+            recent_comments=Count(
+                "comments", filter=Q(comments__created_at__gte=three_days_ago)
+            ),
+            recent_shares=Count(
+                "shares", filter=Q(shares__created_at__gte=three_days_ago)
+            ),
             engagement_score=(
                 F("recent_views") * 1
                 + F("recent_likes") * 2

@@ -6,10 +6,8 @@ payment gateway.
 """
 
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -77,7 +75,9 @@ class AdPaymentService:
             if not payment_result.get("success", False):
                 return {
                     "success": False,
-                    "message": payment_result.get("message", "Payment processing failed"),
+                    "message": payment_result.get(
+                        "message", "Payment processing failed"
+                    ),
                     "payment_id": payment_result.get("payment_id"),
                 }
 
@@ -101,7 +101,9 @@ class AdPaymentService:
 
                 # If campaign exists, update budget spent
                 if ad.campaign:
-                    from apps.marketingapp.services.ad_management_service import AdManagementService
+                    from apps.marketingapp.services.ad_management_service import (
+                        AdManagementService,
+                    )
 
                     AdManagementService.update_campaign_budget_spent(ad.campaign.id)
 

@@ -174,7 +174,9 @@ class TestPackageService(TestCase):
             Package.objects.get(id=self.package.id)
 
         # Check package services were deleted
-        self.assertEqual(PackageService.objects.filter(package_id=self.package.id).count(), 0)
+        self.assertEqual(
+            PackageService.objects.filter(package_id=self.package.id).count(), 0
+        )
 
     def test_get_package_services(self):
         """Test retrieving services for a package"""
@@ -219,7 +221,9 @@ class TestPackageAvailabilityService(TestCase):
             phone_number="5554443333", user_type="employee", is_verified=True
         )
 
-        self.specialist = Specialist.objects.create(employee_id=self.user.id, bio="Test specialist")
+        self.specialist = Specialist.objects.create(
+            employee_id=self.user.id, bio="Test specialist"
+        )
 
         # Create package
         self.package = Package.objects.create(
@@ -284,7 +288,9 @@ class TestPackageAvailabilityService(TestCase):
 
         # Get availability for package
         date = timezone.now().date()
-        availability = PackageAvailabilityService.get_package_availability(self.package.id, date)
+        availability = PackageAvailabilityService.get_package_availability(
+            self.package.id, date
+        )
 
         # Should have been called for each service in the package
         self.assertEqual(mock_get_service_availability.call_count, 2)
@@ -298,7 +304,9 @@ class TestPackageAvailabilityService(TestCase):
         """Test checking if a package is available on a specific day"""
         # Test package is available today
         today = timezone.now().date()
-        is_available = PackageAvailabilityService.is_package_available(self.package.id, today)
+        is_available = PackageAvailabilityService.is_package_available(
+            self.package.id, today
+        )
         self.assertTrue(is_available)
 
         # Set package to closed today
@@ -306,12 +314,16 @@ class TestPackageAvailabilityService(TestCase):
         self.availability.save()
 
         # Test package is not available
-        is_available = PackageAvailabilityService.is_package_available(self.package.id, today)
+        is_available = PackageAvailabilityService.is_package_available(
+            self.package.id, today
+        )
         self.assertFalse(is_available)
 
         # Test for a day without explicit availability (should default to shop hours)
         tomorrow = today + timedelta(days=1)
-        is_available = PackageAvailabilityService.is_package_available(self.package.id, tomorrow)
+        is_available = PackageAvailabilityService.is_package_available(
+            self.package.id, tomorrow
+        )
         # Assuming shop is open by default
         self.assertTrue(is_available)
 
@@ -547,7 +559,9 @@ class TestBundleOptimizer(TestCase):
 
         # First package should include all services with a discount
         all_services_package = packages[0]
-        self.assertEqual(PackageService.objects.filter(package=all_services_package).count(), 3)
+        self.assertEqual(
+            PackageService.objects.filter(package=all_services_package).count(), 3
+        )
 
         # Package price should be less than sum of service prices (which is 450)
         self.assertLess(all_services_package.price, 450)

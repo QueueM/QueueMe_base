@@ -20,9 +20,9 @@ class PortfolioService:
         Returns:
             QuerySet of PortfolioItem objects
         """
-        queryset = PortfolioItem.objects.filter(specialist_id=specialist_id).select_related(
-            "service", "category"
-        )
+        queryset = PortfolioItem.objects.filter(
+            specialist_id=specialist_id
+        ).select_related("service", "category")
 
         if category_id:
             queryset = queryset.filter(category_id=category_id)

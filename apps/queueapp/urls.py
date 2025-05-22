@@ -31,7 +31,9 @@ urlpatterns = [
     path("mark-served/", views.MarkServedView.as_view(), name="mark-served"),
     path("cancel/", views.CancelTicketView.as_view(), name="cancel-ticket"),
     # Queue status
-    path("status/<uuid:queue_id>/", views.QueueStatusView.as_view(), name="queue-status"),
+    path(
+        "status/<uuid:queue_id>/", views.QueueStatusView.as_view(), name="queue-status"
+    ),
     path("position/", views.CheckPositionView.as_view(), name="check-position"),
     path(
         "customer/<uuid:customer_id>/active/",

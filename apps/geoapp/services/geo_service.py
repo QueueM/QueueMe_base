@@ -57,7 +57,9 @@ class GeoService:
             # If cities are not found, check if points are close to each other (within 5km)
             from .distance_service import DistanceService
 
-            distance_km = DistanceService.calculate_haversine_distance(lat1, lng1, lat2, lng2)
+            distance_km = DistanceService.calculate_haversine_distance(
+                lat1, lng1, lat2, lng2
+            )
 
             # If very close (within 5km), assume same city
             return distance_km < 5
@@ -112,9 +114,9 @@ class GeoService:
                     queryset = queryset.filter(**{key: value})
 
             # Annotate with distance
-            queryset = queryset.annotate(distance=Distance(location_field, point)).order_by(
-                "distance"
-            )
+            queryset = queryset.annotate(
+                distance=Distance(location_field, point)
+            ).order_by("distance")
 
             # Return with distance information
             result = []
@@ -129,10 +131,12 @@ class GeoService:
                 if kwargs.get("include_travel_time"):
                     from .travel_time_service import TravelTimeService
 
-                    entity_data["travel_time_minutes"] = TravelTimeService.estimate_travel_time(
-                        point,
-                        getattr(entity, location_field.split("__")[0]).coordinates,
-                        mode="driving",
+                    entity_data["travel_time_minutes"] = (
+                        TravelTimeService.estimate_travel_time(
+                            point,
+                            getattr(entity, location_field.split("__")[0]).coordinates,
+                            mode="driving",
+                        )
                     )
 
                 result.append(entity_data)

@@ -10,7 +10,9 @@ class FeatureService:
     @staticmethod
     def get_features_by_category(plan_id):
         """Get plan features organized by category"""
-        features = PlanFeature.objects.filter(plan_id=plan_id).order_by("category", "tier")
+        features = PlanFeature.objects.filter(plan_id=plan_id).order_by(
+            "category", "tier"
+        )
 
         # Organize features by category
         categorized_features = {}
@@ -99,7 +101,9 @@ class FeatureService:
         plan_ids = [plan.id for plan in plans]
 
         # Get all features for these plans
-        all_features = PlanFeature.objects.filter(plan_id__in=plan_ids).order_by("category", "tier")
+        all_features = PlanFeature.objects.filter(plan_id__in=plan_ids).order_by(
+            "category", "tier"
+        )
 
         # Organize features by category
         comparison = {}

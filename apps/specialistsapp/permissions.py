@@ -59,7 +59,9 @@ class CanManageSpecialist(permissions.BasePermission):
 
         if shop_id:
             # Check if user has permission for this shop
-            return PermissionResolver.has_shop_permission(user, shop_id, "specialist", "edit")
+            return PermissionResolver.has_shop_permission(
+                user, shop_id, "specialist", "edit"
+            )
 
         return False
 
@@ -121,7 +123,10 @@ class CanManagePortfolio(permissions.BasePermission):
                 specialist = Specialist.objects.get(id=specialist_id)
 
                 # If user is the specialist's employee
-                if hasattr(user, "employee") and user.employee.id == specialist.employee.id:
+                if (
+                    hasattr(user, "employee")
+                    and user.employee.id == specialist.employee.id
+                ):
                     return True
 
                 # If user has permission for this shop

@@ -16,7 +16,9 @@ class AppointmentFilter(filters.FilterSet):
 
     # Status filtering
     status = filters.CharFilter(field_name="status")
-    statuses = filters.MultipleChoiceFilter(field_name="status", choices=Appointment.STATUS_CHOICES)
+    statuses = filters.MultipleChoiceFilter(
+        field_name="status", choices=Appointment.STATUS_CHOICES
+    )
 
     # Payment status filtering
     payment_status = filters.CharFilter(field_name="payment_status")
@@ -31,7 +33,9 @@ class AppointmentFilter(filters.FilterSet):
 
     # Service filtering
     service = filters.UUIDFilter(field_name="service__id")
-    service_name = filters.CharFilter(field_name="service__name", lookup_expr="icontains")
+    service_name = filters.CharFilter(
+        field_name="service__name", lookup_expr="icontains"
+    )
 
     # Specialist filtering
     specialist = filters.UUIDFilter(field_name="specialist__id")

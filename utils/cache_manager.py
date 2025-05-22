@@ -36,7 +36,9 @@ def cache_key_builder(*args, prefix: str = None, **kwargs) -> str:
     for arg in args:
         if isinstance(arg, (list, dict, set, tuple)):
             # Convert complex types to a string representation
-            key_parts.append(hashlib.md5(json.dumps(arg, sort_keys=True).encode()).hexdigest())
+            key_parts.append(
+                hashlib.md5(json.dumps(arg, sort_keys=True).encode()).hexdigest()
+            )
         else:
             key_parts.append(str(arg))
 
@@ -73,7 +75,9 @@ class CacheManager:
         """
         self.namespace = namespace
         self.version = version
-        self.default_timeout = getattr(settings, "CACHE_TIMEOUT", 300)  # 5 minutes by default
+        self.default_timeout = getattr(
+            settings, "CACHE_TIMEOUT", 300
+        )  # 5 minutes by default
 
     def build_key(self, key: str) -> str:
         """
@@ -123,7 +127,9 @@ class CacheManager:
         """
         cache.delete(self.build_key(key))
 
-    def get_or_set(self, key: str, default_func: Callable, timeout: Optional[int] = None) -> Any:
+    def get_or_set(
+        self, key: str, default_func: Callable, timeout: Optional[int] = None
+    ) -> Any:
         """
         Get a value from the cache or set it with the result of default_func.
 

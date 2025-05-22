@@ -27,9 +27,13 @@ class Plan(models.Model):
     name_ar = models.CharField(_("Plan Name (Arabic)"), max_length=100, blank=True)
     description = models.TextField(_("Description"))
     description_ar = models.TextField(_("Description (Arabic)"), blank=True)
-    monthly_price = models.DecimalField(_("Monthly Price (SAR)"), max_digits=10, decimal_places=2)
+    monthly_price = models.DecimalField(
+        _("Monthly Price (SAR)"), max_digits=10, decimal_places=2
+    )
     max_shops = models.PositiveIntegerField(_("Maximum Shops/Branches"), default=1)
-    max_services_per_shop = models.PositiveIntegerField(_("Maximum Services per Shop"), default=10)
+    max_services_per_shop = models.PositiveIntegerField(
+        _("Maximum Services per Shop"), default=10
+    )
     max_specialists_per_shop = models.PositiveIntegerField(
         _("Maximum Specialists per Shop"), default=5
     )
@@ -65,7 +69,9 @@ class PlanFeature(models.Model):
     name_ar = models.CharField(_("Feature Name (Arabic)"), max_length=100, blank=True)
     description = models.TextField(_("Description"), blank=True)
     description_ar = models.TextField(_("Description (Arabic)"), blank=True)
-    category = models.CharField(_("Category"), max_length=20, choices=FEATURE_CATEGORY_CHOICES)
+    category = models.CharField(
+        _("Category"), max_length=20, choices=FEATURE_CATEGORY_CHOICES
+    )
     tier = models.CharField(_("Tier"), max_length=20, choices=FEATURE_TIER_CHOICES)
     value = models.CharField(_("Value/Limit"), max_length=50, blank=True)
     is_available = models.BooleanField(_("Available"), default=True)
@@ -115,14 +121,22 @@ class Subscription(models.Model):
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
     canceled_at = models.DateTimeField(_("Canceled At"), null=True, blank=True)
     trial_end = models.DateTimeField(_("Trial End Date"), null=True, blank=True)
-    current_period_start = models.DateTimeField(_("Current Period Start"), null=True, blank=True)
-    current_period_end = models.DateTimeField(_("Current Period End"), null=True, blank=True)
-    moyasar_id = models.CharField(_("Moyasar ID"), max_length=255, blank=True, null=True)
+    current_period_start = models.DateTimeField(
+        _("Current Period Start"), null=True, blank=True
+    )
+    current_period_end = models.DateTimeField(
+        _("Current Period End"), null=True, blank=True
+    )
+    moyasar_id = models.CharField(
+        _("Moyasar ID"), max_length=255, blank=True, null=True
+    )
 
     # Cached plan details (to maintain historical data if plan changes)
     plan_name = models.CharField(_("Plan Name"), max_length=100, blank=True)
     max_shops = models.PositiveIntegerField(_("Maximum Shops/Branches"), default=1)
-    max_services_per_shop = models.PositiveIntegerField(_("Maximum Services per Shop"), default=10)
+    max_services_per_shop = models.PositiveIntegerField(
+        _("Maximum Services per Shop"), default=10
+    )
     max_specialists_per_shop = models.PositiveIntegerField(
         _("Maximum Specialists per Shop"), default=5
     )
@@ -240,8 +254,12 @@ class SubscriptionLog(models.Model):
         verbose_name=_("Subscription"),
     )
     action = models.CharField(_("Action"), max_length=50)
-    status_before = models.CharField(_("Status Before"), max_length=20, blank=True, null=True)
-    status_after = models.CharField(_("Status After"), max_length=20, blank=True, null=True)
+    status_before = models.CharField(
+        _("Status Before"), max_length=20, blank=True, null=True
+    )
+    status_after = models.CharField(
+        _("Status After"), max_length=20, blank=True, null=True
+    )
     performed_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

@@ -143,7 +143,9 @@ class APIPerformanceTest(TestCase):
         # Get a token for performance testing
         from apps.authapp.services.token_service import TokenService
 
-        cls.customer_token = TokenService.get_tokens_for_user(cls.customers[0])["access"]
+        cls.customer_token = TokenService.get_tokens_for_user(cls.customers[0])[
+            "access"
+        ]
 
     def setUp(self):
         """Set up for each test method."""
@@ -158,14 +160,18 @@ class APIPerformanceTest(TestCase):
         start_time = time.time()
 
         # Send API request
-        response = self.client.get(reverse("nearby-shops"), {"lat": lat, "lng": lng, "radius": 10})
+        response = self.client.get(
+            reverse("nearby-shops"), {"lat": lat, "lng": lng, "radius": 10}
+        )
 
         # Calculate response time
         response_time = time.time() - start_time
 
         # Assert status and performance
         self.assertEqual(response.status_code, 200)
-        self.assertLess(response_time, 0.5, f"Nearby shops API too slow: {response_time:.3f}s")
+        self.assertLess(
+            response_time, 0.5, f"Nearby shops API too slow: {response_time:.3f}s"
+        )
 
         # Log the performance data
         print(f"Nearby shops API response time: {response_time:.3f}s")
@@ -213,7 +219,9 @@ class APIPerformanceTest(TestCase):
 
         # Assert status and performance
         self.assertEqual(response.status_code, 200)
-        self.assertLess(response_time, 0.3, f"Service listing API too slow: {response_time:.3f}s")
+        self.assertLess(
+            response_time, 0.3, f"Service listing API too slow: {response_time:.3f}s"
+        )
 
         # Log the performance data
         print(f"Service listing API response time: {response_time:.3f}s")
@@ -233,7 +241,9 @@ class APIPerformanceTest(TestCase):
 
         # Assert status and performance
         self.assertEqual(response.status_code, 200)
-        self.assertLess(response_time, 0.3, f"Shop detail API too slow: {response_time:.3f}s")
+        self.assertLess(
+            response_time, 0.3, f"Shop detail API too slow: {response_time:.3f}s"
+        )
 
         # Log the performance data
         print(f"Shop detail API response time: {response_time:.3f}s")
@@ -279,7 +289,9 @@ class APIPerformanceTest(TestCase):
 
         # Assert status and performance
         self.assertEqual(response.status_code, 200)
-        self.assertLess(response_time, 0.5, f"Search API too slow: {response_time:.3f}s")
+        self.assertLess(
+            response_time, 0.5, f"Search API too slow: {response_time:.3f}s"
+        )
 
         # Log the performance data
         print(f"Search API response time: {response_time:.3f}s")
@@ -376,7 +388,8 @@ class DatabasePerformanceTest(TestCase):
 
         result = (
             Service.objects.filter(
-                Q(shop__location__city="Riyadh") & (Q(price__gte=50) | Q(duration__lte=60))
+                Q(shop__location__city="Riyadh")
+                & (Q(price__gte=50) | Q(duration__lte=60))
             )
             .select_related("shop", "category", "shop__company")
             .annotate(shop_service_count=Count("shop__services", distinct=True))

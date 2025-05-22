@@ -220,7 +220,8 @@ class ShopService:
             weighted_score=Case(
                 When(
                     review_count__gt=0,
-                    then=F("avg_rating") * 0.6 + (F("booking_count") / Value(10.0)) * 0.4,
+                    then=F("avg_rating") * 0.6
+                    + (F("booking_count") / Value(10.0)) * 0.4,
                 ),
                 default=F("booking_count") / Value(10.0),
                 output_field=FloatField(),

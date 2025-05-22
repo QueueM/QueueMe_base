@@ -25,7 +25,9 @@ class NotificationTemplateTest(TestCase):
 class NotificationTest(TestCase):
     def setUp(self):
         # Create a user
-        self.user = User.objects.create(phone_number="1234567890", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="1234567890", email="test@example.com"
+        )
 
         # Create a template
         self.template = NotificationTemplate.objects.create(
@@ -50,7 +52,9 @@ class NotificationTest(TestCase):
 
     def test_notification_str_representation(self):
         """Test the string representation of a notification"""
-        self.assertEqual(str(self.notification), "1234567890 - appointment_confirmation - pending")
+        self.assertEqual(
+            str(self.notification), "1234567890 - appointment_confirmation - pending"
+        )
 
     def test_notification_status_transition(self):
         """Test notification status transitions"""
@@ -91,7 +95,9 @@ class NotificationTest(TestCase):
 class DeviceTokenTest(TestCase):
     def setUp(self):
         # Create a user
-        self.user = User.objects.create(phone_number="1234567890", email="test@example.com")
+        self.user = User.objects.create(
+            phone_number="1234567890", email="test@example.com"
+        )
 
         # Create a device token
         self.device_token = DeviceToken.objects.create(

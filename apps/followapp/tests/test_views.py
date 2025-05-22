@@ -13,9 +13,13 @@ User = get_user_model()
 class FollowViewSetTestCase(APITestCase):
     def setUp(self):
         # Create test users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.company_owner = User.objects.create(phone_number="9876543210", user_type="admin")
+        self.company_owner = User.objects.create(
+            phone_number="9876543210", user_type="admin"
+        )
 
         # Create test company and shop
         self.company = Company.objects.create(
@@ -105,7 +109,9 @@ class FollowViewSetTestCase(APITestCase):
 
     def test_get_most_followed_shops(self):
         """Test getting most followed shops"""
-        url = reverse("followapp:shop-followers-most-followed", kwargs={"shop_id": self.shop.id})
+        url = reverse(
+            "followapp:shop-followers-most-followed", kwargs={"shop_id": self.shop.id}
+        )
 
         # Create another shop with more followers
         shop2 = Shop.objects.create(

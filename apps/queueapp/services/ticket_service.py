@@ -34,9 +34,9 @@ class TicketService:
 
             # Verify new position is valid
             max_position = (
-                QueueTicket.objects.filter(queue_id=queue_id, status="waiting").aggregate(
-                    max_position=Max("position")
-                )["max_position"]
+                QueueTicket.objects.filter(
+                    queue_id=queue_id, status="waiting"
+                ).aggregate(max_position=Max("position"))["max_position"]
                 or 0
             )
 
@@ -169,7 +169,9 @@ class TicketService:
                 # Calculate service time if available
                 service_time = None
                 if ticket.serve_time and ticket.complete_time:
-                    service_time = (ticket.complete_time - ticket.serve_time).total_seconds() / 60
+                    service_time = (
+                        ticket.complete_time - ticket.serve_time
+                    ).total_seconds() / 60
 
                 result.append(
                     {
@@ -206,7 +208,9 @@ class TicketService:
 
             # Can only assign specialist to waiting or called tickets
             if ticket.status not in ["waiting", "called"]:
-                return {"error": f"Cannot assign specialist to ticket in {ticket.status} status"}
+                return {
+                    "error": f"Cannot assign specialist to ticket in {ticket.status} status"
+                }
 
             # Get specialist
             from apps.specialistsapp.models import Specialist
@@ -216,7 +220,9 @@ class TicketService:
 
                 # Verify specialist belongs to the same shop
                 if specialist.employee.shop_id != ticket.queue.shop_id:
-                    return {"error": "Specialist does not belong to the same shop as the queue"}
+                    return {
+                        "error": "Specialist does not belong to the same shop as the queue"
+                    }
 
                 # If ticket has a service, verify specialist can provide it
                 if ticket.service_id:
@@ -227,7 +233,9 @@ class TicketService:
                     ).exists()
 
                     if not can_provide:
-                        return {"error": "Specialist cannot provide the requested service"}
+                        return {
+                            "error": "Specialist cannot provide the requested service"
+                        }
 
                 # Assign specialist
                 ticket.specialist = specialist
@@ -275,7 +283,9 @@ class TicketService:
                         else None
                     ),
                     "estimated_wait_time": (
-                        ticket.estimated_wait_time if ticket.status == "waiting" else None
+                        ticket.estimated_wait_time
+                        if ticket.status == "waiting"
+                        else None
                     ),
                     "join_time": ticket.join_time,
                     "called_time": ticket.called_time,

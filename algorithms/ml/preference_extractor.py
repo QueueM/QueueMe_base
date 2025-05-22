@@ -158,7 +158,9 @@ class PreferenceExtractor:
 
                 # Add specialist preference
                 if booking.specialist_id:
-                    specialist_preferences[booking.specialist_id] += 1.0 * recency_weight
+                    specialist_preferences[booking.specialist_id] += (
+                        1.0 * recency_weight
+                    )
 
                 # Add shop preference
                 if booking.shop_id:
@@ -288,7 +290,9 @@ class PreferenceExtractor:
 
                 # Add shop preference
                 if engagement.reel and engagement.reel.shop_id:
-                    shop_preferences[engagement.reel.shop_id] += engagement_weight * recency_weight
+                    shop_preferences[engagement.reel.shop_id] += (
+                        engagement_weight * recency_weight
+                    )
 
                 # Add category preference if available
                 if (
@@ -299,7 +303,9 @@ class PreferenceExtractor:
                 ):
                     category_id = engagement.reel.service.category_id
                     if category_id:
-                        category_preferences[category_id] += engagement_weight * recency_weight
+                        category_preferences[category_id] += (
+                            engagement_weight * recency_weight
+                        )
 
             # Process story views
             story_views = StoryView.objects.filter(
@@ -326,7 +332,9 @@ class PreferenceExtractor:
                     and view.story.context_type == "category"
                     and view.story.context_id
                 ):
-                    category_preferences[view.story.context_id] += view_weight * recency_weight
+                    category_preferences[view.story.context_id] += (
+                        view_weight * recency_weight
+                    )
 
             # Normalize preferences
             return {
@@ -387,7 +395,9 @@ class PreferenceExtractor:
                                 * recency_weight
                                 * (
                                     cat_entry["count"]
-                                    / max(1, sum(c["count"] for c in service_categories))
+                                    / max(
+                                        1, sum(c["count"] for c in service_categories)
+                                    )
                                 )
                             )
 
@@ -574,7 +584,9 @@ class PreferenceExtractor:
             logger.debug(f"Error extracting location preferences: {str(e)}")
             return None
 
-    def _combine_preferences(self, weighted_preferences: List[Tuple[Dict, float]]) -> Dict:
+    def _combine_preferences(
+        self, weighted_preferences: List[Tuple[Dict, float]]
+    ) -> Dict:
         """
         Combine multiple preference sources with weights.
 

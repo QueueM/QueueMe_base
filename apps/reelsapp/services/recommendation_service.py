@@ -80,7 +80,9 @@ class RecommendationService:
                 popular_seen_reels = (
                     queryset.filter(id__in=viewed_reel_ids)
                     .annotate(
-                        engagement=Count("likes") + Count("comments") * 2 + Count("shares") * 3
+                        engagement=Count("likes")
+                        + Count("comments") * 2
+                        + Count("shares") * 3
                     )
                     .order_by("-engagement")[: limit - len(reels_to_rank)]
                 )
@@ -100,11 +102,15 @@ class RecommendationService:
 
                 # Calculate freshness factor (newer is better)
                 days_old = (timezone.now() - reel.created_at).days
-                freshness = max(0, 1 - (days_old / 30.0))  # 1.0 (new) to 0.0 (30+ days old)
+                freshness = max(
+                    0, 1 - (days_old / 30.0)
+                )  # 1.0 (new) to 0.0 (30+ days old)
 
                 # Calculate engagement score
                 engagement = (
-                    reel.likes.count() + (reel.comments.count() * 2) + (reel.shares.count() * 3)
+                    reel.likes.count()
+                    + (reel.comments.count() * 2)
+                    + (reel.shares.count() * 3)
                 ) / max(
                     1, reel.view_count
                 )  # Avoid division by zero
@@ -115,7 +121,10 @@ class RecommendationService:
                 attributes.append(f"shop:{reel.shop_id}")
                 if reel.services.exists():
                     attributes.extend(
-                        [f"service:{sid}" for sid in reel.services.values_list("id", flat=True)]
+                        [
+                            f"service:{sid}"
+                            for sid in reel.services.values_list("id", flat=True)
+                        ]
                     )
 
                 reels_attributes[str(reel.id)] = attributes
@@ -197,7 +206,10 @@ class RecommendationService:
             if ranked_reel_ids:
                 # Create a Case statement for ordering
                 preserved_order = Case(
-                    *[When(id=pk, then=Value(i)) for i, pk in enumerate(ranked_reel_ids)],
+                    *[
+                        When(id=pk, then=Value(i))
+                        for i, pk in enumerate(ranked_reel_ids)
+                    ],
                     output_field=IntegerField(),
                 )
 
@@ -210,14 +222,18 @@ class RecommendationService:
 
             # Fallback if algorithm fails
             return queryset.annotate(
-                engagement_score=(Count("likes") + Count("comments") * 2 + Count("shares") * 3)
+                engagement_score=(
+                    Count("likes") + Count("comments") * 2 + Count("shares") * 3
+                )
             ).order_by("-engagement_score", "-created_at")[:limit]
 
         except Exception as e:
             logger.error(f"Error in recommendation algorithm: {str(e)}")
             # Fall back to popularity-based recommendations
             return queryset.annotate(
-                engagement_score=(Count("likes") + Count("comments") * 2 + Count("shares") * 3)
+                engagement_score=(
+                    Count("likes") + Count("comments") * 2 + Count("shares") * 3
+                )
             ).order_by("-engagement_score", "-created_at")[:limit]
 
     @staticmethod
@@ -315,18 +331,24 @@ class RecommendationService:
 
                     # Get shops this customer follows
                     other_following = set(
-                        FollowService.get_following_shop_ids_by_customer_id(other_customer_id)
+                        FollowService.get_following_shop_ids_by_customer_id(
+                            other_customer_id
+                        )
                     )
 
                     # Calculate Jaccard similarity
                     if other_following:
-                        intersection = len(following_shops.intersection(other_following))
+                        intersection = len(
+                            following_shops.intersection(other_following)
+                        )
                         union = len(following_shops.union(other_following))
                         if union > 0:
                             similarity = intersection / union
                             if similarity > 0.1:  # Only consider significant similarity
                                 other_user_id = (
-                                    CustomerPreference.objects.filter(customer_id=other_customer_id)
+                                    CustomerPreference.objects.filter(
+                                        customer_id=other_customer_id
+                                    )
                                     .values_list("customer__user_id", flat=True)
                                     .first()
                                 )
@@ -373,7 +395,10 @@ class RecommendationService:
             if result:
                 max_score = max(score for _, score in result)
                 if max_score > 0:
-                    result = [(user_id, min(score / max_score, 1.0)) for user_id, score in result]
+                    result = [
+                        (user_id, min(score / max_score, 1.0))
+                        for user_id, score in result
+                    ]
 
             return result
 
@@ -433,8 +458,10 @@ class RecommendationService:
                 # Content age similarity (smaller time gap is better)
                 time_similarity=Case(
                     When(
-                        created_at__gte=reference_reel.created_at - timezone.timedelta(days=30),
-                        created_at__lte=reference_reel.created_at + timezone.timedelta(days=30),
+                        created_at__gte=reference_reel.created_at
+                        - timezone.timedelta(days=30),
+                        created_at__lte=reference_reel.created_at
+                        + timezone.timedelta(days=30),
                         then=Value(2),
                     ),
                     default=Value(0),
@@ -455,7 +482,9 @@ class RecommendationService:
             # Order by similarity score, then by engagement and recency
             similar_reels = (
                 similar_reels.annotate(
-                    engagement=(Count("likes") + Count("comments") * 2 + Count("shares") * 3)
+                    engagement=(
+                        Count("likes") + Count("comments") * 2 + Count("shares") * 3
+                    )
                 )
                 .order_by("-similarity_score", "-engagement", "-created_at")
                 .distinct()[:limit]
@@ -466,4 +495,6 @@ class RecommendationService:
         except Exception as e:
             logger.error(f"Error finding similar reels: {str(e)}")
             # Fall back to general recommendations
-            return Reel.objects.filter(status="published").order_by("-created_at")[:limit]
+            return Reel.objects.filter(status="published").order_by("-created_at")[
+                :limit
+            ]

@@ -2,7 +2,12 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.discountapp.models import Coupon, CouponUsage, PromotionalCampaign, ServiceDiscount
+from apps.discountapp.models import (
+    Coupon,
+    CouponUsage,
+    PromotionalCampaign,
+    ServiceDiscount,
+)
 from apps.discountapp.validators import (
     validate_coupon_code,
     validate_date_range,

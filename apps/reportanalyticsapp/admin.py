@@ -61,7 +61,9 @@ class SpecialistAnalyticsAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
     def get_specialist_name(self, obj):
-        return f"{obj.specialist.employee.first_name} {obj.specialist.employee.last_name}"
+        return (
+            f"{obj.specialist.employee.first_name} {obj.specialist.employee.last_name}"
+        )
 
     get_specialist_name.short_description = "Specialist"
     get_specialist_name.admin_order_field = "specialist__employee__first_name"
@@ -188,6 +190,8 @@ class AnomalyDetectionAdmin(admin.ModelAdmin):
     def mark_acknowledged(self, request, queryset):
         for anomaly in queryset:
             anomaly.acknowledge(request.user)
-        self.message_user(request, f"{queryset.count()} anomalies marked as acknowledged.")
+        self.message_user(
+            request, f"{queryset.count()} anomalies marked as acknowledged."
+        )
 
     mark_acknowledged.short_description = "Mark selected anomalies as acknowledged"

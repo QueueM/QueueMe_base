@@ -271,7 +271,9 @@ class DemandForecaster:
             return {"error": "Shop not found"}
 
         # Get specialists
-        specialists = Specialist.objects.filter(employee__shop_id=shop_id, employee__is_active=True)
+        specialists = Specialist.objects.filter(
+            employee__shop_id=shop_id, employee__is_active=True
+        )
 
         if not specialists.exists():
             return {"error": "No active specialists found", "shop_id": shop_id}
@@ -289,8 +291,10 @@ class DemandForecaster:
             forecast_dates.append(forecast_date)
 
         # Get historical utilization by specialist
-        specialist_utilization = DemandForecaster._get_historical_specialist_utilization(
-            specialists, start_date, end_date
+        specialist_utilization = (
+            DemandForecaster._get_historical_specialist_utilization(
+                specialists, start_date, end_date
+            )
         )
 
         # Calculate forecast for each specialist
@@ -361,7 +365,9 @@ class DemandForecaster:
         )  # Use 1 year of historical data for better seasonality detection
 
         # Get historical revenue data
-        revenue_data = DemandForecaster._get_historical_revenue_data(shop_id, start_date, end_date)
+        revenue_data = DemandForecaster._get_historical_revenue_data(
+            shop_id, start_date, end_date
+        )
 
         if not revenue_data:
             return {
@@ -382,7 +388,9 @@ class DemandForecaster:
         cumulative_revenue = 0
 
         for forecast_date in forecast_dates:
-            forecast = DemandForecaster._calculate_revenue_forecast(revenue_data, forecast_date)
+            forecast = DemandForecaster._calculate_revenue_forecast(
+                revenue_data, forecast_date
+            )
             cumulative_revenue += forecast["revenue"]
 
             forecast_data.append(
@@ -391,8 +399,12 @@ class DemandForecaster:
                     "weekday": forecast_date.strftime("%A"),
                     "forecast_revenue": round(forecast["revenue"], 2),
                     "confidence_interval": {
-                        "lower": round(forecast["revenue"] * (1 - forecast["error_margin"]), 2),
-                        "upper": round(forecast["revenue"] * (1 + forecast["error_margin"]), 2),
+                        "lower": round(
+                            forecast["revenue"] * (1 - forecast["error_margin"]), 2
+                        ),
+                        "upper": round(
+                            forecast["revenue"] * (1 + forecast["error_margin"]), 2
+                        ),
                     },
                     "factors": forecast["factors"],
                 }
@@ -547,17 +559,23 @@ class DemandForecaster:
         if not weekday_data:
             return {"bookings": 0, "revenue": 0, "confidence": 0, "factors": []}
 
-        weekday_avg_bookings = sum(day["booking_count"] for day in weekday_data) / len(weekday_data)
-        weekday_avg_revenue = sum(day["revenue"] for day in weekday_data) / len(weekday_data)
+        weekday_avg_bookings = sum(day["booking_count"] for day in weekday_data) / len(
+            weekday_data
+        )
+        weekday_avg_revenue = sum(day["revenue"] for day in weekday_data) / len(
+            weekday_data
+        )
 
         # Calculate monthly seasonality factor
         month_data = [day for day in historical_data if day["month"] == month]
 
         if month_data:
-            month_avg_bookings = sum(day["booking_count"] for day in month_data) / len(month_data)
-            overall_avg_bookings = sum(day["booking_count"] for day in historical_data) / len(
-                historical_data
+            month_avg_bookings = sum(day["booking_count"] for day in month_data) / len(
+                month_data
             )
+            overall_avg_bookings = sum(
+                day["booking_count"] for day in historical_data
+            ) / len(historical_data)
 
             if overall_avg_bookings > 0:
                 month_factor = month_avg_bookings / overall_avg_bookings
@@ -573,8 +591,12 @@ class DemandForecaster:
             first_half = historical_data[:half_point]
             second_half = historical_data[half_point:]
 
-            first_half_avg = sum(day["booking_count"] for day in first_half) / len(first_half)
-            second_half_avg = sum(day["booking_count"] for day in second_half) / len(second_half)
+            first_half_avg = sum(day["booking_count"] for day in first_half) / len(
+                first_half
+            )
+            second_half_avg = sum(day["booking_count"] for day in second_half) / len(
+                second_half
+            )
 
             # Calculate trend factor
             if first_half_avg > 0:
@@ -589,7 +611,9 @@ class DemandForecaster:
 
         # Forecast revenue
         if weekday_avg_bookings > 0:
-            forecast_revenue = (weekday_avg_revenue / weekday_avg_bookings) * forecast_bookings
+            forecast_revenue = (
+                weekday_avg_revenue / weekday_avg_bookings
+            ) * forecast_bookings
         else:
             forecast_revenue = 0
 
@@ -643,7 +667,9 @@ class DemandForecaster:
                 specialist=specialist,
                 start_time__gte=start_date,
                 start_time__lte=end_date,
-            ).annotate(date=TruncDay("start_time"), weekday=Extract("start_time", "dow"))
+            ).annotate(
+                date=TruncDay("start_time"), weekday=Extract("start_time", "dow")
+            )
 
             # Calculate utilization by weekday
             utilization_by_weekday = {}
@@ -771,13 +797,17 @@ class DemandForecaster:
         if not weekday_data:
             return {"revenue": 0, "error_margin": 0.5, "factors": []}
 
-        weekday_avg_revenue = sum(day["revenue"] for day in weekday_data) / len(weekday_data)
+        weekday_avg_revenue = sum(day["revenue"] for day in weekday_data) / len(
+            weekday_data
+        )
 
         # Calculate monthly seasonality factor
         month_data = [day for day in historical_data if day["month"] == month]
 
         if month_data:
-            month_avg_revenue = sum(day["revenue"] for day in month_data) / len(month_data)
+            month_avg_revenue = sum(day["revenue"] for day in month_data) / len(
+                month_data
+            )
             overall_avg_revenue = sum(day["revenue"] for day in historical_data) / len(
                 historical_data
             )
@@ -797,7 +827,9 @@ class DemandForecaster:
             second_half = historical_data[half_point:]
 
             first_half_avg = sum(day["revenue"] for day in first_half) / len(first_half)
-            second_half_avg = sum(day["revenue"] for day in second_half) / len(second_half)
+            second_half_avg = sum(day["revenue"] for day in second_half) / len(
+                second_half
+            )
 
             # Calculate trend factor
             if first_half_avg > 0:
@@ -814,7 +846,9 @@ class DemandForecaster:
         if len(weekday_data) > 1:
             weekday_revenues = [day["revenue"] for day in weekday_data]
             mean = sum(weekday_revenues) / len(weekday_revenues)
-            variance = sum((x - mean) ** 2 for x in weekday_revenues) / len(weekday_revenues)
+            variance = sum((x - mean) ** 2 for x in weekday_revenues) / len(
+                weekday_revenues
+            )
             std_dev = math.sqrt(variance)
 
             coefficient_of_variation = std_dev / mean if mean > 0 else 0.5
@@ -862,7 +896,9 @@ class DemandForecaster:
             return 0  # No specialists, no capacity
 
         # Get service duration (including buffers)
-        total_service_time = service.duration + service.buffer_before + service.buffer_after
+        total_service_time = (
+            service.duration + service.buffer_before + service.buffer_after
+        )
 
         # Estimate daily capacity (simplistic approach)
         # Assuming 8 hours of operation per day and all specialists working full time
@@ -890,9 +926,9 @@ class DemandForecaster:
 
         if shop.location:
             # Get shops in the same city
-            nearby_shops = Shop.objects.filter(location__city=shop.location.city).exclude(
-                id=shop.id
-            )
+            nearby_shops = Shop.objects.filter(
+                location__city=shop.location.city
+            ).exclude(id=shop.id)
 
             similar_services = Service.objects.filter(
                 shop__in=nearby_shops, category=category, is_active=True

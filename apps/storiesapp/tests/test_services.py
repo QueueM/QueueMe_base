@@ -26,7 +26,9 @@ class StoryServiceTest(TestCase):
         )
 
         # Create location
-        self.location = Location.objects.create(city="Test City", latitude=0.0, longitude=0.0)
+        self.location = Location.objects.create(
+            city="Test City", latitude=0.0, longitude=0.0
+        )
 
         # Create shop
         self.shop = Shop.objects.create(
@@ -38,10 +40,14 @@ class StoryServiceTest(TestCase):
         )
 
         # Create test customer
-        self.customer = User.objects.create(phone_number="9876543210", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="9876543210", user_type="customer"
+        )
 
     @patch("apps.storiesapp.services.story_service.StoryService._notify_followers")
-    @patch("apps.storiesapp.services.story_service.StoryService._send_story_websocket_notification")
+    @patch(
+        "apps.storiesapp.services.story_service.StoryService._send_story_websocket_notification"
+    )
     def test_create_story(self, mock_send_notification, mock_notify_followers):
         """Test creating a story"""
         # Create a story using the service
@@ -140,7 +146,9 @@ class StoryServiceTest(TestCase):
         self.assertEqual(expired_stories.count(), 1)
         self.assertEqual(expired_stories.first(), expired_story)
 
-    @patch("apps.storiesapp.services.story_service.StoryService._send_story_expiry_notification")
+    @patch(
+        "apps.storiesapp.services.story_service.StoryService._send_story_expiry_notification"
+    )
     def test_deactivate_expired_stories(self, mock_send_notification):
         """Test deactivating expired stories"""
         # Create expired stories
@@ -196,7 +204,9 @@ class StoryExpiryManagerTest(TestCase):
         )
 
         # Create location
-        self.location = Location.objects.create(city="Test City", latitude=0.0, longitude=0.0)
+        self.location = Location.objects.create(
+            city="Test City", latitude=0.0, longitude=0.0
+        )
 
         # Create shop
         self.shop = Shop.objects.create(
@@ -207,7 +217,9 @@ class StoryExpiryManagerTest(TestCase):
             username="testshop",
         )
 
-    @patch("apps.storiesapp.services.story_service.StoryService.deactivate_expired_stories")
+    @patch(
+        "apps.storiesapp.services.story_service.StoryService.deactivate_expired_stories"
+    )
     def test_deactivate_expired_stories(self, mock_deactivate):
         """Test deactivate_expired_stories delegating to StoryService"""
         mock_deactivate.return_value = 5
@@ -284,7 +296,9 @@ class StoryFeedGeneratorTest(TestCase):
         )
 
         # Create location
-        self.location = Location.objects.create(city="Test City", latitude=0.0, longitude=0.0)
+        self.location = Location.objects.create(
+            city="Test City", latitude=0.0, longitude=0.0
+        )
 
         # Create shops
         self.shop1 = Shop.objects.create(
@@ -304,7 +318,9 @@ class StoryFeedGeneratorTest(TestCase):
         )
 
         # Create test customer
-        self.customer = User.objects.create(phone_number="9876543210", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="9876543210", user_type="customer"
+        )
 
         # Create stories
         self.story1 = Story.objects.create(
@@ -320,7 +336,9 @@ class StoryFeedGeneratorTest(TestCase):
         )
 
         # Mock Follow relationship
-        self.patcher = patch("apps.storiesapp.services.story_feed_generator.Follow.objects.filter")
+        self.patcher = patch(
+            "apps.storiesapp.services.story_feed_generator.Follow.objects.filter"
+        )
         self.mock_follow_filter = self.patcher.start()
 
         # Setup mock to return shop1 as followed

@@ -4,7 +4,6 @@ import time
 import uuid
 from contextlib import contextmanager
 
-from django.conf import settings
 from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
@@ -54,7 +53,9 @@ class DistributedLock:
             # If we can't acquire the lock, wait before trying again
             time.sleep(self.poll_interval)
 
-        logger.warning(f"Failed to acquire lock for {self.key} after {self.timeout} seconds")
+        logger.warning(
+            f"Failed to acquire lock for {self.key} after {self.timeout} seconds"
+        )
         return False
 
     def release(self):
@@ -72,7 +73,9 @@ class DistributedLock:
             logger.debug(f"Lock released for {self.key}")
             return True
 
-        logger.warning(f"Failed to release lock for {self.key} - lock not owned by this instance")
+        logger.warning(
+            f"Failed to release lock for {self.key} - lock not owned by this instance"
+        )
         return False
 
 
@@ -124,7 +127,9 @@ def with_distributed_lock(key_func=None, expires=60, timeout=10, poll_interval=0
 
             with distributed_lock(key, expires, timeout, poll_interval) as acquired:
                 if not acquired:
-                    logger.warning(f"Failed to acquire lock for {key}, execution skipped")
+                    logger.warning(
+                        f"Failed to acquire lock for {key}, execution skipped"
+                    )
                     return None
                 return func(*args, **kwargs)
 

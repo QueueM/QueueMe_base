@@ -11,21 +11,19 @@ that optimizes for both business efficiency and customer satisfaction:
 5. Uses cached pre-computation for better performance
 """
 
-import heapq
 import logging
 from collections import defaultdict
-from datetime import date, datetime, time, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
+from datetime import date, timedelta
+from typing import Any, Dict, List, Optional
 
-import numpy as np
 from django.core.cache import cache
-from django.db.models import Avg, Case, Count, F, IntegerField, Q, Sum, Value, When
+from django.db.models import Avg, Count
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
-from apps.specialistsapp.models import Specialist, SpecialistService
+from apps.specialistsapp.models import SpecialistService
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +89,9 @@ class DynamicSlotAllocator:
             List of optimized time slots with metadata
         """
         # Generate cache key
-        cache_key = f"{self.CACHE_PREFIX}{shop_id}:{service_id}:{target_date.isoformat()}"
+        cache_key = (
+            f"{self.CACHE_PREFIX}{shop_id}:{service_id}:{target_date.isoformat()}"
+        )
         if specialist_id:
             cache_key += f":{specialist_id}"
 
@@ -115,7 +115,9 @@ class DynamicSlotAllocator:
             return []
 
         # Get all available time blocks (ignoring optimization factors)
-        base_slots = self._get_base_availability(shop_id, service_id, target_date, specialist_id)
+        base_slots = self._get_base_availability(
+            shop_id, service_id, target_date, specialist_id
+        )
 
         if not base_slots:
             return []
@@ -181,12 +183,16 @@ class DynamicSlotAllocator:
         from apps.bookingapp.services.availability_service import AvailabilityService
 
         # Get all slots from the basic availability service
-        base_slots = AvailabilityService.get_service_availability(service_id, target_date)
+        base_slots = AvailabilityService.get_service_availability(
+            service_id, target_date
+        )
 
         # If specialist_id is provided, filter for that specialist
         if specialist_id and base_slots:
             base_slots = [
-                slot for slot in base_slots if slot.get("specialist_id") == str(specialist_id)
+                slot
+                for slot in base_slots
+                if slot.get("specialist_id") == str(specialist_id)
             ]
 
         return base_slots
@@ -210,7 +216,9 @@ class DynamicSlotAllocator:
         ).select_related("specialist")
 
         if specialist_id:
-            specialist_services = specialist_services.filter(specialist_id=specialist_id)
+            specialist_services = specialist_services.filter(
+                specialist_id=specialist_id
+            )
 
         # Extract specialist data
         specialists = []
@@ -273,7 +281,9 @@ class DynamicSlotAllocator:
                 hour_key = booking.start_time.strftime("%H:30")
             else:
                 hour_key = f"{booking.start_time.hour:02d}:30"
-            bookings_by_hour[hour_key] += 0.5  # Give half weight to half-hour approximations
+            bookings_by_hour[
+                hour_key
+            ] += 0.5  # Give half weight to half-hour approximations
 
         # Convert to popularity scores (0-1)
         popularity_scores = {}
@@ -340,7 +350,9 @@ class DynamicSlotAllocator:
 
         return workload
 
-    def _get_specialist_ratings(self, specialists: List[Dict[str, Any]]) -> Dict[str, float]:
+    def _get_specialist_ratings(
+        self, specialists: List[Dict[str, Any]]
+    ) -> Dict[str, float]:
         """
         Get ratings for specialists
 
@@ -393,7 +405,10 @@ class DynamicSlotAllocator:
 
             # Get average price for normalization
             avg_price = (
-                Service.objects.filter(shop=service.shop).aggregate(avg=Avg("price"))["avg"] or 1
+                Service.objects.filter(shop=service.shop).aggregate(avg=Avg("price"))[
+                    "avg"
+                ]
+                or 1
             )
 
             # Calculate normalized priority (0-1)
@@ -559,9 +574,9 @@ class DynamicSlotAllocator:
             from apps.bookingapp.models import Appointment
 
             # Get customer's previous appointments
-            previous_appointments = Appointment.objects.filter(customer_id=customer_id).order_by(
-                "-start_time"
-            )[:10]
+            previous_appointments = Appointment.objects.filter(
+                customer_id=customer_id
+            ).order_by("-start_time")[:10]
 
             # Extract patterns
             preferred_specialists = defaultdict(int)
@@ -599,7 +614,9 @@ class DynamicSlotAllocator:
                 # Apply specialist boost if customer has history with this specialist
                 specialist_id = personalized_slot.get("specialist_id")
                 if specialist_id and specialist_id in preferred_specialists:
-                    specialist_boost = preferred_specialists[specialist_id] * 0.1  # Up to 10% boost
+                    specialist_boost = (
+                        preferred_specialists[specialist_id] * 0.1
+                    )  # Up to 10% boost
                     base_score += specialist_boost
 
                 # Apply time of day boost
@@ -615,7 +632,9 @@ class DynamicSlotAllocator:
                 personalized_slots.append(personalized_slot)
 
             # Re-sort based on personalized scores
-            personalized_slots.sort(key=lambda x: (-x.get("optimization_score", 0), x["start"]))
+            personalized_slots.sort(
+                key=lambda x: (-x.get("optimization_score", 0), x["start"])
+            )
 
             return personalized_slots
 

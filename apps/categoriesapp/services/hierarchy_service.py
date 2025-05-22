@@ -80,7 +80,9 @@ class HierarchyService:
                     if parent_id in category_map:
                         category_id = str(category.id)
                         if category_id in category_map:
-                            category_map[parent_id]["children"].append(category_map[category_id])
+                            category_map[parent_id]["children"].append(
+                                category_map[category_id]
+                            )
 
             # Sort children by position
             for category_dict in category_map.values():
@@ -179,7 +181,9 @@ class HierarchyService:
 
                     # Helper function to recursively add children with level info
                     def add_children(parent_id, level):
-                        children = queryset.filter(parent_id=parent_id).order_by("position", "name")
+                        children = queryset.filter(parent_id=parent_id).order_by(
+                            "position", "name"
+                        )
                         for child in children:
                             has_children = queryset.filter(parent=child).exists()
                             flattened.append(
@@ -203,7 +207,9 @@ class HierarchyService:
             else:
                 # Get all categories with hierarchy information
                 # First, get all root categories
-                root_categories = queryset.filter(parent__isnull=True).order_by("position", "name")
+                root_categories = queryset.filter(parent__isnull=True).order_by(
+                    "position", "name"
+                )
 
                 for root in root_categories:
                     flattened.append(
@@ -219,7 +225,9 @@ class HierarchyService:
 
                     # Helper function to recursively add children with level info
                     def add_children(parent_id, level):
-                        children = queryset.filter(parent_id=parent_id).order_by("position", "name")
+                        children = queryset.filter(parent_id=parent_id).order_by(
+                            "position", "name"
+                        )
                         for child in children:
                             has_children = queryset.filter(parent=child).exists()
                             flattened.append(
@@ -272,7 +280,9 @@ class HierarchyService:
                 current = new_parent
                 while current.parent:
                     if current.parent.id == category.id:
-                        logger.error("Cannot move category: would create a circular reference")
+                        logger.error(
+                            "Cannot move category: would create a circular reference"
+                        )
                         return False
                     current = current.parent
 
@@ -432,10 +442,18 @@ class HierarchyService:
             # Basic counts
             all_categories = Category.objects.all()
             stats["total_categories"] = all_categories.count()
-            stats["parent_categories"] = all_categories.filter(parent__isnull=True).count()
-            stats["child_categories"] = all_categories.filter(parent__isnull=False).count()
-            stats["inactive_categories"] = all_categories.filter(is_active=False).count()
-            stats["featured_categories"] = all_categories.filter(is_featured=True).count()
+            stats["parent_categories"] = all_categories.filter(
+                parent__isnull=True
+            ).count()
+            stats["child_categories"] = all_categories.filter(
+                parent__isnull=False
+            ).count()
+            stats["inactive_categories"] = all_categories.filter(
+                is_active=False
+            ).count()
+            stats["featured_categories"] = all_categories.filter(
+                is_featured=True
+            ).count()
 
             # Calculate average children per parent
             if stats["parent_categories"] > 0:

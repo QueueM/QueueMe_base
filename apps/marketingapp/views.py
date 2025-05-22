@@ -4,33 +4,23 @@ API views for Marketing app.
 
 import logging
 
-from django.db import transaction
-from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework import generics, mixins, status, viewsets
+from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import (
-    AdClick,
     AdPayment,
-    AdStatus,
-    AdType,
     Advertisement,
-    AdView,
     Campaign,
-    TargetingType,
 )
 from .serializers import (
-    AdClickSerializer,
     AdPaymentSerializer,
     AdStatusChoiceSerializer,
     AdTypeChoiceSerializer,
     AdvertisementSerializer,
-    AdViewSerializer,
     CampaignSerializer,
     TargetingTypeChoiceSerializer,
 )
@@ -148,10 +138,14 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
         # Get status from request
         status = request.data.get("status")
         if not status:
-            return Response({"error": "Status is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Status is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Update status
-        result = AdManagementService.update_advertisement_status(str(advertisement.id), status)
+        result = AdManagementService.update_advertisement_status(
+            str(advertisement.id), status
+        )
 
         if result["success"]:
             return Response(result)
@@ -289,7 +283,9 @@ class AdClickView(generics.CreateAPIView):
         referrer = request.data.get("referrer")
 
         if not ad_id:
-            return Response({"error": "Ad ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Ad ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Record click
         result = AdServingService.record_ad_click(
@@ -319,7 +315,9 @@ class AdConversionView(generics.CreateAPIView):
             )
 
         # Record conversion
-        result = AdServingService.record_conversion(ad_id, booking_id, user_id, session_id)
+        result = AdServingService.record_conversion(
+            ad_id, booking_id, user_id, session_id
+        )
 
         return Response(result)
 
@@ -335,7 +333,9 @@ class ShopAdvertisingOverviewView(generics.RetrieveAPIView):
         shop_id = kwargs.get("shop_id")
 
         if not shop_id:
-            return Response({"error": "Shop ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Shop ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Parse date range if provided
         start_date = request.query_params.get("start_date")
@@ -348,7 +348,9 @@ class ShopAdvertisingOverviewView(generics.RetrieveAPIView):
             end_date = timezone.datetime.fromisoformat(end_date)
 
         # Get overview
-        overview = AdAnalyticsService.get_shop_advertising_overview(shop_id, start_date, end_date)
+        overview = AdAnalyticsService.get_shop_advertising_overview(
+            shop_id, start_date, end_date
+        )
 
         return Response(overview)
 

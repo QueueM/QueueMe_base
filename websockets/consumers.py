@@ -1,6 +1,7 @@
 """
 QueueMe Admin WebSocket Consumers
 """
+
 import asyncio
 import json
 import random
@@ -8,8 +9,6 @@ from datetime import datetime
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.conf import settings
-from django.db.models import Count, Sum
 from django.utils import timezone
 
 
@@ -98,7 +97,10 @@ class AdminDashboardConsumer(AsyncWebsocketConsumer):
             # For now, we'll use simulated data
             data = {
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "active_users": {"count": active_users, "change": random.randint(-5, 5)},
+                "active_users": {
+                    "count": active_users,
+                    "change": random.randint(-5, 5),
+                },
                 "bookings": {
                     "today": bookings_today,
                     "pending": random.randint(20, 50),
@@ -129,11 +131,14 @@ class AdminDashboardConsumer(AsyncWebsocketConsumer):
 
             return data
 
-        except Exception as e:
+        except Exception:
             # Fallback to completely simulated data if something fails
             return {
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "active_users": {"count": random.randint(50, 150), "change": random.randint(-5, 5)},
+                "active_users": {
+                    "count": random.randint(50, 150),
+                    "change": random.randint(-5, 5),
+                },
                 "bookings": {
                     "today": random.randint(20, 80),
                     "pending": random.randint(20, 50),
@@ -143,7 +148,10 @@ class AdminDashboardConsumer(AsyncWebsocketConsumer):
                     "today": round(random.uniform(1000, 5000), 2),
                     "change": round(random.uniform(-200, 500), 2),
                 },
-                "shops": {"active": random.randint(20, 50), "new_today": random.randint(0, 3)},
+                "shops": {
+                    "active": random.randint(20, 50),
+                    "new_today": random.randint(0, 3),
+                },
                 "latest_bookings": [
                     {
                         "id": f"b-{random.randint(1000, 9999)}",
@@ -259,24 +267,38 @@ class SystemMonitoringConsumer(AsyncWebsocketConsumer):
 
         return {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "cpu": {"usage": float(cpu_percent), "cores": psutil.cpu_count(), "threshold": 90},
+            "cpu": {
+                "usage": float(cpu_percent),
+                "cores": psutil.cpu_count(),
+                "threshold": 90,
+            },
             "memory": {
-                "percent": float(getattr(memory_info, "percent", memory_info["percent"])),
+                "percent": float(
+                    getattr(memory_info, "percent", memory_info["percent"])
+                ),
                 "used_gb": round(
-                    getattr(memory_info, "used", memory_info["used"]) / (1024 * 1024 * 1024), 2
+                    getattr(memory_info, "used", memory_info["used"])
+                    / (1024 * 1024 * 1024),
+                    2,
                 ),
                 "total_gb": round(
-                    getattr(memory_info, "total", memory_info["total"]) / (1024 * 1024 * 1024), 2
+                    getattr(memory_info, "total", memory_info["total"])
+                    / (1024 * 1024 * 1024),
+                    2,
                 ),
                 "threshold": 85,
             },
             "disk": {
                 "percent": float(getattr(disk_info, "percent", disk_info["percent"])),
                 "used_gb": round(
-                    getattr(disk_info, "used", disk_info["used"]) / (1024 * 1024 * 1024), 2
+                    getattr(disk_info, "used", disk_info["used"])
+                    / (1024 * 1024 * 1024),
+                    2,
                 ),
                 "total_gb": round(
-                    getattr(disk_info, "total", disk_info["total"]) / (1024 * 1024 * 1024), 2
+                    getattr(disk_info, "total", disk_info["total"])
+                    / (1024 * 1024 * 1024),
+                    2,
                 ),
                 "threshold": 90,
             },

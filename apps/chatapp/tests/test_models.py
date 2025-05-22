@@ -13,9 +13,13 @@ class ConversationModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.shop_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.shop_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create company
         self.company = Company.objects.create(
@@ -31,7 +35,9 @@ class ConversationModelTest(TestCase):
         )
 
         # Create conversation
-        self.conversation = Conversation.objects.create(customer=self.customer, shop=self.shop)
+        self.conversation = Conversation.objects.create(
+            customer=self.customer, shop=self.shop
+        )
 
     def test_conversation_creation(self):
         """Test that conversation is created with correct attributes"""
@@ -59,9 +65,13 @@ class MessageModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.shop_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.shop_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create company
         self.company = Company.objects.create(
@@ -86,7 +96,9 @@ class MessageModelTest(TestCase):
         )
 
         # Create conversation
-        self.conversation = Conversation.objects.create(customer=self.customer, shop=self.shop)
+        self.conversation = Conversation.objects.create(
+            customer=self.customer, shop=self.shop
+        )
 
         # Create customer message
         self.customer_message = Message.objects.create(
@@ -109,7 +121,9 @@ class MessageModelTest(TestCase):
         self.assertEqual(self.customer_message.conversation, self.conversation)
         self.assertEqual(self.customer_message.sender, self.customer)
         self.assertIsNone(self.customer_message.employee)
-        self.assertEqual(self.customer_message.content, "Hello, I'd like to book an appointment")
+        self.assertEqual(
+            self.customer_message.content, "Hello, I'd like to book an appointment"
+        )
         self.assertEqual(self.customer_message.message_type, "text")
         self.assertFalse(self.customer_message.is_read)
         self.assertIsNone(self.customer_message.read_at)
@@ -118,7 +132,9 @@ class MessageModelTest(TestCase):
         self.assertEqual(self.employee_message.conversation, self.conversation)
         self.assertEqual(self.employee_message.sender, self.shop_user)
         self.assertEqual(self.employee_message.employee, self.employee)
-        self.assertEqual(self.employee_message.content, "Sure, I can help you with that")
+        self.assertEqual(
+            self.employee_message.content, "Sure, I can help you with that"
+        )
         self.assertEqual(self.employee_message.message_type, "text")
         self.assertFalse(self.employee_message.is_read)
         self.assertIsNone(self.employee_message.read_at)
@@ -141,9 +157,13 @@ class PresenceModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.shop_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.shop_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create company
         self.company = Company.objects.create(
@@ -159,7 +179,9 @@ class PresenceModelTest(TestCase):
         )
 
         # Create conversation
-        self.conversation = Conversation.objects.create(customer=self.customer, shop=self.shop)
+        self.conversation = Conversation.objects.create(
+            customer=self.customer, shop=self.shop
+        )
 
         # Create presence records
         self.customer_presence = Presence.objects.create(
@@ -207,9 +229,13 @@ class TypingStatusModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.shop_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.shop_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create company
         self.company = Company.objects.create(
@@ -225,7 +251,9 @@ class TypingStatusModelTest(TestCase):
         )
 
         # Create conversation
-        self.conversation = Conversation.objects.create(customer=self.customer, shop=self.shop)
+        self.conversation = Conversation.objects.create(
+            customer=self.customer, shop=self.shop
+        )
 
         # Create typing status records
         self.customer_typing = TypingStatus.objects.create(

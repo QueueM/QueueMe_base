@@ -37,7 +37,9 @@ class BundleOptimizer:
 
         # If no clear dependencies, optimize based on other factors
         if not dependencies or len(ordered_services) != len(service_list):
-            ordered_services = BundleOptimizer._optimize_by_category_and_duration(service_list)
+            ordered_services = BundleOptimizer._optimize_by_category_and_duration(
+                service_list
+            )
 
         return ordered_services
 
@@ -74,7 +76,8 @@ class BundleOptimizer:
             if any(prep in category_name for prep in preparation_categories):
                 for other in services:
                     if service.id != other.id and not any(
-                        prep in other.category.name.lower() for prep in preparation_categories
+                        prep in other.category.name.lower()
+                        for prep in preparation_categories
                     ):
                         dependencies[other.id].append(service.id)
 
@@ -82,7 +85,8 @@ class BundleOptimizer:
             if any(finish in category_name for finish in finishing_categories):
                 for other in services:
                     if service.id != other.id and not any(
-                        finish in other.category.name.lower() for finish in finishing_categories
+                        finish in other.category.name.lower()
+                        for finish in finishing_categories
                     ):
                         dependencies[service.id].append(other.id)
 
@@ -166,7 +170,8 @@ class BundleOptimizer:
         # Order categories by average duration (shortest first)
         categories = list(category_groups.keys())
         categories.sort(
-            key=lambda c: sum(s.duration for s in category_groups[c]) / len(category_groups[c])
+            key=lambda c: sum(s.duration for s in category_groups[c])
+            / len(category_groups[c])
         )
 
         # Build final ordered list
@@ -288,7 +293,9 @@ class BundleOptimizer:
 
         # If we have results using method 1, return them
         if common_services.filter(booking_correlation__gt=0).exists():
-            return list(common_services.filter(booking_correlation__gt=0)[:max_recommendations])
+            return list(
+                common_services.filter(booking_correlation__gt=0)[:max_recommendations]
+            )
 
         # Method 2: Find services in related categories
         related_services = Service.objects.filter(
@@ -310,7 +317,9 @@ class BundleOptimizer:
         return list(popular_services[:max_recommendations])
 
     @staticmethod
-    def suggest_package_bundles(shop_id, min_services=2, max_services=5, max_suggestions=3):
+    def suggest_package_bundles(
+        shop_id, min_services=2, max_services=5, max_suggestions=3
+    ):
         """
         Suggest potential service bundles based on booking patterns.
 
@@ -365,7 +374,9 @@ class BundleOptimizer:
             ]:  # Limit to avoid too many combinations
                 # Get services they booked
                 booked_services = (
-                    Appointment.objects.filter(customer_id=customer_id, service__shop_id=shop_id)
+                    Appointment.objects.filter(
+                        customer_id=customer_id, service__shop_id=shop_id
+                    )
                     .values_list("service_id", flat=True)
                     .distinct()
                 )
@@ -424,9 +435,14 @@ class BundleOptimizer:
 
             # Find categories with multiple services
             for cat_id, cat_services in by_category.items():
-                if len(cat_services) >= min_services and len(suggestions) < max_suggestions:
+                if (
+                    len(cat_services) >= min_services
+                    and len(suggestions) < max_suggestions
+                ):
                     # Take top services in this category by booking count
-                    top_services = sorted(cat_services, key=lambda s: s.booking_count, reverse=True)
+                    top_services = sorted(
+                        cat_services, key=lambda s: s.booking_count, reverse=True
+                    )
                     bundle_size = min(len(top_services), max_services)
                     bundle_services = top_services[:bundle_size]
 

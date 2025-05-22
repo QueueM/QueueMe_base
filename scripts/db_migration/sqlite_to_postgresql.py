@@ -18,7 +18,6 @@ import json
 import logging
 import os
 import sqlite3
-import subprocess
 import sys
 import time
 from datetime import datetime
@@ -28,7 +27,6 @@ import psycopg2
 from django.apps import apps
 from django.conf import settings
 from django.core.management import call_command
-from django.db import connections, transaction
 
 # Configure logging
 logging.basicConfig(
@@ -114,7 +112,9 @@ class DatabaseMigration:
             Boolean indicating success status
         """
         try:
-            logger.info(f"Starting migration from SQLite to PostgreSQL (dry run: {self.dry_run})")
+            logger.info(
+                f"Starting migration from SQLite to PostgreSQL (dry run: {self.dry_run})"
+            )
 
             # Create destination database if it doesn't exist
             self._setup_postgres_db()
@@ -147,7 +147,9 @@ class DatabaseMigration:
             self._set_postgres_sequences(pg_conn, django_tables)
 
             # Verify data
-            verification_results = self._verify_migration(sqlite_conn, pg_conn, django_tables)
+            verification_results = self._verify_migration(
+                sqlite_conn, pg_conn, django_tables
+            )
 
             # Close connections
             sqlite_conn.close()
@@ -210,7 +212,9 @@ class DatabaseMigration:
             exists = cursor.fetchone()
 
             if not exists:
-                logger.info(f"Creating PostgreSQL database '{self.config['pg_dbname']}'")
+                logger.info(
+                    f"Creating PostgreSQL database '{self.config['pg_dbname']}'"
+                )
                 cursor.execute(f"CREATE DATABASE {self.config['pg_dbname']}")
 
                 # Connect to new database to set up extensions
@@ -231,7 +235,9 @@ class DatabaseMigration:
 
                 logger.info("PostgreSQL database created and extensions enabled")
             else:
-                logger.info(f"PostgreSQL database '{self.config['pg_dbname']}' already exists")
+                logger.info(
+                    f"PostgreSQL database '{self.config['pg_dbname']}' already exists"
+                )
 
             cursor.close()
             conn.close()
@@ -251,7 +257,9 @@ class DatabaseMigration:
 
             # Create timestamp for backup filename
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_file = os.path.join(self.config["backup_dir"], f"sqlite_backup_{timestamp}.db")
+            backup_file = os.path.join(
+                self.config["backup_dir"], f"sqlite_backup_{timestamp}.db"
+            )
 
             if self.dry_run:
                 logger.info(f"[DRY RUN] Would back up SQLite database to {backup_file}")
@@ -260,7 +268,9 @@ class DatabaseMigration:
             # Copy SQLite file
             sqlite_path = self.config["sqlite_db"]
             if not os.path.exists(sqlite_path):
-                raise FileNotFoundError(f"SQLite database file not found: {sqlite_path}")
+                raise FileNotFoundError(
+                    f"SQLite database file not found: {sqlite_path}"
+                )
 
             import shutil
 
@@ -296,7 +306,9 @@ class DatabaseMigration:
 
             # Check if required extensions are present
             required_extensions = ["plpgsql", "postgis"]
-            missing_extensions = [ext for ext in required_extensions if ext not in extensions]
+            missing_extensions = [
+                ext for ext in required_extensions if ext not in extensions
+            ]
 
             if missing_extensions:
                 logger.warning(
@@ -311,10 +323,14 @@ class DatabaseMigration:
                     # Verify again
                     cursor.execute("SELECT extname FROM pg_extension")
                     extensions = [row[0] for row in cursor.fetchall()]
-                    still_missing = [ext for ext in required_extensions if ext not in extensions]
+                    still_missing = [
+                        ext for ext in required_extensions if ext not in extensions
+                    ]
 
                     if still_missing:
-                        logger.error(f"Failed to create extensions: {', '.join(still_missing)}")
+                        logger.error(
+                            f"Failed to create extensions: {', '.join(still_missing)}"
+                        )
                         return False
 
                     logger.info("Successfully added required extensions")
@@ -497,7 +513,8 @@ class DatabaseMigration:
             tables = [
                 table
                 for table in tables
-                if table not in self.config["exclude_tables"] and not table.startswith("sqlite_")
+                if table not in self.config["exclude_tables"]
+                and not table.startswith("sqlite_")
             ]
 
             logger.info(f"Preparing to transfer {len(tables)} tables")
@@ -567,7 +584,9 @@ class DatabaseMigration:
 
                         # Update progress
                         offset += len(rows)
-                        logger.info(f"Transferred {offset}/{row_count} rows for table {table}")
+                        logger.info(
+                            f"Transferred {offset}/{row_count} rows for table {table}"
+                        )
 
                         # Track total rows migrated
                         self.rows_migrated += len(rows)
@@ -575,7 +594,9 @@ class DatabaseMigration:
                     pg_cursor.close()
                     self.tables_migrated += 1
                 else:
-                    logger.warning(f"Table {table} not found in Django models, skipping")
+                    logger.warning(
+                        f"Table {table} not found in Django models, skipping"
+                    )
 
             logger.info(
                 f"Data transfer completed: {self.tables_migrated} tables, {self.rows_migrated} rows"
@@ -761,7 +782,9 @@ class DatabaseMigration:
                             f"Table {table} verification failed: count mismatch (SQLite: {sqlite_count}, PostgreSQL: {pg_count})"
                         )
                     elif not sample_matches:
-                        logger.warning(f"Table {table} verification failed: sample data mismatch")
+                        logger.warning(
+                            f"Table {table} verification failed: sample data mismatch"
+                        )
 
             pg_cursor.close()
             sqlite_cursor.close()
@@ -798,7 +821,9 @@ class DatabaseMigration:
             logger.info("Verification Results:")
             logger.info(f"Tables Checked: {verification_results['tables_checked']}")
             logger.info(f"Tables Matched: {verification_results['tables_matched']}")
-            logger.info(f"Tables Mismatched: {verification_results['tables_mismatched']}")
+            logger.info(
+                f"Tables Mismatched: {verification_results['tables_mismatched']}"
+            )
 
             if verification_results["tables_mismatched"] > 0:
                 logger.warning("Mismatched Tables:")

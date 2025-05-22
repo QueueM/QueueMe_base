@@ -37,7 +37,9 @@ class HoursService:
 
             # Validate weekday
             if weekday is None or not (0 <= weekday <= 6):
-                raise ValueError("Invalid weekday. Must be between 0 (Sunday) and 6 (Saturday).")
+                raise ValueError(
+                    "Invalid weekday. Must be between 0 (Sunday) and 6 (Saturday)."
+                )
 
             # Get or create shop hour for this weekday
             shop_hour, created = ShopHours.objects.get_or_create(
@@ -141,10 +143,14 @@ class HoursService:
 
                 # If it's the current day and we're after opening time, return current time
                 if day_offset == 0 and current_time >= shop_hours.from_hour:
-                    return timezone.make_aware(datetime.combine(current_date, current_time))
+                    return timezone.make_aware(
+                        datetime.combine(current_date, current_time)
+                    )
 
                 # Otherwise, return opening time for this day
-                return timezone.make_aware(datetime.combine(check_date, shop_hours.from_hour))
+                return timezone.make_aware(
+                    datetime.combine(check_date, shop_hours.from_hour)
+                )
             except ShopHours.DoesNotExist:
                 continue
 
@@ -171,15 +177,27 @@ class HoursService:
 
         weekday_names = {
             0: translate_text("Sunday", "الأحد" if current_language == "ar" else None),
-            1: translate_text("Monday", "الاثنين" if current_language == "ar" else None),
-            2: translate_text("Tuesday", "الثلاثاء" if current_language == "ar" else None),
-            3: translate_text("Wednesday", "الأربعاء" if current_language == "ar" else None),
-            4: translate_text("Thursday", "الخميس" if current_language == "ar" else None),
+            1: translate_text(
+                "Monday", "الاثنين" if current_language == "ar" else None
+            ),
+            2: translate_text(
+                "Tuesday", "الثلاثاء" if current_language == "ar" else None
+            ),
+            3: translate_text(
+                "Wednesday", "الأربعاء" if current_language == "ar" else None
+            ),
+            4: translate_text(
+                "Thursday", "الخميس" if current_language == "ar" else None
+            ),
             5: translate_text("Friday", "الجمعة" if current_language == "ar" else None),
-            6: translate_text("Saturday", "السبت" if current_language == "ar" else None),
+            6: translate_text(
+                "Saturday", "السبت" if current_language == "ar" else None
+            ),
         }
 
-        closed_text = translate_text("Closed", "مغلق" if current_language == "ar" else None)
+        closed_text = translate_text(
+            "Closed", "مغلق" if current_language == "ar" else None
+        )
 
         lines = []
         for hour in hours:

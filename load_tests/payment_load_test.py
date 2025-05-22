@@ -1,4 +1,3 @@
-import json
 import random
 import uuid
 
@@ -104,7 +103,9 @@ class PaymentUser(HttpUser):
         if response.status_code == 200:
             transactions = response.json().get("transactions", [])
             # Find a completed transaction to refund
-            completed_transactions = [t for t in transactions if t.get("status") == "completed"]
+            completed_transactions = [
+                t for t in transactions if t.get("status") == "completed"
+            ]
 
             if completed_transactions:
                 transaction = random.choice(completed_transactions)

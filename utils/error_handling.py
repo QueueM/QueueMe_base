@@ -6,12 +6,10 @@ This module provides consistent error handling patterns to be used throughout th
 
 import functools
 import logging
-import traceback
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import DatabaseError, IntegrityError, transaction
-from django.http import HttpRequest, JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
@@ -43,13 +41,17 @@ class AuthenticationError(QueueMeError):
     """Error raised when authentication fails."""
 
     def __init__(self, message: str = "Authentication required"):
-        super().__init__(message=message, code="authentication_required", status_code=401)
+        super().__init__(
+            message=message, code="authentication_required", status_code=401
+        )
 
 
 class AuthorizationError(QueueMeError):
     """Error raised when a user doesn't have permission for an action."""
 
-    def __init__(self, message: str = "You don't have permission to perform this action"):
+    def __init__(
+        self, message: str = "You don't have permission to perform this action"
+    ):
         super().__init__(message=message, code="permission_denied", status_code=403)
 
 
@@ -57,7 +59,9 @@ class ValidationFailedError(QueueMeError):
     """Error raised when validation fails."""
 
     def __init__(
-        self, message: str = "Validation failed", errors: Optional[Dict[str, List[str]]] = None
+        self,
+        message: str = "Validation failed",
+        errors: Optional[Dict[str, List[str]]] = None,
     ):
         self.errors = errors or {}
         super().__init__(message=message, code="validation_failed", status_code=400)
@@ -113,7 +117,9 @@ def api_error_response(error: Exception) -> Response:
         # Add retry-after header for rate limit errors
         if isinstance(error, RateLimitExceededError):
             return Response(
-                data, status=error.status_code, headers={"Retry-After": str(error.retry_after)}
+                data,
+                status=error.status_code,
+                headers={"Retry-After": str(error.retry_after)},
             )
 
         return Response(data, status=error.status_code)
@@ -137,7 +143,8 @@ def api_error_response(error: Exception) -> Response:
                 "success": False,
                 "error": {
                     "code": "permission_denied",
-                    "message": str(error) or "You don't have permission to perform this action",
+                    "message": str(error)
+                    or "You don't have permission to perform this action",
                 },
             },
             status=status.HTTP_403_FORBIDDEN,
@@ -150,9 +157,11 @@ def api_error_response(error: Exception) -> Response:
                 "error": {
                     "code": "validation_failed",
                     "message": "Validation failed",
-                    "errors": error.message_dict
-                    if hasattr(error, "message_dict")
-                    else {"detail": [str(error)]},
+                    "errors": (
+                        error.message_dict
+                        if hasattr(error, "message_dict")
+                        else {"detail": [str(error)]}
+                    ),
                 },
             },
             status=status.HTTP_400_BAD_REQUEST,
@@ -267,7 +276,9 @@ def transaction_with_retry(max_retries: int = 3, retry_delay: float = 0.1) -> Ca
 
 
 def log_exception(
-    logger_name: Optional[str] = None, level: str = "error", include_traceback: bool = True
+    logger_name: Optional[str] = None,
+    level: str = "error",
+    include_traceback: bool = True,
 ) -> Callable:
     """
     Decorator to log exceptions with consistent formatting.

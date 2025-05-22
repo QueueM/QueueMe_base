@@ -118,7 +118,9 @@ class PresenceService:
         idle_threshold = timezone.now() - timezone.timedelta(minutes=idle_minutes)
 
         # Find stale online records
-        stale_records = Presence.objects.filter(is_online=True, last_seen__lt=idle_threshold)
+        stale_records = Presence.objects.filter(
+            is_online=True, last_seen__lt=idle_threshold
+        )
 
         # Update records
         count = stale_records.count()

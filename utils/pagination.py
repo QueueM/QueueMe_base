@@ -8,7 +8,12 @@ allowing for consistent and configurable pagination across the platform.
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from .constants import DEFAULT_PAGE_SIZE, LARGE_PAGE_SIZE, MAX_PAGE_SIZE, SMALL_PAGE_SIZE
+from .constants import (
+    DEFAULT_PAGE_SIZE,
+    LARGE_PAGE_SIZE,
+    MAX_PAGE_SIZE,
+    SMALL_PAGE_SIZE,
+)
 
 
 class StandardResultsSetPagination(PageNumberPagination):

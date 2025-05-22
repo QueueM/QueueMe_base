@@ -23,7 +23,9 @@ class Queue(models.Model):
         Shop, on_delete=models.CASCADE, related_name="queues", verbose_name=_("Shop")
     )
     name = models.CharField(_("Name"), max_length=100)
-    status = models.CharField(_("Status"), max_length=10, choices=STATUS_CHOICES, default="open")
+    status = models.CharField(
+        _("Status"), max_length=10, choices=STATUS_CHOICES, default="open"
+    )
     max_capacity = models.PositiveIntegerField(
         _("Maximum Capacity"), default=0
     )  # 0 means unlimited
@@ -90,9 +92,13 @@ class QueueTicket(models.Model):
         null=True,
         blank=True,
     )
-    status = models.CharField(_("Status"), max_length=10, choices=STATUS_CHOICES, default="waiting")
+    status = models.CharField(
+        _("Status"), max_length=10, choices=STATUS_CHOICES, default="waiting"
+    )
     position = models.PositiveIntegerField(_("Position"))
-    estimated_wait_time = models.PositiveIntegerField(_("Estimated Wait Time (minutes)"), default=0)
+    estimated_wait_time = models.PositiveIntegerField(
+        _("Estimated Wait Time (minutes)"), default=0
+    )
     actual_wait_time = models.PositiveIntegerField(
         _("Actual Wait Time (minutes)"), null=True, blank=True
     )

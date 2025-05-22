@@ -1,16 +1,17 @@
 # apps/bookingapp/services/availability_service.py
 import logging
 from datetime import date, datetime, time, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import List, Optional, Tuple
 
 from django.core.cache import cache
-from django.db.models import Q
-from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
 from apps.serviceapp.models import Service, ServiceAvailability
 from apps.shopapp.models import Shop, ShopHours
-from apps.specialistsapp.models import Specialist, SpecialistService, SpecialistWorkingHours
+from apps.specialistsapp.models import (
+    Specialist,
+    SpecialistWorkingHours,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,9 @@ class AvailabilityService:
             duration = duration_override or service.duration
             buffer_before = service.buffer_before or 0
             buffer_after = service.buffer_after or 0
-            granularity = slot_interval or service.slot_granularity or 15  # Default 15-min slots
+            granularity = (
+                slot_interval or service.slot_granularity or 15
+            )  # Default 15-min slots
 
             # 1. Get shop operating hours for the day
             day_of_week = target_date.weekday()
@@ -104,7 +107,9 @@ class AvailabilityService:
                     return []
 
                 # Intersect with specialist availability
-                base_availability = cls._intersect_time_ranges(base_availability, specialist_ranges)
+                base_availability = cls._intersect_time_ranges(
+                    base_availability, specialist_ranges
+                )
                 if not base_availability:
                     logger.info(
                         f"No overlap between service availability and specialist hours on {target_date}"
@@ -112,7 +117,9 @@ class AvailabilityService:
                     return []
 
                 # Get specialist's existing appointments
-                existing_bookings = cls._get_specialist_bookings(specialist_id, target_date)
+                existing_bookings = cls._get_specialist_bookings(
+                    specialist_id, target_date
+                )
 
                 # Generate discrete time slots, avoiding existing bookings
                 available_slots = cls._generate_available_slots(
@@ -161,7 +168,9 @@ class AvailabilityService:
                     )
 
                     # Merge into overall availability
-                    available_slots = cls._merge_time_slots(available_slots, specialist_slots)
+                    available_slots = cls._merge_time_slots(
+                        available_slots, specialist_slots
+                    )
 
             # Sort slots by start time
             available_slots.sort(key=lambda x: x[0])
@@ -201,7 +210,9 @@ class AvailabilityService:
 
         for _ in range(days_to_check):
             # Get available slots for this day
-            slots = cls.get_available_slots(shop_id, service_id, current_date, specialist_id)
+            slots = cls.get_available_slots(
+                shop_id, service_id, current_date, specialist_id
+            )
 
             # Return the earliest slot if any available
             if slots:
@@ -240,7 +251,9 @@ class AvailabilityService:
 
             # Required time block including buffers
             start_with_buffer = target_datetime - timedelta(minutes=buffer_before)
-            end_with_buffer = target_datetime + timedelta(minutes=duration + buffer_after)
+            end_with_buffer = target_datetime + timedelta(
+                minutes=duration + buffer_after
+            )
 
             for specialist in specialists:
                 # Check if specialist is working during this time
@@ -253,12 +266,17 @@ class AvailabilityService:
                     continue
 
                 # Check for conflicts with existing bookings
-                existing_bookings = cls._get_specialist_bookings(specialist.id, target_date)
+                existing_bookings = cls._get_specialist_bookings(
+                    specialist.id, target_date
+                )
                 has_conflict = False
 
                 for booking_start, booking_end in existing_bookings:
                     # Check for overlap
-                    if start_with_buffer < booking_end and end_with_buffer > booking_start:
+                    if (
+                        start_with_buffer < booking_end
+                        and end_with_buffer > booking_start
+                    ):
                         has_conflict = True
                         break
 
@@ -294,7 +312,7 @@ class AvailabilityService:
         """
         try:
             target_date = target_datetime.date()
-            target_time = target_datetime.time()
+            target_datetime.time()
             service = Service.objects.get(id=service_id)
 
             # Get all available slots for that day
@@ -327,7 +345,9 @@ class AvailabilityService:
     def _get_shop_hours(shop: Shop, day_of_week: int) -> List[TimeRange]:
         """Get operating hours for a shop on a specific day of the week."""
         try:
-            shop_hours = ShopHours.objects.filter(shop=shop, weekday=day_of_week, is_closed=False)
+            shop_hours = ShopHours.objects.filter(
+                shop=shop, weekday=day_of_week, is_closed=False
+            )
 
             if not shop_hours:
                 return []
@@ -339,7 +359,9 @@ class AvailabilityService:
             return []
 
     @staticmethod
-    def _get_service_availability(service: Service, day_of_week: int) -> List[TimeRange]:
+    def _get_service_availability(
+        service: Service, day_of_week: int
+    ) -> List[TimeRange]:
         """Get availability time ranges for a service on a specific day."""
         try:
             availability = ServiceAvailability.objects.filter(
@@ -357,7 +379,9 @@ class AvailabilityService:
             return []
 
     @staticmethod
-    def _get_specialist_hours(specialist: Specialist, day_of_week: int) -> List[TimeRange]:
+    def _get_specialist_hours(
+        specialist: Specialist, day_of_week: int
+    ) -> List[TimeRange]:
         """Get working hours for a specialist on a specific day."""
         try:
             working_hours = SpecialistWorkingHours.objects.filter(
@@ -386,7 +410,9 @@ class AvailabilityService:
             return []
 
     @staticmethod
-    def _get_specialist_bookings(specialist_id: str, target_date: date) -> List[TimeSlot]:
+    def _get_specialist_bookings(
+        specialist_id: str, target_date: date
+    ) -> List[TimeSlot]:
         """Get existing bookings for a specialist on a specific date."""
         try:
             # Get start and end of the target date
@@ -418,7 +444,9 @@ class AvailabilityService:
         """Check if a specialist is available during a specific time range."""
         try:
             day_of_week = target_date.weekday()
-            working_hours = AvailabilityService._get_specialist_hours(specialist, day_of_week)
+            working_hours = AvailabilityService._get_specialist_hours(
+                specialist, day_of_week
+            )
 
             # If no working hours defined, specialist is not working
             if not working_hours:
@@ -534,14 +562,18 @@ class AvailabilityService:
         return available_slots
 
     @staticmethod
-    def _merge_time_slots(slots1: List[TimeSlot], slots2: List[TimeSlot]) -> List[TimeSlot]:
+    def _merge_time_slots(
+        slots1: List[TimeSlot], slots2: List[TimeSlot]
+    ) -> List[TimeSlot]:
         """
         Merge two lists of time slots, removing any duplicates.
 
         This is used when combining availability across multiple specialists.
         """
         # Create a set to eliminate duplicates (convert to string for hashability)
-        merged_set = set(f"{slot[0].isoformat()}|{slot[1].isoformat()}" for slot in slots1 + slots2)
+        merged_set = set(
+            f"{slot[0].isoformat()}|{slot[1].isoformat()}" for slot in slots1 + slots2
+        )
 
         # Convert back to datetime tuples
         merged_slots = []

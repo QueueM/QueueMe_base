@@ -50,7 +50,9 @@ class SpecialistModelTests(TestCase):
         )
 
         # Create employee user
-        self.employee_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.employee_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create employee
         self.employee = Employee.objects.create(
@@ -146,7 +148,9 @@ class SpecialistServiceModelTests(TestCase):
             duration=60,
             service_location="in_shop",
         )
-        self.employee_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.employee_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
         self.employee = Employee.objects.create(
             user=self.employee_user,
             shop=self.shop,
@@ -222,7 +226,9 @@ class SpecialistWorkingHoursModelTests(TestCase):
             phone_number="1234567890",
             username="testshop",
         )
-        self.employee_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.employee_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
         self.employee = Employee.objects.create(
             user=self.employee_user,
             shop=self.shop,
@@ -266,9 +272,7 @@ class SpecialistWorkingHoursModelTests(TestCase):
 
     def test_working_hours_str_method(self):
         """Test the string representation of working hours."""
-        expected_str = (
-            f"{self.employee.first_name} {self.employee.last_name} - Sunday: 09:00 AM - 05:00 PM"
-        )
+        expected_str = f"{self.employee.first_name} {self.employee.last_name} - Sunday: 09:00 AM - 05:00 PM"
         self.assertEqual(str(self.working_hours), expected_str)
 
     def test_overlaps_with_shop_hours_method(self):
@@ -309,7 +313,9 @@ class PortfolioItemModelTests(TestCase):
             duration=60,
             service_location="in_shop",
         )
-        self.employee_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.employee_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
         self.employee = Employee.objects.create(
             user=self.employee_user,
             shop=self.shop,

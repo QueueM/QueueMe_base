@@ -6,7 +6,11 @@ from apps.authapp.models import User
 from apps.companiesapp.models import Company
 from apps.rolesapp.models import Permission, Role, UserRole
 from apps.shopapp.models import Shop
-from apps.shopDashboardApp.models import DashboardLayout, DashboardSettings, DashboardWidget
+from apps.shopDashboardApp.models import (
+    DashboardLayout,
+    DashboardSettings,
+    DashboardWidget,
+)
 
 
 class DashboardViewsTestCase(TestCase):
@@ -38,9 +42,13 @@ class DashboardViewsTestCase(TestCase):
         )
 
         # Create dashboard permissions
-        self.view_permission = Permission.objects.create(resource="dashboard", action="view")
+        self.view_permission = Permission.objects.create(
+            resource="dashboard", action="view"
+        )
 
-        self.edit_permission = Permission.objects.create(resource="dashboard", action="edit")
+        self.edit_permission = Permission.objects.create(
+            resource="dashboard", action="edit"
+        )
 
         # Create role with permissions
         self.role = Role.objects.create(
@@ -117,14 +125,18 @@ class DashboardViewsTestCase(TestCase):
 
     def test_dashboard_layout_default(self):
         """Test getting default layout"""
-        response = self.client.get(f"/api/dashboard/layouts/default/?shop_id={self.shop.id}")
+        response = self.client.get(
+            f"/api/dashboard/layouts/default/?shop_id={self.shop.id}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], str(self.layout.id))
         self.assertTrue(response.data["is_default"])
 
     def test_dashboard_widget_list(self):
         """Test listing dashboard widgets"""
-        response = self.client.get(f"/api/dashboard/widgets/?layout_id={self.layout.id}")
+        response = self.client.get(
+            f"/api/dashboard/widgets/?layout_id={self.layout.id}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"][0]["title"], "Test Widget")
@@ -153,7 +165,9 @@ class DashboardViewsTestCase(TestCase):
 
     def test_dashboard_data(self):
         """Test getting dashboard data"""
-        response = self.client.get(f"/api/dashboard/data/?shop_id={self.shop.id}&time_period=month")
+        response = self.client.get(
+            f"/api/dashboard/data/?shop_id={self.shop.id}&time_period=month"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check structure of response
@@ -187,7 +201,9 @@ class DashboardViewsTestCase(TestCase):
 
     def test_dashboard_settings(self):
         """Test getting dashboard settings"""
-        response = self.client.get(f"/api/dashboard/settings/for_shop/?shop_id={self.shop.id}")
+        response = self.client.get(
+            f"/api/dashboard/settings/for_shop/?shop_id={self.shop.id}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], str(self.settings.id))
         self.assertEqual(response.data["default_date_range"], "month")

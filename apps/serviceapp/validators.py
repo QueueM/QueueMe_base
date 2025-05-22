@@ -36,7 +36,9 @@ def validate_working_hours(hours):
         # Check time range if not closed
         if not hour.get("is_closed", False):
             if not hour.get("from_hour") or not hour.get("to_hour"):
-                raise ValidationError(_("From hour and to hour are required when not closed"))
+                raise ValidationError(
+                    _("From hour and to hour are required when not closed")
+                )
 
             validate_time_range(hour["from_hour"], hour["to_hour"])
 

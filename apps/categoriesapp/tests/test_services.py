@@ -99,7 +99,9 @@ class CategoryServiceTest(TestCase):
             CategoryService.get_category_by_id(self.parent_category1.id)
 
         # Test non-existent category
-        non_existent = CategoryService.get_category_by_id("00000000-0000-0000-0000-000000000000")
+        non_existent = CategoryService.get_category_by_id(
+            "00000000-0000-0000-0000-000000000000"
+        )
         self.assertIsNone(non_existent)
 
     def test_get_category_by_slug(self):
@@ -123,7 +125,9 @@ class CategoryServiceTest(TestCase):
         self.assertIn(self.parent_category2, parents)
 
         # Test with inactive parent
-        inactive_parent = Category.objects.create(name="Inactive Parent", is_active=False)
+        inactive_parent = Category.objects.create(
+            name="Inactive Parent", is_active=False
+        )
 
         # Refresh parents
         CategoryService._clear_category_caches()
@@ -252,7 +256,9 @@ class CategoryServiceTest(TestCase):
     def test_delete_category(self):
         """Test deleting a category"""
         # Create a test category to delete
-        category_to_delete = Category.objects.create(name="Category To Delete", is_active=True)
+        category_to_delete = Category.objects.create(
+            name="Category To Delete", is_active=True
+        )
 
         # Delete the category
         result = CategoryService.delete_category(category_to_delete.id)
@@ -266,12 +272,16 @@ class CategoryServiceTest(TestCase):
         """Test deleting a category that has services"""
         # We'll simulate services by setting service_count > 0
         # In a real implementation, we'd check actual service associations
-        category = Category.objects.create(name="Category With Services", is_active=True)
+        category = Category.objects.create(
+            name="Category With Services", is_active=True
+        )
 
         # Mock service_count property
         original_property = Category.service_count
         try:
-            Category.service_count = property(lambda self: 5 if self.id == category.id else 0)
+            Category.service_count = property(
+                lambda self: 5 if self.id == category.id else 0
+            )
 
             # Try to delete
             result = CategoryService.delete_category(category.id)
@@ -500,7 +510,9 @@ class HierarchyServiceTest(TestCase):
             self.assertEqual(len(parent2_node["children"]), 0)
 
             # Test with inactive categories included
-            tree_with_inactive = HierarchyService.build_category_tree(include_inactive=True)
+            tree_with_inactive = HierarchyService.build_category_tree(
+                include_inactive=True
+            )
 
             # Find parent_category2 in the tree
             parent2_node = next(
@@ -538,7 +550,9 @@ class HierarchyServiceTest(TestCase):
         self.assertEqual(path[0], self.parent_category1)
 
         # Test with non-existent ID
-        path = HierarchyService.get_category_path("00000000-0000-0000-0000-000000000000")
+        path = HierarchyService.get_category_path(
+            "00000000-0000-0000-0000-000000000000"
+        )
         self.assertEqual(len(path), 0)
 
     def test_flatten_category_tree(self):
@@ -579,7 +593,9 @@ class HierarchyServiceTest(TestCase):
     def test_move_category(self):
         """Test moving a category"""
         # Move child_category2 to be under parent_category2
-        result = HierarchyService.move_category(self.child_category2.id, self.parent_category2.id)
+        result = HierarchyService.move_category(
+            self.child_category2.id, self.parent_category2.id
+        )
         self.assertTrue(result)
 
         # Verify the move
@@ -632,7 +648,9 @@ class HierarchyServiceTest(TestCase):
         self.child_category2.position = 7
         self.child_category2.save()
 
-        result = HierarchyService.reorganize_category_positions(self.parent_category1.id)
+        result = HierarchyService.reorganize_category_positions(
+            self.parent_category1.id
+        )
         self.assertTrue(result)
 
         # Verify child positions are sequential

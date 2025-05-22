@@ -35,7 +35,9 @@ class PackageService:
             original_price = sum(service.price for service in services)
 
             # Create package
-            package = Package.objects.create(**package_data, original_price=original_price)
+            package = Package.objects.create(
+                **package_data, original_price=original_price
+            )
 
             # Add services
             for service_data in services_data:
@@ -111,7 +113,9 @@ class PackageService:
 
         # Get reviews
         reviews = (
-            Review.objects.filter(content_type__model="package", object_id=str(package_id))
+            Review.objects.filter(
+                content_type__model="package", object_id=str(package_id)
+            )
             .select_related("user")
             .order_by("-created_at")
         )
@@ -248,9 +252,9 @@ class PackageService:
                 filter=Q(
                     # Reference to appointment.package_id
                     Q(
-                        id__in=Appointment.objects.filter(package_id__isnull=False).values_list(
-                            "package_id", flat=True
-                        )
+                        id__in=Appointment.objects.filter(
+                            package_id__isnull=False
+                        ).values_list("package_id", flat=True)
                     )
                 ),
             ),
@@ -259,9 +263,9 @@ class PackageService:
                 filter=Q(
                     # Reference to generic foreign key in Review
                     Q(
-                        id__in=Review.objects.filter(content_type=package_type).values_list(
-                            "object_id", flat=True
-                        )
+                        id__in=Review.objects.filter(
+                            content_type=package_type
+                        ).values_list("object_id", flat=True)
                     )
                 ),
             ),
@@ -336,9 +340,9 @@ class PackageService:
                     filter=Q(
                         # Reference to appointment.package_id
                         Q(
-                            id__in=Appointment.objects.filter(package_id__isnull=False).values_list(
-                                "package_id", flat=True
-                            )
+                            id__in=Appointment.objects.filter(
+                                package_id__isnull=False
+                            ).values_list("package_id", flat=True)
                         )
                     ),
                 ),
@@ -347,9 +351,9 @@ class PackageService:
                     filter=Q(
                         # Reference to generic foreign key in Review
                         Q(
-                            id__in=Review.objects.filter(content_type=package_type).values_list(
-                                "object_id", flat=True
-                            )
+                            id__in=Review.objects.filter(
+                                content_type=package_type
+                            ).values_list("object_id", flat=True)
                         )
                     ),
                 ),

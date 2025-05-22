@@ -12,7 +12,10 @@ from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 from apps.authapp.models import User
 from apps.authapp.serializers import (
     ChangeLanguageSerializer,
@@ -76,9 +79,13 @@ class AuthViewSet(viewsets.GenericViewSet):
         try:
             OTPService.send_otp(phone_number)
 
-            return Response({"detail": _("OTP sent successfully")}, status=status.HTTP_200_OK)
+            return Response(
+                {"detail": _("OTP sent successfully")}, status=status.HTTP_200_OK
+            )
         except ValueError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
         except Exception as e:
             logger.error(f"Error sending OTP: {str(e)}")
             return Response(
@@ -110,7 +117,9 @@ class AuthViewSet(viewsets.GenericViewSet):
         user = OTPService.verify_otp(phone_number, code)
 
         if not user:
-            return Response({"detail": _("Invalid OTP code")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": _("Invalid OTP code")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Generate tokens
         tokens = TokenService.get_tokens_for_user(user)
@@ -214,7 +223,9 @@ class AuthViewSet(viewsets.GenericViewSet):
         responses={200: "Success - User logged out successfully"},
         tags=["Authentication", "Login"],
     )
-    @action(detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated]
+    )
     def logout(self, request):
         """
         Logout user (invalidate tokens).
@@ -268,7 +279,9 @@ class AuthViewSet(viewsets.GenericViewSet):
         responses={200: "Success - Language preference updated successfully"},
         tags=["User Settings"],
     )
-    @action(detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated]
+    )
     def change_language(self, request):
         """
         Change user language preference.
@@ -372,7 +385,9 @@ class UserProfileViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
         elif result["status"] == "rate_limited":
-            return Response({"detail": result["message"]}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+            return Response(
+                {"detail": result["message"]}, status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
         elif result["status"] == "error":
             return Response(
                 {"detail": result["message"]},
@@ -408,7 +423,9 @@ class UserProfileViewSet(
             )
 
         # Verify new phone number
-        result = PhoneVerificationService.verify_phone_change(request.user, new_phone, code)
+        result = PhoneVerificationService.verify_phone_change(
+            request.user, new_phone, code
+        )
 
         if result["status"] == "already_in_use":
             return Response(

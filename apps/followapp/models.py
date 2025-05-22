@@ -107,7 +107,9 @@ class FollowEvent(models.Model):
         max_length=50,
         null=True,
         blank=True,
-        help_text=_('Source of the follow/unfollow action (e.g., "shop_profile", "reel", "story")'),
+        help_text=_(
+            'Source of the follow/unfollow action (e.g., "shop_profile", "reel", "story")'
+        ),
     )
 
     class Meta:

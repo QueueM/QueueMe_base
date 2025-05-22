@@ -56,11 +56,14 @@ def clear_stale_caches():
             cleared_count += result if result else 0
 
             if result:
-                logger.info(f"[{timestamp}] Cleared {result} caches matching pattern '{pattern}'")
+                logger.info(
+                    f"[{timestamp}] Cleared {result} caches matching pattern '{pattern}'"
+                )
 
         except Exception as e:
             logger.error(
-                f"[{timestamp}] Error clearing cache pattern '{pattern}': {str(e)}", exc_info=True
+                f"[{timestamp}] Error clearing cache pattern '{pattern}': {str(e)}",
+                exc_info=True,
             )
 
     return f"Cleared {cleared_count} cache entries at {timestamp}"
@@ -105,7 +108,9 @@ def monitor_cache_size():
                 "Consider clearing caches or increasing memory"
             )
         elif used_memory_mb > warning_threshold_mb:
-            logger.warning(f"[{timestamp}] Redis memory usage is HIGH: {used_memory_mb:.2f}MB")
+            logger.warning(
+                f"[{timestamp}] Redis memory usage is HIGH: {used_memory_mb:.2f}MB"
+            )
 
         # Calculate memory fragmentation ratio
         if "mem_fragmentation_ratio" in info:
@@ -130,7 +135,9 @@ def monitor_cache_size():
         }
 
     except Exception as e:
-        logger.error(f"[{timestamp}] Error monitoring cache size: {str(e)}", exc_info=True)
+        logger.error(
+            f"[{timestamp}] Error monitoring cache size: {str(e)}", exc_info=True
+        )
         return {"error": str(e), "timestamp": timestamp}
 
 
@@ -174,5 +181,7 @@ def cleanup_expired_sessions():
         return f"Removed {expired_count} expired session keys at {timestamp}"
 
     except Exception as e:
-        logger.error(f"[{timestamp}] Error cleaning up sessions: {str(e)}", exc_info=True)
+        logger.error(
+            f"[{timestamp}] Error cleaning up sessions: {str(e)}", exc_info=True
+        )
         return f"Error cleaning up sessions: {str(e)}"

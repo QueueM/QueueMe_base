@@ -3,23 +3,39 @@
 import os
 import sys
 
+
 # --------------------------------------------------------------------------
 # SWAGGER DEBUG PATCH: Print all OpenAPI parameters per endpoint
 # --------------------------------------------------------------------------
 def swagger_debug_patch():
     try:
         from drf_yasg.inspectors import SwaggerAutoSchema
+
         real_get_operation = SwaggerAutoSchema.get_operation
 
         def debug_get_operation(self, operation_keys=None):
             op = real_get_operation(self, operation_keys)
             try:
-                print("\n==== YASG DEBUG: Endpoint:", getattr(self.view, '__class__', type(self.view)).__name__)
+                print(
+                    "\n==== YASG DEBUG: Endpoint:",
+                    getattr(self.view, "__class__", type(self.view)).__name__,
+                )
                 if hasattr(op, "parameters"):
-                    names = [(getattr(p, "name", None), getattr(p, "in_", None)) for p in op.parameters]
-                    print("OpenAPI params for", getattr(self.view, '__class__', type(self.view)).__name__, ":", names)
+                    names = [
+                        (getattr(p, "name", None), getattr(p, "in_", None))
+                        for p in op.parameters
+                    ]
+                    print(
+                        "OpenAPI params for",
+                        getattr(self.view, "__class__", type(self.view)).__name__,
+                        ":",
+                        names,
+                    )
                 else:
-                    print("No op.parameters for", getattr(self.view, '__class__', type(self.view)).__name__)
+                    print(
+                        "No op.parameters for",
+                        getattr(self.view, "__class__", type(self.view)).__name__,
+                    )
             except Exception as e:
                 print("DEBUG ERROR", e)
             return op
@@ -29,7 +45,9 @@ def swagger_debug_patch():
     except Exception as e:
         print("Failed to patch Swagger:", e)
 
+
 swagger_debug_patch()
+
 
 # --------------------------------------------------------------------------
 def main():

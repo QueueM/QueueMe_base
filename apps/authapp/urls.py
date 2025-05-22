@@ -9,7 +9,9 @@ router.register(r"users", UserProfileViewSet, basename="user-profile")
 
 # URL patterns for standard views
 urlpatterns = [
-    path("request-otp/", AuthViewSet.as_view({"post": "request_otp"}), name="request-otp"),
+    path(
+        "request-otp/", AuthViewSet.as_view({"post": "request_otp"}), name="request-otp"
+    ),
     path("verify-otp/", AuthViewSet.as_view({"post": "verify_otp"}), name="verify-otp"),
     path(
         "token/refresh/",
@@ -25,7 +27,9 @@ urlpatterns = [
     ),
     path(
         "profile/",
-        UserProfileViewSet.as_view({"get": "retrieve", "put": "update", "patch": "partial_update"}),
+        UserProfileViewSet.as_view(
+            {"get": "retrieve", "put": "update", "patch": "partial_update"}
+        ),
         name="profile",
     ),
 ]

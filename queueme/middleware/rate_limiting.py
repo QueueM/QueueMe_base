@@ -26,7 +26,6 @@ class RateLimiter(ABC):
         Returns:
             True if rate limited, False otherwise
         """
-        pass
 
 
 class IPRateLimiter(RateLimiter):
@@ -183,7 +182,9 @@ class RateLimitingMiddleware(MiddlewareMixin):
         self.rate_limiters["/api/v1/auth/send-otp/"] = SensitiveEndpointLimiter(
             rate=getattr(settings, "RATE_LIMIT_OTP_RATE", 5),
             period=getattr(settings, "RATE_LIMIT_OTP_PERIOD", 300),  # 5 minutes
-            lockout_time=getattr(settings, "RATE_LIMIT_OTP_LOCKOUT", 1800),  # 30 minutes
+            lockout_time=getattr(
+                settings, "RATE_LIMIT_OTP_LOCKOUT", 1800
+            ),  # 30 minutes
         )
 
         self.rate_limiters["/api/v1/auth/verify-otp/"] = SensitiveEndpointLimiter(
@@ -203,7 +204,11 @@ class RateLimitingMiddleware(MiddlewareMixin):
             JsonResponse with error if rate limited, None otherwise
         """
         # Skip rate limiting for staff/admin users
-        if hasattr(request, "user") and request.user.is_authenticated and request.user.is_staff:
+        if (
+            hasattr(request, "user")
+            and request.user.is_authenticated
+            and request.user.is_staff
+        ):
             return None
 
         # Find the most specific rate limiter for this path

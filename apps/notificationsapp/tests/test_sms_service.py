@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.conf import settings
 from django.test import SimpleTestCase
@@ -13,7 +13,9 @@ class SMSServiceTestCase(SimpleTestCase):
     def setUp(self):
         """Set up the test environment."""
         # Store original settings to restore them later
-        self.original_sms_provider = getattr(settings, "SMS_PROVIDER", SMSProvider.TWILIO)
+        self.original_sms_provider = getattr(
+            settings, "SMS_PROVIDER", SMSProvider.TWILIO
+        )
 
     def tearDown(self):
         """Clean up after tests."""
@@ -74,7 +76,9 @@ class SMSServiceTestCase(SimpleTestCase):
         self.assertEqual(result["status"], "sent")
 
         # Verify the mock was called with correct arguments
-        mock_send_via_firebase.assert_called_once_with("+123456789", "Test message", None)
+        mock_send_via_firebase.assert_called_once_with(
+            "+123456789", "Test message", None
+        )
 
     def test_clean_phone_number(self):
         """Test phone number cleaning and formatting."""

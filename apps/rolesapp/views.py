@@ -198,7 +198,9 @@ class RoleViewSet(viewsets.ModelViewSet):
                 # Get the user's companies
                 from apps.companiesapp.models import Company
 
-                company_ids = Company.objects.filter(owner=user).values_list("id", flat=True)
+                company_ids = Company.objects.filter(owner=user).values_list(
+                    "id", flat=True
+                )
 
                 # Get the company content type
                 company_ct = ContentType.objects.get(app_label="apps", model="company")
@@ -216,9 +218,9 @@ class RoleViewSet(viewsets.ModelViewSet):
                 # Get shops from these companies
                 from apps.shopapp.models import Shop
 
-                shop_ids = Shop.objects.filter(company__id__in=all_company_ids).values_list(
-                    "id", flat=True
-                )
+                shop_ids = Shop.objects.filter(
+                    company__id__in=all_company_ids
+                ).values_list("id", flat=True)
 
                 # Return roles for these companies and shops
                 return self.queryset.filter(
@@ -234,7 +236,9 @@ class RoleViewSet(viewsets.ModelViewSet):
                 # Get user's managed shops
                 from apps.shopapp.models import Shop
 
-                managed_shop_ids = Shop.objects.filter(manager=user).values_list("id", flat=True)
+                managed_shop_ids = Shop.objects.filter(manager=user).values_list(
+                    "id", flat=True
+                )
 
                 # Get user's shop manager roles and their shops
                 user_role_shops = UserRole.objects.filter(
@@ -244,7 +248,9 @@ class RoleViewSet(viewsets.ModelViewSet):
                 all_shop_ids = list(managed_shop_ids) + list(user_role_shops)
 
                 # Return roles for these shops
-                return self.queryset.filter(content_type=shop_ct, object_id__in=all_shop_ids)
+                return self.queryset.filter(
+                    content_type=shop_ct, object_id__in=all_shop_ids
+                )
 
         # Default: empty queryset
         return self.queryset.none()
@@ -346,10 +352,14 @@ class RoleViewSet(viewsets.ModelViewSet):
         description = request.data.get("description")
 
         if not name:
-            return Response({"detail": _("Name is required.")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": _("Name is required.")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Clone the role
-        new_role = RoleService.clone_role(role, name, description, performed_by=request.user)
+        new_role = RoleService.clone_role(
+            role, name, description, performed_by=request.user
+        )
 
         serializer = RoleSerializer(new_role)
         return Response(serializer.data)
@@ -394,7 +404,9 @@ class RoleViewSet(viewsets.ModelViewSet):
             for user_id in user_ids:
                 try:
                     user = User.objects.get(id=user_id)
-                    PermissionService.assign_role_to_user(user, role, assigned_by=request.user)
+                    PermissionService.assign_role_to_user(
+                        user, role, assigned_by=request.user
+                    )
                     added_count += 1
                 except User.DoesNotExist:
                     pass  # Skip non-existent users
@@ -441,7 +453,11 @@ class RoleViewSet(viewsets.ModelViewSet):
             # Check if user can manage target role
             if not RoleService.can_user_manage_role(request.user, to_role):
                 return Response(
-                    {"detail": _("You don't have permission to manage the target role.")},
+                    {
+                        "detail": _(
+                            "You don't have permission to manage the target role."
+                        )
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
@@ -451,7 +467,11 @@ class RoleViewSet(viewsets.ModelViewSet):
             )
 
             return Response(
-                {"detail": _("{} users transferred to {}.").format(transferred, to_role.name)}
+                {
+                    "detail": _("{} users transferred to {}.").format(
+                        transferred, to_role.name
+                    )
+                }
             )
 
         except Role.DoesNotExist:
@@ -612,14 +632,19 @@ class UserRoleViewSet(viewsets.ModelViewSet):
             target_user = User.objects.get(id=user_id)
 
             # Check permission: can see roles of users they can manage
-            if not request.user.is_superuser and not PermissionResolver.is_queue_me_admin(
-                request.user
+            if (
+                not request.user.is_superuser
+                and not PermissionResolver.is_queue_me_admin(request.user)
             ):
                 # If users are in entities we manage, we can see their roles
                 # This is a simplified check - in a real app, you'd check entities more carefully
                 if not self._can_manage_user(request.user, target_user):
                     return Response(
-                        {"detail": _("You don't have permission to view this user's roles.")},
+                        {
+                            "detail": _(
+                                "You don't have permission to view this user's roles."
+                            )
+                        },
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
@@ -628,7 +653,9 @@ class UserRoleViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         except User.DoesNotExist:
-            return Response({"detail": _("User not found.")}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": _("User not found.")}, status=status.HTTP_404_NOT_FOUND
+            )
 
     @action(detail=False, methods=["get"])
     def by_role(self, request):
@@ -664,7 +691,9 @@ class UserRoleViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         except Role.DoesNotExist:
-            return Response({"detail": _("Role not found.")}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": _("Role not found.")}, status=status.HTTP_404_NOT_FOUND
+            )
 
     @action(detail=False, methods=["get"])
     def by_entity(self, request):
@@ -689,7 +718,9 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 
         try:
             # Get the content type
-            content_type = ContentType.objects.get(app_label="apps", model=entity_type.lower())
+            content_type = ContentType.objects.get(
+                app_label="apps", model=entity_type.lower()
+            )
 
             # Check if the entity exists
             model_class = content_type.model_class()
@@ -698,7 +729,9 @@ class UserRoleViewSet(viewsets.ModelViewSet):
             # Check if user has permission to manage roles for this entity
             has_permission = False
 
-            if request.user.is_superuser or PermissionResolver.is_queue_me_admin(request.user):
+            if request.user.is_superuser or PermissionResolver.is_queue_me_admin(
+                request.user
+            ):
                 has_permission = True
             elif entity_type == "shop":
                 has_permission = PermissionResolver.has_context_permission(
@@ -711,7 +744,11 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 
             if not has_permission:
                 return Response(
-                    {"detail": _("You don't have permission to view roles for this entity.")},
+                    {
+                        "detail": _(
+                            "You don't have permission to view roles for this entity."
+                        )
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
@@ -726,7 +763,9 @@ class UserRoleViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         except (ContentType.DoesNotExist, model_class.DoesNotExist):
-            return Response({"detail": _("Entity not found.")}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": _("Entity not found.")}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def _can_manage_user(self, manager, user):
         """
@@ -766,14 +805,18 @@ class UserRoleViewSet(viewsets.ModelViewSet):
             from apps.shopapp.models import Shop
 
             manager_shops = list(
-                Shop.objects.filter(company__id__in=manager_companies).values_list("id", flat=True)
+                Shop.objects.filter(company__id__in=manager_companies).values_list(
+                    "id", flat=True
+                )
             )
 
         # If manager is shop manager, they can manage employees in their shops
         if PermissionResolver.is_shop_manager(manager):
             from apps.shopapp.models import Shop
 
-            direct_shops = list(Shop.objects.filter(manager=manager).values_list("id", flat=True))
+            direct_shops = list(
+                Shop.objects.filter(manager=manager).values_list("id", flat=True)
+            )
 
             # Add shops from roles
             shop_roles = UserRole.objects.filter(
@@ -790,7 +833,9 @@ class UserRoleViewSet(viewsets.ModelViewSet):
         if manager_shops:
             from apps.employeeapp.models import Employee
 
-            is_employee = Employee.objects.filter(user=user, shop__id__in=manager_shops).exists()
+            is_employee = Employee.objects.filter(
+                user=user, shop__id__in=manager_shops
+            ).exists()
 
             if is_employee:
                 return True

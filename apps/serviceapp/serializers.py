@@ -127,7 +127,9 @@ class ServiceListSerializer(serializers.ModelSerializer):
             shop_lat = obj.shop.location.latitude
             shop_lng = obj.shop.location.longitude
 
-            distance = GeoService.calculate_distance(customer_lat, customer_lng, shop_lat, shop_lng)
+            distance = GeoService.calculate_distance(
+                customer_lat, customer_lng, shop_lat, shop_lng
+            )
 
             return round(distance, 1)  # Round to 1 decimal place
         except (ValueError, TypeError, AttributeError):
@@ -225,7 +227,9 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
             shop_lat = obj.shop.location.latitude
             shop_lng = obj.shop.location.longitude
 
-            distance = GeoService.calculate_distance(customer_lat, customer_lng, shop_lat, shop_lng)
+            distance = GeoService.calculate_distance(
+                customer_lat, customer_lng, shop_lat, shop_lng
+            )
 
             return round(distance, 1)  # Round to 1 decimal place
         except (ValueError, TypeError, AttributeError):
@@ -288,7 +292,9 @@ class ServiceCreateSerializer(serializers.ModelSerializer):
             from apps.rolesapp.services.permission_resolver import PermissionResolver
 
             shop_id = data.get("shop").id
-            if not PermissionResolver.has_shop_permission(request.user, shop_id, "service", "add"):
+            if not PermissionResolver.has_shop_permission(
+                request.user, shop_id, "service", "add"
+            ):
                 raise serializers.ValidationError(
                     _("You don't have permission to add services to this shop")
                 )
@@ -354,7 +360,9 @@ class ServiceUpdateSerializer(serializers.ModelSerializer):
             from apps.rolesapp.services.permission_resolver import PermissionResolver
 
             shop_id = self.instance.shop.id
-            if not PermissionResolver.has_shop_permission(request.user, shop_id, "service", "edit"):
+            if not PermissionResolver.has_shop_permission(
+                request.user, shop_id, "service", "edit"
+            ):
                 raise serializers.ValidationError(
                     _("You don't have permission to edit services in this shop")
                 )

@@ -64,10 +64,15 @@ STANDARD_RESPONSES = {
         schema=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                "error": openapi.Schema(type=openapi.TYPE_STRING, description="Error message"),
-                "code": openapi.Schema(type=openapi.TYPE_STRING, description="Error code"),
+                "error": openapi.Schema(
+                    type=openapi.TYPE_STRING, description="Error message"
+                ),
+                "code": openapi.Schema(
+                    type=openapi.TYPE_STRING, description="Error code"
+                ),
                 "details": openapi.Schema(
-                    type=openapi.TYPE_OBJECT, description="Detailed error information"  # noqa: E501
+                    type=openapi.TYPE_OBJECT,
+                    description="Detailed error information",  # noqa: E501
                 ),
             },
         ),
@@ -120,7 +125,9 @@ STANDARD_RESPONSES = {
                 "code": openapi.Schema(type=openapi.TYPE_STRING),
             },
         ),
-        examples={"application/json": {"error": "Resource not found", "code": "not_found"}},
+        examples={
+            "application/json": {"error": "Resource not found", "code": "not_found"}
+        },
     ),
     429: openapi.Response(
         description="Too Many Requests - Rate limit exceeded",
@@ -149,7 +156,12 @@ STANDARD_RESPONSES = {
                 "code": openapi.Schema(type=openapi.TYPE_STRING),
             },
         ),
-        examples={"application/json": {"error": "Internal server error", "code": "server_error"}},
+        examples={
+            "application/json": {
+                "error": "Internal server error",
+                "code": "server_error",
+            }
+        },
     ),
 }
 
@@ -166,7 +178,11 @@ SECURITY_DEFINITIONS = {
 # Common query parameters for list endpoints
 PAGINATION_PARAMETERS = [
     openapi.Parameter(
-        "page", openapi.IN_QUERY, description="Page number", type=openapi.TYPE_INTEGER, default=1
+        "page",
+        openapi.IN_QUERY,
+        description="Page number",
+        type=openapi.TYPE_INTEGER,
+        default=1,
     ),
     openapi.Parameter(
         "page_size",
@@ -205,7 +221,8 @@ def get_list_response_schema(item_schema, description="List of items"):
         type=openapi.TYPE_OBJECT,
         properties={
             "count": openapi.Schema(
-                type=openapi.TYPE_INTEGER, description="Total number of items across all pages"
+                type=openapi.TYPE_INTEGER,
+                description="Total number of items across all pages",
             ),
             "next": openapi.Schema(
                 type=openapi.TYPE_STRING,

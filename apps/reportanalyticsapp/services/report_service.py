@@ -89,7 +89,9 @@ class ReportService:
             dict: Report data including metrics, insights and visualization configs
         """
         # Calculate date range
-        date_range = ReportService._calculate_date_range(time_period, start_date, end_date)
+        date_range = ReportService._calculate_date_range(
+            time_period, start_date, end_date
+        )
 
         # Get the appropriate query class
         if entity_type == "shop" or entity_type == "company":
@@ -134,7 +136,9 @@ class ReportService:
                 entity_id, date_range["start"], date_range["end"]
             )
         elif report_type == "platform_usage":
-            raw_data = query_class.get_platform_usage(date_range["start"], date_range["end"])
+            raw_data = query_class.get_platform_usage(
+                date_range["start"], date_range["end"]
+            )
         elif report_type == "customer_satisfaction":
             raw_data = query_class.get_customer_satisfaction(
                 entity_id, date_range["start"], date_range["end"]
@@ -167,7 +171,9 @@ class ReportService:
             "entity_id": entity_id,
             "entity_type": entity_type,
             "time_period": time_period,
-            "time_period_name": ReportService.TIME_PERIODS.get(time_period, time_period),
+            "time_period_name": ReportService.TIME_PERIODS.get(
+                time_period, time_period
+            ),
             "start_date": date_range["start"].isoformat(),
             "end_date": date_range["end"].isoformat(),
             "generated_at": timezone.now().isoformat(),
@@ -194,9 +200,13 @@ class ReportService:
         if time_period == "custom" and start_date and end_date:
             # Convert string dates to datetime if needed
             if isinstance(start_date, str):
-                start_date = datetime.fromisoformat(start_date.rstrip("Z")).replace(tzinfo=pytz.UTC)
+                start_date = datetime.fromisoformat(start_date.rstrip("Z")).replace(
+                    tzinfo=pytz.UTC
+                )
             if isinstance(end_date, str):
-                end_date = datetime.fromisoformat(end_date.rstrip("Z")).replace(tzinfo=pytz.UTC)
+                end_date = datetime.fromisoformat(end_date.rstrip("Z")).replace(
+                    tzinfo=pytz.UTC
+                )
 
             return {"start": start_date, "end": end_date}
 
@@ -214,9 +224,9 @@ class ReportService:
         elif time_period == "monthly":
             start_of_month = today.replace(day=1)
             if today.month == 12:
-                end_of_month = today.replace(year=today.year + 1, month=1, day=1) - timedelta(
-                    microseconds=1
-                )
+                end_of_month = today.replace(
+                    year=today.year + 1, month=1, day=1
+                ) - timedelta(microseconds=1)
             else:
                 end_of_month = today.replace(month=today.month + 1, day=1) - timedelta(
                     microseconds=1
@@ -226,19 +236,19 @@ class ReportService:
             quarter = (today.month - 1) // 3 + 1
             start_of_quarter = today.replace(month=(quarter - 1) * 3 + 1, day=1)
             if quarter == 4:
-                end_of_quarter = today.replace(year=today.year + 1, month=1, day=1) - timedelta(
-                    microseconds=1
-                )
+                end_of_quarter = today.replace(
+                    year=today.year + 1, month=1, day=1
+                ) - timedelta(microseconds=1)
             else:
-                end_of_quarter = today.replace(month=quarter * 3 + 1, day=1) - timedelta(
-                    microseconds=1
-                )
+                end_of_quarter = today.replace(
+                    month=quarter * 3 + 1, day=1
+                ) - timedelta(microseconds=1)
             return {"start": start_of_quarter, "end": end_of_quarter}
         elif time_period == "yearly":
             start_of_year = today.replace(month=1, day=1)
-            end_of_year = today.replace(year=today.year + 1, month=1, day=1) - timedelta(
-                microseconds=1
-            )
+            end_of_year = today.replace(
+                year=today.year + 1, month=1, day=1
+            ) - timedelta(microseconds=1)
             return {"start": start_of_year, "end": end_of_year}
         else:
             # Default to last 30 days
@@ -263,7 +273,8 @@ class ReportService:
         # Add growth metrics (compare with previous period)
         if "metrics" in processed_data:
             prev_range = {
-                "start": date_range["start"] - (date_range["end"] - date_range["start"]),
+                "start": date_range["start"]
+                - (date_range["end"] - date_range["start"]),
                 "end": date_range["start"] - timedelta(microseconds=1),
             }
 
@@ -290,13 +301,17 @@ class ReportService:
                             prev_value = prev_data["metrics"][metric]
                             if prev_value != 0:
                                 growth = ((value - prev_value) / prev_value) * 100
-                                processed_data.setdefault("growth_metrics", {})[metric] = round(
-                                    growth, 2
-                                )
+                                processed_data.setdefault("growth_metrics", {})[
+                                    metric
+                                ] = round(growth, 2)
                             else:
-                                processed_data.setdefault("growth_metrics", {})[metric] = 100.0
+                                processed_data.setdefault("growth_metrics", {})[
+                                    metric
+                                ] = 100.0
                         else:
-                            processed_data.setdefault("growth_metrics", {})[metric] = 100.0
+                            processed_data.setdefault("growth_metrics", {})[
+                                metric
+                            ] = 100.0
 
         # Add computed metrics based on raw data
         if report_type == "business_overview":
@@ -307,10 +322,14 @@ class ReportService:
                     and "returning_customers" in processed_data["metrics"]
                 ):
                     total_customers = processed_data["metrics"]["total_customers"]
-                    returning_customers = processed_data["metrics"]["returning_customers"]
+                    returning_customers = processed_data["metrics"][
+                        "returning_customers"
+                    ]
                     if total_customers > 0:
                         retention_rate = (returning_customers / total_customers) * 100
-                        processed_data["metrics"]["retention_rate"] = round(retention_rate, 2)
+                        processed_data["metrics"]["retention_rate"] = round(
+                            retention_rate, 2
+                        )
 
                 # Calculate average booking value
                 if (
@@ -321,7 +340,9 @@ class ReportService:
                     total_bookings = processed_data["metrics"]["total_bookings"]
                     if total_bookings > 0:
                         avg_booking_value = total_revenue / total_bookings
-                        processed_data["metrics"]["avg_booking_value"] = round(avg_booking_value, 2)
+                        processed_data["metrics"]["avg_booking_value"] = round(
+                            avg_booking_value, 2
+                        )
 
         # Add time series data if applicable
         if "time_series" in processed_data:
@@ -357,7 +378,9 @@ class ReportService:
             # Find top growing metrics
             growth_metrics = data["growth_metrics"]
             if growth_metrics:
-                top_metrics = sorted(growth_metrics.items(), key=lambda x: x[1], reverse=True)[:3]
+                top_metrics = sorted(
+                    growth_metrics.items(), key=lambda x: x[1], reverse=True
+                )[:3]
                 for metric, growth in top_metrics:
                     if growth > 10:
                         metric_name = metric.replace("_", " ").title()
@@ -399,7 +422,9 @@ class ReportService:
                     )
 
                 # Find underperforming services
-                least_booked = sorted(data["service_data"], key=lambda x: x.get("bookings", 0))
+                least_booked = sorted(
+                    data["service_data"], key=lambda x: x.get("bookings", 0)
+                )
                 if least_booked and least_booked[0].get("bookings", 0) == 0:
                     insights.append(
                         f"Service {least_booked[0]['name']} has no bookings in this period"
@@ -429,7 +454,9 @@ class ReportService:
                         "Sunday",
                     ]
                     day_name = day_names[int(max_day[0])]
-                    insights.append(f"Most bookings occur on {day_name} with {max_day[1]} bookings")
+                    insights.append(
+                        f"Most bookings occur on {day_name} with {max_day[1]} bookings"
+                    )
 
             # Cancellation rate insights
             if "metrics" in data and "cancellation_rate" in data["metrics"]:
@@ -512,7 +539,9 @@ class ReportService:
 
             # Retention recommendations
             if "retention_rate" in metrics and metrics["retention_rate"] < 50:
-                recommendations.append("Implement a customer loyalty program to improve retention")
+                recommendations.append(
+                    "Implement a customer loyalty program to improve retention"
+                )
 
             # Service utilization recommendations
             if "service_data" in data:
@@ -528,7 +557,11 @@ class ReportService:
             # Peak time optimization
             if "hourly_distribution" in data and "day_distribution" in data:
                 hourly = data["hourly_distribution"]
-                low_hours = [h for h, count in hourly.items() if count < max(hourly.values()) * 0.3]
+                low_hours = [
+                    h
+                    for h, count in hourly.items()
+                    if count < max(hourly.values()) * 0.3
+                ]
                 if low_hours:
                     recommendations.append(
                         f"Offer discounts during low-booking hours ({', '.join(low_hours[:3])}) to balance demand"
@@ -547,9 +580,13 @@ class ReportService:
         elif report_type == "specialist_performance":
             # Underperforming specialists
             if "specialist_data" in data:
-                low_rated = [s for s in data["specialist_data"] if s.get("avg_rating", 5) < 4.0]
+                low_rated = [
+                    s for s in data["specialist_data"] if s.get("avg_rating", 5) < 4.0
+                ]
                 if low_rated:
-                    recommendations.append("Consider training for specialists with lower ratings")
+                    recommendations.append(
+                        "Consider training for specialists with lower ratings"
+                    )
 
             # Unbalanced workloads
             if "specialist_data" in data:
@@ -561,7 +598,9 @@ class ReportService:
 
         elif report_type == "customer_satisfaction":
             if "review_topics" in data:
-                negative_topics = [t for t in data["review_topics"] if t.get("sentiment", 0) < 0]
+                negative_topics = [
+                    t for t in data["review_topics"] if t.get("sentiment", 0) < 0
+                ]
                 if negative_topics:
                     topic_names = [t["topic"] for t in negative_topics[:2]]
                     recommendations.append(
@@ -610,12 +649,16 @@ class ReportService:
                     "cancellation_rate": {
                         "entity_value": metrics.get("cancellation_rate", 0),
                         "industry_avg": 12.5,
-                        "percentile": (65 if metrics.get("cancellation_rate", 0) < 12.5 else 35),
+                        "percentile": (
+                            65 if metrics.get("cancellation_rate", 0) < 12.5 else 35
+                        ),
                     },
                     "retention_rate": {
                         "entity_value": metrics.get("retention_rate", 0),
                         "industry_avg": 55.0,
-                        "percentile": (65 if metrics.get("retention_rate", 0) > 55.0 else 35),
+                        "percentile": (
+                            65 if metrics.get("retention_rate", 0) > 55.0 else 35
+                        ),
                     },
                 }
             elif report_type == "specialist_performance":
@@ -628,7 +671,9 @@ class ReportService:
                     "bookings_per_day": {
                         "entity_value": metrics.get("bookings_per_day", 0),
                         "industry_avg": 6.2,
-                        "percentile": (70 if metrics.get("bookings_per_day", 0) > 6.2 else 30),
+                        "percentile": (
+                            70 if metrics.get("bookings_per_day", 0) > 6.2 else 30
+                        ),
                     },
                 }
 
@@ -777,7 +822,9 @@ class ReportService:
                         list(report_data["metrics"].items()),
                         columns=["Metric", "Value"],
                     )
-                    metrics_df["Metric"] = metrics_df["Metric"].str.replace("_", " ").str.title()
+                    metrics_df["Metric"] = (
+                        metrics_df["Metric"].str.replace("_", " ").str.title()
+                    )
                     metrics_df.to_excel(writer, sheet_name="Metrics", index=False)
 
                 # Write time series data if available
@@ -836,7 +883,9 @@ class ReportService:
             file_path = f"{file_name}.json"
 
             # Upload file
-            return s3_storage.upload_file_object(json_bytes, file_path, "application/json")
+            return s3_storage.upload_file_object(
+                json_bytes, file_path, "application/json"
+            )
 
         elif format == "html":
             # Create HTML file
@@ -868,7 +917,9 @@ class ReportService:
 
         # Process based on data structure
         if "metrics" in report_data:
-            df = pd.DataFrame(list(report_data["metrics"].items()), columns=["Metric", "Value"])
+            df = pd.DataFrame(
+                list(report_data["metrics"].items()), columns=["Metric", "Value"]
+            )
             df["Metric"] = df["Metric"].str.replace("_", " ").str.title()
 
         return df
@@ -946,9 +997,13 @@ class ReportService:
             recipients=recipients,
             parameters={
                 "start_date": (
-                    start_date.isoformat() if isinstance(start_date, datetime) else start_date
+                    start_date.isoformat()
+                    if isinstance(start_date, datetime)
+                    else start_date
                 ),
-                "end_date": (end_date.isoformat() if isinstance(end_date, datetime) else end_date),
+                "end_date": (
+                    end_date.isoformat() if isinstance(end_date, datetime) else end_date
+                ),
                 **kwargs,
             },
             is_active=True,

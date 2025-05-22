@@ -4,7 +4,7 @@ Cache utility functions to extend Django's cache capabilities.
 
 import logging
 import re
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from django.core.cache import cache
 from redis import Redis
@@ -109,7 +109,9 @@ def _fallback_delete_pattern(pattern: str) -> int:
     return count
 
 
-def clear_cache_for_model(model_name: str, object_id: Optional[Union[str, int]] = None) -> int:
+def clear_cache_for_model(
+    model_name: str, object_id: Optional[Union[str, int]] = None
+) -> int:
     """
     Clear cache for specific model or object.
 

@@ -52,7 +52,9 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
         specialist = self.context.get("specialist")
         if specialist and not self.instance:  # Only on create
             if specialist.portfolio.count() >= 20:  # Max portfolio items
-                raise serializers.ValidationError(_("Maximum number of portfolio items reached."))
+                raise serializers.ValidationError(
+                    _("Maximum number of portfolio items reached.")
+                )
         return attrs
 
 
@@ -91,7 +93,9 @@ class SpecialistListSerializer(serializers.ModelSerializer):
     last_name = serializers.ReadOnlyField(source="employee.last_name")
     shop_id = serializers.ReadOnlyField(source="employee.shop.id")
     shop_name = serializers.ReadOnlyField(source="employee.shop.name")
-    profile_image = serializers.ReadOnlyField(source="employee.profile_image.url", default=None)
+    profile_image = serializers.ReadOnlyField(
+        source="employee.profile_image.url", default=None
+    )
     top_services = serializers.SerializerMethodField()
     expertise_categories = serializers.SerializerMethodField()
 
@@ -115,21 +119,26 @@ class SpecialistListSerializer(serializers.ModelSerializer):
         )
 
     def get_top_services(self, obj):
-        top_services = obj.specialist_services.filter(is_primary=True).order_by("-booking_count")[
-            :3
-        ]
+        top_services = obj.specialist_services.filter(is_primary=True).order_by(
+            "-booking_count"
+        )[:3]
 
         return [
             {
                 "id": service.service.id,
                 "name": service.service.name,
-                "category": (service.service.category.name if service.service.category else None),
+                "category": (
+                    service.service.category.name if service.service.category else None
+                ),
             }
             for service in top_services
         ]
 
     def get_expertise_categories(self, obj):
-        return [{"id": category.id, "name": category.name} for category in obj.expertise.all()[:5]]
+        return [
+            {"id": category.id, "name": category.name}
+            for category in obj.expertise.all()[:5]
+        ]
 
 
 class SpecialistDetailSerializer(serializers.ModelSerializer):
@@ -137,12 +146,18 @@ class SpecialistDetailSerializer(serializers.ModelSerializer):
     last_name = serializers.ReadOnlyField(source="employee.last_name")
     phone_number = serializers.ReadOnlyField(source="employee.user.phone_number")
     email = serializers.ReadOnlyField(source="employee.email")
-    profile_image = serializers.ReadOnlyField(source="employee.profile_image.url", default=None)
+    profile_image = serializers.ReadOnlyField(
+        source="employee.profile_image.url", default=None
+    )
     shop_id = serializers.ReadOnlyField(source="employee.shop.id")
     shop_name = serializers.ReadOnlyField(source="employee.shop.name")
-    services = SpecialistServiceSerializer(source="specialist_services", many=True, read_only=True)
+    services = SpecialistServiceSerializer(
+        source="specialist_services", many=True, read_only=True
+    )
     working_hours = SpecialistWorkingHoursSerializer(many=True, read_only=True)
-    portfolio_items = PortfolioItemSerializer(source="portfolio", many=True, read_only=True)
+    portfolio_items = PortfolioItemSerializer(
+        source="portfolio", many=True, read_only=True
+    )
     expertise_categories = serializers.SerializerMethodField()
 
     class Meta:
@@ -180,7 +195,10 @@ class SpecialistDetailSerializer(serializers.ModelSerializer):
         )
 
     def get_expertise_categories(self, obj):
-        return [{"id": category.id, "name": category.name} for category in obj.expertise.all()]
+        return [
+            {"id": category.id, "name": category.name}
+            for category in obj.expertise.all()
+        ]
 
 
 class SpecialistCreateSerializer(serializers.ModelSerializer):
@@ -212,7 +230,9 @@ class SpecialistCreateSerializer(serializers.ModelSerializer):
 
             # Check if employee already has a specialist profile
             if hasattr(employee, "specialist"):
-                raise serializers.ValidationError(_("Employee already has a specialist profile."))
+                raise serializers.ValidationError(
+                    _("Employee already has a specialist profile.")
+                )
 
             # Ensure employee is active
             if not employee.is_active:
@@ -222,7 +242,9 @@ class SpecialistCreateSerializer(serializers.ModelSerializer):
 
             return value
         except Employee.DoesNotExist:
-            raise serializers.ValidationError(_("Employee with this ID does not exist."))
+            raise serializers.ValidationError(
+                _("Employee with this ID does not exist.")
+            )
 
     def validate_service_ids(self, value):
         """Validate services exist and belong to the shop"""
@@ -245,9 +267,9 @@ class SpecialistCreateSerializer(serializers.ModelSerializer):
 
             if invalid_services:
                 raise serializers.ValidationError(
-                    _("The following services do not exist or don't belong to the shop: {}").format(
-                        ", ".join(invalid_services)
-                    )
+                    _(
+                        "The following services do not exist or don't belong to the shop: {}"
+                    ).format(", ".join(invalid_services))
                 )
 
             return value
@@ -264,7 +286,9 @@ class SpecialistCreateSerializer(serializers.ModelSerializer):
 
         if invalid_categories:
             raise serializers.ValidationError(
-                _("The following categories do not exist: {}").format(", ".join(invalid_categories))
+                _("The following categories do not exist: {}").format(
+                    ", ".join(invalid_categories)
+                )
             )
 
         return value
@@ -300,10 +324,15 @@ class SpecialistCreateSerializer(serializers.ModelSerializer):
         # Create working hours (default or provided)
         if working_hours_data:
             for hours_data in working_hours_data:
-                SpecialistWorkingHours.objects.create(specialist=specialist, **hours_data)
+                SpecialistWorkingHours.objects.create(
+                    specialist=specialist, **hours_data
+                )
         else:
             # Create default working hours (9AM-5PM, Sun-Thu, Friday off)
-            from apps.specialistsapp.constants import DEFAULT_END_HOUR, DEFAULT_START_HOUR
+            from apps.specialistsapp.constants import (
+                DEFAULT_END_HOUR,
+                DEFAULT_START_HOUR,
+            )
 
             for day in range(7):  # 0=Sunday, 6=Saturday
                 SpecialistWorkingHours.objects.create(
@@ -341,7 +370,9 @@ class SpecialistUpdateSerializer(serializers.ModelSerializer):
 
         if invalid_categories:
             raise serializers.ValidationError(
-                _("The following categories do not exist: {}").format(", ".join(invalid_categories))
+                _("The following categories do not exist: {}").format(
+                    ", ".join(invalid_categories)
+                )
             )
 
         return value
@@ -452,7 +483,9 @@ class SpecialistWorkingHoursCreateUpdateSerializer(serializers.ModelSerializer):
             shop_hours = shop.hours.filter(weekday=weekday).first()
 
             if not shop_hours:
-                raise serializers.ValidationError(_("Shop has no hours defined for this day."))
+                raise serializers.ValidationError(
+                    _("Shop has no hours defined for this day.")
+                )
 
             if shop_hours.is_closed:
                 raise serializers.ValidationError(_("Shop is closed on this day."))
@@ -463,17 +496,23 @@ class SpecialistWorkingHoursCreateUpdateSerializer(serializers.ModelSerializer):
                 )
 
             if to_hour > shop_hours.to_hour:
-                raise serializers.ValidationError(_("Working hours cannot end after shop hours."))
+                raise serializers.ValidationError(
+                    _("Working hours cannot end after shop hours.")
+                )
 
             if from_hour >= to_hour:
-                raise serializers.ValidationError(_("Start time must be before end time."))
+                raise serializers.ValidationError(
+                    _("Start time must be before end time.")
+                )
 
         return attrs
 
 
 class PortfolioItemCreateSerializer(serializers.ModelSerializer):
     service_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
-    category_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
+    category_id = serializers.UUIDField(
+        required=False, allow_null=True, write_only=True
+    )
 
     class Meta:
         model = PortfolioItem
@@ -494,7 +533,9 @@ class PortfolioItemCreateSerializer(serializers.ModelSerializer):
         if not self.instance and specialist:
             current_count = specialist.portfolio.count()
             if current_count >= 20:  # Max portfolio items limit
-                raise serializers.ValidationError(_("Maximum number of portfolio items reached."))
+                raise serializers.ValidationError(
+                    _("Maximum number of portfolio items reached.")
+                )
 
         # Validate service
         service_id = attrs.pop("service_id", None)
@@ -505,7 +546,11 @@ class PortfolioItemCreateSerializer(serializers.ModelSerializer):
                 attrs["service"] = service
             except Service.DoesNotExist:
                 raise serializers.ValidationError(
-                    {"service_id": _("Service does not exist or doesn't belong to the shop.")}
+                    {
+                        "service_id": _(
+                            "Service does not exist or doesn't belong to the shop."
+                        )
+                    }
                 )
 
         # Validate category
@@ -515,7 +560,9 @@ class PortfolioItemCreateSerializer(serializers.ModelSerializer):
                 category = Category.objects.get(id=category_id)
                 attrs["category"] = category
             except Category.DoesNotExist:
-                raise serializers.ValidationError({"category_id": _("Category does not exist.")})
+                raise serializers.ValidationError(
+                    {"category_id": _("Category does not exist.")}
+                )
 
         return attrs
 
@@ -527,7 +574,9 @@ class PortfolioItemCreateSerializer(serializers.ModelSerializer):
 
 class PortfolioItemUpdateSerializer(serializers.ModelSerializer):
     service_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
-    category_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
+    category_id = serializers.UUIDField(
+        required=False, allow_null=True, write_only=True
+    )
 
     class Meta:
         model = PortfolioItem
@@ -553,7 +602,11 @@ class PortfolioItemUpdateSerializer(serializers.ModelSerializer):
                 attrs["service"] = service
             except Service.DoesNotExist:
                 raise serializers.ValidationError(
-                    {"service_id": _("Service does not exist or doesn't belong to the shop.")}
+                    {
+                        "service_id": _(
+                            "Service does not exist or doesn't belong to the shop."
+                        )
+                    }
                 )
         elif service_id is not None:  # Explicitly set to null
             attrs["service"] = None
@@ -565,7 +618,9 @@ class PortfolioItemUpdateSerializer(serializers.ModelSerializer):
                 category = Category.objects.get(id=category_id)
                 attrs["category"] = category
             except Category.DoesNotExist:
-                raise serializers.ValidationError({"category_id": _("Category does not exist.")})
+                raise serializers.ValidationError(
+                    {"category_id": _("Category does not exist.")}
+                )
         elif category_id is not None:  # Explicitly set to null
             attrs["category"] = None
 

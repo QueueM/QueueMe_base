@@ -14,9 +14,7 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
-from core import monkey_patches
 
-import websockets.routing
 from websockets.consumers.socket_helpers import SwiftPingMiddleware
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "queueme.settings.production")

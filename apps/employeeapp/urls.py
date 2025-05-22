@@ -17,8 +17,12 @@ router.register(
     EmployeeWorkingHoursViewSet,
     basename="employee-working-hours",
 )
-router.register(r"(?P<employee_id>[^/.]+)/skills", EmployeeSkillViewSet, basename="employee-skills")
-router.register(r"(?P<employee_id>[^/.]+)/leaves", EmployeeLeaveViewSet, basename="employee-leaves")
+router.register(
+    r"(?P<employee_id>[^/.]+)/skills", EmployeeSkillViewSet, basename="employee-skills"
+)
+router.register(
+    r"(?P<employee_id>[^/.]+)/leaves", EmployeeLeaveViewSet, basename="employee-leaves"
+)
 
 urlpatterns = [
     path("", include(router.urls)),

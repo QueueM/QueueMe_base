@@ -4,16 +4,12 @@ Appointment service for handling booking-related operations.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List
 
 from django.core.cache import cache
-from django.db.models import Count, F, Q, Window
-from django.db.models.functions import RowNumber
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
-from apps.serviceapp.models import Service
-from apps.specialistsapp.models import Specialist
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +17,12 @@ logger = logging.getLogger(__name__)
 SPECIALIST_APPOINTMENTS_CACHE_KEY = (
     "specialist_appointments_{specialist_id}_{start_date}_{end_date}"
 )
-CUSTOMER_APPOINTMENTS_CACHE_KEY = "customer_appointments_{customer_id}_{start_date}_{end_date}"
-SERVICE_APPOINTMENTS_CACHE_KEY = "service_appointments_{service_id}_{start_date}_{end_date}"
+CUSTOMER_APPOINTMENTS_CACHE_KEY = (
+    "customer_appointments_{customer_id}_{start_date}_{end_date}"
+)
+SERVICE_APPOINTMENTS_CACHE_KEY = (
+    "service_appointments_{service_id}_{start_date}_{end_date}"
+)
 SHOP_APPOINTMENTS_CACHE_KEY = "shop_appointments_{shop_id}_{start_date}_{end_date}"
 
 # Cache timeouts (in seconds)

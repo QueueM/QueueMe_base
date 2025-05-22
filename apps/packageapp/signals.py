@@ -52,7 +52,10 @@ def check_package_status(sender, instance, **kwargs):
             instance.status = "upcoming"
 
         # Check if package has reached purchase limit
-        elif instance.max_purchases and instance.current_purchases >= instance.max_purchases:
+        elif (
+            instance.max_purchases
+            and instance.current_purchases >= instance.max_purchases
+        ):
             instance.status = "inactive"
 
         # Otherwise, keep or set to active
@@ -81,13 +84,17 @@ def update_package_purchases_count(sender, instance, created, **kwargs):
             if created or (
                 not created
                 and instance.tracker.has_changed("status")
-                and instance.tracker.previous("status") not in ["scheduled", "confirmed"]
+                and instance.tracker.previous("status")
+                not in ["scheduled", "confirmed"]
             ):
                 package.current_purchases += 1
                 package.save(update_fields=["current_purchases"])
 
                 # Check if we've reached the limit and update status if needed
-                if package.max_purchases and package.current_purchases >= package.max_purchases:
+                if (
+                    package.max_purchases
+                    and package.current_purchases >= package.max_purchases
+                ):
                     package.status = "inactive"
                     package.save(update_fields=["status"])
 
@@ -100,7 +107,9 @@ def update_package_purchases_count(sender, instance, created, **kwargs):
             package = Package.objects.get(id=package_id)
 
             # If status changed from confirmed/scheduled to cancelled
-            if instance.tracker.has_changed("status") and instance.tracker.previous("status") in [
+            if instance.tracker.has_changed("status") and instance.tracker.previous(
+                "status"
+            ) in [
                 "scheduled",
                 "confirmed",
             ]:

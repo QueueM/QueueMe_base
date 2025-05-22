@@ -103,20 +103,26 @@ class ContentRanker:
         # Exclude content the user has already seen if requested
         if exclude_seen_content and user_data.get("viewed_content"):
             viewed_ids = set(user_data["viewed_content"])
-            filtered_items = [item for item in filtered_items if item["id"] not in viewed_ids]
+            filtered_items = [
+                item for item in filtered_items if item["id"] not in viewed_ids
+            ]
 
         # If no items after filtering, return empty result
         if not filtered_items:
             return result
 
         # Calculate base scores for all filtered items
-        scored_items = self._calculate_content_scores(filtered_items, user_data, feed_type)
+        scored_items = self._calculate_content_scores(
+            filtered_items, user_data, feed_type
+        )
 
         # Apply diversification to ensure variety in feed
         diversified_items = self._apply_diversification(scored_items, user_data)
 
         # Sort by score (highest first)
-        ranked_items = sorted(diversified_items, key=lambda x: x["_ranking_score"], reverse=True)
+        ranked_items = sorted(
+            diversified_items, key=lambda x: x["_ranking_score"], reverse=True
+        )
 
         # Implement pagination
         total_items = len(ranked_items)
@@ -164,13 +170,17 @@ class ContentRanker:
             # Filter to content in user's city
             user_city = user_data.get("city", "").lower()
             return [
-                item for item in content_items if item.get("shop_city", "").lower() == user_city
+                item
+                for item in content_items
+                if item.get("shop_city", "").lower() == user_city
             ]
 
         elif feed_type == "following":
             # Filter to content from shops the user follows
             followed_shops = set(user_data.get("followed_shops", []))
-            return [item for item in content_items if item.get("shop_id") in followed_shops]
+            return [
+                item for item in content_items if item.get("shop_id") in followed_shops
+            ]
 
         elif feed_type == "for_you":
             # For personalized feed, apply less strict filtering
@@ -229,7 +239,9 @@ class ContentRanker:
             # 5. Location/proximity factor (especially important for 'nearby' feed)
             location_score = 0
             if feed_type == "nearby" and user_lat and user_lng:
-                location_score = self._calculate_location_score(item, user_lat, user_lng)
+                location_score = self._calculate_location_score(
+                    item, user_lat, user_lng
+                )
             ranking_factors["location"] = location_score * self.location_weight
 
             # 6. Apply boost factors
@@ -370,7 +382,9 @@ class ContentRanker:
         # Cap between 0.0 and 1.0
         return min(1.0, log_engagement / max_log_engagement)
 
-    def _calculate_location_score(self, item: Dict, user_lat: float, user_lng: float) -> float:
+    def _calculate_location_score(
+        self, item: Dict, user_lat: float, user_lng: float
+    ) -> float:
         """
         Calculate location relevance score based on distance.
         Closer content gets higher scores.
@@ -393,7 +407,9 @@ class ContentRanker:
         # Cap between 0.0 and 1.0
         return max(0.0, min(1.0, proximity_score))
 
-    def _calculate_distance(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    def _calculate_distance(
+        self, lat1: float, lng1: float, lat2: float, lng2: float
+    ) -> float:
         """
         Calculate distance between two points using Haversine formula.
         """
@@ -420,7 +436,9 @@ class ContentRanker:
 
         return distance
 
-    def _apply_diversification(self, scored_items: List[Dict], user_data: Dict) -> List[Dict]:
+    def _apply_diversification(
+        self, scored_items: List[Dict], user_data: Dict
+    ) -> List[Dict]:
         """
         Apply diversification to ensure variety in the feed.
         Prevents the feed from being dominated by a single shop or content type.

@@ -31,7 +31,9 @@ class EmployeeWorkingHoursSerializer(serializers.ModelSerializer):
         break_end = data.get("break_end")
 
         if from_hour and to_hour and from_hour >= to_hour:
-            raise serializers.ValidationError({"to_hour": _("End time must be after start time.")})
+            raise serializers.ValidationError(
+                {"to_hour": _("End time must be after start time.")}
+            )
 
         if break_start and break_end:
             if break_start >= break_end:
@@ -39,8 +41,12 @@ class EmployeeWorkingHoursSerializer(serializers.ModelSerializer):
                     {"break_end": _("Break end time must be after break start time.")}
                 )
 
-            if (from_hour and break_start < from_hour) or (to_hour and break_end > to_hour):
-                raise serializers.ValidationError(_("Break time must be within working hours."))
+            if (from_hour and break_start < from_hour) or (
+                to_hour and break_end > to_hour
+            ):
+                raise serializers.ValidationError(
+                    _("Break time must be within working hours.")
+                )
 
         return data
 
@@ -77,7 +83,9 @@ class EmployeeLeaveSerializer(serializers.ModelSerializer):
         end_date = data.get("end_date")
 
         if start_date and end_date and start_date > end_date:
-            raise serializers.ValidationError({"end_date": _("End date must be after start date.")})
+            raise serializers.ValidationError(
+                {"end_date": _("End date must be after start date.")}
+            )
 
         return data
 
@@ -116,7 +124,9 @@ class EmployeeCreateSerializer(serializers.ModelSerializer):
         # Check if user has permission to add employees to this shop
         from apps.rolesapp.services.permission_resolver import PermissionResolver
 
-        if not PermissionResolver.has_shop_permission(user, value.id, "employee", "add"):
+        if not PermissionResolver.has_shop_permission(
+            user, value.id, "employee", "add"
+        ):
             raise serializers.ValidationError(
                 _("You don't have permission to add employees to this shop.")
             )

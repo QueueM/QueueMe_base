@@ -52,6 +52,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class NotificationListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for notification lists"""
+
     class Meta:
         model = Notification
         fields = [
@@ -85,14 +86,19 @@ class DeviceTokenSerializer(serializers.ModelSerializer):
         token = data.get("token")
         platform = data.get("platform")
         if platform == "ios" and len(token) != 64:
-            raise serializers.ValidationError(_("iOS device tokens must be 64 characters"))
+            raise serializers.ValidationError(
+                _("iOS device tokens must be 64 characters")
+            )
         if platform == "android" and len(token) < 100:
-            raise serializers.ValidationError(_("FCM tokens for Android must be at least 100 characters"))
+            raise serializers.ValidationError(
+                _("FCM tokens for Android must be at least 100 characters")
+            )
         return data
 
 
 class BulkNotificationSerializer(serializers.Serializer):
     """Serializer for sending bulk notifications"""
+
     notification_type = serializers.CharField(required=True)
     user_ids = serializers.ListField(child=serializers.UUIDField(), required=True)
     data = serializers.JSONField(required=False, default=dict)
@@ -105,4 +111,7 @@ class BulkNotificationSerializer(serializers.Serializer):
 
 class MarkNotificationsReadSerializer(serializers.Serializer):
     """Serializer for marking notifications as read"""
-    notification_ids = serializers.ListField(child=serializers.UUIDField(), required=True)
+
+    notification_ids = serializers.ListField(
+        child=serializers.UUIDField(), required=True
+    )

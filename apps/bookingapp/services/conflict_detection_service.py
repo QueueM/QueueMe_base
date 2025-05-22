@@ -12,17 +12,14 @@ This service helps maintain booking integrity and prevents double-booking.
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
-from django.db import transaction
 from django.db.models import Q
-from django.utils import timezone
 
 from apps.bookingapp.models import Appointment, AppointmentResource
 from apps.serviceapp.models import Service, ServiceDependency, ServiceResource
 from apps.shopapp.models import Resource, ResourceAvailability
-from apps.specialistsapp.models import Specialist
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +79,9 @@ class ConflictDetectionService:
                     {
                         "appointment_id": str(appt.id),
                         "service_name": appt.service.name,
-                        "customer_name": (appt.customer.name if appt.customer else "Unknown"),
+                        "customer_name": (
+                            appt.customer.name if appt.customer else "Unknown"
+                        ),
                         "start_time": appt.start_time.isoformat(),
                         "end_time": appt.end_time.isoformat(),
                     }
@@ -238,7 +237,10 @@ class ConflictDetectionService:
             service = Service.objects.get(id=service_id)
 
             # If service has no capacity limit, no conflict possible
-            if not service.max_concurrent_bookings or service.max_concurrent_bookings <= 0:
+            if (
+                not service.max_concurrent_bookings
+                or service.max_concurrent_bookings <= 0
+            ):
                 return {
                     "has_conflict": False,
                     "conflict_type": None,
@@ -445,7 +447,9 @@ class ConflictDetectionService:
             return {
                 "has_conflict": has_conflict,
                 "message": (
-                    "; ".join(conflict_messages) if has_conflict else "No conflicts detected"
+                    "; ".join(conflict_messages)
+                    if has_conflict
+                    else "No conflicts detected"
                 ),
                 "checks": {
                     "specialist": specialist_result,
@@ -468,7 +472,9 @@ class ConflictDetectionService:
     # ------------------------------------------------------------------------
 
     @staticmethod
-    def _is_resource_available(resource_id: str, start_time: datetime, end_time: datetime) -> bool:
+    def _is_resource_available(
+        resource_id: str, start_time: datetime, end_time: datetime
+    ) -> bool:
         """
         Check if a resource is generally available during a time range based on its
         availability schedule.
@@ -505,7 +511,10 @@ class ConflictDetectionService:
             end_time_obj = end_time.time()
 
             for avail in availability:
-                if start_time_obj >= avail.start_time and end_time_obj <= avail.end_time:
+                if (
+                    start_time_obj >= avail.start_time
+                    and end_time_obj <= avail.end_time
+                ):
                     return True
 
             return False

@@ -7,18 +7,15 @@ and error handling.
 """
 
 import asyncio
-import base64
 import inspect
 import json
 import logging
 import time
 import zlib
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict
 
-from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
-from channels.exceptions import StopConsumer
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
@@ -28,16 +25,22 @@ logger = logging.getLogger(__name__)
 
 # Default configuration with fallbacks to settings
 DEFAULT_COMPRESSION_ENABLED = getattr(settings, "WEBSOCKET_COMPRESSION_ENABLED", True)
-DEFAULT_COMPRESSION_THRESHOLD = getattr(settings, "WEBSOCKET_COMPRESSION_THRESHOLD", 1024)  # bytes
+DEFAULT_COMPRESSION_THRESHOLD = getattr(
+    settings, "WEBSOCKET_COMPRESSION_THRESHOLD", 1024
+)  # bytes
 DEFAULT_COMPRESSION_LEVEL = getattr(
     settings, "WEBSOCKET_COMPRESSION_LEVEL", 6
 )  # 0-9, higher = better compression but slower
-DEFAULT_HEARTBEAT_INTERVAL = getattr(settings, "WEBSOCKET_HEARTBEAT_INTERVAL", 30)  # seconds
+DEFAULT_HEARTBEAT_INTERVAL = getattr(
+    settings, "WEBSOCKET_HEARTBEAT_INTERVAL", 30
+)  # seconds
 DEFAULT_CLIENT_TIMEOUT = getattr(settings, "WEBSOCKET_CLIENT_TIMEOUT", 90)  # seconds
 DEFAULT_MAX_MESSAGE_SIZE = getattr(
     settings, "WEBSOCKET_MAX_MESSAGE_SIZE", 1024 * 1024
 )  # bytes (1MB)
-DEFAULT_RATE_LIMIT = getattr(settings, "WEBSOCKET_RATE_LIMIT", 60)  # messages per minute
+DEFAULT_RATE_LIMIT = getattr(
+    settings, "WEBSOCKET_RATE_LIMIT", 60
+)  # messages per minute
 DEFAULT_CLOSE_TIMEOUT = getattr(settings, "WEBSOCKET_CLOSE_TIMEOUT", 5)  # seconds
 
 
@@ -253,7 +256,9 @@ class EnhancedConsumer(AsyncWebsocketConsumer):
         self.message_count += 1
         if self.message_count > self.rate_limit:
             logger.warning(f"Rate limit exceeded for {self.channel_name}")
-            await self.send_error("rate_limit_exceeded", {"message": "Too many messages"})
+            await self.send_error(
+                "rate_limit_exceeded", {"message": "Too many messages"}
+            )
             return
 
         # Process message
@@ -272,7 +277,9 @@ class EnhancedConsumer(AsyncWebsocketConsumer):
                     websocket_stats.bytes_received += len(bytes_data)
                 except (zlib.error, UnicodeDecodeError):
                     logger.error("Failed to decompress binary message")
-                    await self.send_error("invalid_message", {"message": "Invalid binary format"})
+                    await self.send_error(
+                        "invalid_message", {"message": "Invalid binary format"}
+                    )
                     return
 
             # Update byte count for text messages
@@ -295,14 +302,18 @@ class EnhancedConsumer(AsyncWebsocketConsumer):
                 message = json.loads(text_data)
             except json.JSONDecodeError:
                 logger.error("Failed to decode JSON message")
-                await self.send_error("invalid_json", {"message": "Invalid JSON format"})
+                await self.send_error(
+                    "invalid_json", {"message": "Invalid JSON format"}
+                )
                 return
 
             # Validate message structure
             message_type = message.get("type")
             if not message_type:
                 logger.error("Message missing type field")
-                await self.send_error("missing_type", {"message": "Message type is required"})
+                await self.send_error(
+                    "missing_type", {"message": "Message type is required"}
+                )
                 return
 
             # Special handling for heartbeat messages
@@ -316,7 +327,9 @@ class EnhancedConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.exception(f"Error handling WebSocket message: {e}")
             websocket_stats.errors += 1
-            await self.send_error("internal_error", {"message": "Error processing message"})
+            await self.send_error(
+                "internal_error", {"message": "Error processing message"}
+            )
         finally:
             # Update performance stats
             processing_time = time.time() - start_time
@@ -327,13 +340,11 @@ class EnhancedConsumer(AsyncWebsocketConsumer):
         """
         Override in subclass to handle connection establishment
         """
-        pass
 
     async def on_disconnect(self, close_code):
         """
         Override in subclass to handle disconnection
         """
-        pass
 
     async def send_json(self, content, compress=None):
         """
@@ -355,7 +366,8 @@ class EnhancedConsumer(AsyncWebsocketConsumer):
             should_compress = compress
             if should_compress is None:
                 should_compress = (
-                    self.compression_enabled and len(text_data) >= self.compression_threshold
+                    self.compression_enabled
+                    and len(text_data) >= self.compression_threshold
                 )
 
             # Update stats before sending
@@ -364,7 +376,9 @@ class EnhancedConsumer(AsyncWebsocketConsumer):
 
             if should_compress:
                 # Compress data
-                compressed = zlib.compress(text_data.encode("utf-8"), self.compression_level)
+                compressed = zlib.compress(
+                    text_data.encode("utf-8"), self.compression_level
+                )
                 websocket_stats.compressed_messages += 1
 
                 # Send as binary
@@ -469,7 +483,9 @@ class EnhancedConsumer(AsyncWebsocketConsumer):
                 try:
                     # Check if client has been inactive too long
                     if time.time() - self.last_client_activity > self.client_timeout:
-                        logger.info(f"Client timeout, closing connection: {self.channel_name}")
+                        logger.info(
+                            f"Client timeout, closing connection: {self.channel_name}"
+                        )
                         await self.close(code=1000)
                         return
 
@@ -719,7 +735,9 @@ class QueueConsumer(ShopConsumer):
         """
         ticket_id = data.get("ticket_id")
         if not ticket_id:
-            await self.send_error("missing_parameter", {"message": "ticket_id is required"})
+            await self.send_error(
+                "missing_parameter", {"message": "ticket_id is required"}
+            )
             return
 
         # Process through service layer
@@ -790,7 +808,9 @@ class NotificationConsumer(AuthenticatedConsumer):
             event: Event data from channel layer
         """
         # Send to client
-        await self.send_json({"type": "new_notification", "data": event.get("notification", {})})
+        await self.send_json(
+            {"type": "new_notification", "data": event.get("notification", {})}
+        )
 
     @catch_errors
     async def handle_mark_read(self, data):
@@ -802,7 +822,9 @@ class NotificationConsumer(AuthenticatedConsumer):
         """
         notification_id = data.get("notification_id")
         if not notification_id:
-            await self.send_error("missing_parameter", {"message": "notification_id is required"})
+            await self.send_error(
+                "missing_parameter", {"message": "notification_id is required"}
+            )
             return
 
         # Process through service layer

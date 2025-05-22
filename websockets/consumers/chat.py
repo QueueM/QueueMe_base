@@ -35,7 +35,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             # Get token from query string
             query_string = self.scope["query_string"].decode()
-            query_params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
+            query_params = dict(
+                x.split("=") for x in query_string.split("&") if "=" in x
+            )
             token = query_params.get("token", "")
 
             if not token:
@@ -73,7 +75,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 return
 
             # Join conversation group
-            await self.channel_layer.group_add(self.conversation_group_name, self.channel_name)
+            await self.channel_layer.group_add(
+                self.conversation_group_name, self.channel_name
+            )
 
             # Accept connection
             await self.accept()
@@ -245,7 +249,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Check if user has access to this conversation."""
         try:
             self.conversation = Conversation.objects.get(id=self.conversation_id)
-            return ChatService.check_user_conversation_access(self.user_id, self.conversation)
+            return ChatService.check_user_conversation_access(
+                self.user_id, self.conversation
+            )
         except Conversation.DoesNotExist:
             return False
         except Exception as e:

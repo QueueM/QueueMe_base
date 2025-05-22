@@ -8,6 +8,6 @@ class MarketingAppConfig(AppConfig):
 
     def ready(self):
         try:
-            import apps.marketingapp.signals
+            pass
         except ImportError:
             pass

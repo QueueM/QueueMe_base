@@ -25,8 +25,12 @@ class Service(models.Model):
     )
     name = models.CharField(_("Name"), max_length=255)
     description = models.TextField(_("Description"), blank=True)
-    short_description = models.CharField(_("Short Description"), max_length=255, blank=True)
-    image = models.ImageField(_("Image"), upload_to="services/images/", null=True, blank=True)
+    short_description = models.CharField(
+        _("Short Description"), max_length=255, blank=True
+    )
+    image = models.ImageField(
+        _("Image"), upload_to="services/images/", null=True, blank=True
+    )
     price = models.DecimalField(_("Price"), max_digits=10, decimal_places=2)
     price_halalas = models.PositiveIntegerField(_("Price in Halalas"), editable=False)
     duration = models.PositiveIntegerField(
@@ -63,7 +67,9 @@ class Service(models.Model):
         choices=ServiceStatus.choices,
         default=ServiceStatus.ACTIVE,
     )
-    has_custom_availability = models.BooleanField(_("Has Custom Availability"), default=False)
+    has_custom_availability = models.BooleanField(
+        _("Has Custom Availability"), default=False
+    )
     min_booking_notice = models.PositiveIntegerField(
         _("Minimum Booking Notice (minutes)"),
         default=0,
@@ -74,7 +80,9 @@ class Service(models.Model):
         default=30,
         help_text=_("How far in advance bookings are allowed"),
     )
-    order = models.PositiveIntegerField(_("Order"), default=0, help_text=_("Display order"))
+    order = models.PositiveIntegerField(
+        _("Order"), default=0, help_text=_("Display order")
+    )
     is_featured = models.BooleanField(_("Featured"), default=False)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
@@ -117,7 +125,9 @@ class Service(models.Model):
         """Calculate average rating from reviews"""
         from apps.reviewapp.models import Review
 
-        reviews = Review.objects.filter(content_type__model="service", object_id=self.id)
+        reviews = Review.objects.filter(
+            content_type__model="service", object_id=self.id
+        )
         if not reviews.exists():
             return 0
         return reviews.aggregate(models.Avg("rating"))["rating__avg"] or 0
@@ -127,7 +137,9 @@ class Service(models.Model):
         """Count of reviews for this service"""
         from apps.reviewapp.models import Review
 
-        return Review.objects.filter(content_type__model="service", object_id=self.id).count()
+        return Review.objects.filter(
+            content_type__model="service", object_id=self.id
+        ).count()
 
 
 class ServiceOverview(models.Model):
@@ -141,7 +153,9 @@ class ServiceOverview(models.Model):
         verbose_name=_("Service"),
     )
     title = models.CharField(_("Title"), max_length=100)
-    image = models.ImageField(_("Image"), upload_to="services/overviews/", null=True, blank=True)
+    image = models.ImageField(
+        _("Image"), upload_to="services/overviews/", null=True, blank=True
+    )
     order = models.PositiveIntegerField(_("Order"), default=0)
 
     class Meta:
@@ -165,7 +179,9 @@ class ServiceStep(models.Model):
     )
     title = models.CharField(_("Title"), max_length=100)
     description = models.TextField(_("Description"))
-    image = models.ImageField(_("Image"), upload_to="services/steps/", null=True, blank=True)
+    image = models.ImageField(
+        _("Image"), upload_to="services/steps/", null=True, blank=True
+    )
     order = models.PositiveIntegerField(_("Order"), default=0)
 
     class Meta:

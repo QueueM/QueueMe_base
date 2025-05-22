@@ -131,7 +131,9 @@ class FeatureNotAvailableException(APIException):
     """Exception raised when a feature is not available in current subscription."""
 
     status_code = status.HTTP_402_PAYMENT_REQUIRED
-    default_message = _("This feature is not available in your current subscription plan.")
+    default_message = _(
+        "This feature is not available in your current subscription plan."
+    )
 
 
 class QuotaExceededException(APIException):

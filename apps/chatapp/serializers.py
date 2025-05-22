@@ -114,7 +114,9 @@ class CreateMessageSerializer(serializers.ModelSerializer):
                 # Set employee reference
                 data["employee_id"] = employee.id
             except Employee.DoesNotExist:
-                raise serializers.ValidationError(_("You are not registered as an employee"))
+                raise serializers.ValidationError(
+                    _("You are not registered as an employee")
+                )
 
         # Handle media type validation
         if data.get("message_type") in ["image", "video"] and not data.get("media_url"):
@@ -142,7 +144,9 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     last_message = serializers.SerializerMethodField()
     unread_count = serializers.SerializerMethodField()
-    customer_phone = serializers.CharField(source="customer.phone_number", read_only=True)
+    customer_phone = serializers.CharField(
+        source="customer.phone_number", read_only=True
+    )
     shop_name = serializers.CharField(source="shop.name", read_only=True)
     shop_avatar = serializers.ImageField(source="shop.avatar", read_only=True)
 
@@ -181,7 +185,9 @@ class ConversationSerializer(serializers.ModelSerializer):
                     else f"New {last_message.message_type}"
                 ),
                 "message_type": last_message.message_type,
-                "sender_type": ("customer" if last_message.sender == obj.customer else "shop"),
+                "sender_type": (
+                    "customer" if last_message.sender == obj.customer else "shop"
+                ),
                 "created_at": last_message.created_at.strftime("%I:%M %p - %d %b, %Y"),
                 "is_read": last_message.is_read,
             }
@@ -212,13 +218,17 @@ class CreateConversationSerializer(serializers.ModelSerializer):
 
         # Only customers can create conversations
         if user.user_type != "customer":
-            raise serializers.ValidationError(_("Only customers can create conversations"))
+            raise serializers.ValidationError(
+                _("Only customers can create conversations")
+            )
 
         # Check if conversation already exists
         shop = data.get("shop")
         existing = Conversation.objects.filter(customer=user, shop=shop).first()
         if existing:
-            raise serializers.ValidationError(_("Conversation with this shop already exists"))
+            raise serializers.ValidationError(
+                _("Conversation with this shop already exists")
+            )
 
         return data
 

@@ -92,7 +92,9 @@ class MoyasarService:
             try:
                 config = cls.get_wallet_config(wallet_type)
                 if not all(config.values()):
-                    logger.warning(f"Incomplete configuration for wallet: {wallet_type}")
+                    logger.warning(
+                        f"Incomplete configuration for wallet: {wallet_type}"
+                    )
                     return False
             except (ValueError, AttributeError) as e:
                 logger.error(f"Error validating wallet {wallet_type}: {str(e)}")
@@ -157,7 +159,9 @@ class MoyasarService:
 
             # Parse and return the response
             payment = response.json()
-            logger.info(f"Created {wallet_type} payment: {payment.get('id')} for {amount} SAR")
+            logger.info(
+                f"Created {wallet_type} payment: {payment.get('id')} for {amount} SAR"
+            )
             return payment
 
         except requests.exceptions.RequestException as e:
@@ -168,7 +172,9 @@ class MoyasarService:
             except (ValueError, AttributeError):
                 pass
 
-            logger.error(f"Error creating {wallet_type} payment for {amount} SAR: {error_message}")
+            logger.error(
+                f"Error creating {wallet_type} payment for {amount} SAR: {error_message}"
+            )
             return {
                 "error": True,
                 "message": error_message,
@@ -211,7 +217,9 @@ class MoyasarService:
             except (ValueError, AttributeError):
                 pass
 
-            logger.error(f"Error fetching {wallet_type} payment {payment_id}: {error_message}")
+            logger.error(
+                f"Error fetching {wallet_type} payment {payment_id}: {error_message}"
+            )
             return {
                 "error": True,
                 "message": error_message,
@@ -273,7 +281,9 @@ class MoyasarService:
             except (ValueError, AttributeError):
                 pass
 
-            logger.error(f"Error refunding {wallet_type} payment {payment_id}: {error_message}")
+            logger.error(
+                f"Error refunding {wallet_type} payment {payment_id}: {error_message}"
+            )
             return {
                 "error": True,
                 "message": error_message,
@@ -336,7 +346,9 @@ class MoyasarService:
             event_type = payload.get("type")
             payment_id = payload.get("id")
             status = payload.get("status")
-            amount = Decimal(payload.get("amount", 0)) / 100  # Convert from halalas to SAR
+            amount = (
+                Decimal(payload.get("amount", 0)) / 100
+            )  # Convert from halalas to SAR
             # Extract metadata
             metadata = payload.get("metadata", {})
             transaction_id = metadata.get("transaction_id")

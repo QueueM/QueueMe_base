@@ -54,7 +54,9 @@ class CanManageShopHours(permissions.BasePermission):
         elif request.method == "DELETE":
             action = "delete"
 
-        return PermissionResolver.has_shop_permission(request.user, shop_id, "shop", action)
+        return PermissionResolver.has_shop_permission(
+            request.user, shop_id, "shop", action
+        )
 
     def has_object_permission(self, request, view, obj):
         action = "view"
@@ -63,7 +65,9 @@ class CanManageShopHours(permissions.BasePermission):
         elif request.method == "DELETE":
             action = "delete"
 
-        return PermissionResolver.has_shop_permission(request.user, obj.shop.id, "shop", action)
+        return PermissionResolver.has_shop_permission(
+            request.user, obj.shop.id, "shop", action
+        )
 
 
 class CanViewShopFollowers(permissions.BasePermission):
@@ -77,7 +81,9 @@ class CanViewShopFollowers(permissions.BasePermission):
         if not shop_id:
             return False
 
-        return PermissionResolver.has_shop_permission(request.user, shop_id, "shop", "view")
+        return PermissionResolver.has_shop_permission(
+            request.user, shop_id, "shop", "view"
+        )
 
 
 class CanVerifyShops(permissions.BasePermission):

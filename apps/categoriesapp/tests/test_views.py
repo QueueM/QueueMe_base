@@ -52,13 +52,21 @@ class CategoryViewSetTest(TestCase):
         )
 
         # Create category permissions
-        self.view_permission = Permission.objects.create(resource="category", action="view")
+        self.view_permission = Permission.objects.create(
+            resource="category", action="view"
+        )
 
-        self.add_permission = Permission.objects.create(resource="category", action="add")
+        self.add_permission = Permission.objects.create(
+            resource="category", action="add"
+        )
 
-        self.edit_permission = Permission.objects.create(resource="category", action="edit")
+        self.edit_permission = Permission.objects.create(
+            resource="category", action="edit"
+        )
 
-        self.delete_permission = Permission.objects.create(resource="category", action="delete")
+        self.delete_permission = Permission.objects.create(
+            resource="category", action="delete"
+        )
 
         # Create a role with category permissions
         self.category_manager_role = Role.objects.create(
@@ -76,7 +84,9 @@ class CategoryViewSetTest(TestCase):
         )
 
         # Assign role to employee user
-        UserRole.objects.create(user=self.employee_user, role=self.category_manager_role)
+        UserRole.objects.create(
+            user=self.employee_user, role=self.category_manager_role
+        )
 
         # Create parent categories
         self.parent_category1 = Category.objects.create(
@@ -339,7 +349,9 @@ class CategoryViewSetTest(TestCase):
             Category.objects.get(id=category.id)
 
         # Create another test category to delete with employee user
-        category = Category.objects.create(name="Category For Employee To Delete", is_active=True)
+        category = Category.objects.create(
+            name="Category For Employee To Delete", is_active=True
+        )
 
         url = reverse("category-detail", args=[category.id])
 
@@ -390,7 +402,11 @@ class CategoryViewSetTest(TestCase):
 
         # Find parent_category1 in the response
         parent1 = next(
-            (item for item in response.data if item["id"] == str(self.parent_category1.id)),
+            (
+                item
+                for item in response.data
+                if item["id"] == str(self.parent_category1.id)
+            ),
             None,
         )
         self.assertIsNotNone(parent1)
@@ -424,7 +440,9 @@ class CategoryViewSetTest(TestCase):
         # Test with limit parameter
         response = self.client.get(url + "?limit=5")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)  # Still 1 featured category (that's all we have)
+        self.assertEqual(
+            len(response.data), 1
+        )  # Still 1 featured category (that's all we have)
 
     def test_popular_action(self):
         """Test popular action"""
@@ -583,7 +601,9 @@ class CategoryViewSetTest(TestCase):
         # Test with limit parameter
         response = self.client.get(url + "?limit=10")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)  # Still 1 related category (that's all we have)
+        self.assertEqual(
+            len(response.data), 1
+        )  # Still 1 related category (that's all we have)
 
     def test_statistics_action(self):
         """Test statistics action"""
@@ -615,7 +635,9 @@ class CategoryViewSetTest(TestCase):
         # Check categories by depth
         self.assertIn("categories_by_depth", response.data)
         self.assertIn("0", response.data["categories_by_depth"])
-        self.assertEqual(response.data["categories_by_depth"]["0"], 2)  # 2 parent categories
+        self.assertEqual(
+            response.data["categories_by_depth"]["0"], 2
+        )  # 2 parent categories
 
     def test_check_integrity_action(self):
         """Test check_integrity action"""
@@ -917,7 +939,9 @@ class CategoryRelationViewSetTest(TestCase):
         # Should fail due to validation
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("to_category", response.data)  # Error message should mention to_category
+        self.assertIn(
+            "to_category", response.data
+        )  # Error message should mention to_category
 
     def test_validation_preventing_duplicate_relations(self):
         """Test validation preventing duplicate relations"""

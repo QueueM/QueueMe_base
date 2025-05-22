@@ -22,8 +22,12 @@ class HybridQueueManager:
         grace_period_minutes = 5  # Appointment grace period
 
         # Check for appointments that are due now (or slightly overdue within grace period)
-        appointment_due_time_start = now - timezone.timedelta(minutes=grace_period_minutes)
-        appointment_due_time_end = now + timezone.timedelta(minutes=15)  # Look ahead 15 minutes
+        appointment_due_time_start = now - timezone.timedelta(
+            minutes=grace_period_minutes
+        )
+        appointment_due_time_end = now + timezone.timedelta(
+            minutes=15
+        )  # Look ahead 15 minutes
 
         # Query filters for appointments
         appointment_filters = Q(
@@ -38,7 +42,9 @@ class HybridQueueManager:
             appointment_filters &= Q(specialist_id=specialist_id)
 
         # Get due appointments sorted by scheduled time
-        due_appointments = Appointment.objects.filter(appointment_filters).order_by("start_time")
+        due_appointments = Appointment.objects.filter(appointment_filters).order_by(
+            "start_time"
+        )
 
         # If there's a due appointment, prioritize it
         if due_appointments.exists():
@@ -52,7 +58,9 @@ class HybridQueueManager:
             queue_filters &= Q(specialist_id=specialist_id) | Q(specialist_id=None)
 
         # Get next ticket in queue
-        next_ticket = QueueTicket.objects.filter(queue_filters).order_by("position").first()
+        next_ticket = (
+            QueueTicket.objects.filter(queue_filters).order_by("position").first()
+        )
 
         if next_ticket:
             return {"type": "queue", "ticket": next_ticket}
@@ -171,7 +179,9 @@ class HybridQueueManager:
                 )
 
         # If no appointments or all appointments are in future, create a single gap from now
-        if not appointment_gaps and (not service_sequence or service_sequence[0]["time"] > now):
+        if not appointment_gaps and (
+            not service_sequence or service_sequence[0]["time"] > now
+        ):
             appointment_gaps.append(
                 {
                     "start": now,
@@ -207,7 +217,9 @@ class HybridQueueManager:
                 )
 
                 # Update for next iteration
-                start_time = start_time + timezone.timedelta(minutes=avg_service_time_minutes)
+                start_time = start_time + timezone.timedelta(
+                    minutes=avg_service_time_minutes
+                )
                 available_minutes -= avg_service_time_minutes
                 ticket_index += 1
 
@@ -234,7 +246,9 @@ class HybridQueueManager:
                 return {"error": "This appointment is not scheduled for today"}
 
             # Check if it's within a reasonable time window (±30 min of scheduled time)
-            time_diff = (now - appointment.start_time).total_seconds() / 60  # Minutes difference
+            time_diff = (
+                now - appointment.start_time
+            ).total_seconds() / 60  # Minutes difference
 
             if abs(time_diff) > 30:
                 # More than 30 minutes early or late
@@ -260,7 +274,9 @@ class HybridQueueManager:
 
                 elif time_diff > 30:  # More than 30 min late
                     # Still handle them, but note the lateness
-                    appointment.notes += f"\nCustomer arrived {int(time_diff)} minutes late."
+                    appointment.notes += (
+                        f"\nCustomer arrived {int(time_diff)} minutes late."
+                    )
                     appointment.save()
 
             # Mark appointment as confirmed/arrived
@@ -309,7 +325,9 @@ class HybridQueueManager:
             queue__shop_id=shop_id, status="served", join_time__date=now.date()
         )
 
-        avg_wait_time = served_today.aggregate(avg_wait=Avg("actual_wait_time"))["avg_wait"] or 0
+        avg_wait_time = (
+            served_today.aggregate(avg_wait=Avg("actual_wait_time"))["avg_wait"] or 0
+        )
 
         # Build recommendations
         recommendations = []
@@ -343,7 +361,11 @@ class HybridQueueManager:
             )
 
         # Check if we're overstaffed
-        if active_specialists > 1 and waiting_tickets == 0 and upcoming_appointments < 3:
+        if (
+            active_specialists > 1
+            and waiting_tickets == 0
+            and upcoming_appointments < 3
+        ):
             recommendations.append(
                 {
                     "type": "optimization",

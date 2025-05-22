@@ -6,7 +6,7 @@ using drf-yasg (Yet Another Swagger Generator).
 """
 
 import functools
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
@@ -17,6 +17,7 @@ from rest_framework import status
 # Import the deduplication utility from utils
 # ----------------------------------------------------------------------
 from api.documentation.utils import dedupe_manual_parameters
+
 
 # ----------------------------------------------------------------------
 # Endpoint Decorator
@@ -114,6 +115,7 @@ def document_api_endpoint(
 
     return decorator
 
+
 # ----------------------------------------------------------------------
 # ViewSet Decorator
 # ----------------------------------------------------------------------
@@ -182,10 +184,15 @@ def document_api_viewset(
                 if hasattr(action_method, "_swagger_auto_schema"):
                     continue
 
-                op_id = f"{operation_id_prefix}_{action_name}" if operation_id_prefix else None
+                op_id = (
+                    f"{operation_id_prefix}_{action_name}"
+                    if operation_id_prefix
+                    else None
+                )
                 action_summary = (
                     f"{summary} - {action_descriptions.get(action_name, '')}"
-                    if summary else action_descriptions.get(action_name, "")
+                    if summary
+                    else action_descriptions.get(action_name, "")
                 )
 
                 decorated_method = swagger_auto_schema(
@@ -199,5 +206,6 @@ def document_api_viewset(
         return cls
 
     return decorator
+
 
 # END OF FILE

@@ -47,7 +47,9 @@ def require_permission(resource: str, action: str):
             from apps.rolesapp.services.permission_resolver import PermissionResolver
 
             if not PermissionResolver.has_permission(user, resource, action):
-                raise PermissionDenied("You do not have permission to perform this action.")
+                raise PermissionDenied(
+                    "You do not have permission to perform this action."
+                )
 
             return view_func(view, request, *args, **kwargs)
 
@@ -82,7 +84,9 @@ def require_shop_permission(resource: str, action: str):
             # Import here to avoid circular imports
             from apps.rolesapp.services.permission_resolver import PermissionResolver
 
-            if not PermissionResolver.has_shop_permission(user, shop_id, resource, action):
+            if not PermissionResolver.has_shop_permission(
+                user, shop_id, resource, action
+            ):
                 raise PermissionDenied(
                     "You do not have permission to perform this action for this shop."
                 )
@@ -174,7 +178,9 @@ def handle_exceptions(
                     if isinstance(view, APIView):
                         return Response({"detail": error_detail}, status=status_code)
                     else:
-                        return JsonResponse({"detail": error_detail}, status=status_code)
+                        return JsonResponse(
+                            {"detail": error_detail}, status=status_code
+                        )
                 else:
                     # For non-HTTP functions, re-raise
                     raise

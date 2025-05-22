@@ -31,7 +31,9 @@ class HasShopDashboardPermission(permissions.BasePermission):
             )
 
         # Check write permissions
-        return PermissionResolver.has_shop_permission(request.user, shop_id, "dashboard", "edit")
+        return PermissionResolver.has_shop_permission(
+            request.user, shop_id, "dashboard", "edit"
+        )
 
 
 class CanManageScheduledReports(permissions.BasePermission):
@@ -51,7 +53,9 @@ class CanManageScheduledReports(permissions.BasePermission):
             )
 
         # Check write permissions
-        return PermissionResolver.has_shop_permission(request.user, obj.shop_id, "report", "edit")
+        return PermissionResolver.has_shop_permission(
+            request.user, obj.shop_id, "report", "edit"
+        )
 
 
 class CanManageDashboardSettings(permissions.BasePermission):

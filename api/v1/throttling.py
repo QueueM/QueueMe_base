@@ -4,7 +4,11 @@ API Rate Limiting Configuration for QueueMe
 This module defines various throttling classes to limit API request rates.
 """
 
-from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle, UserRateThrottle
+from rest_framework.throttling import (
+    AnonRateThrottle,
+    ScopedRateThrottle,
+    UserRateThrottle,
+)
 
 
 class AnonBasicRateThrottle(AnonRateThrottle):

@@ -14,7 +14,9 @@ def calculate_period_price(monthly_price, period):
         return monthly_price
 
     # Get number of months in period
-    months = {"monthly": 1, "quarterly": 3, "semi_annual": 6, "annual": 12}.get(period, 1)
+    months = {"monthly": 1, "quarterly": 3, "semi_annual": 6, "annual": 12}.get(
+        period, 1
+    )
 
     # Get discount percentage for period
     discount_percent = PERIOD_DISCOUNT.get(period, 0)
@@ -55,7 +57,9 @@ def calculate_prorated_amount(original_amount, days_used, total_days):
     return round(prorated_amount, 2)
 
 
-def calculate_plan_change_amount(old_plan_price, new_plan_price, days_remaining, total_days):
+def calculate_plan_change_amount(
+    old_plan_price, new_plan_price, days_remaining, total_days
+):
     """Calculate amount to charge or refund when changing plans"""
     old_plan_price = Decimal(old_plan_price)
     new_plan_price = Decimal(new_plan_price)

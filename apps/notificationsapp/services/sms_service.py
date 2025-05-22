@@ -187,7 +187,9 @@ class SMSService:
         Returns:
             Dictionary with the result of the operation
         """
-        logger.info(f"MOCK SMS to {phone_number} from {sender_id or 'QueueMe'}: {message}")
+        logger.info(
+            f"MOCK SMS to {phone_number} from {sender_id or 'QueueMe'}: {message}"
+        )
         return {
             "success": True,
             "provider": "mock",
@@ -246,8 +248,10 @@ class SMSService:
             result = SMSService.send_sms(phone_number, message)
             return result.get("success", False)
 
-        except Exception as e:
-            logger.error(f"Error sending SMS with template {template_name}: {template_path}")
+        except Exception:
+            logger.error(
+                f"Error sending SMS with template {template_name}: {template_path}"
+            )
             return False
 
     @staticmethod
@@ -267,7 +271,9 @@ class SMSService:
         if language == "ar":
             message = f"رمز التحقق الخاص بك هو: {code}. صالح لمدة 10 دقائق."
         else:
-            message = f"Your Queue Me verification code is: {code}. Valid for 10 minutes."
+            message = (
+                f"Your Queue Me verification code is: {code}. Valid for 10 minutes."
+            )
 
         return SMSService.send_sms(phone_number, message)
 

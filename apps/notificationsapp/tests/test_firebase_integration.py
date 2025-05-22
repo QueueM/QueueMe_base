@@ -3,14 +3,11 @@ Tests for Firebase SMS and push notification integration.
 """
 
 import json
-import uuid
 from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, TestCase
-from django.urls import reverse
-from rest_framework.test import APIClient
+from django.test import TestCase
 
 from apps.notificationsapp.models import (
     DeviceToken,
@@ -188,7 +185,9 @@ class FirebaseIntegrationTest(TestCase):
         notification = Notification.objects.filter(user=self.user).first()
         self.assertIsNotNone(notification)
         self.assertEqual(notification.title, "Test Tracking")
-        self.assertEqual(notification.message, "This is a test notification for tracking")
+        self.assertEqual(
+            notification.message, "This is a test notification for tracking"
+        )
         self.assertEqual(notification.status, "sent")
 
         # Verify delivery details were recorded
@@ -202,7 +201,9 @@ class FirebaseIntegrationTest(TestCase):
         mock_send_multicast.return_value = mock.MagicMock(
             success_count=0,
             failure_count=1,
-            responses=[mock.MagicMock(success=False, exception=Exception("Invalid token"))],
+            responses=[
+                mock.MagicMock(success=False, exception=Exception("Invalid token"))
+            ],
         )
 
         # Send a notification that will fail
@@ -287,7 +288,9 @@ class NotificationServiceIntegrationTests(TestCase):
 
         # Verify SMS content
         self.assertEqual(args[0], self.user.phone_number)
-        self.assertEqual(args[1], "Hello Integration User, this is an SMS integration test.")
+        self.assertEqual(
+            args[1], "Hello Integration User, this is an SMS integration test."
+        )
 
         # Verify notification was created and updated
         self.assertEqual(notification.status, "sent")
@@ -321,7 +324,9 @@ class NotificationServiceIntegrationTests(TestCase):
         # Verify push content
         self.assertEqual(args[0], self.user.id)
         self.assertEqual(args[1], "Push Integration")
-        self.assertEqual(args[2], "Hello Integration User, this is a push integration test.")
+        self.assertEqual(
+            args[2], "Hello Integration User, this is a push integration test."
+        )
         self.assertEqual(kwargs["data"]["action"], "test_action")
 
         # Verify notification was created and updated

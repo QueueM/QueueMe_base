@@ -146,7 +146,9 @@ class ReviewServicesTestCase(TestCase):
         self.assertAlmostEqual(imdb_weighted, 3.46, places=2)
 
         # Test recency weighted rating (can't test exact value due to time dependency)
-        recency_weighted = WeightedRatingCalculator.calculate_recency_weighted_rating(reviews)
+        recency_weighted = WeightedRatingCalculator.calculate_recency_weighted_rating(
+            reviews
+        )
 
         # Should be between min and max rating
         self.assertGreaterEqual(recency_weighted, 2.0)
@@ -155,18 +157,14 @@ class ReviewServicesTestCase(TestCase):
     def test_sentiment_analyzer(self):
         """Test sentiment analysis"""
         # Positive text
-        positive_text = (
-            "This shop is amazing! The service was excellent and I had a great experience."
-        )
+        positive_text = "This shop is amazing! The service was excellent and I had a great experience."
         positive_score = SentimentAnalyzer.analyze_text(positive_text)
 
         # Should be positive (above 0)
         self.assertGreater(positive_score, 0)
 
         # Negative text
-        negative_text = (
-            "Terrible experience. The service was poor and I would not recommend this place."
-        )
+        negative_text = "Terrible experience. The service was poor and I would not recommend this place."
         negative_score = SentimentAnalyzer.analyze_text(negative_text)
 
         # Should be negative (below 0)
@@ -213,13 +211,17 @@ class ReviewServicesTestCase(TestCase):
         spam_text = "BUY NOW!!! AMAZING DEAL!!! CLICK HERE!!! http://example.com http://spam.com"
         self.assertTrue(ReviewValidator.is_potential_spam(spam_text))
 
-        normal_text = "I had a good experience at the shop yesterday. The service was nice."
+        normal_text = (
+            "I had a good experience at the shop yesterday. The service was nice."
+        )
         self.assertFalse(ReviewValidator.is_potential_spam(normal_text))
 
     def test_review_service(self):
         """Test review service"""
         # Create a test image
-        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+        image = SimpleUploadedFile(
+            "test_image.jpg", b"file_content", content_type="image/jpeg"
+        )
 
         # Test moderating a review
         moderator = User.objects.create(phone_number="7777777777")
@@ -233,7 +235,9 @@ class ReviewServicesTestCase(TestCase):
 
         self.assertEqual(updated_review.status, "rejected")
         self.assertEqual(updated_review.moderated_by, moderator)
-        self.assertEqual(updated_review.moderation_comment, "Contains inappropriate content")
+        self.assertEqual(
+            updated_review.moderation_comment, "Contains inappropriate content"
+        )
 
         # Test marking review as helpful
         helper = User.objects.create(phone_number="6666666666")

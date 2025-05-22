@@ -138,7 +138,9 @@ class ReelService:
             raise ValueError("Only draft reels can be published")
 
         if not reel.services.exists() and not reel.packages.exists():
-            raise ValueError("At least one service or package must be linked before publishing")
+            raise ValueError(
+                "At least one service or package must be linked before publishing"
+            )
 
         # Publish reel
         reel.status = "published"
@@ -197,7 +199,11 @@ class ReelService:
             # Get video info
             probe = ffmpeg.probe(reel.video.path)
             video_info = next(
-                (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
+                (
+                    stream
+                    for stream in probe["streams"]
+                    if stream["codec_type"] == "video"
+                ),
                 None,
             )
 
@@ -232,7 +238,9 @@ class ReelService:
 
                     # Save the thumbnail to the model
                     thumbnail_filename = f"{uuid.uuid4()}.jpg"
-                    reel.thumbnail.save(thumbnail_filename, ContentFile(thumbnail_data), save=False)
+                    reel.thumbnail.save(
+                        thumbnail_filename, ContentFile(thumbnail_data), save=False
+                    )
 
             # Update processing status
             reel.processing_status = "completed"
@@ -267,7 +275,10 @@ class ReelService:
             thumbnail_path = reel.thumbnail.name if reel.thumbnail else None
 
             # Delete from S3 if using S3 storage
-            if hasattr(settings, "AWS_STORAGE_BUCKET_NAME") and settings.AWS_STORAGE_BUCKET_NAME:
+            if (
+                hasattr(settings, "AWS_STORAGE_BUCKET_NAME")
+                and settings.AWS_STORAGE_BUCKET_NAME
+            ):
                 s3_storage = S3Storage()
 
                 if video_path:

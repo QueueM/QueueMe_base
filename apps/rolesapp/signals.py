@@ -71,7 +71,9 @@ if not settings.TESTING:
             if created:
                 try:
                     # Only create default roles for a new shop
-                    content_type = ContentType.objects.get(app_label="apps", model="shop")
+                    content_type = ContentType.objects.get(
+                        app_label="apps", model="shop"
+                    )
 
                     # Check if roles already exist
                     existing_roles = Role.objects.filter(
@@ -80,7 +82,9 @@ if not settings.TESTING:
 
                     if not existing_roles:
                         logger.info(f"Creating default roles for shop {instance.name}")
-                        PermissionService.create_default_roles_for_entity(instance, "shop")
+                        PermissionService.create_default_roles_for_entity(
+                            instance, "shop"
+                        )
 
                         # Assign shop manager role to shop manager if one exists
                         if instance.manager:
@@ -111,7 +115,9 @@ if not settings.TESTING:
             if created:
                 try:
                     # Only create default roles for a new company
-                    content_type = ContentType.objects.get(app_label="apps", model="company")
+                    content_type = ContentType.objects.get(
+                        app_label="apps", model="company"
+                    )
 
                     # Check if roles already exist
                     existing_roles = Role.objects.filter(
@@ -119,7 +125,9 @@ if not settings.TESTING:
                     ).exists()
 
                     if not existing_roles:
-                        logger.info(f"Creating default roles for company {instance.name}")
+                        logger.info(
+                            f"Creating default roles for company {instance.name}"
+                        )
                         roles = PermissionService.create_default_roles_for_entity(
                             instance, "company"
                         )

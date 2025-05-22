@@ -53,7 +53,9 @@ class Permission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     resource = models.CharField(_("Resource"), max_length=50, choices=RESOURCE_CHOICES)
     action = models.CharField(_("Action"), max_length=10, choices=ACTION_CHOICES)
-    code_name = models.CharField(_("Code Name"), max_length=100, unique=True, blank=True)
+    code_name = models.CharField(
+        _("Code Name"), max_length=100, unique=True, blank=True
+    )
     description = models.TextField(_("Description"), blank=True)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
@@ -94,7 +96,9 @@ class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("Name"), max_length=100)
     description = models.TextField(_("Description"), blank=True)
-    role_type = models.CharField(_("Role Type"), max_length=20, choices=ROLE_TYPE_CHOICES)
+    role_type = models.CharField(
+        _("Role Type"), max_length=20, choices=ROLE_TYPE_CHOICES
+    )
     permissions = models.ManyToManyField(
         Permission, related_name="roles", verbose_name=_("Permissions"), blank=True
     )

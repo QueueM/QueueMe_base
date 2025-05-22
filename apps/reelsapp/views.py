@@ -13,8 +13,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.shopapp.models import Shop
-
 from .filters import ReelFilter
 from .models import Reel, ReelComment, ReelLike, ReelReport, ReelShare
 from .permissions import CanManageReels
@@ -104,7 +102,11 @@ class ReelViewSet(viewsets.ModelViewSet):
         Returns:
             Serializer class: The appropriate serializer for the current action
         """
-        if self.action == "create" or self.action == "update" or self.action == "partial_update":
+        if (
+            self.action == "create"
+            or self.action == "update"
+            or self.action == "partial_update"
+        ):
             return ReelCreateUpdateSerializer
         elif self.action == "retrieve":
             return ReelDetailSerializer
@@ -172,7 +174,9 @@ class ReelViewSet(viewsets.ModelViewSet):
         # Ensure at least one service or package is linked
         if not reel.services.exists() and not reel.packages.exists():
             return Response(
-                {"detail": "At least one service or package must be linked before publishing."},
+                {
+                    "detail": "At least one service or package must be linked before publishing."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -391,7 +395,9 @@ class CustomerReelViewSet(
             reels = FeedCuratorService.get_following_feed(user.id)
         else:
             return Response(
-                {"detail": "Invalid feed type. Choose from: nearby, for_you, following"},
+                {
+                    "detail": "Invalid feed type. Choose from: nearby, for_you, following"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -546,7 +552,9 @@ class CustomerReelViewSet(
             description=serializer.validated_data.get("description", ""),
         )
 
-        return Response(ReelReportSerializer(report).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ReelReportSerializer(report).data, status=status.HTTP_201_CREATED
+        )
 
     @action(detail=True, methods=["get"])
     def comments(self, request, pk=None):
@@ -564,10 +572,14 @@ class CustomerReelViewSet(
 
         page = self.paginate_queryset(comments)
         if page is not None:
-            serializer = ReelCommentSerializer(page, many=True, context={"request": request})
+            serializer = ReelCommentSerializer(
+                page, many=True, context={"request": request}
+            )
             return self.get_paginated_response(serializer.data)
 
-        serializer = ReelCommentSerializer(comments, many=True, context={"request": request})
+        serializer = ReelCommentSerializer(
+            comments, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @action(detail=True, methods=["delete"], url_path="comments/(?P<comment_id>[^/.]+)")

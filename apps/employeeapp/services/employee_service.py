@@ -39,7 +39,10 @@ class EmployeeService:
         employee = Employee.objects.create(user=user, **employee_data)
 
         # Add default working hours if not provided
-        if not hasattr(employee, "working_hours") or not employee.working_hours.exists():
+        if (
+            not hasattr(employee, "working_hours")
+            or not employee.working_hours.exists()
+        ):
             EmployeeService.create_default_working_hours(employee)
 
         return employee

@@ -42,11 +42,15 @@ class DurationRefiner:
         duration_minutes = []
         for appointment in completed_appointments:
             # Calculate duration in minutes
-            duration = (appointment.end_time - appointment.start_time).total_seconds() / 60
+            duration = (
+                appointment.end_time - appointment.start_time
+            ).total_seconds() / 60
 
             # Filter out extreme outliers (e.g., system errors or cases where end time
             # was recorded much later)
-            if 0 < duration < (service.duration * 3):  # Accept up to 3x the expected duration
+            if (
+                0 < duration < (service.duration * 3)
+            ):  # Accept up to 3x the expected duration
                 duration_minutes.append(duration)
 
         # If we don't have enough data, return with low confidence
@@ -199,13 +203,13 @@ class DurationRefiner:
 
             if abs(recommended_before - service.buffer_before) >= 5:
                 if recommended_before > service.buffer_before:
-                    results[
-                        "buffer_before_recommendation"
-                    ] = f"Increase to {recommended_before} minutes"
+                    results["buffer_before_recommendation"] = (
+                        f"Increase to {recommended_before} minutes"
+                    )
                 else:
-                    results[
-                        "buffer_before_recommendation"
-                    ] = f"Decrease to {recommended_before} minutes"
+                    results["buffer_before_recommendation"] = (
+                        f"Decrease to {recommended_before} minutes"
+                    )
                 results["recommended_buffer_before"] = recommended_before
             else:
                 results["buffer_before_recommendation"] = "No change needed"
@@ -236,13 +240,13 @@ class DurationRefiner:
 
             if abs(recommended_after - service.buffer_after) >= 5:
                 if recommended_after > service.buffer_after:
-                    results[
-                        "buffer_after_recommendation"
-                    ] = f"Increase to {recommended_after} minutes"
+                    results["buffer_after_recommendation"] = (
+                        f"Increase to {recommended_after} minutes"
+                    )
                 else:
-                    results[
-                        "buffer_after_recommendation"
-                    ] = f"Decrease to {recommended_after} minutes"
+                    results["buffer_after_recommendation"] = (
+                        f"Decrease to {recommended_after} minutes"
+                    )
                 results["recommended_buffer_after"] = recommended_after
             else:
                 results["buffer_after_recommendation"] = "No change needed"
@@ -262,7 +266,9 @@ class DurationRefiner:
         return service
 
     @staticmethod
-    def apply_recommended_buffer_times(service_id, buffer_before=None, buffer_after=None):
+    def apply_recommended_buffer_times(
+        service_id, buffer_before=None, buffer_after=None
+    ):
         """Apply recommended buffer times to a service"""
         service = Service.objects.get(id=service_id)
 

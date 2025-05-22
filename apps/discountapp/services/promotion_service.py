@@ -100,7 +100,9 @@ class PromotionService:
                     quantity=config.get("quantity", 1),
                     max_discount_amount=config.get("max_discount_amount"),
                     min_purchase_amount=config.get("min_purchase_amount", 0),
-                    usage_limit=config.get("usage_limit", 1),  # Default to single use for bulk
+                    usage_limit=config.get(
+                        "usage_limit", 1
+                    ),  # Default to single use for bulk
                     is_combinable=config.get("is_combinable", False),
                     priority=config.get("priority", 0),
                     apply_to_all_services=config.get("apply_to_all_services", False),

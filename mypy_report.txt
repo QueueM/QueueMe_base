@@ -1,0 +1,6 @@
+algorithms/analytics/anomaly/fraud_detection.py:14: error: Skipping analyzing "django.db.models": module is installed, but missing library stubs or py.typed marker  [import-untyped]
+algorithms/analytics/anomaly/fraud_detection.py:14: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+apps/authapp/models.py: error: Source file found twice under different module names: "QueueMe_base.apps.authapp.models" and "apps.authapp.models"
+apps/authapp/models.py: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#mapping-file-paths-to-modules for more info
+apps/authapp/models.py: note: Common resolutions include: a) adding `__init__.py` somewhere, b) using `--explicit-package-bases` or adjusting MYPYPATH
+Found 2 errors in 2 files (errors prevented further checking)

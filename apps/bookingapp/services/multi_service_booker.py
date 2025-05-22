@@ -86,7 +86,9 @@ class MultiServiceBooker:
         earliest_start = None
         for slots in service_slots.values():
             if slots:
-                first_slot_time = timezone.datetime.strptime(slots[0]["start"], "%H:%M").time()
+                first_slot_time = timezone.datetime.strptime(
+                    slots[0]["start"], "%H:%M"
+                ).time()
                 if earliest_start is None or first_slot_time < earliest_start:
                     earliest_start = first_slot_time
 
@@ -112,7 +114,9 @@ class MultiServiceBooker:
 
                 if slot_start_dt >= current_time:
                     # Find best specialist for this service and time
-                    from apps.bookingapp.services.specialist_matcher import SpecialistMatcher
+                    from apps.bookingapp.services.specialist_matcher import (
+                        SpecialistMatcher,
+                    )
 
                     slot_end = timezone.datetime.strptime(slot["end"], "%H:%M").time()
                     slot_end_dt = timezone.datetime.combine(date, slot_end)

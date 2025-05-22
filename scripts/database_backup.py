@@ -70,9 +70,15 @@ def load_config(config_file=None):
 
             # Parse storage settings
             if parser.has_section("storage"):
-                config["storage"]["local"] = parser.getboolean("storage", "local", fallback=True)
-                config["storage"]["s3"] = parser.getboolean("storage", "s3", fallback=False)
-                config["storage"]["gcs"] = parser.getboolean("storage", "gcs", fallback=False)
+                config["storage"]["local"] = parser.getboolean(
+                    "storage", "local", fallback=True
+                )
+                config["storage"]["s3"] = parser.getboolean(
+                    "storage", "s3", fallback=False
+                )
+                config["storage"]["gcs"] = parser.getboolean(
+                    "storage", "gcs", fallback=False
+                )
 
                 if config["storage"]["s3"]:
                     config["storage"]["s3_bucket"] = parser.get(
@@ -98,20 +104,32 @@ def load_config(config_file=None):
                 config["backup_dir"] = parser.get(
                     "backup", "directory", fallback=config["backup_dir"]
                 )
-                config["compression"] = parser.getboolean("backup", "compression", fallback=True)
+                config["compression"] = parser.getboolean(
+                    "backup", "compression", fallback=True
+                )
 
             # Parse retention settings
             if parser.has_section("retention"):
-                config["retention"]["daily"] = parser.getint("retention", "daily", fallback=7)
-                config["retention"]["weekly"] = parser.getint("retention", "weekly", fallback=4)
-                config["retention"]["monthly"] = parser.getint("retention", "monthly", fallback=12)
+                config["retention"]["daily"] = parser.getint(
+                    "retention", "daily", fallback=7
+                )
+                config["retention"]["weekly"] = parser.getint(
+                    "retention", "weekly", fallback=4
+                )
+                config["retention"]["monthly"] = parser.getint(
+                    "retention", "monthly", fallback=12
+                )
 
             # Parse notification settings
             if parser.has_section("notify"):
                 config["notify"] = parser.getboolean("notify", "enabled", fallback=True)
                 if config["notify"]:
-                    config["notify_email"] = parser.get("notify", "email", fallback=None)
-                    config["notify_slack"] = parser.get("notify", "slack_webhook", fallback=None)
+                    config["notify_email"] = parser.get(
+                        "notify", "email", fallback=None
+                    )
+                    config["notify_slack"] = parser.get(
+                        "notify", "slack_webhook", fallback=None
+                    )
 
         except Exception as e:
             logger.error(f"Error loading config file: {str(e)}")
@@ -298,7 +316,9 @@ def verify_backup(backup_path):
     try:
         # Try to list contents of the backup
         cmd = ["pg_restore", "-l", verify_path]
-        result = subprocess.run(cmd, check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        result = subprocess.run(
+            cmd, check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE
+        )
 
         # Check if we got a table of contents
         if result.stdout:
@@ -456,12 +476,16 @@ def cleanup_old_backups(config):
     # Clean up daily backups
     daily_retention = config["retention"].get("daily", 7)
     daily_cutoff = datetime.now() - timedelta(days=daily_retention)
-    cleanup_count += cleanup_directory(os.path.join(config["backup_dir"], "daily"), daily_cutoff)
+    cleanup_count += cleanup_directory(
+        os.path.join(config["backup_dir"], "daily"), daily_cutoff
+    )
 
     # Clean up weekly backups
     weekly_retention = config["retention"].get("weekly", 4)
     weekly_cutoff = datetime.now() - timedelta(weeks=weekly_retention)
-    cleanup_count += cleanup_directory(os.path.join(config["backup_dir"], "weekly"), weekly_cutoff)
+    cleanup_count += cleanup_directory(
+        os.path.join(config["backup_dir"], "weekly"), weekly_cutoff
+    )
 
     # Clean up monthly backups
     monthly_retention = config["retention"].get("monthly", 12)
@@ -555,14 +579,14 @@ def send_notification(success, backup_details, config, error=None):
 
         django.setup()
 
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         # Construct message
         if success:
             title = "Database Backup Successful"
-            message = (
-                f"Backup completed successfully at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-            )
+            message = f"Backup completed successfully at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             message += f"Backup file: {os.path.basename(backup_details['path'])}\n"
             message += f"Size: {backup_details['size'] / (1024*1024):.2f} MB\n"
 
@@ -572,19 +596,23 @@ def send_notification(success, backup_details, config, error=None):
                 for storage_type, result in backup_details["cloud_uploads"].items():
                     if result.get("success", False):
                         if storage_type == "s3":
-                            message += f"AWS S3: s3://{result['bucket']}/{result['key']}\n"
-                        elif storage_type == "gcs":
                             message += (
-                                f"Google Cloud Storage: gs://{result['bucket']}/{result['path']}\n"
+                                f"AWS S3: s3://{result['bucket']}/{result['key']}\n"
                             )
+                        elif storage_type == "gcs":
+                            message += f"Google Cloud Storage: gs://{result['bucket']}/{result['path']}\n"
         else:
             title = "Database Backup Failed"
-            message = f"Backup failed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            message = (
+                f"Backup failed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            )
             message += f"Error: {error}\n"
 
         # Send admin notification
         NotificationService.send_notification(
-            recipient_id=config.get("notify_admin_id", "00000000-0000-0000-0000-000000000001"),
+            recipient_id=config.get(
+                "notify_admin_id", "00000000-0000-0000-0000-000000000001"
+            ),
             notification_type="database_backup",
             title=title,
             message=message,

@@ -70,7 +70,9 @@ class ReviewService:
                     related_booking_id=data.get("booking_id"),
                     # Set status based on sentiment or config
                     status=(
-                        "pending" if sentiment_score and sentiment_score < -0.5 else "approved"
+                        "pending"
+                        if sentiment_score and sentiment_score < -0.5
+                        else "approved"
                     ),
                 )
             elif entity_type == "specialist":
@@ -84,7 +86,9 @@ class ReviewService:
                     related_booking_id=data.get("booking_id"),
                     # Set status based on sentiment or config
                     status=(
-                        "pending" if sentiment_score and sentiment_score < -0.5 else "approved"
+                        "pending"
+                        if sentiment_score and sentiment_score < -0.5
+                        else "approved"
                     ),
                 )
             elif entity_type == "service":
@@ -98,7 +102,9 @@ class ReviewService:
                     related_booking_id=data.get("booking_id"),
                     # Set status based on sentiment or config
                     status=(
-                        "pending" if sentiment_score and sentiment_score < -0.5 else "approved"
+                        "pending"
+                        if sentiment_score and sentiment_score < -0.5
+                        else "approved"
                     ),
                 )
             elif entity_type == "platform":
@@ -126,7 +132,9 @@ class ReviewService:
                 if entity_type == "shop":
                     RatingService.update_entity_metrics("shopapp.Shop", entity_id)
                 elif entity_type == "specialist":
-                    RatingService.update_entity_metrics("specialistsapp.Specialist", entity_id)
+                    RatingService.update_entity_metrics(
+                        "specialistsapp.Specialist", entity_id
+                    )
                 elif entity_type == "service":
                     RatingService.update_entity_metrics("serviceapp.Service", entity_id)
 
@@ -191,7 +199,9 @@ class ReviewService:
                     "specialistsapp.Specialist", review.specialist_id
                 )
             elif hasattr(review, "service"):
-                RatingService.update_entity_metrics("serviceapp.Service", review.service_id)
+                RatingService.update_entity_metrics(
+                    "serviceapp.Service", review.service_id
+                )
 
         return review
 
@@ -268,7 +278,9 @@ class ReviewService:
             review.save()
 
             # Record who triggered the change
-            review.moderation_comment = _("Automatically marked for review due to multiple reports")
+            review.moderation_comment = _(
+                "Automatically marked for review due to multiple reports"
+            )
             review.save()
 
         return report
@@ -313,7 +325,9 @@ class ReviewService:
                         "specialistsapp.Specialist", review.specialist_id
                     )
                 elif hasattr(review, "service"):
-                    RatingService.update_entity_metrics("serviceapp.Service", review.service_id)
+                    RatingService.update_entity_metrics(
+                        "serviceapp.Service", review.service_id
+                    )
 
         return report
 

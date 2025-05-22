@@ -147,7 +147,10 @@ class HoursOptimizer:
                     break
 
             # Suggest adjustments if needed
-            if earliest_significant_hour is not None and latest_significant_hour is not None:
+            if (
+                earliest_significant_hour is not None
+                and latest_significant_hour is not None
+            ):
                 for day_hour in current_hours.filter(is_closed=False):
                     current_open_hour = day_hour.from_hour.hour
                     current_close_hour = day_hour.to_hour.hour
@@ -180,14 +183,22 @@ class HoursOptimizer:
             "status": "success",
             "data": {
                 "day_distribution": day_distribution,
-                "hour_distribution": {item["hour"]: item["count"] for item in hour_distribution},
+                "hour_distribution": {
+                    item["hour"]: item["count"] for item in hour_distribution
+                },
                 "current_hours": {
                     hour.weekday: {
                         "is_closed": hour.is_closed,
                         "from_hour": (
-                            hour.from_hour.strftime("%H:%M") if not hour.is_closed else None
+                            hour.from_hour.strftime("%H:%M")
+                            if not hour.is_closed
+                            else None
                         ),
-                        "to_hour": (hour.to_hour.strftime("%H:%M") if not hour.is_closed else None),
+                        "to_hour": (
+                            hour.to_hour.strftime("%H:%M")
+                            if not hour.is_closed
+                            else None
+                        ),
                     }
                     for hour in current_hours
                 },
@@ -261,8 +272,12 @@ class HoursOptimizer:
             "hours": {
                 hour.weekday: {
                     "is_closed": hour.is_closed,
-                    "from_hour": (hour.from_hour.strftime("%H:%M") if not hour.is_closed else None),
-                    "to_hour": (hour.to_hour.strftime("%H:%M") if not hour.is_closed else None),
+                    "from_hour": (
+                        hour.from_hour.strftime("%H:%M") if not hour.is_closed else None
+                    ),
+                    "to_hour": (
+                        hour.to_hour.strftime("%H:%M") if not hour.is_closed else None
+                    ),
                 }
                 for hour in updated_hours
             },

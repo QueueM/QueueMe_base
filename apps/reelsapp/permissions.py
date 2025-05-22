@@ -45,7 +45,9 @@ class CanManageReels(permissions.BasePermission):
             return PermissionResolver.has_shop_permission(user, shop_id, "reel", "edit")
 
         if view.action == "destroy":
-            return PermissionResolver.has_shop_permission(user, shop_id, "reel", "delete")
+            return PermissionResolver.has_shop_permission(
+                user, shop_id, "reel", "delete"
+            )
 
         # Default to view permission for other actions
         return PermissionResolver.has_shop_permission(user, shop_id, "reel", "view")
@@ -63,7 +65,9 @@ class CanManageReels(permissions.BasePermission):
             return PermissionResolver.has_shop_permission(user, shop_id, "reel", "edit")
 
         if view.action == "destroy":
-            return PermissionResolver.has_shop_permission(user, shop_id, "reel", "delete")
+            return PermissionResolver.has_shop_permission(
+                user, shop_id, "reel", "delete"
+            )
 
         # Default to view permission for other actions
         return PermissionResolver.has_shop_permission(user, shop_id, "reel", "view")

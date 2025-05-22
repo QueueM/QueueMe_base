@@ -42,10 +42,14 @@ def subscription_webhook(request):
         headers = {"Signature": signature} if signature else {}
 
         # Process the webhook event
-        result = MoyasarService.process_webhook(data, headers, wallet_type="subscription")
+        result = MoyasarService.process_webhook(
+            data, headers, wallet_type="subscription"
+        )
 
         if result.get("error"):
-            logger.error(f"Error processing subscription webhook: {result.get('error_message')}")
+            logger.error(
+                f"Error processing subscription webhook: {result.get('error_message')}"
+            )
             return JsonResponse(
                 {"status": "error", "message": result.get("error_message")}, status=400
             )
@@ -57,7 +61,9 @@ def subscription_webhook(request):
 
     except Exception as e:
         logger.exception(f"Unexpected error in subscription webhook: {str(e)}")
-        return JsonResponse({"status": "error", "message": "Internal server error"}, status=500)
+        return JsonResponse(
+            {"status": "error", "message": "Internal server error"}, status=500
+        )
 
 
 @csrf_exempt
@@ -97,7 +103,9 @@ def ads_webhook(request):
 
     except Exception as e:
         logger.exception(f"Unexpected error in ads webhook: {str(e)}")
-        return JsonResponse({"status": "error", "message": "Internal server error"}, status=500)
+        return JsonResponse(
+            {"status": "error", "message": "Internal server error"}, status=500
+        )
 
 
 @csrf_exempt
@@ -125,7 +133,9 @@ def merchant_webhook(request):
         result = MoyasarService.process_webhook(data, headers, wallet_type="merchant")
 
         if result.get("error"):
-            logger.error(f"Error processing merchant webhook: {result.get('error_message')}")
+            logger.error(
+                f"Error processing merchant webhook: {result.get('error_message')}"
+            )
             return JsonResponse(
                 {"status": "error", "message": result.get("error_message")}, status=400
             )
@@ -137,4 +147,6 @@ def merchant_webhook(request):
 
     except Exception as e:
         logger.exception(f"Unexpected error in merchant webhook: {str(e)}")
-        return JsonResponse({"status": "error", "message": "Internal server error"}, status=500)
+        return JsonResponse(
+            {"status": "error", "message": "Internal server error"}, status=500
+        )

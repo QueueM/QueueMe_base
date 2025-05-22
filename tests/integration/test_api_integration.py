@@ -126,7 +126,9 @@ class BookingFlowIntegrationTest(TestCase):
         # Add permissions to role
         for resource in ["booking", "service", "specialist", "employee"]:
             for action in ["view", "add", "edit", "delete"]:
-                permission, _ = Permission.objects.get_or_create(resource=resource, action=action)
+                permission, _ = Permission.objects.get_or_create(
+                    resource=resource, action=action
+                )
                 self.manager_role.permissions.add(permission)
 
         # Assign role to employee
@@ -162,7 +164,9 @@ class BookingFlowIntegrationTest(TestCase):
             "start_time": first_slot["start"],
         }
 
-        booking_response = self.client.post(reverse("bookings-list"), booking_data, format="json")
+        booking_response = self.client.post(
+            reverse("bookings-list"), booking_data, format="json"
+        )
 
         self.assertEqual(booking_response.status_code, 201)
 
@@ -170,7 +174,9 @@ class BookingFlowIntegrationTest(TestCase):
         booking_id = booking_response.json()["id"]
 
         # 3. Get booking details
-        booking_detail_response = self.client.get(reverse("bookings-detail", args=[booking_id]))
+        booking_detail_response = self.client.get(
+            reverse("bookings-detail", args=[booking_id])
+        )
 
         self.assertEqual(booking_detail_response.status_code, 200)
         self.assertEqual(booking_detail_response.json()["status"], "scheduled")
@@ -180,7 +186,9 @@ class BookingFlowIntegrationTest(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {manager_token}")
 
         # 5. Get shop bookings
-        shop_bookings_response = self.client.get(reverse("shop-bookings-list", args=[self.shop.id]))
+        shop_bookings_response = self.client.get(
+            reverse("shop-bookings-list", args=[self.shop.id])
+        )
 
         self.assertEqual(shop_bookings_response.status_code, 200)
         bookings_data = shop_bookings_response.json()
@@ -194,7 +202,9 @@ class BookingFlowIntegrationTest(TestCase):
         self.assertEqual(confirm_response.status_code, 200)
 
         # 7. Check booking status is now confirmed
-        booking_detail_response = self.client.get(reverse("bookings-detail", args=[booking_id]))
+        booking_detail_response = self.client.get(
+            reverse("bookings-detail", args=[booking_id])
+        )
 
         self.assertEqual(booking_detail_response.status_code, 200)
         self.assertEqual(booking_detail_response.json()["status"], "confirmed")
@@ -212,7 +222,9 @@ class BookingFlowIntegrationTest(TestCase):
         self.assertEqual(cancel_response.status_code, 200)
 
         # 10. Verify booking status is cancelled
-        booking_detail_response = self.client.get(reverse("bookings-detail", args=[booking_id]))
+        booking_detail_response = self.client.get(
+            reverse("bookings-detail", args=[booking_id])
+        )
 
         self.assertEqual(booking_detail_response.status_code, 200)
         self.assertEqual(booking_detail_response.json()["status"], "cancelled")
@@ -307,8 +319,12 @@ class QueueIntegrationTest(TestCase):
 
         # Get JWT token for customer
         self.customer_token = TokenService.get_tokens_for_user(self.customer)["access"]
-        self.customer2_token = TokenService.get_tokens_for_user(self.customer2)["access"]
-        self.employee_token = TokenService.get_tokens_for_user(self.employee_user)["access"]
+        self.customer2_token = TokenService.get_tokens_for_user(self.customer2)[
+            "access"
+        ]
+        self.employee_token = TokenService.get_tokens_for_user(self.employee_user)[
+            "access"
+        ]
 
         # Set customer token
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.customer_token}")
@@ -327,7 +343,9 @@ class QueueIntegrationTest(TestCase):
         ticket_id = ticket_data["id"]
 
         # 2. Customer checks queue status
-        status_response = self.client.get(reverse("queue-tickets-detail", args=[ticket_id]))
+        status_response = self.client.get(
+            reverse("queue-tickets-detail", args=[ticket_id])
+        )
 
         self.assertEqual(status_response.status_code, 200)
         self.assertEqual(status_response.json()["status"], "waiting")
@@ -359,7 +377,9 @@ class QueueIntegrationTest(TestCase):
         self.assertEqual(call_response.status_code, 200)
 
         # 6. Check first ticket status
-        ticket_status_response = self.client.get(reverse("queue-tickets-detail", args=[ticket_id]))
+        ticket_status_response = self.client.get(
+            reverse("queue-tickets-detail", args=[ticket_id])
+        )
 
         self.assertEqual(ticket_status_response.status_code, 200)
         self.assertEqual(ticket_status_response.json()["status"], "called")
@@ -372,7 +392,9 @@ class QueueIntegrationTest(TestCase):
         self.assertEqual(serve_response.status_code, 200)
 
         # 8. Check ticket status again
-        ticket_status_response = self.client.get(reverse("queue-tickets-detail", args=[ticket_id]))
+        ticket_status_response = self.client.get(
+            reverse("queue-tickets-detail", args=[ticket_id])
+        )
 
         self.assertEqual(ticket_status_response.status_code, 200)
         self.assertEqual(ticket_status_response.json()["status"], "serving")
@@ -396,7 +418,9 @@ class QueueIntegrationTest(TestCase):
         # 11. Staff checks updated queue
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.employee_token}")
 
-        updated_queue_response = self.client.get(reverse("queues-detail", args=[self.queue.id]))
+        updated_queue_response = self.client.get(
+            reverse("queues-detail", args=[self.queue.id])
+        )
 
         self.assertEqual(updated_queue_response.status_code, 200)
         updated_queue_data = updated_queue_response.json()
@@ -478,7 +502,9 @@ class ChatIntegrationTest(TestCase):
 
         # Get JWT tokens
         self.customer_token = TokenService.get_tokens_for_user(self.customer)["access"]
-        self.employee_token = TokenService.get_tokens_for_user(self.employee_user)["access"]
+        self.employee_token = TokenService.get_tokens_for_user(self.employee_user)[
+            "access"
+        ]
 
         # Set customer token
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.customer_token}")
@@ -502,7 +528,9 @@ class ChatIntegrationTest(TestCase):
             "message_type": "text",
         }
 
-        message_response = self.client.post(reverse("messages-list"), message_data, format="json")
+        message_response = self.client.post(
+            reverse("messages-list"), message_data, format="json"
+        )
 
         self.assertEqual(message_response.status_code, 201)
 
@@ -540,7 +568,9 @@ class ChatIntegrationTest(TestCase):
             "message_type": "text",
         }
 
-        reply_response = self.client.post(reverse("messages-list"), reply_data, format="json")
+        reply_response = self.client.post(
+            reverse("messages-list"), reply_data, format="json"
+        )
 
         self.assertEqual(reply_response.status_code, 201)
 

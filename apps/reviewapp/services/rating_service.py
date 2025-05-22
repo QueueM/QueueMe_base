@@ -5,7 +5,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
-from apps.reviewapp.models import ReviewMetric, ServiceReview, ShopReview, SpecialistReview
+from apps.reviewapp.models import (
+    ReviewMetric,
+    ServiceReview,
+    ShopReview,
+    SpecialistReview,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +43,17 @@ class RatingService:
             # Get all approved reviews for the entity
             reviews = None
             if model == "shop":
-                reviews = ShopReview.objects.filter(shop_id=entity_id, status="approved")
+                reviews = ShopReview.objects.filter(
+                    shop_id=entity_id, status="approved"
+                )
             elif model == "specialist":
                 reviews = SpecialistReview.objects.filter(
                     specialist_id=entity_id, status="approved"
                 )
             elif model == "service":
-                reviews = ServiceReview.objects.filter(service_id=entity_id, status="approved")
+                reviews = ServiceReview.objects.filter(
+                    service_id=entity_id, status="approved"
+                )
             else:
                 logger.error(f"Unsupported entity model: {entity_model_name}")
                 return None
@@ -102,7 +111,9 @@ class RatingService:
             return metrics
 
         except Exception as e:
-            logger.error(f"Error updating metrics for {entity_model_name} {entity_id}: {str(e)}")
+            logger.error(
+                f"Error updating metrics for {entity_model_name} {entity_id}: {str(e)}"
+            )
             return None
 
     @staticmethod
@@ -191,7 +202,9 @@ class RatingService:
             total_weight += weight
 
         # Bayesian adjustment
-        adjusted_rating = (weighted_sum + PRIOR_MEAN * PRIOR_COUNT) / (total_weight + PRIOR_COUNT)
+        adjusted_rating = (weighted_sum + PRIOR_MEAN * PRIOR_COUNT) / (
+            total_weight + PRIOR_COUNT
+        )
 
         # Ensure the result is in the valid range
         return max(1.0, min(5.0, adjusted_rating))
@@ -216,7 +229,9 @@ class RatingService:
         specialists = Specialist.objects.all()
 
         for specialist in specialists:
-            RatingService.update_entity_metrics("specialistsapp.Specialist", specialist.id)
+            RatingService.update_entity_metrics(
+                "specialistsapp.Specialist", specialist.id
+            )
 
         # Update service metrics
         from apps.serviceapp.models import Service
@@ -260,5 +275,7 @@ class RatingService:
             ]
 
         except Exception as e:
-            logger.error(f"Error getting top rated entities for {entity_model_name}: {str(e)}")
+            logger.error(
+                f"Error getting top rated entities for {entity_model_name}: {str(e)}"
+            )
             return []

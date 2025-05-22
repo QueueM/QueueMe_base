@@ -52,7 +52,9 @@ class Reel(models.Model):
         help_text=_("Thumbnail image for the reel."),
     )
     duration = models.PositiveIntegerField(_("Duration (seconds)"), default=0)
-    status = models.CharField(_("Status"), max_length=10, choices=STATUS_CHOICES, default="draft")
+    status = models.CharField(
+        _("Status"), max_length=10, choices=STATUS_CHOICES, default="draft"
+    )
 
     # Tags / relations
     categories = models.ManyToManyField(
@@ -65,7 +67,9 @@ class Reel(models.Model):
         Package, related_name="reels", verbose_name=_("Related Packages"), blank=True
     )
 
-    processing_status = models.CharField(_("Processing Status"), max_length=20, default="pending")
+    processing_status = models.CharField(
+        _("Processing Status"), max_length=20, default="pending"
+    )
     view_count = models.PositiveIntegerField(_("View Count"), default=0)
     is_featured = models.BooleanField(_("Featured"), default=False)
 
@@ -217,7 +221,9 @@ class ReelShare(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.user} shared {self.reel.title} via {self.get_share_type_display()}"
+        return (
+            f"{self.user} shared {self.reel.title} via {self.get_share_type_display()}"
+        )
 
 
 # --------------------------------------------------------------------------- #
@@ -239,7 +245,9 @@ class ReelView(models.Model):
         blank=True,
     )
     device_id = models.CharField(_("Device ID"), max_length=255, blank=True, null=True)
-    watch_duration = models.PositiveIntegerField(_("Watch Duration (seconds)"), default=0)
+    watch_duration = models.PositiveIntegerField(
+        _("Watch Duration (seconds)"), default=0
+    )
     watched_full = models.BooleanField(_("Watched Full"), default=False)
     ip_address = models.GenericIPAddressField(_("IP Address"), blank=True, null=True)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
@@ -289,7 +297,9 @@ class ReelReport(models.Model):
     )
     reason = models.CharField(_("Reason"), max_length=20, choices=REPORT_REASON_CHOICES)
     description = models.TextField(_("Description"), blank=True)
-    status = models.CharField(_("Status"), max_length=10, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(
+        _("Status"), max_length=10, choices=STATUS_CHOICES, default="pending"
+    )
     admin_notes = models.TextField(_("Admin Notes"), blank=True)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)

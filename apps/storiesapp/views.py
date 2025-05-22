@@ -152,7 +152,9 @@ class StoryViewSet(viewsets.ModelViewSet):
         feed_generator = StoryFeedGenerator()
         stories = feed_generator.generate_home_feed(user.id)
 
-        serializer = StoryMinimalSerializer(stories, many=True, context={"request": request})
+        serializer = StoryMinimalSerializer(
+            stories, many=True, context={"request": request}
+        )
 
         return Response(serializer.data)
 
@@ -186,7 +188,9 @@ class StoryViewSet(viewsets.ModelViewSet):
         feed_generator = StoryFeedGenerator()
         stories = feed_generator.generate_shop_feed(shop_id)
 
-        serializer = StoryMinimalSerializer(stories, many=True, context={"request": request})
+        serializer = StoryMinimalSerializer(
+            stories, many=True, context={"request": request}
+        )
 
         return Response(serializer.data)
 
@@ -241,7 +245,9 @@ class StoryViewSet(viewsets.ModelViewSet):
         from apps.rolesapp.services.permission_resolver import PermissionResolver
 
         if not PermissionResolver.has_shop_permission(user, shop_id, "story", "add"):
-            raise PermissionError("You don't have permission to create stories for this shop")
+            raise PermissionError(
+                "You don't have permission to create stories for this shop"
+            )
 
         serializer.save()
 

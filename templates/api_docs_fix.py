@@ -2,13 +2,10 @@
 API Documentation fix for QueueMe
 """
 
-from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg.views import get_schema_view as yasg_get_schema_view
-from rest_framework import renderers
 from rest_framework.permissions import AllowAny
-from rest_framework.schemas import get_schema_view
 
 
 class CustomOpenAPISchemaGenerator(OpenAPISchemaGenerator):

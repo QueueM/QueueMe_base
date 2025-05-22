@@ -11,7 +11,12 @@ from rest_framework.test import APIClient
 from apps.authapp.models import User
 from apps.companiesapp.models import Company
 from apps.subscriptionapp.constants import PERIOD_MONTHLY, STATUS_ACTIVE
-from apps.subscriptionapp.models import Plan, PlanFeature, Subscription, SubscriptionInvoice
+from apps.subscriptionapp.models import (
+    Plan,
+    PlanFeature,
+    Subscription,
+    SubscriptionInvoice,
+)
 
 
 class PlanViewSetTest(TestCase):
@@ -19,10 +24,14 @@ class PlanViewSetTest(TestCase):
 
     def setUp(self):
         # Create test user
-        self.user = User.objects.create_user(phone_number="1234567890", password="password123")
+        self.user = User.objects.create_user(
+            phone_number="1234567890", password="password123"
+        )
 
         # Create admin user
-        self.admin = User.objects.create_superuser(phone_number="9876543210", password="admin123")
+        self.admin = User.objects.create_superuser(
+            phone_number="9876543210", password="admin123"
+        )
 
         # Create test plans
         self.basic_plan = Plan.objects.create(
@@ -198,9 +207,13 @@ class SubscriptionViewSetTest(TestCase):
 
     def setUp(self):
         # Create test users
-        self.user = User.objects.create_user(phone_number="1234567890", password="password123")
+        self.user = User.objects.create_user(
+            phone_number="1234567890", password="password123"
+        )
 
-        self.admin = User.objects.create_superuser(phone_number="9876543210", password="admin123")
+        self.admin = User.objects.create_superuser(
+            phone_number="9876543210", password="admin123"
+        )
 
         # Create test company
         self.company = Company.objects.create(
@@ -368,5 +381,7 @@ class SubscriptionViewSetTest(TestCase):
         self.assertEqual(len(response.data["results"]), 1)
 
         # Check invoice data
-        self.assertEqual(response.data["results"][0]["invoice_number"], "INV-20230101-123456")
+        self.assertEqual(
+            response.data["results"][0]["invoice_number"], "INV-20230101-123456"
+        )
         self.assertEqual(response.data["results"][0]["status"], "paid")

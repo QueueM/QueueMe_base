@@ -3,7 +3,7 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -163,7 +163,8 @@ class PaymentService:
                 # Update payment method details if needed
                 if (
                     "source" in gateway_response
-                    and payment_method.gateway_token != gateway_response["source"].get("id")
+                    and payment_method.gateway_token
+                    != gateway_response["source"].get("id")
                 ):
                     payment_method.gateway_token = gateway_response["source"].get("id")
                     payment_method.save()
@@ -178,7 +179,9 @@ class PaymentService:
             else:
                 transaction.status = PaymentStatus.FAILED
                 transaction.gateway_response = gateway_response
-                transaction.error_message = gateway_response.get("message", "Unknown error")
+                transaction.error_message = gateway_response.get(
+                    "message", "Unknown error"
+                )
                 transaction.save()
 
                 return {
@@ -221,7 +224,9 @@ class PaymentService:
                 ).first()
 
                 if existing_refund:
-                    logger.info(f"Found existing refund with idempotency key: {idempotency_key}")
+                    logger.info(
+                        f"Found existing refund with idempotency key: {idempotency_key}"
+                    )
                     return {
                         "success": True,
                         "refund_id": str(existing_refund.id),
@@ -490,7 +495,9 @@ class PaymentService:
                     external_id=payment_id
                 ).first()
                 if not payment_transaction:
-                    logger.warning(f"No transaction found for external ID: {payment_id}")
+                    logger.warning(
+                        f"No transaction found for external ID: {payment_id}"
+                    )
                     return False
 
                 # Update transaction based on event type
@@ -544,7 +551,9 @@ class PaymentService:
                         existing_refunds = RefundTransaction.objects.filter(
                             transaction=transaction, status=RefundStatus.COMPLETED
                         )
-                        total_refunded = sum(Decimal(str(r.amount)) for r in existing_refunds)
+                        total_refunded = sum(
+                            Decimal(str(r.amount)) for r in existing_refunds
+                        )
 
                         if total_refunded >= transaction.amount:
                             transaction.status = PaymentStatus.REFUNDED
@@ -553,13 +562,17 @@ class PaymentService:
                             transaction.status = PaymentStatus.PARTIALLY_REFUNDED
                             transaction.save()
 
-                        logger.info(f"Refund {refund.id} marked as completed from webhook")
+                        logger.info(
+                            f"Refund {refund.id} marked as completed from webhook"
+                        )
 
                 elif event_type == "refund.failed":
                     if refund.status != RefundStatus.FAILED:
                         refund.status = RefundStatus.FAILED
                         refund.gateway_response = event_data
-                        refund.error_message = event_data.get("message", "Refund failed")
+                        refund.error_message = event_data.get(
+                            "message", "Refund failed"
+                        )
                         refund.save()
                         logger.info(f"Refund {refund.id} marked as failed from webhook")
 
@@ -605,7 +618,9 @@ class PaymentService:
         payment_method = None
         if payment_method_id:
             try:
-                payment_method = PaymentMethod.objects.get(id=payment_method_id, user=user)
+                payment_method = PaymentMethod.objects.get(
+                    id=payment_method_id, user=user
+                )
             except PaymentMethod.DoesNotExist:
                 return {"success": False, "error": "Payment method not found"}
 
@@ -714,7 +729,9 @@ class PaymentService:
                 appointment.save()
 
                 # Send confirmation notification
-                from apps.notificationsapp.services.notification_service import NotificationService
+                from apps.notificationsapp.services.notification_service import (
+                    NotificationService,
+                )
 
                 NotificationService.send_notification(
                     user_id=transaction.user.id,
@@ -738,7 +755,9 @@ class PaymentService:
                 subscription.save()
 
                 # Send confirmation notification
-                from apps.notificationsapp.services.notification_service import NotificationService
+                from apps.notificationsapp.services.notification_service import (
+                    NotificationService,
+                )
 
                 NotificationService.send_notification(
                     user_id=transaction.user.id,
@@ -747,7 +766,9 @@ class PaymentService:
                         "subscription_id": str(subscription.id),
                         "plan_name": subscription.plan.name,
                         "amount": str(transaction.amount),
-                        "period_end": subscription.current_period_end.strftime("%d %b, %Y"),
+                        "period_end": subscription.current_period_end.strftime(
+                            "%d %b, %Y"
+                        ),
                     },
                 )
 
@@ -758,7 +779,9 @@ class PaymentService:
                 ad.save()
 
                 # Send confirmation notification
-                from apps.notificationsapp.services.notification_service import NotificationService
+                from apps.notificationsapp.services.notification_service import (
+                    NotificationService,
+                )
 
                 NotificationService.send_notification(
                     user_id=transaction.user.id,
@@ -949,7 +972,9 @@ class PaymentService:
             dict: Result with status
         """
         try:
-            payment_method = PaymentMethod.objects.get(id=payment_method_id, user_id=user_id)
+            payment_method = PaymentMethod.objects.get(
+                id=payment_method_id, user_id=user_id
+            )
 
             # Set as default
             payment_method.is_default = True

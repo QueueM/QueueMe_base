@@ -93,7 +93,9 @@ class SpecialistQueries:
         )
 
         # Convert to dictionary
-        rating_dict = {str(item["rating"]): item["count"] for item in rating_distribution}
+        rating_dict = {
+            str(item["rating"]): item["count"] for item in rating_distribution
+        }
 
         # Get service-specific performance
         service_performance = (
@@ -104,7 +106,9 @@ class SpecialistQueries:
                 cancelled=Count("id", filter=Q(status="cancelled")),
                 no_show=Count("id", filter=Q(status="no_show")),
                 revenue=Coalesce(
-                    Sum("transaction__amount", filter=Q(transaction__status="succeeded")),
+                    Sum(
+                        "transaction__amount", filter=Q(transaction__status="succeeded")
+                    ),
                     0,
                 ),
             )
@@ -116,11 +120,15 @@ class SpecialistQueries:
             if service["service__id"] and service["service__name"]:
                 completion_rate_service = 0
                 if service["count"] > 0:
-                    completion_rate_service = (service["completed"] / service["count"]) * 100
+                    completion_rate_service = (
+                        service["completed"] / service["count"]
+                    ) * 100
 
                 revenue_per_booking_service = 0
                 if service["completed"] > 0:
-                    revenue_per_booking_service = service["revenue"] / service["completed"]
+                    revenue_per_booking_service = (
+                        service["revenue"] / service["completed"]
+                    )
 
                 service_data.append(
                     {
@@ -146,7 +154,9 @@ class SpecialistQueries:
                 cancelled=Count("id", filter=Q(status="cancelled")),
                 no_show=Count("id", filter=Q(status="no_show")),
                 revenue=Coalesce(
-                    Sum("transaction__amount", filter=Q(transaction__status="succeeded")),
+                    Sum(
+                        "transaction__amount", filter=Q(transaction__status="succeeded")
+                    ),
                     0,
                 ),
             )

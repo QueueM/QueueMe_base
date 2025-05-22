@@ -16,7 +16,9 @@ class SubscriptionLinkService:
         try:
             # Import here to avoid circular imports
             from apps.subscriptionapp.models import Plan
-            from apps.subscriptionapp.services.subscription_service import SubscriptionService
+            from apps.subscriptionapp.services.subscription_service import (
+                SubscriptionService,
+            )
 
             # Get the plan
             if isinstance(subscription_plan, str):
@@ -92,7 +94,9 @@ class SubscriptionLinkService:
                 # Shop count factor
                 if plan.max_shops >= shop_count:
                     # Plan can accommodate current shops
-                    shop_factor = 1 - (shop_count / plan.max_shops) if plan.max_shops > 0 else 0
+                    shop_factor = (
+                        1 - (shop_count / plan.max_shops) if plan.max_shops > 0 else 0
+                    )
                     # Higher score for closer match (not too much excess capacity)
                     score += shop_factor * 40  # 40% weight for shop match
                 else:
@@ -114,7 +118,9 @@ class SubscriptionLinkService:
 
                 # Feature factor - give more score for more features
                 feature_count = len(plan.features) if plan.features else 0
-                max_features = max([len(p.features) if p.features else 0 for p in plans])
+                max_features = max(
+                    [len(p.features) if p.features else 0 for p in plans]
+                )
                 feature_factor = feature_count / max_features if max_features > 0 else 0
                 score += feature_factor * 20  # 20% weight for features
 
@@ -122,7 +128,9 @@ class SubscriptionLinkService:
                 min_price = min([p.price for p in plans])
                 max_price = max([p.price for p in plans])
                 price_range = max_price - min_price
-                price_factor = (max_price - plan.price) / price_range if price_range > 0 else 0
+                price_factor = (
+                    (max_price - plan.price) / price_range if price_range > 0 else 0
+                )
                 score += price_factor * 10  # 10% weight for price value
 
                 scored_plans.append((plan, score))
@@ -131,7 +139,9 @@ class SubscriptionLinkService:
             scored_plans.sort(key=lambda x: x[1], reverse=True)
 
             # Return the highest scoring plan
-            return scored_plans[0][0] if scored_plans else plans.order_by("price").first()
+            return (
+                scored_plans[0][0] if scored_plans else plans.order_by("price").first()
+            )
 
         except Exception as e:
             import logging

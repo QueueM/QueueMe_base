@@ -3,8 +3,7 @@ Booking app views for QueueMe platform
 Handles endpoints related to appointments, multi-service bookings, and scheduling
 """
 
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import timedelta
 
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
@@ -14,16 +13,21 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 from apps.bookingapp.filters import AppointmentFilter, MultiServiceBookingFilter
 from apps.bookingapp.models import Appointment, AppointmentNote, MultiServiceBooking
-from apps.bookingapp.permissions import AppointmentPermission, MultiServiceBookingPermission
+from apps.bookingapp.permissions import (
+    AppointmentPermission,
+    MultiServiceBookingPermission,
+)
 from apps.bookingapp.serializers import (
     AppointmentCreateSerializer,
     AppointmentDetailSerializer,
     AppointmentNoteSerializer,
     AppointmentSerializer,
-    BookingCancelSerializer,
     BookingCreateSerializer,
     BookingRescheduleSerializer,
     MultiServiceBookingCreateSerializer,
@@ -33,7 +37,9 @@ from apps.bookingapp.services.availability_service import AvailabilityService
 from apps.bookingapp.services.booking_service import BookingService
 from apps.bookingapp.services.multi_service_booker import MultiServiceBooker
 from apps.bookingapp.services.specialist_matcher import SpecialistMatcher
-from utils.request_validators import InputSanitizer, RequestValidationError, validate_request_schema
+from utils.request_validators import (
+    validate_request_schema,
+)
 
 # Define JSON Schema for appointment creation
 CREATE_APPOINTMENT_SCHEMA = {
@@ -170,8 +176,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 # date_obj and time_obj are assigned but not used - commenting out to fix F841
                 # date_obj = datetime.strptime(data["date"], "%Y-%m-%d").date()
                 # time_obj = datetime.strptime(data["start_time"], "%H:%M").time()
-                datetime.strptime(data["date"], "%Y-%m-%d").date()  # Validate date format
-                datetime.strptime(data["start_time"], "%H:%M").time()  # Validate time format
+                datetime.strptime(
+                    data["date"], "%Y-%m-%d"
+                ).date()  # Validate date format
+                datetime.strptime(
+                    data["start_time"], "%H:%M"
+                ).time()  # Validate time format
             except ValueError as e:
                 return Response(
                     {"detail": f"Date/time parsing error: {str(e)}"},
@@ -260,7 +270,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             rescheduled_appointment = BookingService.reschedule_appointment(
                 appointment_id=appointment.id,
                 new_date_str=serializer.validated_data["date"].strftime("%Y-%m-%d"),
-                new_start_time_str=serializer.validated_data["start_time"].strftime("%H:%M"),
+                new_start_time_str=serializer.validated_data["start_time"].strftime(
+                    "%H:%M"
+                ),
                 new_specialist_id=specialist_id,
             )
 
@@ -286,7 +298,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         """Add a note to an appointment"""
         appointment = self.get_object()
 
-        serializer = AppointmentNoteSerializer(data=request.data, context={"request": request})
+        serializer = AppointmentNoteSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
 
         # Create note
@@ -345,7 +359,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
             # Get availability
-            availability = AvailabilityService.get_service_availability(service_id, date)
+            availability = AvailabilityService.get_service_availability(
+                service_id, date
+            )
 
             return Response(availability)
         except ValueError as e:
@@ -396,7 +412,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
         if not all([service_id, date_str, start_time_str, end_time_str]):
             return Response(
-                {"detail": _("service_id, date, start_time, and end_time are required")},
+                {
+                    "detail": _(
+                        "service_id, date, start_time, and end_time are required"
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -545,7 +565,9 @@ class MultiServiceBookingViewSet(
             # Commenting out unused variables - fix for F841
             # service_id = bookings_data[0]["service"].id
             # shop_id = bookings_data[0]["shop"].id
-            shop_id_for_booking = bookings_data[0]["shop"].id  # Renamed to use this variable
+            shop_id_for_booking = bookings_data[0][
+                "shop"
+            ].id  # Renamed to use this variable
 
             # Use booking service to create multi-shop booking
             multi_booking = BookingService.create_multi_shop_booking(
@@ -659,7 +681,9 @@ class AppointmentCreateView(generics.CreateAPIView):
 
         if conflicts:
             return Response(
-                {"detail": "This time slot is no longer available. Please select another."},
+                {
+                    "detail": "This time slot is no longer available. Please select another."
+                },
                 status=status.HTTP_409_CONFLICT,
             )
 
@@ -729,4 +753,6 @@ class MultiServiceBookingCreateView(generics.CreateAPIView):
         # No conflicts, create the booking
         booking = serializer.save(customer=request.user)
 
-        return Response(MultiServiceBookingSerializer(booking).data, status=status.HTTP_201_CREATED)
+        return Response(
+            MultiServiceBookingSerializer(booking).data, status=status.HTTP_201_CREATED
+        )

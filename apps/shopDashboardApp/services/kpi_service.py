@@ -20,7 +20,7 @@ class KPIService:
         Otherwise, retrieve all default KPIs.
         """
         try:
-            from apps.shopapp.models import Shop
+            pass
 
             # unused_unused_shop = Shop.objects.get(id=shop_id)
             # If no specific KPIs requested, use all default KPIs
@@ -43,7 +43,9 @@ class KPIService:
                     continue
 
                 # Get current and comparison values
-                current_value = self._calculate_kpi(shop_id, kpi_key, start_date, end_date)
+                current_value = self._calculate_kpi(
+                    shop_id, kpi_key, start_date, end_date
+                )
 
                 comparison_value = self._calculate_kpi(
                     shop_id, kpi_key, comparison_start, comparison_end
@@ -62,7 +64,8 @@ class KPIService:
 
                         if comparison_numeric != 0:
                             change_percentage = (
-                                (current_numeric - comparison_numeric) / comparison_numeric
+                                (current_numeric - comparison_numeric)
+                                / comparison_numeric
                             ) * 100
                         else:
                             change_percentage = 100 if current_numeric > 0 else 0
@@ -112,7 +115,9 @@ class KPIService:
             return self._calculate_total_revenue(shop_id, start_date, end_date)
 
         elif kpi_key == "avg_revenue_per_booking":
-            return self._calculate_avg_revenue_per_booking(shop_id, start_date, end_date)
+            return self._calculate_avg_revenue_per_booking(
+                shop_id, start_date, end_date
+            )
 
         elif kpi_key == "total_bookings":
             return self._calculate_total_bookings(shop_id, start_date, end_date)
@@ -133,7 +138,9 @@ class KPIService:
             return self._calculate_new_customers(shop_id, start_date, end_date)
 
         elif kpi_key == "returning_customer_rate":
-            return self._calculate_returning_customer_rate(shop_id, start_date, end_date)
+            return self._calculate_returning_customer_rate(
+                shop_id, start_date, end_date
+            )
 
         elif kpi_key == "avg_queue_wait_time":
             return self._calculate_avg_queue_wait_time(shop_id, start_date, end_date)
@@ -320,7 +327,9 @@ class KPIService:
         ).count()
 
         # Calculate rate
-        cancellation_rate = (cancelled_bookings / total_bookings * 100) if total_bookings > 0 else 0
+        cancellation_rate = (
+            (cancelled_bookings / total_bookings * 100) if total_bookings > 0 else 0
+        )
 
         # Format value
         return {"value": cancellation_rate, "formatted": f"{cancellation_rate:.1f}%"}
@@ -352,7 +361,9 @@ class KPIService:
         ).count()
 
         # Calculate rate
-        no_show_rate = (no_show_bookings / total_bookings * 100) if total_bookings > 0 else 0
+        no_show_rate = (
+            (no_show_bookings / total_bookings * 100) if total_bookings > 0 else 0
+        )
 
         # Format value
         return {"value": no_show_rate, "formatted": f"{no_show_rate:.1f}%"}
@@ -466,7 +477,9 @@ class KPIService:
         returning_customers = len(previous_customers)
 
         # Calculate returning rate
-        returning_rate = (returning_customers / total_customers * 100) if total_customers > 0 else 0
+        returning_rate = (
+            (returning_customers / total_customers * 100) if total_customers > 0 else 0
+        )
 
         # Format value
         return {"value": returning_rate, "formatted": f"{returning_rate:.1f}%"}
@@ -493,7 +506,9 @@ class KPIService:
         )
 
         # Calculate average wait time
-        avg_wait = tickets.aggregate(Avg("actual_wait_time"))["actual_wait_time__avg"] or 0
+        avg_wait = (
+            tickets.aggregate(Avg("actual_wait_time"))["actual_wait_time__avg"] or 0
+        )
 
         # Format value (minutes)
         return {"value": avg_wait, "formatted": f"{avg_wait:.1f} min"}

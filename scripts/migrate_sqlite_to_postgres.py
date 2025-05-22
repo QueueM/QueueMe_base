@@ -15,7 +15,6 @@ Options:
 import argparse
 import json
 import os
-import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -38,8 +37,6 @@ except Exception as e:
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.db import connection
 
 from utils.constants import DATABASE_MIGRATION_CHUNK_SIZE
 
@@ -50,7 +47,9 @@ if "sqlite" not in settings.DATABASES["default"]["ENGINE"]:
 
 # Parse arguments
 parser = argparse.ArgumentParser(description="Migrate data from SQLite to PostgreSQL")
-parser.add_argument("--no-prompt", action="store_true", help="Skip confirmation prompts")
+parser.add_argument(
+    "--no-prompt", action="store_true", help="Skip confirmation prompts"
+)
 args = parser.parse_args()
 
 # Constants
@@ -94,7 +93,9 @@ def get_model_dependencies():
 
     # Collect all models
     for app_config in app_configs:
-        if app_config.name.startswith("django.") or app_config.name.startswith("rest_framework"):
+        if app_config.name.startswith("django.") or app_config.name.startswith(
+            "rest_framework"
+        ):
             continue
 
         for model in app_config.get_models():
@@ -127,7 +128,9 @@ def get_model_dependencies():
         visited.add(model)
 
         for dependency in model_dependencies.get(model, []):
-            if dependency in model_dependencies:  # Only visit if it's our managed models
+            if (
+                dependency in model_dependencies
+            ):  # Only visit if it's our managed models
                 visit(dependency)
 
         sorted_models.append(model)

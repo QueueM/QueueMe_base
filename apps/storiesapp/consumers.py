@@ -79,12 +79,16 @@ class StoryConsumer(AsyncWebsocketConsumer):
 
             if message_type == "ping":
                 await self.send(
-                    text_data=json.dumps({"type": "pong", "timestamp": timezone.now().isoformat()})
+                    text_data=json.dumps(
+                        {"type": "pong", "timestamp": timezone.now().isoformat()}
+                    )
                 )
 
         except json.JSONDecodeError:
             await self.send(
-                text_data=json.dumps({"type": "error", "message": _("Invalid JSON format")})
+                text_data=json.dumps(
+                    {"type": "error", "message": _("Invalid JSON format")}
+                )
             )
 
     async def story_update(self, event):
@@ -142,11 +146,10 @@ class StoryConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def _join_followed_shops_group(self):
         """Join the group for followed shops updates"""
-        from django.contrib.contenttypes.models import ContentType
 
         try:
             # Get ContentType for Shop model
-            from apps.shopapp.models import Shop
+            pass
 
             # unused_unused_shop_content_type = ContentType.objects.get_for_model(Shop)
             # Create a joined group for all followed shops

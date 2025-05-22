@@ -34,7 +34,11 @@ from apps.reviewapp.models import Review
 from apps.rolesapp.models import Permission, Role, UserRole
 from apps.serviceapp.models import Service, ServiceAvailability
 from apps.shopapp.models import Shop, ShopHours
-from apps.specialistsapp.models import Specialist, SpecialistService, SpecialistWorkingHours
+from apps.specialistsapp.models import (
+    Specialist,
+    SpecialistService,
+    SpecialistWorkingHours,
+)
 from apps.storiesapp.models import Story
 
 # Setup Django environment
@@ -195,7 +199,9 @@ class DataSeeder:
 
         for resource in resources:
             for action in actions:
-                perm, created = Permission.objects.get_or_create(resource=resource, action=action)
+                perm, created = Permission.objects.get_or_create(
+                    resource=resource, action=action
+                )
                 permissions.append(perm)
 
         # Create roles with appropriate permissions
@@ -428,7 +434,9 @@ class DataSeeder:
                     shop=shop, name=f"{shop_name} Queue", status="open", max_capacity=50
                 )
 
-        logger.info(f"Created {len(self.companies)} companies and {len(self.shops)} shops")
+        logger.info(
+            f"Created {len(self.companies)} companies and {len(self.shops)} shops"
+        )
 
     def seed_categories(self):
         """Create service categories"""
@@ -454,7 +462,9 @@ class DataSeeder:
         ]
 
         # Select categories based on count
-        selected_categories = category_names[: min(self.counts["categories"], len(category_names))]
+        selected_categories = category_names[
+            : min(self.counts["categories"], len(category_names))
+        ]
 
         for cat_data in selected_categories:
             category = Category.objects.create(
@@ -510,7 +520,9 @@ class DataSeeder:
 
     def seed_employees_and_specialists(self):
         """Create employees and specialists for shops"""
-        logger.info(f"Creating employees and specialists for {len(self.shops)} shops...")
+        logger.info(
+            f"Creating employees and specialists for {len(self.shops)} shops..."
+        )
 
         for shop in self.shops:
             # Get role IDs
@@ -560,7 +572,9 @@ class DataSeeder:
                     # Create working hours for specialist
                     for weekday in range(7):
                         # Get shop hours
-                        shop_hour = ShopHours.objects.filter(shop=shop, weekday=weekday).first()
+                        shop_hour = ShopHours.objects.filter(
+                            shop=shop, weekday=weekday
+                        ).first()
 
                         if shop_hour and not shop_hour.is_closed:
                             # Specialist hours are within shop hours
@@ -667,7 +681,9 @@ class DataSeeder:
                     SpecialistService.objects.create(
                         specialist=specialist,
                         service=service,
-                        is_primary=(specialist == assigned_specialists[0]),  # First one is primary
+                        is_primary=(
+                            specialist == assigned_specialists[0]
+                        ),  # First one is primary
                     )
 
         logger.info(f"Created {len(self.services)} services")
@@ -718,7 +734,9 @@ class DataSeeder:
 
                 # Generate random time within shop hours
                 open_hour = shop_hour.from_hour.hour
-                close_hour = shop_hour.to_hour.hour - 1  # Ensure appointment ends before closing
+                close_hour = (
+                    shop_hour.to_hour.hour - 1
+                )  # Ensure appointment ends before closing
 
                 if close_hour <= open_hour:
                     continue
@@ -809,9 +827,9 @@ class DataSeeder:
                     "skipped": 0.05,
                     "cancelled": 0.05,
                 }
-                status = random.choices(list(status_weights.keys()), list(status_weights.values()))[
-                    0
-                ]
+                status = random.choices(
+                    list(status_weights.keys()), list(status_weights.values())
+                )[0]
 
                 # Position for waiting tickets
                 if status == "waiting":
@@ -834,8 +852,12 @@ class DataSeeder:
                     serve_time = None
 
                 if status == "served":
-                    complete_time = serve_time + timedelta(minutes=random.randint(15, 60))
-                    actual_wait_time = int((serve_time - join_time).total_seconds() / 60)
+                    complete_time = serve_time + timedelta(
+                        minutes=random.randint(15, 60)
+                    )
+                    actual_wait_time = int(
+                        (serve_time - join_time).total_seconds() / 60
+                    )
                 else:
                     complete_time = None
                     actual_wait_time = None
@@ -876,7 +898,9 @@ class DataSeeder:
 
                 # Generate star rating with weights towards higher ratings
                 star_weights = {1: 0.05, 2: 0.1, 3: 0.2, 4: 0.3, 5: 0.35}
-                stars = random.choices(list(star_weights.keys()), list(star_weights.values()))[0]
+                stars = random.choices(
+                    list(star_weights.keys()), list(star_weights.values())
+                )[0]
 
                 # Review content based on rating
                 if stars >= 4:
@@ -1081,7 +1105,9 @@ class DataSeeder:
                     continue
 
                 shop_responders = [
-                    e for e in employees if e.position in ["customer service", "manager"]
+                    e
+                    for e in employees
+                    if e.position in ["customer service", "manager"]
                 ]
 
                 if not shop_responders:
@@ -1124,7 +1150,9 @@ class DataSeeder:
 
                     total_messages += 1
 
-        logger.info(f"Created {total_conversations} conversations with {total_messages} messages")
+        logger.info(
+            f"Created {total_conversations} conversations with {total_messages} messages"
+        )
 
     def seed_follows(self):
         """Create follow relationships between customers and shops"""
@@ -1135,7 +1163,9 @@ class DataSeeder:
         for user in self.users:
             # Each user follows some random shops
             follow_count = random.randint(1, 5)
-            shops_to_follow = random.sample(self.shops, min(follow_count, len(self.shops)))
+            shops_to_follow = random.sample(
+                self.shops, min(follow_count, len(self.shops))
+            )
 
             for shop in shops_to_follow:
                 Follow.objects.create(
@@ -1208,7 +1238,9 @@ class DataSeeder:
     @transaction.atomic
     def run(self):
         """Run the complete data seeding process"""
-        logger.info(f"Starting data seeding process with scale factor {self.scale_factor}...")
+        logger.info(
+            f"Starting data seeding process with scale factor {self.scale_factor}..."
+        )
 
         start_time = datetime.now()
 
@@ -1243,7 +1275,9 @@ def main():
         default=1.0,
         help="Scale factor for data volume (default: 1.0)",
     )
-    parser.add_argument("--clear", action="store_true", help="Clear existing data before seeding")
+    parser.add_argument(
+        "--clear", action="store_true", help="Clear existing data before seeding"
+    )
     args = parser.parse_args()
 
     seeder = DataSeeder(scale_factor=args.scale, clear_existing=args.clear)

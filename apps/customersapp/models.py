@@ -112,11 +112,19 @@ class SavedPaymentMethod(models.Model):
         related_name="payment_methods",
         verbose_name=_("Customer"),
     )
-    payment_type = models.CharField(_("Payment Type"), max_length=20, choices=PAYMENT_TYPE_CHOICES)
+    payment_type = models.CharField(
+        _("Payment Type"), max_length=20, choices=PAYMENT_TYPE_CHOICES
+    )
     token = models.CharField(_("Payment Token"), max_length=255)
-    last_digits = models.CharField(_("Last Digits"), max_length=4, null=True, blank=True)
-    expiry_month = models.CharField(_("Expiry Month"), max_length=2, null=True, blank=True)
-    expiry_year = models.CharField(_("Expiry Year"), max_length=4, null=True, blank=True)
+    last_digits = models.CharField(
+        _("Last Digits"), max_length=4, null=True, blank=True
+    )
+    expiry_month = models.CharField(
+        _("Expiry Month"), max_length=2, null=True, blank=True
+    )
+    expiry_year = models.CharField(
+        _("Expiry Year"), max_length=4, null=True, blank=True
+    )
     card_brand = models.CharField(_("Card Brand"), max_length=50, null=True, blank=True)
     is_default = models.BooleanField(_("Default Payment Method"), default=False)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
@@ -137,12 +145,15 @@ class SavedPaymentMethod(models.Model):
     def save(self, *args, **kwargs):
         # If this is set as default, unset other default payment methods
         if self.is_default:
-            SavedPaymentMethod.objects.filter(customer=self.customer, is_default=True).update(
-                is_default=False
-            )
+            SavedPaymentMethod.objects.filter(
+                customer=self.customer, is_default=True
+            ).update(is_default=False)
 
         # If this is the only payment method, make it default
-        if not self.pk and not SavedPaymentMethod.objects.filter(customer=self.customer).exists():
+        if (
+            not self.pk
+            and not SavedPaymentMethod.objects.filter(customer=self.customer).exists()
+        ):
             self.is_default = True
 
         super().save(*args, **kwargs)

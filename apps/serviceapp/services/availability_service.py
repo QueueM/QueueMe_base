@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 import pytz
 from django.utils import timezone
@@ -112,7 +112,7 @@ class AvailabilityService:
 
         # Account for buffer time and duration
         slot_duration = service.duration
-        total_slot_time = slot_duration + service.buffer_before + service.buffer_after
+        slot_duration + service.buffer_before + service.buffer_after
 
         # Start time is service open time plus buffer before
         current_dt = service_open_dt + timedelta(minutes=service.buffer_before)
@@ -123,13 +123,17 @@ class AvailabilityService:
 
         # Generate slots until we reach closing time
         while (
-            current_dt + timedelta(minutes=slot_duration + service.buffer_after) <= service_close_dt
+            current_dt + timedelta(minutes=slot_duration + service.buffer_after)
+            <= service_close_dt
         ):
             slot_start = current_dt
             slot_end = slot_start + timedelta(minutes=slot_duration)
 
             # Skip slots that don't meet minimum booking notice
-            if datetime.combine(date, slot_start.time()).replace(tzinfo=pytz.UTC) < min_notice_dt:
+            if (
+                datetime.combine(date, slot_start.time()).replace(tzinfo=pytz.UTC)
+                < min_notice_dt
+            ):
                 current_dt += timedelta(minutes=service.slot_granularity)
                 continue
 
@@ -216,7 +220,9 @@ class AvailabilityService:
         )
 
         # Slot end with buffer after
-        slot_end_with_buffer = datetime.combine(date, end_time) + timedelta(minutes=buffer_after)
+        slot_end_with_buffer = datetime.combine(date, end_time) + timedelta(
+            minutes=buffer_after
+        )
 
         # Make timezone aware
         timezone_obj = pytz.timezone("Asia/Riyadh")  # Saudi Arabia timezone
@@ -326,7 +332,9 @@ class AvailabilityService:
                     continue
 
             # If we reach here, do a full availability check
-            slots = AvailabilityService.get_service_availability(service_id, current_date)
+            slots = AvailabilityService.get_service_availability(
+                service_id, current_date
+            )
 
             if slots:
                 available_days.append(current_date)

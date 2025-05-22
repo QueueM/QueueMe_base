@@ -10,4 +10,3 @@ class UtilsConfig(AppConfig):
         Import signal handlers when the app is ready
         """
         # Import any signals or other initialization code here
-        pass

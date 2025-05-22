@@ -9,7 +9,9 @@ router.register(r"hours", views.ShopHoursViewSet, basename="shop-hours")
 router.register(r"followers", views.FollowerViewSet, basename="shop-followers")
 router.register(r"locations", views.ShopLocationViewSet, basename="shop-location")
 router.register(r"settings", views.ShopSettingsViewSet, basename="shop-settings")
-router.register(r"verifications", views.ShopVerificationViewSet, basename="shop-verification")
+router.register(
+    r"verifications", views.ShopVerificationViewSet, basename="shop-verification"
+)
 
 urlpatterns = [
     path("", include(router.urls)),

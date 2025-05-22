@@ -10,7 +10,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 from apps.rolesapp.decorators import has_permission, has_shop_permission
 
 from .models import Queue, QueueTicket
@@ -199,9 +202,13 @@ class JoinQueueView(APIView):
             result = QueueService.join_queue(queue_id, customer_id, service_id)
 
             if isinstance(result, dict) and "error" in result:
-                return Response({"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+                )
 
-            return Response(QueueTicketSerializer(result).data, status=status.HTTP_201_CREATED)
+            return Response(
+                QueueTicketSerializer(result).data, status=status.HTTP_201_CREATED
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -233,7 +240,9 @@ class CallNextView(APIView):
             result = QueueService.call_next(queue_id, specialist_id)
 
             if isinstance(result, dict) and "error" in result:
-                return Response({"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             return Response(QueueTicketSerializer(result).data)
 
@@ -267,7 +276,9 @@ class MarkServingView(APIView):
             result = QueueService.mark_serving(ticket_id, specialist_id)
 
             if isinstance(result, dict) and "error" in result:
-                return Response({"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             return Response(QueueTicketSerializer(result).data)
 
@@ -300,7 +311,9 @@ class MarkServedView(APIView):
             result = QueueService.mark_served(ticket_id)
 
             if isinstance(result, dict) and "error" in result:
-                return Response({"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             return Response(QueueTicketSerializer(result).data)
 
@@ -347,12 +360,16 @@ class CancelTicketView(APIView):
                 result = QueueService.cancel_ticket(ticket_id)
 
                 if isinstance(result, dict) and "error" in result:
-                    return Response({"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST
+                    )
 
                 return Response(QueueTicketSerializer(result).data)
 
             except QueueTicket.DoesNotExist:
-                return Response({"error": "Ticket not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "Ticket not found"}, status=status.HTTP_404_NOT_FOUND
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -400,7 +417,9 @@ class QueueStatusView(APIView):
             return Response(
                 {
                     "queue": QueueSerializer(queue).data,
-                    "active_tickets": QueueTicketSerializer(active_tickets, many=True).data,
+                    "active_tickets": QueueTicketSerializer(
+                        active_tickets, many=True
+                    ).data,
                     "counts": {
                         "waiting": waiting_count,
                         "called": called_count,
@@ -413,7 +432,9 @@ class QueueStatusView(APIView):
             )
 
         except Queue.DoesNotExist:
-            return Response({"error": "Queue not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Queue not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 @document_api_endpoint(
@@ -478,7 +499,9 @@ class CheckPositionView(APIView):
         401: "Unauthorized - Authentication required",
         403: "Forbidden - User doesn't have permission",
     },
-    path_params=[{"name": "customer_id", "description": "Customer ID", "type": "string"}],
+    path_params=[
+        {"name": "customer_id", "description": "Customer ID", "type": "string"}
+    ],
     tags=["Queue Tickets", "Customers"],
 )
 class CustomerActiveTicketsView(APIView):
@@ -499,7 +522,9 @@ class CustomerActiveTicketsView(APIView):
 
         # Get active tickets for customer
         active_tickets = (
-            QueueTicket.objects.filter(customer_id=customer_id, status__in=["waiting", "called"])
+            QueueTicket.objects.filter(
+                customer_id=customer_id, status__in=["waiting", "called"]
+            )
             .select_related("queue", "service")
             .order_by("position")
         )
@@ -558,8 +583,12 @@ class QueueStatsView(APIView):
                 end_date = start_date
 
             # Add day to end_date to make it inclusive
-            end_datetime = timezone.datetime.combine(end_date, timezone.datetime.max.time())
-            start_datetime = timezone.datetime.combine(start_date, timezone.datetime.min.time())
+            end_datetime = timezone.datetime.combine(
+                end_date, timezone.datetime.max.time()
+            )
+            start_datetime = timezone.datetime.combine(
+                start_date, timezone.datetime.min.time()
+            )
 
             # Make timezone aware
             tz = timezone.get_current_timezone()
@@ -579,9 +608,9 @@ class QueueStatsView(APIView):
 
             # Calculate averages
             avg_wait_time = (
-                tickets.filter(status="served").aggregate(avg_wait=Avg("actual_wait_time"))[
-                    "avg_wait"
-                ]
+                tickets.filter(status="served").aggregate(
+                    avg_wait=Avg("actual_wait_time")
+                )["avg_wait"]
                 or 0
             )
 
@@ -595,7 +624,9 @@ class QueueStatsView(APIView):
 
             # Get service distribution
             service_distribution = (
-                tickets.values("service__name").annotate(count=Count("id")).order_by("-count")
+                tickets.values("service__name")
+                .annotate(count=Count("id"))
+                .order_by("-count")
             )
 
             # Format the response
@@ -623,7 +654,9 @@ class QueueStatsView(APIView):
             )
 
         except Queue.DoesNotExist:
-            return Response({"error": "Queue not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Queue not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 @document_api_viewset(
@@ -710,7 +743,9 @@ class QueueTicketViewSet(viewsets.ModelViewSet):
             200: "Success - Returns queue ticket details",
             404: "Not Found - Queue ticket not found",
         },
-        path_params=[{"name": "pk", "description": "Queue Ticket ID", "type": "string"}],
+        path_params=[
+            {"name": "pk", "description": "Queue Ticket ID", "type": "string"}
+        ],
         tags=["Queue Tickets"],
     )
     def retrieve(self, request, *args, **kwargs):
@@ -726,7 +761,9 @@ class QueueTicketViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Queue ticket not found",
         },
-        path_params=[{"name": "pk", "description": "Queue Ticket ID", "type": "string"}],
+        path_params=[
+            {"name": "pk", "description": "Queue Ticket ID", "type": "string"}
+        ],
         tags=["Queue Tickets"],
     )
     def update(self, request, *args, **kwargs):
@@ -741,7 +778,9 @@ class QueueTicketViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission",
             404: "Not Found - Queue ticket not found",
         },
-        path_params=[{"name": "pk", "description": "Queue Ticket ID", "type": "string"}],
+        path_params=[
+            {"name": "pk", "description": "Queue Ticket ID", "type": "string"}
+        ],
         tags=["Queue Tickets"],
     )
     def destroy(self, request, *args, **kwargs):

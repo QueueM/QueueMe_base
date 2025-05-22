@@ -100,7 +100,9 @@ class DashboardWidget(models.Model):
         verbose_name=_("Dashboard Layout"),
     )
     title = models.CharField(_("Widget Title"), max_length=100)
-    widget_type = models.CharField(_("Widget Type"), max_length=20, choices=WIDGET_TYPE_CHOICES)
+    widget_type = models.CharField(
+        _("Widget Type"), max_length=20, choices=WIDGET_TYPE_CHOICES
+    )
     category = models.CharField(
         _("Category"),
         max_length=20,
@@ -116,7 +118,9 @@ class DashboardWidget(models.Model):
         blank=True,
         null=True,
     )
-    data_source = models.CharField(_("Data Source"), max_length=50, blank=True, null=True)
+    data_source = models.CharField(
+        _("Data Source"), max_length=50, blank=True, null=True
+    )
     data_granularity = models.CharField(
         _("Data Granularity"),
         max_length=20,
@@ -154,7 +158,9 @@ class ScheduledReport(models.Model):
     )
     name = models.CharField(_("Report Name"), max_length=100)
     description = models.TextField(_("Description"), blank=True)
-    frequency = models.CharField(_("Frequency"), max_length=20, choices=REPORT_FREQUENCY_CHOICES)
+    frequency = models.CharField(
+        _("Frequency"), max_length=20, choices=REPORT_FREQUENCY_CHOICES
+    )
     day_of_week = models.PositiveSmallIntegerField(
         _("Day of Week"),
         null=True,
@@ -171,7 +177,9 @@ class ScheduledReport(models.Model):
     recipients = models.JSONField(_("Recipients"), default=list)
     kpis_included = models.JSONField(_("KPIs Included"), default=list)
     charts_included = models.JSONField(_("Charts Included"), default=list)
-    date_range = models.CharField(_("Date Range"), max_length=20, choices=TIME_PERIOD_CHOICES)
+    date_range = models.CharField(
+        _("Date Range"), max_length=20, choices=TIME_PERIOD_CHOICES
+    )
     is_active = models.BooleanField(_("Active"), default=True)
     created_by = models.ForeignKey(
         User,

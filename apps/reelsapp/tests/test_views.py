@@ -49,7 +49,9 @@ class ReelViewSetTest(APITestCase):
 
         cls.edit_permission = Permission.objects.create(resource="reel", action="edit")
 
-        cls.delete_permission = Permission.objects.create(resource="reel", action="delete")
+        cls.delete_permission = Permission.objects.create(
+            resource="reel", action="delete"
+        )
 
         # Create role for shop manager
         cls.manager_role = Role.objects.create(
@@ -133,7 +135,9 @@ class ReelViewSetTest(APITestCase):
         self.client.force_authenticate(user=self.shop_manager)
 
         # Update reel
-        url = reverse("shop-reels-detail", kwargs={"shop_id": self.shop.id, "pk": self.reel.id})
+        url = reverse(
+            "shop-reels-detail", kwargs={"shop_id": self.shop.id, "pk": self.reel.id}
+        )
         data = {"title": "Updated Reel", "caption": "This reel has been updated"}
         response = self.client.patch(url, data, format="json")
 
@@ -167,7 +171,9 @@ class ReelViewSetTest(APITestCase):
         self.client.force_authenticate(user=self.shop_manager)
 
         # Publish reel
-        url = reverse("shop-reels-publish", kwargs={"shop_id": self.shop.id, "pk": draft_reel.id})
+        url = reverse(
+            "shop-reels-publish", kwargs={"shop_id": self.shop.id, "pk": draft_reel.id}
+        )
         response = self.client.post(url)
 
         # Check response
@@ -204,7 +210,9 @@ class ReelViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Verify in database
-        self.assertTrue(ReelLike.objects.filter(reel=self.reel, user=self.customer).exists())
+        self.assertTrue(
+            ReelLike.objects.filter(reel=self.reel, user=self.customer).exists()
+        )
 
     def test_customer_can_comment_on_reel(self):
         """Test that customer can comment on a reel"""

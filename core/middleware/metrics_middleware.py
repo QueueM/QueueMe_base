@@ -9,6 +9,7 @@ from django.urls import Resolver404, resolve
 
 from core.monitoring.metrics import API_REQUEST_LATENCY, API_REQUESTS
 
+
 class PrometheusMetricsMiddleware:
     """
     Middleware that captures request metrics and records them to Prometheus.
@@ -44,7 +45,9 @@ class PrometheusMetricsMiddleware:
                 return resolver_match.view_name
             if getattr(resolver_match, "url_name", None):
                 return resolver_match.url_name
-            if hasattr(resolver_match, "func") and hasattr(resolver_match.func, "__name__"):
+            if hasattr(resolver_match, "func") and hasattr(
+                resolver_match.func, "__name__"
+            ):
                 return resolver_match.func.__name__
             return request.path_info
         except Resolver404:
@@ -64,7 +67,11 @@ class PrometheusMetricsMiddleware:
         status_code = str(response.status_code)  # must be string for prometheus_client
 
         # CORRECT: Use status_code as the label!
-        API_REQUESTS.labels(method=method, endpoint=endpoint, status_code=status_code).inc()
-        API_REQUEST_LATENCY.labels(method=method, endpoint=endpoint, status_code=status_code).observe(duration)
+        API_REQUESTS.labels(
+            method=method, endpoint=endpoint, status_code=status_code
+        ).inc()
+        API_REQUEST_LATENCY.labels(
+            method=method, endpoint=endpoint, status_code=status_code
+        ).observe(duration)
 
         return response

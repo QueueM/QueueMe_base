@@ -333,7 +333,9 @@ class CouponViewSet(viewsets.ModelViewSet):
         )
 
         if not is_valid:
-            return Response({"valid": False, "message": message}, status=status.HTTP_200_OK)
+            return Response(
+                {"valid": False, "message": message}, status=status.HTTP_200_OK
+            )
 
         # Calculate discount if amount is provided
         discount_amount = 0
@@ -391,7 +393,11 @@ class CouponViewSet(viewsets.ModelViewSet):
         # Verify booking belongs to current user
         if booking.customer != request.user:
             return Response(
-                {"detail": _("You do not have permission to apply coupons to this booking.")},
+                {
+                    "detail": _(
+                        "You do not have permission to apply coupons to this booking."
+                    )
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -474,18 +480,26 @@ class CouponViewSet(viewsets.ModelViewSet):
 
             if shop not in user_shops:
                 return Response(
-                    {"detail": _("You do not have permission to manage coupons for this shop.")},
+                    {
+                        "detail": _(
+                            "You do not have permission to manage coupons for this shop."
+                        )
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
         # Extract services and categories
         services = None
         if "service_ids" in serializer.validated_data:
-            services = Service.objects.filter(id__in=serializer.validated_data["service_ids"])
+            services = Service.objects.filter(
+                id__in=serializer.validated_data["service_ids"]
+            )
 
         categories = None
         if "category_ids" in serializer.validated_data:
-            categories = Category.objects.filter(id__in=serializer.validated_data["category_ids"])
+            categories = Category.objects.filter(
+                id__in=serializer.validated_data["category_ids"]
+            )
 
         # Generate coupons
         quantity = serializer.validated_data.get("quantity", 1)
@@ -501,12 +515,16 @@ class CouponViewSet(viewsets.ModelViewSet):
                 end_date=serializer.validated_data["end_date"],
                 usage_limit=serializer.validated_data.get("usage_limit", 0),
                 is_single_use=serializer.validated_data.get("is_single_use", False),
-                apply_to_all_services=serializer.validated_data.get("apply_to_all_services", False),
+                apply_to_all_services=serializer.validated_data.get(
+                    "apply_to_all_services", False
+                ),
                 services=services,
                 categories=categories,
             )
 
-            return Response(CouponSerializer(coupon).data, status=status.HTTP_201_CREATED)
+            return Response(
+                CouponSerializer(coupon).data, status=status.HTTP_201_CREATED
+            )
         else:
             # Generate bulk coupons
             coupons = CouponService.generate_bulk_coupons(
@@ -519,7 +537,9 @@ class CouponViewSet(viewsets.ModelViewSet):
                 quantity=quantity,
                 usage_limit=serializer.validated_data.get("usage_limit", 0),
                 is_single_use=serializer.validated_data.get("is_single_use", False),
-                apply_to_all_services=serializer.validated_data.get("apply_to_all_services", False),
+                apply_to_all_services=serializer.validated_data.get(
+                    "apply_to_all_services", False
+                ),
                 services=services,
                 categories=categories,
             )
@@ -718,7 +738,11 @@ class PromotionalCampaignViewSet(viewsets.ModelViewSet):
 
             if shop not in user_shops:
                 return Response(
-                    {"detail": _("You do not have permission to manage campaigns for this shop.")},
+                    {
+                        "detail": _(
+                            "You do not have permission to manage campaigns for this shop."
+                        )
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
@@ -846,12 +870,14 @@ class DiscountCalculationViewSet(viewsets.ViewSet):
                 }
             )
         else:
-            discounted_price, original_price, discount_info = DiscountService.calculate_discount(
-                price,
-                service=service,
-                shop=shop,
-                customer=request.user,
-                coupon_code=coupon_code,
+            discounted_price, original_price, discount_info = (
+                DiscountService.calculate_discount(
+                    price,
+                    service=service,
+                    shop=shop,
+                    customer=request.user,
+                    coupon_code=coupon_code,
+                )
             )
 
             return Response(

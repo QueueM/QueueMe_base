@@ -1,14 +1,11 @@
 import json
 import logging
-from typing import Any, Dict, Optional
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
 
-from apps.notificationsapp.enums import NotificationType
-from apps.notificationsapp.models import Notification
-from core.cache.advanced_cache import AdvancedCache, cached
+from core.cache.advanced_cache import AdvancedCache
 from websockets.consumers.socket_helpers import (
     SwiftCompatibleMessage,
     get_client_preferences,
@@ -32,7 +29,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             # Get user from scope
             self.user = self.scope.get("user")
-            self.user_id = str(self.user.id) if self.user and self.user.is_authenticated else None
+            self.user_id = (
+                str(self.user.id) if self.user and self.user.is_authenticated else None
+            )
 
             if not self.user_id:
                 await self.close(code=4003)  # Unauthorized
@@ -85,9 +84,13 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             # Remove from notification group
             if hasattr(self, "user_group_name"):
-                await self.channel_layer.group_discard(self.user_group_name, self.channel_name)
+                await self.channel_layer.group_discard(
+                    self.user_group_name, self.channel_name
+                )
 
-            logger.info(f"WebSocket disconnected for user {getattr(self, 'user_id', 'unknown')}")
+            logger.info(
+                f"WebSocket disconnected for user {getattr(self, 'user_id', 'unknown')}"
+            )
 
         except Exception as e:
             logger.error(f"Error in WebSocket disconnect: {e}")
@@ -123,14 +126,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                         # Validate group name for security
                         if self._is_valid_group(group):
                             await self.channel_layer.group_add(group, self.channel_name)
-                            logger.info(f"User {self.user_id} subscribed to group {group}")
+                            logger.info(
+                                f"User {self.user_id} subscribed to group {group}"
+                            )
 
                 elif message_type == "unsubscribe":
                     # Client unsubscribing from groups
                     groups = data.get("groups", [])
                     for group in groups:
                         if self._is_valid_group(group):
-                            await self.channel_layer.group_discard(group, self.channel_name)
+                            await self.channel_layer.group_discard(
+                                group, self.channel_name
+                            )
 
                 else:
                     logger.warning(f"Received unknown message type: {message_type}")
@@ -175,7 +182,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         """
         try:
             message_data = event.get("data", {})
-            notification_type = message_data.get("type")
+            message_data.get("type")
             notification_id = message_data.get("id")
 
             # Format based on client type (iOS/Android/Web)

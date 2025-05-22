@@ -1,4 +1,4 @@
-from django.db.models import Avg, Count, F, Q
+from django.db.models import Avg, Count
 
 from apps.reviewapp.models import Review
 from apps.serviceapp.models import Service
@@ -34,7 +34,9 @@ class ServiceMatcher:
 
         # If time_slot provided, filter for availability
         if time_slot:
-            from apps.serviceapp.services.availability_service import AvailabilityService
+            from apps.serviceapp.services.availability_service import (
+                AvailabilityService,
+            )
 
             available_specialists = []
             for specialist in specialists:
@@ -155,9 +157,9 @@ class ServiceMatcher:
         specialist = Specialist.objects.get(id=specialist_id)
 
         # Get services this specialist already offers
-        current_service_ids = SpecialistService.objects.filter(specialist=specialist).values_list(
-            "service_id", flat=True
-        )
+        current_service_ids = SpecialistService.objects.filter(
+            specialist=specialist
+        ).values_list("service_id", flat=True)
 
         # Get services from the same shop
         shop_services = Service.objects.filter(shop=specialist.employee.shop).exclude(
@@ -209,7 +211,9 @@ class ServiceMatcher:
 
             for service in other_services_in_shop:
                 # Check if already suggested
-                existing = next((s for s in suggestions if s["service_id"] == service.id), None)
+                existing = next(
+                    (s for s in suggestions if s["service_id"] == service.id), None
+                )
 
                 if existing:
                     # Increase score for multiple recommendations
@@ -227,9 +231,9 @@ class ServiceMatcher:
 
         # Strategy 3: Duration-based matching
         # Suggest services with similar duration to what specialist already provides
-        specialist_durations = Service.objects.filter(id__in=current_service_ids).values_list(
-            "duration", flat=True
-        )
+        specialist_durations = Service.objects.filter(
+            id__in=current_service_ids
+        ).values_list("duration", flat=True)
 
         # Calculate duration range (from min-10 to max+10 minutes)
         if specialist_durations:
@@ -268,7 +272,9 @@ class ServiceMatcher:
         shop = service.shop
 
         # Get other active services in the same shop
-        other_services = Service.objects.filter(shop=shop, status="active").exclude(id=service_id)
+        other_services = Service.objects.filter(shop=shop, status="active").exclude(
+            id=service_id
+        )
 
         complementary_services = []
 
@@ -298,7 +304,9 @@ class ServiceMatcher:
         if customers_with_service:
             # Count frequency of each service
             service_frequencies = (
-                Appointment.objects.filter(customer_id__in=customers_with_service, shop_id=shop.id)
+                Appointment.objects.filter(
+                    customer_id__in=customers_with_service, shop_id=shop.id
+                )
                 .exclude(service_id=service_id)
                 .values("service_id")
                 .annotate(frequency=Count("service_id"))
@@ -315,21 +323,28 @@ class ServiceMatcher:
 
                     # Check if already in results
                     existing = next(
-                        (s for s in complementary_services if s["service_id"] == complementary_id),
+                        (
+                            s
+                            for s in complementary_services
+                            if s["service_id"] == complementary_id
+                        ),
                         None,
                     )
 
                     if existing:
                         # Boost score
                         existing["score"] += min(5, frequency)  # Cap at +5 points
-                        existing["reason"] = "Frequently booked together by other customers"
+                        existing["reason"] = (
+                            "Frequently booked together by other customers"
+                        )
                     else:
                         complementary_services.append(
                             {
                                 "service_id": complementary_id,
                                 "name": complementary_service.name,
                                 "reason": "Frequently booked together by other customers",
-                                "score": min(5, frequency) + 1,  # Base score + frequency (capped)
+                                "score": min(5, frequency)
+                                + 1,  # Base score + frequency (capped)
                             }
                         )
                 except Service.DoesNotExist:
@@ -350,7 +365,11 @@ class ServiceMatcher:
 
             for complementary in previously_booked:
                 existing = next(
-                    (s for s in complementary_services if s["service_id"] == complementary.id),
+                    (
+                        s
+                        for s in complementary_services
+                        if s["service_id"] == complementary.id
+                    ),
                     None,
                 )
 

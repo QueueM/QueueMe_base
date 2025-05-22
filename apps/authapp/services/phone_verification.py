@@ -27,7 +27,9 @@ class PhoneVerificationService:
         phone_number = normalize_phone_number(phone_number)
 
         # Check if phone is already verified for a user
-        existing_user = User.objects.filter(phone_number=phone_number, is_verified=True).first()
+        existing_user = User.objects.filter(
+            phone_number=phone_number, is_verified=True
+        ).first()
 
         if existing_user:
             return {
@@ -100,7 +102,11 @@ class PhoneVerificationService:
         new_phone_number = normalize_phone_number(new_phone_number)
 
         # Check if new phone is already in use
-        if User.objects.filter(phone_number=new_phone_number).exclude(id=user.id).exists():
+        if (
+            User.objects.filter(phone_number=new_phone_number)
+            .exclude(id=user.id)
+            .exists()
+        ):
             return {
                 "status": "already_in_use",
                 "message": "This phone number is already in use by another account.",

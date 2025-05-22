@@ -17,18 +17,20 @@ import logging
 import uuid
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Count, F, Min, Q
+from django.db.models import Count
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment, AppointmentResource
 from apps.bookingapp.services.availability_service import AvailabilityService
 from apps.bookingapp.services.conflict_detection_service import ConflictDetectionService
-from apps.serviceapp.models import Service, ServiceDependency, ServiceRequirement, ServiceResource
-from apps.shopapp.models import Resource, Shop
+from apps.serviceapp.models import (
+    Service,
+    ServiceResource,
+)
+from apps.shopapp.models import Resource
 from apps.specialistsapp.models import Specialist
 
 logger = logging.getLogger(__name__)
@@ -48,7 +50,9 @@ class SchedulingOptimizer:
 
     # Constants for scheduling strategies
     STRATEGY_EARLIEST_AVAILABLE = "earliest_available"  # Book at earliest possible time
-    STRATEGY_BALANCED_WORKLOAD = "balanced_workload"  # Distribute workload among specialists
+    STRATEGY_BALANCED_WORKLOAD = (
+        "balanced_workload"  # Distribute workload among specialists
+    )
     STRATEGY_MINIMIZE_WAIT = "minimize_wait"  # Minimize customer wait time
     STRATEGY_RESOURCE_EFFICIENT = "resource_efficient"  # Optimize resource usage
 
@@ -294,7 +298,11 @@ class SchedulingOptimizer:
                     if not result["success"]:
                         # If any service fails, cancel previously booked ones
                         cls._cancel_appointments(
-                            [r.get("appointment_id") for r in results if r.get("success")]
+                            [
+                                r.get("appointment_id")
+                                for r in results
+                                if r.get("success")
+                            ]
                         )
 
                         return {
@@ -306,7 +314,9 @@ class SchedulingOptimizer:
                     # Set the next start time to be right after this appointment
                     # Include buffer time if specified
                     buffer_after = service.buffer_after or 0
-                    next_start_time = result["end_time"] + timedelta(minutes=buffer_after)
+                    next_start_time = result["end_time"] + timedelta(
+                        minutes=buffer_after
+                    )
 
                     # Try to keep the same specialist if possible
                     if not preferred_specialist_id:
@@ -412,7 +422,9 @@ class SchedulingOptimizer:
                 specialist_id=specialist_id,
                 start_time=new_datetime,
                 end_time=new_end_datetime,
-                customer_id=(str(appointment.customer_id) if appointment.customer else None),
+                customer_id=(
+                    str(appointment.customer_id) if appointment.customer else None
+                ),
                 exclude_appointment_id=appointment_id,
             )
 
@@ -524,11 +536,13 @@ class SchedulingOptimizer:
                     else:
                         # Slot found on a future date
                         start_time, end_time = earliest_slot
-                        specialist_id = AvailabilityService.get_next_available_specialist(
-                            shop_id=shop_id,
-                            service_id=service_id,
-                            target_date=start_time.date(),
-                            target_time=start_time.time(),
+                        specialist_id = (
+                            AvailabilityService.get_next_available_specialist(
+                                shop_id=shop_id,
+                                service_id=service_id,
+                                target_date=start_time.date(),
+                                target_time=start_time.time(),
+                            )
                         )
 
                         return cls._create_appointment(
@@ -668,7 +682,9 @@ class SchedulingOptimizer:
                 # This strategy minimizes resource fragmentation
 
                 # Get service resource requirements
-                service_resources = ServiceResource.objects.filter(service_id=service_id)
+                service_resources = ServiceResource.objects.filter(
+                    service_id=service_id
+                )
                 resource_ids = [sr.resource_id for sr in service_resources]
 
                 if not resource_ids:
@@ -843,7 +859,9 @@ class SchedulingOptimizer:
         """
         try:
             # Get resource requirements for this service
-            service_resources = ServiceResource.objects.filter(service_id=appointment.service_id)
+            service_resources = ServiceResource.objects.filter(
+                service_id=appointment.service_id
+            )
 
             if not service_resources:
                 return []
@@ -868,10 +886,13 @@ class SchedulingOptimizer:
                         .first()
                     )
 
-                    if alternative_resource and ConflictDetectionService._is_resource_available(
-                        resource_id=str(alternative_resource.id),
-                        start_time=appointment.start_time,
-                        end_time=appointment.end_time,
+                    if (
+                        alternative_resource
+                        and ConflictDetectionService._is_resource_available(
+                            resource_id=str(alternative_resource.id),
+                            start_time=appointment.start_time,
+                            end_time=appointment.end_time,
+                        )
                     ):
                         # Use alternative resource
                         resource_id = alternative_resource.id
@@ -893,7 +914,9 @@ class SchedulingOptimizer:
             return allocated_resources
 
         except Exception as e:
-            logger.error(f"Error allocating resources for appointment {appointment.id}: {str(e)}")
+            logger.error(
+                f"Error allocating resources for appointment {appointment.id}: {str(e)}"
+            )
             return []
 
     @staticmethod
@@ -912,7 +935,9 @@ class SchedulingOptimizer:
             SchedulingOptimizer._allocate_resources(appointment)
 
         except Exception as e:
-            logger.error(f"Error updating resources for appointment {appointment.id}: {str(e)}")
+            logger.error(
+                f"Error updating resources for appointment {appointment.id}: {str(e)}"
+            )
 
     @staticmethod
     def _cancel_appointments(appointment_ids: List[str]) -> None:
@@ -930,7 +955,9 @@ class SchedulingOptimizer:
                 )
 
                 # Release resources
-                AppointmentResource.objects.filter(appointment_id__in=appointment_ids).delete()
+                AppointmentResource.objects.filter(
+                    appointment_id__in=appointment_ids
+                ).delete()
 
         except Exception as e:
             logger.error(f"Error cancelling appointments: {str(e)}")

@@ -15,7 +15,9 @@ from ..services.payment_service import PaymentService
 
 class PaymentServiceTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create(phone_number="+1234567890", user_type="customer")
+        self.user = User.objects.create(
+            phone_number="+1234567890", user_type="customer"
+        )
 
         self.content_type = ContentType.objects.get_for_model(Appointment)
         self.object_id = uuid.uuid4()
@@ -35,7 +37,9 @@ class PaymentServiceTest(TestCase):
         self.mock_transaction.id = uuid.uuid4()
         self.mock_transaction.moyasar_id = "pay_123456789"
         self.mock_transaction.status = "succeeded"
-        self.mock_transaction.metadata = {"source": {"transaction_url": "https://test.url"}}
+        self.mock_transaction.metadata = {
+            "source": {"transaction_url": "https://test.url"}
+        }
 
         # Configure mock to return our transaction and success
         self.mock_transaction_manager.return_value = (self.mock_transaction, True, None)
@@ -122,7 +126,9 @@ class PaymentServiceTest(TestCase):
 
 class PaymentMethodRecommenderTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create(phone_number="+1234567890", user_type="customer")
+        self.user = User.objects.create(
+            phone_number="+1234567890", user_type="customer"
+        )
 
         # Create payment methods
         self.visa_card = PaymentMethod.objects.create(
@@ -145,7 +151,9 @@ class PaymentMethodRecommenderTest(TestCase):
     def test_recommend_payment_method(self):
         """Test payment method recommendation algorithm"""
         # Test with no previous usage
-        recommendations = PaymentMethodRecommender.recommend_payment_method(self.user, 100.00)
+        recommendations = PaymentMethodRecommender.recommend_payment_method(
+            self.user, 100.00
+        )
 
         # Should recommend methods in correct order (default first)
         self.assertEqual(len(recommendations), 2)  # Should include all user methods
@@ -155,7 +163,9 @@ class PaymentMethodRecommenderTest(TestCase):
         self.assertEqual(first_rec["method"], self.visa_card)
 
         # Test with different amount (large amount)
-        recommendations = PaymentMethodRecommender.recommend_payment_method(self.user, 2000.00)
+        recommendations = PaymentMethodRecommender.recommend_payment_method(
+            self.user, 2000.00
+        )
 
         # Now card might be preferred for large amounts
         first_rec = recommendations[0]
@@ -167,7 +177,9 @@ class PaymentMethodRecommenderTest(TestCase):
 
 class FraudDetectorTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create(phone_number="+1234567890", user_type="customer")
+        self.user = User.objects.create(
+            phone_number="+1234567890", user_type="customer"
+        )
 
         self.content_type = ContentType.objects.get_for_model(Appointment)
 
@@ -218,7 +230,9 @@ class FraudDetectorTest(TestCase):
         self.assertIn("very_large_amount", large_assessment["flagged_factors"])
 
         # Risk score should be higher
-        self.assertGreater(large_assessment["risk_score"], normal_assessment["risk_score"])
+        self.assertGreater(
+            large_assessment["risk_score"], normal_assessment["risk_score"]
+        )
 
         # Risk level should be medium or high
         self.assertIn(large_assessment["risk_level"], ["medium", "high"])

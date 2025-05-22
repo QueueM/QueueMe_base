@@ -53,7 +53,9 @@ class BaseReviewAdmin(admin.ModelAdmin):
                     "specialistsapp.Specialist", review.specialist.id
                 )
             elif hasattr(review, "service"):
-                RatingService.update_entity_metrics("serviceapp.Service", review.service.id)
+                RatingService.update_entity_metrics(
+                    "serviceapp.Service", review.service.id
+                )
 
         self.message_user(request, _("Approved {} reviews.").format(updated))
 
@@ -72,7 +74,9 @@ class BaseReviewAdmin(admin.ModelAdmin):
                     "specialistsapp.Specialist", review.specialist.id
                 )
             elif hasattr(review, "service"):
-                RatingService.update_entity_metrics("serviceapp.Service", review.service.id)
+                RatingService.update_entity_metrics(
+                    "serviceapp.Service", review.service.id
+                )
 
         self.message_user(request, _("Rejected {} reviews.").format(updated))
 

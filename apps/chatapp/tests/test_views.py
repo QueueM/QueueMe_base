@@ -17,9 +17,13 @@ class ChatAPITest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.shop_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.shop_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create company
         self.company = Company.objects.create(
@@ -56,7 +60,9 @@ class ChatAPITest(TestCase):
         UserRole.objects.create(user=self.shop_user, role=self.manager_role)
 
         # Create conversation
-        self.conversation = Conversation.objects.create(customer=self.customer, shop=self.shop)
+        self.conversation = Conversation.objects.create(
+            customer=self.customer, shop=self.shop
+        )
 
         # Create some messages
         self.customer_message = Message.objects.create(
@@ -138,8 +144,12 @@ class ChatAPITest(TestCase):
         self.assertEqual(response.data["count"], 2)
 
         # Messages should be in chronological order (oldest first)
-        self.assertEqual(response.data["results"][0]["id"], str(self.customer_message.id))
-        self.assertEqual(response.data["results"][1]["id"], str(self.employee_message.id))
+        self.assertEqual(
+            response.data["results"][0]["id"], str(self.customer_message.id)
+        )
+        self.assertEqual(
+            response.data["results"][1]["id"], str(self.employee_message.id)
+        )
 
     def test_send_message(self):
         """Test sending a message"""
@@ -196,7 +206,9 @@ class ChatAPITest(TestCase):
         self.assertEqual(response.data["status"], "updated")
 
         # Verify in database
-        typing_status = TypingStatus.objects.get(user=self.customer, conversation=self.conversation)
+        typing_status = TypingStatus.objects.get(
+            user=self.customer, conversation=self.conversation
+        )
         self.assertTrue(typing_status.is_typing)
 
     def test_get_unread_count(self):
@@ -209,12 +221,16 @@ class ChatAPITest(TestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["unread_count"], 1)  # One unread employee message
+        self.assertEqual(
+            response.data["unread_count"], 1
+        )  # One unread employee message
 
     def test_permissions_enforcement(self):
         """Test that permissions are properly enforced"""
         # Create a user with no permissions
-        no_perm_user = User.objects.create(phone_number="9998887777", user_type="employee")
+        no_perm_user = User.objects.create(
+            phone_number="9998887777", user_type="employee"
+        )
 
         # Create an employee with no chat permission
         no_perm_employee = Employee.objects.create(
@@ -241,6 +257,8 @@ class ChatAPITest(TestCase):
         response = self.client.get(url)
 
         # Should be forbidden or empty list
-        self.assertIn(response.status_code, [status.HTTP_403_FORBIDDEN, status.HTTP_200_OK])
+        self.assertIn(
+            response.status_code, [status.HTTP_403_FORBIDDEN, status.HTTP_200_OK]
+        )
         if response.status_code == status.HTTP_200_OK:
             self.assertEqual(len(response.data["results"]), 0)

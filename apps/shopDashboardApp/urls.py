@@ -18,7 +18,9 @@ router.register(r"widgets", DashboardWidgetViewSet, basename="dashboard-widgets"
 router.register(r"settings", DashboardSettingsViewSet, basename="dashboard-settings")
 router.register(r"reports", ScheduledReportViewSet, basename="dashboard-reports")
 router.register(r"filters", SavedFilterViewSet, basename="dashboard-filters")
-router.register(r"preferences", DashboardPreferenceViewSet, basename="dashboard-preferences")
+router.register(
+    r"preferences", DashboardPreferenceViewSet, basename="dashboard-preferences"
+)
 
 urlpatterns = [
     path("", include(router.urls)),

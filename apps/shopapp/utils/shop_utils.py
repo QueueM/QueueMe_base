@@ -63,7 +63,9 @@ def get_trending_shops(city=None, days=7, limit=10):
 
     # Count recent follows
     recent_follows = (
-        ShopFollower.objects.filter(created_at__gte=start_date, created_at__lte=end_date)
+        ShopFollower.objects.filter(
+            created_at__gte=start_date, created_at__lte=end_date
+        )
         .values("shop")
         .annotate(follow_count=Count("id"))
     )
@@ -143,13 +145,15 @@ def get_shop_stats(shop):
     shop_type = ContentType.objects.get_for_model(Shop)
 
     # Count reviews
-    review_count = Review.objects.filter(content_type=shop_type, object_id=shop.id).count()
+    review_count = Review.objects.filter(
+        content_type=shop_type, object_id=shop.id
+    ).count()
 
     # Calculate average rating
     avg_rating = (
-        Review.objects.filter(content_type=shop_type, object_id=shop.id).aggregate(Avg("rating"))[
-            "rating__avg"
-        ]
+        Review.objects.filter(content_type=shop_type, object_id=shop.id).aggregate(
+            Avg("rating")
+        )["rating__avg"]
         or 0
     )
 

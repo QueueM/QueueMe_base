@@ -1,6 +1,7 @@
 """
 Test data generator for bookings
 """
+
 import random
 from datetime import datetime, timedelta
 
@@ -133,11 +134,21 @@ def generate_test_bookings(count=5, days_range=7):
     if not statuses:
         # Create default statuses if none exist
         statuses = [
-            BookingStatus.objects.create(name="Pending", color="#FFA500", is_active=True),
-            BookingStatus.objects.create(name="Confirmed", color="#008000", is_active=True),
-            BookingStatus.objects.create(name="Completed", color="#0000FF", is_active=True),
-            BookingStatus.objects.create(name="Cancelled", color="#FF0000", is_active=True),
-            BookingStatus.objects.create(name="No-show", color="#800080", is_active=True),
+            BookingStatus.objects.create(
+                name="Pending", color="#FFA500", is_active=True
+            ),
+            BookingStatus.objects.create(
+                name="Confirmed", color="#008000", is_active=True
+            ),
+            BookingStatus.objects.create(
+                name="Completed", color="#0000FF", is_active=True
+            ),
+            BookingStatus.objects.create(
+                name="Cancelled", color="#FF0000", is_active=True
+            ),
+            BookingStatus.objects.create(
+                name="No-show", color="#800080", is_active=True
+            ),
         ]
 
     # Generate bookings

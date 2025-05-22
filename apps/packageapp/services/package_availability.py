@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 from apps.bookingapp.models import Appointment
 from apps.shopapp.models import ShopHours
@@ -78,7 +78,9 @@ class PackageAvailabilityService:
                 pass
 
             # Get all package services and their specialists
-            package_services = PackageService.objects.filter(package=package).order_by("sequence")
+            package_services = PackageService.objects.filter(package=package).order_by(
+                "sequence"
+            )
 
             if not package_services.exists():
                 return []  # No services in this package
@@ -92,7 +94,9 @@ class PackageAvailabilityService:
 
             for ps in package_services:
                 service_id = ps.service_id
-                specialists = Specialist.objects.filter(specialist_services__service_id=service_id)
+                specialists = Specialist.objects.filter(
+                    specialist_services__service_id=service_id
+                )
 
                 if not specialists.exists():
                     all_services_have_specialists = False
@@ -260,7 +264,9 @@ class PackageAvailabilityService:
         )
 
         # Slot end with buffer after
-        slot_end_with_buffer = datetime.combine(date, end_time) + timedelta(minutes=buffer_after)
+        slot_end_with_buffer = datetime.combine(date, end_time) + timedelta(
+            minutes=buffer_after
+        )
 
         # Check for overlapping appointments
         overlapping_appointments = Appointment.objects.filter(
@@ -294,7 +300,9 @@ class PackageAvailabilityService:
 
             # Get package and services
             package = Package.objects.get(id=package_id)
-            package_services = PackageService.objects.filter(package=package).order_by("sequence")
+            package_services = PackageService.objects.filter(package=package).order_by(
+                "sequence"
+            )
 
             if not package_services.exists():
                 return None  # No services in this package
@@ -311,7 +319,9 @@ class PackageAvailabilityService:
                 )
 
                 # Get specialists for this service
-                specialists = Specialist.objects.filter(specialist_services__service_id=service.id)
+                specialists = Specialist.objects.filter(
+                    specialist_services__service_id=service.id
+                )
 
                 # Check if any specialist is available
                 service_available = False

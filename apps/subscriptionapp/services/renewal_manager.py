@@ -24,7 +24,9 @@ class RenewalManager:
     @staticmethod
     def process_renewal(subscription_id):
         """Process renewal for a subscription"""
-        from apps.subscriptionapp.services.subscription_service import SubscriptionService
+        from apps.subscriptionapp.services.subscription_service import (
+            SubscriptionService,
+        )
 
         subscription = Subscription.objects.get(id=subscription_id)
 
@@ -79,9 +81,13 @@ class RenewalManager:
         # Render email templates
         subject = _("Your Queue Me Subscription Renewal Reminder")
 
-        text_content = render_to_string("subscriptionapp/emails/renewal_reminder.txt", context)
+        text_content = render_to_string(
+            "subscriptionapp/emails/renewal_reminder.txt", context
+        )
 
-        html_content = render_to_string("subscriptionapp/emails/renewal_reminder.html", context)
+        html_content = render_to_string(
+            "subscriptionapp/emails/renewal_reminder.html", context
+        )
 
         # Create email message
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -120,7 +126,9 @@ class RenewalManager:
             reminder_count = 0
             for subscription in subscriptions:
                 try:
-                    success = RenewalManager.send_renewal_reminder(subscription.id, days)
+                    success = RenewalManager.send_renewal_reminder(
+                        subscription.id, days
+                    )
                     if success:
                         reminder_count += 1
                 except Exception as e:

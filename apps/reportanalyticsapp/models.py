@@ -24,7 +24,9 @@ class Report(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("Report Name"), max_length=255)
-    report_type = models.CharField(_("Report Type"), max_length=30, choices=REPORT_TYPE_CHOICES)
+    report_type = models.CharField(
+        _("Report Type"), max_length=30, choices=REPORT_TYPE_CHOICES
+    )
     description = models.TextField(_("Description"), blank=True)
 
     # Report structure and definition
@@ -87,7 +89,9 @@ class Report(models.Model):
             report_type=self.report_type,
             parameters=parameters or {},
             status="pending",
-            created_by=(parameters.get("user") if parameters and "user" in parameters else None),
+            created_by=(
+                parameters.get("user") if parameters and "user" in parameters else None
+            ),
         )
 
         # Queue report generation (this would typically be handled by a task queue)
@@ -135,7 +139,9 @@ class AnalyticsSnapshot(models.Model):
     snapshot_type = models.CharField(
         _("Snapshot Type"), max_length=20, choices=SNAPSHOT_TYPE_CHOICES
     )
-    frequency = models.CharField(_("Frequency"), max_length=20, choices=FREQUENCY_CHOICES)
+    frequency = models.CharField(
+        _("Frequency"), max_length=20, choices=FREQUENCY_CHOICES
+    )
     snapshot_date = models.DateField(_("Snapshot Date"))
     start_date = models.DateField(_("Start Date"))
     end_date = models.DateField(_("End Date"))
@@ -206,8 +212,12 @@ class SpecialistAnalytics(models.Model):
     bookings_completed = models.IntegerField(_("Bookings Completed"), default=0)
     bookings_cancelled = models.IntegerField(_("Bookings Cancelled"), default=0)
     bookings_no_show = models.IntegerField(_("Bookings No Show"), default=0)
-    total_service_time = models.IntegerField(_("Total Service Time (minutes)"), default=0)
-    avg_service_duration = models.IntegerField(_("Average Service Duration (minutes)"), default=0)
+    total_service_time = models.IntegerField(
+        _("Total Service Time (minutes)"), default=0
+    )
+    avg_service_duration = models.IntegerField(
+        _("Average Service Duration (minutes)"), default=0
+    )
     customer_ratings = models.DecimalField(
         _("Customer Ratings"), max_digits=3, decimal_places=2, default=0
     )
@@ -226,9 +236,7 @@ class SpecialistAnalytics(models.Model):
         ]
 
     def __str__(self):
-        specialist_name = (
-            f"{self.specialist.employee.first_name} {self.specialist.employee.last_name}"
-        )
+        specialist_name = f"{self.specialist.employee.first_name} {self.specialist.employee.last_name}"
         return f"{specialist_name} - {self.date}"
 
 
@@ -258,8 +266,12 @@ class ScheduledReport(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("Report Name"), max_length=255)
-    report_type = models.CharField(_("Report Type"), max_length=30, choices=REPORT_TYPE_CHOICES)
-    frequency = models.CharField(_("Frequency"), max_length=20, choices=FREQUENCY_CHOICES)
+    report_type = models.CharField(
+        _("Report Type"), max_length=30, choices=REPORT_TYPE_CHOICES
+    )
+    frequency = models.CharField(
+        _("Frequency"), max_length=20, choices=FREQUENCY_CHOICES
+    )
 
     # Link to report template if using one
     report = models.ForeignKey(
@@ -371,7 +383,9 @@ class ReportExecution(models.Model):
     name = models.CharField(_("Report Name"), max_length=255)
     report_type = models.CharField(_("Report Type"), max_length=30)
     parameters = models.JSONField(_("Parameters"), default=dict)
-    status = models.CharField(_("Status"), max_length=20, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(
+        _("Status"), max_length=20, choices=STATUS_CHOICES, default="pending"
+    )
     result_data = models.JSONField(_("Result Data"), null=True, blank=True)
     file_url = models.URLField(_("File URL"), null=True, blank=True)
     error_message = models.TextField(_("Error Message"), blank=True)
@@ -431,12 +445,20 @@ class AnomalyDetection(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    entity_type = models.CharField(_("Entity Type"), max_length=20, choices=ENTITY_TYPE_CHOICES)
+    entity_type = models.CharField(
+        _("Entity Type"), max_length=20, choices=ENTITY_TYPE_CHOICES
+    )
     entity_id = models.UUIDField(_("Entity ID"))
-    metric_type = models.CharField(_("Metric Type"), max_length=20, choices=METRIC_TYPE_CHOICES)
+    metric_type = models.CharField(
+        _("Metric Type"), max_length=20, choices=METRIC_TYPE_CHOICES
+    )
     detection_date = models.DateField(_("Detection Date"))
-    expected_value = models.DecimalField(_("Expected Value"), max_digits=12, decimal_places=2)
-    actual_value = models.DecimalField(_("Actual Value"), max_digits=12, decimal_places=2)
+    expected_value = models.DecimalField(
+        _("Expected Value"), max_digits=12, decimal_places=2
+    )
+    actual_value = models.DecimalField(
+        _("Actual Value"), max_digits=12, decimal_places=2
+    )
     deviation_percentage = models.DecimalField(
         _("Deviation Percentage"), max_digits=10, decimal_places=2
     )

@@ -1,10 +1,6 @@
 from rest_framework import serializers
-from django.utils.translation import gettext_lazy as _
 
 from apps.authapp.serializers import UserSerializer
-from apps.companiesapp.serializers import CompanySerializer
-from apps.shopapp.serializers import ShopSerializer
-from apps.specialistsapp.serializers import SpecialistSerializer
 from apps.reportanalyticsapp.models import (
     AnalyticsSnapshot,
     AnomalyDetection,
@@ -13,6 +9,8 @@ from apps.reportanalyticsapp.models import (
     ShopAnalytics,
     SpecialistAnalytics,
 )
+from apps.shopapp.serializers import ShopSerializer
+from apps.specialistsapp.serializers import SpecialistSerializer
 
 
 class AnalyticsSnapshotSerializer(serializers.ModelSerializer):
@@ -129,7 +127,9 @@ class ScheduledReportSerializer(serializers.ModelSerializer):
 
 class ReportExecutionSerializer(serializers.ModelSerializer):
     created_by_details = UserSerializer(source="created_by", read_only=True)
-    scheduled_report_name = serializers.CharField(source="scheduled_report.name", read_only=True)
+    scheduled_report_name = serializers.CharField(
+        source="scheduled_report.name", read_only=True
+    )
     parameters = serializers.JSONField(required=False)
     result_data = serializers.JSONField(read_only=True)
     execution_time_seconds = serializers.SerializerMethodField()
@@ -200,6 +200,7 @@ class AnomalyDetectionSerializer(serializers.ModelSerializer):
 
         if entity_type == "shop":
             from apps.shopapp.models import Shop
+
             try:
                 shop = Shop.objects.get(id=entity_id)
                 return shop.name
@@ -207,6 +208,7 @@ class AnomalyDetectionSerializer(serializers.ModelSerializer):
                 return None
         elif entity_type == "specialist":
             from apps.specialistsapp.models import Specialist
+
             try:
                 specialist = Specialist.objects.get(id=entity_id)
                 employee = specialist.employee
@@ -215,6 +217,7 @@ class AnomalyDetectionSerializer(serializers.ModelSerializer):
                 return None
         elif entity_type == "service":
             from apps.serviceapp.models import Service
+
             try:
                 service = Service.objects.get(id=entity_id)
                 return service.name
@@ -229,7 +232,9 @@ class DashboardMetricsSerializer(serializers.Serializer):
     completed_bookings = serializers.IntegerField(read_only=True)
     cancelled_bookings = serializers.IntegerField(read_only=True)
     no_show_bookings = serializers.IntegerField(read_only=True)
-    total_revenue = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    total_revenue = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
     average_wait_time = serializers.FloatField(read_only=True)
     average_rating = serializers.FloatField(read_only=True)
     new_customers = serializers.IntegerField(read_only=True)

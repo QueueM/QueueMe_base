@@ -17,7 +17,9 @@ def validate_discount_price(original_price, discounted_price):
     """
     if discounted_price >= original_price:
         raise ValidationError(
-            _("Discounted price (%(discounted)s) must be less than original price (%(original)s)"),
+            _(
+                "Discounted price (%(discounted)s) must be less than original price (%(original)s)"
+            ),
             params={"discounted": discounted_price, "original": original_price},
         )
 

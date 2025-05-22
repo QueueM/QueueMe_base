@@ -84,13 +84,19 @@ def validate_moyasar_config():
     # Check if all wallets have the required keys configured
     wallet_status = {
         "subscription": bool(
-            MOYASAR_SUB["PUBLIC_KEY"] and MOYASAR_SUB["SECRET_KEY"] and MOYASAR_SUB["WALLET_ID"]
+            MOYASAR_SUB["PUBLIC_KEY"]
+            and MOYASAR_SUB["SECRET_KEY"]
+            and MOYASAR_SUB["WALLET_ID"]
         ),
         "ads": bool(
-            MOYASAR_ADS["PUBLIC_KEY"] and MOYASAR_ADS["SECRET_KEY"] and MOYASAR_ADS["WALLET_ID"]
+            MOYASAR_ADS["PUBLIC_KEY"]
+            and MOYASAR_ADS["SECRET_KEY"]
+            and MOYASAR_ADS["WALLET_ID"]
         ),
         "merchant": bool(
-            MOYASAR_MER["PUBLIC_KEY"] and MOYASAR_MER["SECRET_KEY"] and MOYASAR_MER["WALLET_ID"]
+            MOYASAR_MER["PUBLIC_KEY"]
+            and MOYASAR_MER["SECRET_KEY"]
+            and MOYASAR_MER["WALLET_ID"]
         ),
     }
 

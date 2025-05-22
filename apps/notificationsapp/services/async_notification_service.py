@@ -5,12 +5,11 @@ This module provides high-performance notification delivery
 using asynchronous task processing with prioritization and batching.
 """
 
-import json
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
-from celery import chain, chord, group, shared_task
+from celery import chord, shared_task
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F, Q
@@ -22,7 +21,7 @@ from apps.notificationsapp.enums import (  # type: ignore
     NotificationType,
 )
 from apps.notificationsapp.models import Notification, NotificationDelivery
-from core.cache.advanced_cache import AdvancedCache, cached
+from core.cache.advanced_cache import AdvancedCache
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +105,9 @@ class AsyncNotificationService:
         # Queue for processing based on priority and scheduled time
         if scheduled_time and scheduled_time > timezone.now():
             # Schedule for later delivery
-            process_notifications_task.apply_async(args=[notification.id], eta=scheduled_time)
+            process_notifications_task.apply_async(
+                args=[notification.id], eta=scheduled_time
+            )
         else:
             # Process immediately based on priority
             if priority == "high":
@@ -215,7 +216,9 @@ class AsyncNotificationService:
             delivery_stats = {}
 
             for status in NotificationDeliveryStatus:
-                delivery_stats[status.value] = deliveries.filter(status=status.value).count()
+                delivery_stats[status.value] = deliveries.filter(
+                    status=status.value
+                ).count()
 
             channel_stats = {}
             for channel in DeliveryChannel:
@@ -273,7 +276,9 @@ class AsyncNotificationService:
         try:
             # Build query for failed deliveries
             min_time = timezone.now() - timedelta(hours=max_age_hours)
-            query = Q(status=NotificationDeliveryStatus.FAILED.value, updated_at__gte=min_time)
+            query = Q(
+                status=NotificationDeliveryStatus.FAILED.value, updated_at__gte=min_time
+            )
 
             if notification_id:
                 query &= Q(notification_id=notification_id)
@@ -285,7 +290,9 @@ class AsyncNotificationService:
             failed_deliveries = NotificationDelivery.objects.filter(query)
 
             # Group by notification for efficiency
-            notification_ids = set(failed_deliveries.values_list("notification_id", flat=True))
+            notification_ids = set(
+                failed_deliveries.values_list("notification_id", flat=True)
+            )
 
             # Queue each notification for retry
             for n_id in notification_ids:
@@ -339,7 +346,9 @@ def process_notifications_task(self, notification_id: str) -> Dict[str, Any]:
             for i in range(0, len(push_deliveries), PUSH_BATCH_SIZE):
                 batch = push_deliveries[i : i + PUSH_BATCH_SIZE]
                 delivery_ids = [str(d.id) for d in batch]
-                tasks.append(send_push_notifications_task.s(delivery_ids, notification.data))
+                tasks.append(
+                    send_push_notifications_task.s(delivery_ids, notification.data)
+                )
 
         # Email notifications
         email_deliveries = deliveries_by_channel.get(DeliveryChannel.EMAIL.value, [])
@@ -347,7 +356,9 @@ def process_notifications_task(self, notification_id: str) -> Dict[str, Any]:
             for i in range(0, len(email_deliveries), EMAIL_BATCH_SIZE):
                 batch = email_deliveries[i : i + EMAIL_BATCH_SIZE]
                 delivery_ids = [str(d.id) for d in batch]
-                tasks.append(send_email_notifications_task.s(delivery_ids, notification.data))
+                tasks.append(
+                    send_email_notifications_task.s(delivery_ids, notification.data)
+                )
 
         # SMS notifications
         sms_deliveries = deliveries_by_channel.get(DeliveryChannel.SMS.value, [])
@@ -355,7 +366,9 @@ def process_notifications_task(self, notification_id: str) -> Dict[str, Any]:
             for i in range(0, len(sms_deliveries), SMS_BATCH_SIZE):
                 batch = sms_deliveries[i : i + SMS_BATCH_SIZE]
                 delivery_ids = [str(d.id) for d in batch]
-                tasks.append(send_sms_notifications_task.s(delivery_ids, notification.data))
+                tasks.append(
+                    send_sms_notifications_task.s(delivery_ids, notification.data)
+                )
 
         # Execute all tasks in parallel if any
         if tasks:
@@ -401,9 +414,9 @@ def send_push_notifications_task(
             )
 
         # Collect user devices by user ID
-        deliveries = NotificationDelivery.objects.filter(id__in=delivery_ids).select_related(
-            "notification"
-        )
+        deliveries = NotificationDelivery.objects.filter(
+            id__in=delivery_ids
+        ).select_related("notification")
         user_ids = set(deliveries.values_list("user_id", flat=True))
 
         results = {}
@@ -434,7 +447,9 @@ def send_push_notifications_task(
 
                 results[str(delivery.id)] = success
             except Exception as e:
-                logger.error(f"Error sending push notification to user {delivery.user_id}: {e}")
+                logger.error(
+                    f"Error sending push notification to user {delivery.user_id}: {e}"
+                )
                 delivery.status = NotificationDeliveryStatus.FAILED.value
                 delivery.error_message = str(e)
                 delivery.attempts += 1
@@ -497,9 +512,9 @@ def send_email_notifications_task(
             )
 
         # Get all deliveries
-        deliveries = NotificationDelivery.objects.filter(id__in=delivery_ids).select_related(
-            "notification"
-        )
+        deliveries = NotificationDelivery.objects.filter(
+            id__in=delivery_ids
+        ).select_related("notification")
 
         results = {}
 
@@ -529,7 +544,9 @@ def send_email_notifications_task(
 
                 results[str(delivery.id)] = success
             except Exception as e:
-                logger.error(f"Error sending email notification to user {delivery.user_id}: {e}")
+                logger.error(
+                    f"Error sending email notification to user {delivery.user_id}: {e}"
+                )
                 delivery.status = NotificationDeliveryStatus.FAILED.value
                 delivery.error_message = str(e)
                 delivery.attempts += 1
@@ -592,9 +609,9 @@ def send_sms_notifications_task(
             )
 
         # Get all deliveries
-        deliveries = NotificationDelivery.objects.filter(id__in=delivery_ids).select_related(
-            "notification"
-        )
+        deliveries = NotificationDelivery.objects.filter(
+            id__in=delivery_ids
+        ).select_related("notification")
 
         results = {}
 
@@ -621,7 +638,9 @@ def send_sms_notifications_task(
 
                 results[str(delivery.id)] = success
             except Exception as e:
-                logger.error(f"Error sending SMS notification to user {delivery.user_id}: {e}")
+                logger.error(
+                    f"Error sending SMS notification to user {delivery.user_id}: {e}"
+                )
                 delivery.status = NotificationDeliveryStatus.FAILED.value
                 delivery.error_message = str(e)
                 delivery.attempts += 1

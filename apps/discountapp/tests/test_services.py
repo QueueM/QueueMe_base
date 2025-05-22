@@ -242,8 +242,10 @@ class DiscountServiceTestCase(TestCase):
         )
 
         # Test basic discount calculation (no coupon)
-        discounted_price, original_price, discount_info = DiscountService.calculate_discount(
-            Decimal("100"), service=self.service, shop=self.shop
+        discounted_price, original_price, discount_info = (
+            DiscountService.calculate_discount(
+                Decimal("100"), service=self.service, shop=self.shop
+            )
         )
 
         self.assertEqual(discounted_price, Decimal("85"))
@@ -253,12 +255,14 @@ class DiscountServiceTestCase(TestCase):
         self.assertEqual(discount_info["amount"], Decimal("15"))
 
         # Test with coupon (better discount)
-        discounted_price, original_price, discount_info = DiscountService.calculate_discount(
-            Decimal("100"),
-            service=self.service,
-            shop=self.shop,
-            customer=self.customer,
-            coupon_code=coupon.code,
+        discounted_price, original_price, discount_info = (
+            DiscountService.calculate_discount(
+                Decimal("100"),
+                service=self.service,
+                shop=self.shop,
+                customer=self.customer,
+                coupon_code=coupon.code,
+            )
         )
 
         self.assertEqual(discounted_price, Decimal("80"))
@@ -319,7 +323,9 @@ class DiscountServiceTestCase(TestCase):
         self.assertEqual(discounted_price, Decimal("71.5"))
 
         # Verify breakdown contains correct discounts
-        coupon_discount = next((d for d in discount_breakdown if d["type"] == "coupon"), None)
+        coupon_discount = next(
+            (d for d in discount_breakdown if d["type"] == "coupon"), None
+        )
         self.assertIsNotNone(coupon_discount)
         self.assertEqual(coupon_discount["amount"], Decimal("15"))
 
@@ -477,31 +483,45 @@ class EligibilityServiceTestCase(TestCase):
     def test_check_service_eligibility(self):
         """Test service eligibility checks"""
         # Test all services discount
-        all_services_discount = ServiceDiscountFactory(shop=self.shop, apply_to_all_services=True)
+        all_services_discount = ServiceDiscountFactory(
+            shop=self.shop, apply_to_all_services=True
+        )
 
         self.assertTrue(
-            EligibilityService.check_service_eligibility(self.service, all_services_discount)
+            EligibilityService.check_service_eligibility(
+                self.service, all_services_discount
+            )
         )
 
         # Test specific service discount
-        specific_discount = ServiceDiscountFactory(shop=self.shop, apply_to_all_services=False)
+        specific_discount = ServiceDiscountFactory(
+            shop=self.shop, apply_to_all_services=False
+        )
         specific_discount.services.add(self.service)
 
         self.assertTrue(
-            EligibilityService.check_service_eligibility(self.service, specific_discount)
+            EligibilityService.check_service_eligibility(
+                self.service, specific_discount
+            )
         )
 
         # Test category discount
-        category_discount = ServiceDiscountFactory(shop=self.shop, apply_to_all_services=False)
+        category_discount = ServiceDiscountFactory(
+            shop=self.shop, apply_to_all_services=False
+        )
         category_discount.categories.add(self.category)
 
         self.assertTrue(
-            EligibilityService.check_service_eligibility(self.service, category_discount)
+            EligibilityService.check_service_eligibility(
+                self.service, category_discount
+            )
         )
 
         # Test non-eligible service
         other_service = ServiceFactory(shop=self.shop)
-        other_discount = ServiceDiscountFactory(shop=self.shop, apply_to_all_services=False)
+        other_discount = ServiceDiscountFactory(
+            shop=self.shop, apply_to_all_services=False
+        )
 
         self.assertFalse(
             EligibilityService.check_service_eligibility(other_service, other_discount)
@@ -529,27 +549,41 @@ class EligibilityServiceTestCase(TestCase):
         # Test authentication requirement
         auth_coupon = CouponFactory(shop=self.shop, requires_authentication=True)
 
-        is_eligible, _ = EligibilityService.check_customer_eligibility(None, auth_coupon)
+        is_eligible, _ = EligibilityService.check_customer_eligibility(
+            None, auth_coupon
+        )
         self.assertFalse(is_eligible)
 
-        is_eligible, _ = EligibilityService.check_customer_eligibility(self.customer, auth_coupon)
+        is_eligible, _ = EligibilityService.check_customer_eligibility(
+            self.customer, auth_coupon
+        )
         self.assertTrue(is_eligible)
 
     def test_get_eligible_discounts(self):
         """Test getting eligible discounts"""
         # Create various discounts
-        all_discount = ServiceDiscountFactory(shop=self.shop, apply_to_all_services=True)
+        all_discount = ServiceDiscountFactory(
+            shop=self.shop, apply_to_all_services=True
+        )
 
-        specific_discount = ServiceDiscountFactory(shop=self.shop, apply_to_all_services=False)
+        specific_discount = ServiceDiscountFactory(
+            shop=self.shop, apply_to_all_services=False
+        )
         specific_discount.services.add(self.service)
 
-        category_discount = ServiceDiscountFactory(shop=self.shop, apply_to_all_services=False)
+        category_discount = ServiceDiscountFactory(
+            shop=self.shop, apply_to_all_services=False
+        )
         category_discount.categories.add(self.category)
 
-        other_discount = ServiceDiscountFactory(shop=self.shop, apply_to_all_services=False)
+        other_discount = ServiceDiscountFactory(
+            shop=self.shop, apply_to_all_services=False
+        )
 
         # Get eligible discounts
-        eligible_discounts = EligibilityService.get_eligible_discounts(self.service, self.shop)
+        eligible_discounts = EligibilityService.get_eligible_discounts(
+            self.service, self.shop
+        )
 
         # Verify all applicable discounts are returned
         self.assertEqual(len(eligible_discounts), 3)

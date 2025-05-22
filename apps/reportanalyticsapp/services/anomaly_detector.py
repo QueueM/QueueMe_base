@@ -91,13 +91,19 @@ class AnomalyDetector:
         baseline_stats = AnomalyDetector._calculate_baseline_stats(baseline_data)
 
         # Detect anomalies using Z-score method
-        z_score_anomalies = AnomalyDetector._detect_anomalies_z_score(analysis_data, baseline_stats)
+        z_score_anomalies = AnomalyDetector._detect_anomalies_z_score(
+            analysis_data, baseline_stats
+        )
 
         # Detect anomalies using IQR method
-        iqr_anomalies = AnomalyDetector._detect_anomalies_iqr(analysis_data, baseline_stats)
+        iqr_anomalies = AnomalyDetector._detect_anomalies_iqr(
+            analysis_data, baseline_stats
+        )
 
         # Combine anomalies (union of both methods)
-        combined_anomalies = AnomalyDetector._combine_anomalies(z_score_anomalies, iqr_anomalies)
+        combined_anomalies = AnomalyDetector._combine_anomalies(
+            z_score_anomalies, iqr_anomalies
+        )
 
         return {
             "metric_type": metric_type,
@@ -115,7 +121,9 @@ class AnomalyDetector:
             },
             "anomaly_count": len(combined_anomalies),
             "anomaly_percentage": (
-                round(len(combined_anomalies) / len(analysis_data) * 100, 2) if analysis_data else 0
+                round(len(combined_anomalies) / len(analysis_data) * 100, 2)
+                if analysis_data
+                else 0
             ),
         }
 
@@ -141,7 +149,9 @@ class AnomalyDetector:
 
         # Count total anomalies across all metrics
         total_anomalies = sum(
-            result["anomaly_count"] for result in results.values() if "anomaly_count" in result
+            result["anomaly_count"]
+            for result in results.values()
+            if "anomaly_count" in result
         )
 
         # Get most anomalous metric
@@ -154,7 +164,9 @@ class AnomalyDetector:
         most_anomalous_metric = None
 
         if metrics_with_anomalies:
-            most_anomalous_metric = max(metrics_with_anomalies.items(), key=lambda x: x[1])[0]
+            most_anomalous_metric = max(
+                metrics_with_anomalies.items(), key=lambda x: x[1]
+            )[0]
 
         return {
             "shop_id": shop_id,
@@ -199,7 +211,9 @@ class AnomalyDetector:
         health_score = short_term_score * 0.7 + medium_term_score * 0.3
 
         # Generate recommendations based on anomalies
-        recommendations = AnomalyDetector._generate_recommendations(short_term, medium_term)
+        recommendations = AnomalyDetector._generate_recommendations(
+            short_term, medium_term
+        )
 
         # Determine health status
         if health_score >= 90:
@@ -253,7 +267,9 @@ class AnomalyDetector:
         start_date = end_date - timedelta(days=days)
 
         # Get metric data for the entire period
-        data = AnomalyDetector._get_metric_data(shop_id, metric_type, start_date, end_date)
+        data = AnomalyDetector._get_metric_data(
+            shop_id, metric_type, start_date, end_date
+        )
 
         if len(data) < 30:  # Need at least 30 data points for seasonal analysis
             return {
@@ -300,7 +316,9 @@ class AnomalyDetector:
                 .order_by("date")
             )
 
-            result = [{"date": item["date"], "value": item["value"]} for item in appointments]
+            result = [
+                {"date": item["date"], "value": item["value"]} for item in appointments
+            ]
 
         elif metric_type == "cancellation_rate":
             # Daily cancellation rates
@@ -323,7 +341,9 @@ class AnomalyDetector:
                 {
                     "date": item["date"],
                     "value": (
-                        (item["cancelled"] / item["total"] * 100) if item["total"] > 0 else 0
+                        (item["cancelled"] / item["total"] * 100)
+                        if item["total"] > 0
+                        else 0
                     ),
                 }
                 for item in appointments
@@ -339,14 +359,20 @@ class AnomalyDetector:
                 )
                 .extra(select={"date": "DATE(start_time)"})
                 .values("date")
-                .annotate(total=Count("id"), no_show=Count("id", filter=Q(status="no_show")))
+                .annotate(
+                    total=Count("id"), no_show=Count("id", filter=Q(status="no_show"))
+                )
                 .order_by("date")
             )
 
             result = [
                 {
                     "date": item["date"],
-                    "value": ((item["no_show"] / item["total"] * 100) if item["total"] > 0 else 0),
+                    "value": (
+                        (item["no_show"] / item["total"] * 100)
+                        if item["total"] > 0
+                        else 0
+                    ),
                 }
                 for item in appointments
             ]
@@ -368,7 +394,10 @@ class AnomalyDetector:
                 .order_by("date")
             )
 
-            result = [{"date": item["date"], "value": item["avg_wait"] or 0} for item in tickets]
+            result = [
+                {"date": item["date"], "value": item["avg_wait"] or 0}
+                for item in tickets
+            ]
 
         elif metric_type == "service_time":
             # Daily average service times
@@ -384,7 +413,9 @@ class AnomalyDetector:
                 .extra(select={"date": "DATE(start_time)"})
                 .values("date")
                 .annotate(
-                    avg_service_time=Avg(Extract(F("end_time") - F("start_time"), "epoch") / 60)
+                    avg_service_time=Avg(
+                        Extract(F("end_time") - F("start_time"), "epoch") / 60
+                    )
                 )
                 .order_by("date")
             )
@@ -412,7 +443,8 @@ class AnomalyDetector:
             )
 
             result = [
-                {"date": item["date"], "value": item["avg_rating"] or 0} for item in shop_reviews
+                {"date": item["date"], "value": item["avg_rating"] or 0}
+                for item in shop_reviews
             ]
 
         elif metric_type == "revenue":
@@ -438,7 +470,8 @@ class AnomalyDetector:
 
             # Format result
             result = [
-                {"date": date, "value": revenue} for date, revenue in sorted(revenue_by_day.items())
+                {"date": date, "value": revenue}
+                for date, revenue in sorted(revenue_by_day.items())
             ]
 
         elif metric_type == "completion_rate":
@@ -462,7 +495,9 @@ class AnomalyDetector:
                 {
                     "date": item["date"],
                     "value": (
-                        (item["completed"] / item["total"] * 100) if item["total"] > 0 else 0
+                        (item["completed"] / item["total"] * 100)
+                        if item["total"] > 0
+                        else 0
                     ),
                 }
                 for item in appointments
@@ -847,11 +882,15 @@ class AnomalyDetector:
         # Check appointment count anomalies
         if "appointment_count" in short_term["metrics"]:
             appointment_anomalies = (
-                short_term["metrics"]["appointment_count"].get("anomalies", {}).get("combined", [])
+                short_term["metrics"]["appointment_count"]
+                .get("anomalies", {})
+                .get("combined", [])
             )
             if appointment_anomalies:
                 # Check if most anomalies are negative (low appointment count)
-                low_count = sum(1 for a in appointment_anomalies if a.get("direction") == "low")
+                low_count = sum(
+                    1 for a in appointment_anomalies if a.get("direction") == "low"
+                )
                 if low_count > len(appointment_anomalies) / 2:
                     recommendations.append(
                         "Consider running a promotion or special offer to boost appointment bookings."
@@ -860,11 +899,15 @@ class AnomalyDetector:
         # Check cancellation rate anomalies
         if "cancellation_rate" in short_term["metrics"]:
             cancellation_anomalies = (
-                short_term["metrics"]["cancellation_rate"].get("anomalies", {}).get("combined", [])
+                short_term["metrics"]["cancellation_rate"]
+                .get("anomalies", {})
+                .get("combined", [])
             )
             if cancellation_anomalies:
                 # Check if most anomalies are positive (high cancellation rate)
-                high_count = sum(1 for a in cancellation_anomalies if a.get("direction") == "high")
+                high_count = sum(
+                    1 for a in cancellation_anomalies if a.get("direction") == "high"
+                )
                 if high_count > len(cancellation_anomalies) / 2:
                     recommendations.append(
                         "Review your cancellation policy and consider reminder messages to reduce cancellations."
@@ -873,11 +916,15 @@ class AnomalyDetector:
         # Check no-show rate anomalies
         if "no_show_rate" in short_term["metrics"]:
             no_show_anomalies = (
-                short_term["metrics"]["no_show_rate"].get("anomalies", {}).get("combined", [])
+                short_term["metrics"]["no_show_rate"]
+                .get("anomalies", {})
+                .get("combined", [])
             )
             if no_show_anomalies:
                 # Check if most anomalies are positive (high no-show rate)
-                high_count = sum(1 for a in no_show_anomalies if a.get("direction") == "high")
+                high_count = sum(
+                    1 for a in no_show_anomalies if a.get("direction") == "high"
+                )
                 if high_count > len(no_show_anomalies) / 2:
                     recommendations.append(
                         "Implement additional reminder notifications or consider a deposit policy for appointments."
@@ -886,11 +933,15 @@ class AnomalyDetector:
         # Check wait time anomalies
         if "wait_time" in short_term["metrics"]:
             wait_time_anomalies = (
-                short_term["metrics"]["wait_time"].get("anomalies", {}).get("combined", [])
+                short_term["metrics"]["wait_time"]
+                .get("anomalies", {})
+                .get("combined", [])
             )
             if wait_time_anomalies:
                 # Check if most anomalies are positive (high wait times)
-                high_count = sum(1 for a in wait_time_anomalies if a.get("direction") == "high")
+                high_count = sum(
+                    1 for a in wait_time_anomalies if a.get("direction") == "high"
+                )
                 if high_count > len(wait_time_anomalies) / 2:
                     recommendations.append(
                         "Consider adding more staff during peak hours or optimizing your service delivery process."
@@ -899,11 +950,15 @@ class AnomalyDetector:
         # Check ratings anomalies
         if "ratings" in short_term["metrics"]:
             rating_anomalies = (
-                short_term["metrics"]["ratings"].get("anomalies", {}).get("combined", [])
+                short_term["metrics"]["ratings"]
+                .get("anomalies", {})
+                .get("combined", [])
             )
             if rating_anomalies:
                 # Check if most anomalies are negative (low ratings)
-                low_count = sum(1 for a in rating_anomalies if a.get("direction") == "low")
+                low_count = sum(
+                    1 for a in rating_anomalies if a.get("direction") == "low"
+                )
                 if low_count > len(rating_anomalies) / 2:
                     recommendations.append(
                         "Review recent customer feedback and address any service quality issues immediately."
@@ -912,11 +967,15 @@ class AnomalyDetector:
         # Check revenue anomalies
         if "revenue" in short_term["metrics"]:
             revenue_anomalies = (
-                short_term["metrics"]["revenue"].get("anomalies", {}).get("combined", [])
+                short_term["metrics"]["revenue"]
+                .get("anomalies", {})
+                .get("combined", [])
             )
             if revenue_anomalies:
                 # Check if most anomalies are negative (low revenue)
-                low_count = sum(1 for a in revenue_anomalies if a.get("direction") == "low")
+                low_count = sum(
+                    1 for a in revenue_anomalies if a.get("direction") == "low"
+                )
                 if low_count > len(revenue_anomalies) / 2:
                     recommendations.append(
                         "Review your pricing strategy and consider service packages or upselling opportunities."

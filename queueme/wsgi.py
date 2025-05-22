@@ -7,7 +7,7 @@ It exposes the WSGI callable as a module-level variable named `application`.
 import os
 import sys
 import types
-from core import monkey_patches
+
 
 # --- START CRITICAL FIX: Monkey patch problematic imports ---
 # Create complete stubs with proper error handling

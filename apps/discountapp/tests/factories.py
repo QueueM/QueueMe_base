@@ -8,7 +8,12 @@ from factory.django import DjangoModelFactory
 
 from apps.authapp.tests.factories import UserFactory
 from apps.bookingapp.tests.factories import AppointmentFactory
-from apps.discountapp.models import Coupon, CouponUsage, PromotionalCampaign, ServiceDiscount
+from apps.discountapp.models import (
+    Coupon,
+    CouponUsage,
+    PromotionalCampaign,
+    ServiceDiscount,
+)
 from apps.shopapp.tests.factories import ShopFactory
 
 
@@ -24,7 +29,9 @@ class ServiceDiscountFactory(DjangoModelFactory):
     max_discount_amount = None
     min_purchase_amount = 0
     start_date = factory.LazyFunction(lambda: timezone.now())
-    end_date = factory.LazyFunction(lambda: timezone.now() + datetime.timedelta(days=30))
+    end_date = factory.LazyFunction(
+        lambda: timezone.now() + datetime.timedelta(days=30)
+    )
     usage_limit = 0
     used_count = 0
     status = "active"
@@ -61,7 +68,9 @@ class CouponFactory(DjangoModelFactory):
     max_discount_amount = None
     min_purchase_amount = 0
     start_date = factory.LazyFunction(lambda: timezone.now())
-    end_date = factory.LazyFunction(lambda: timezone.now() + datetime.timedelta(days=30))
+    end_date = factory.LazyFunction(
+        lambda: timezone.now() + datetime.timedelta(days=30)
+    )
     usage_limit = 1
     used_count = 0
     status = "active"
@@ -112,7 +121,9 @@ class PromotionalCampaignFactory(DjangoModelFactory):
         ["holiday", "seasonal", "flash_sale", "product_launch", "loyalty", "referral"]
     )
     start_date = factory.LazyFunction(lambda: timezone.now())
-    end_date = factory.LazyFunction(lambda: timezone.now() + datetime.timedelta(days=30))
+    end_date = factory.LazyFunction(
+        lambda: timezone.now() + datetime.timedelta(days=30)
+    )
     is_active = True
     shop = factory.SubFactory(ShopFactory)
 

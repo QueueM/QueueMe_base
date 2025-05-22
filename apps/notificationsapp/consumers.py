@@ -28,17 +28,23 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
         # Add user to notification group
         self.notification_group_name = f"notifications_{self.user_id}"
-        await self.channel_layer.group_add(self.notification_group_name, self.channel_name)
+        await self.channel_layer.group_add(
+            self.notification_group_name, self.channel_name
+        )
 
         await self.accept()
 
         # Send unread count on connect
         unread_count = await self.get_unread_count()
-        await self.send(text_data=json.dumps({"type": "unread_count", "count": unread_count}))
+        await self.send(
+            text_data=json.dumps({"type": "unread_count", "count": unread_count})
+        )
 
     async def disconnect(self, close_code):
         # Leave notification group
-        await self.channel_layer.group_discard(self.notification_group_name, self.channel_name)
+        await self.channel_layer.group_discard(
+            self.notification_group_name, self.channel_name
+        )
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -54,7 +60,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 if success:
                     unread_count = await self.get_unread_count()
                     await self.send(
-                        text_data=json.dumps({"type": "unread_count", "count": unread_count})
+                        text_data=json.dumps(
+                            {"type": "unread_count", "count": unread_count}
+                        )
                     )
 
     async def notification(self, event):
@@ -71,7 +79,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def unread_count_update(self, event):
         """Send updated unread count to WebSocket"""
-        await self.send(text_data=json.dumps({"type": "unread_count", "count": event["count"]}))
+        await self.send(
+            text_data=json.dumps({"type": "unread_count", "count": event["count"]})
+        )
 
     @database_sync_to_async
     def get_unread_count(self):
@@ -84,7 +94,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     def mark_notification_read(self, notification_id):
         """Mark notification as read"""
         try:
-            notification = Notification.objects.get(id=notification_id, user_id=self.user_id)
+            notification = Notification.objects.get(
+                id=notification_id, user_id=self.user_id
+            )
 
             if notification.status in ["sent", "delivered"]:
                 notification.status = "read"

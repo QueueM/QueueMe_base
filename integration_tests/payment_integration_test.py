@@ -16,9 +16,7 @@ import time
 import unittest
 import uuid
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
-
-import requests
+from unittest.mock import patch
 
 # Add project to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -34,7 +32,9 @@ from apps.payment.models import PaymentStatus, PaymentTransaction, RefundTransac
 from apps.payment.services.payment_service import PaymentService
 
 # Configuration for tests
-TEST_MODE = True  # Set to True to use mock responses, False to test against real Moyasar
+TEST_MODE = (
+    True  # Set to True to use mock responses, False to test against real Moyasar
+)
 # Using non-API-key-like placeholders to avoid false detection
 MOYASAR_TEST_SECRET_KEY = "PLACEHOLDER_NOT_REAL_KEY"
 MOYASAR_TEST_PUBLISH_KEY = "PLACEHOLDER_NOT_REAL_KEY"
@@ -47,7 +47,9 @@ class MockMoyasarClient:
         self.api_key = api_key
         self.transactions = {}
 
-    def charge(self, amount, currency, source, description, metadata=None, idempotency_key=None):
+    def charge(
+        self, amount, currency, source, description, metadata=None, idempotency_key=None
+    ):
         """Mock charge method"""
         if idempotency_key and idempotency_key in self.transactions:
             return self.transactions[idempotency_key]
@@ -136,7 +138,9 @@ class PaymentIntegrationTest(unittest.TestCase):
     def setUp(self):
         """Set up each test"""
         # Clean up test data from previous runs
-        PaymentTransaction.objects.filter(description__startswith="Test transaction").delete()
+        PaymentTransaction.objects.filter(
+            description__startswith="Test transaction"
+        ).delete()
         RefundTransaction.objects.filter(reason__startswith="Test refund").delete()
 
     def test_payment_processing(self):
@@ -154,14 +158,20 @@ class PaymentIntegrationTest(unittest.TestCase):
 
         # Check result
         self.assertTrue(result["success"], "Payment processing should succeed")
-        self.assertIsNotNone(result["transaction_id"], "Transaction ID should be returned")
+        self.assertIsNotNone(
+            result["transaction_id"], "Transaction ID should be returned"
+        )
         self.assertIsNotNone(result["external_id"], "External ID should be set")
-        self.assertEqual(result["status"], PaymentStatus.COMPLETED, "Status should be COMPLETED")
+        self.assertEqual(
+            result["status"], PaymentStatus.COMPLETED, "Status should be COMPLETED"
+        )
 
         # Verify transaction in database
         transaction = PaymentTransaction.objects.get(id=result["transaction_id"])
         self.assertEqual(transaction.amount, Decimal("100.00"), "Amount should match")
-        self.assertEqual(transaction.status, PaymentStatus.COMPLETED, "Status should be COMPLETED")
+        self.assertEqual(
+            transaction.status, PaymentStatus.COMPLETED, "Status should be COMPLETED"
+        )
         self.assertIsNotNone(transaction.external_id, "External ID should be set in DB")
 
     def test_payment_idempotency(self):
@@ -214,7 +224,9 @@ class PaymentIntegrationTest(unittest.TestCase):
             description="Test transaction with idempotency"
         ).count()
 
-        self.assertEqual(count, 1, "Only one transaction should exist despite multiple API calls")
+        self.assertEqual(
+            count, 1, "Only one transaction should exist despite multiple API calls"
+        )
 
     def test_refund_processing(self):
         """Test refund processing"""
@@ -227,7 +239,9 @@ class PaymentIntegrationTest(unittest.TestCase):
             customer_id="test_customer",
         )
 
-        self.assertTrue(payment_result["success"], "Payment should succeed before testing refund")
+        self.assertTrue(
+            payment_result["success"], "Payment should succeed before testing refund"
+        )
 
         # Process a refund for part of the amount
         refund_result = PaymentService.process_refund(
@@ -239,10 +253,14 @@ class PaymentIntegrationTest(unittest.TestCase):
         # Check refund result
         self.assertTrue(refund_result["success"], "Refund processing should succeed")
         self.assertIsNotNone(refund_result["refund_id"], "Refund ID should be returned")
-        self.assertIsNotNone(refund_result["external_id"], "External refund ID should be set")
+        self.assertIsNotNone(
+            refund_result["external_id"], "External refund ID should be set"
+        )
 
         # Check transaction status - should be PARTIALLY_REFUNDED
-        transaction = PaymentTransaction.objects.get(id=payment_result["transaction_id"])
+        transaction = PaymentTransaction.objects.get(
+            id=payment_result["transaction_id"]
+        )
         self.assertEqual(
             transaction.status,
             PaymentStatus.PARTIALLY_REFUNDED,
@@ -277,7 +295,7 @@ class PaymentIntegrationTest(unittest.TestCase):
             customer_id="test_customer",
         )
 
-        transaction_id = payment_result["transaction_id"]
+        payment_result["transaction_id"]
         external_id = payment_result["external_id"]
 
         # Mock a payment webhook event
@@ -309,7 +327,9 @@ class PaymentIntegrationTest(unittest.TestCase):
             signature = "test_signature"  # In real test this would be a valid signature
             payload = json.dumps(payment_event)
 
-            verification_result = PaymentService.verify_webhook_signature(signature, payload)
+            verification_result = PaymentService.verify_webhook_signature(
+                signature, payload
+            )
             self.assertTrue(
                 verification_result,
                 "Webhook signature verification should succeed in test mode",

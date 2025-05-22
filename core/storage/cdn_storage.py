@@ -121,7 +121,9 @@ class CDNStorage(Storage):
                 s3_options["custom_domain"] = DEFAULT_S3_CUSTOM_DOMAIN
 
             # Add ACL settings based on privacy
-            s3_options["default_acl"] = "private" if self.private_files else "public-read"
+            s3_options["default_acl"] = (
+                "private" if self.private_files else "public-read"
+            )
 
             # Add any additional options passed to the constructor
             s3_options.update(
@@ -164,7 +166,7 @@ class CDNStorage(Storage):
         # Try to open from remote storage first
         try:
             return self.remote_storage._open(name, mode)
-        except Exception as e:
+        except Exception:
             # Fall back to local storage
             return self.local_storage._open(name, mode)
 
@@ -200,7 +202,12 @@ class CDNStorage(Storage):
         Returns:
             Full URL to the file
         """
-        if self.provider == "cloudfront" and self.private_files and CF_KEY_ID and CF_PRIVATE_KEY:
+        if (
+            self.provider == "cloudfront"
+            and self.private_files
+            and CF_KEY_ID
+            and CF_PRIVATE_KEY
+        ):
             # Generate signed CloudFront URL for private files
             return self._generate_cloudfront_signed_url(name)
         elif self.provider == "akamai" and self.private_files and AKAMAI_TOKEN_KEY:
@@ -384,7 +391,7 @@ class CDNStorage(Storage):
         token_name = "__token__"
         ip = ""  # IP restriction (empty for no restriction)
         start_time = int(time.time())
-        window = expires - start_time
+        expires - start_time
         acl = "*"  # Access control - * means any URL under the path
 
         # Create the token data
@@ -497,7 +504,10 @@ class MediaCDNStorage(CDNStorage):
     @cached_property
     def cdn_enabled(self):
         """Check if CDN is properly configured for media"""
-        return bool(self.cdn_url or (DEFAULT_AWS_STORAGE_BUCKET_NAME and DEFAULT_S3_CUSTOM_DOMAIN))
+        return bool(
+            self.cdn_url
+            or (DEFAULT_AWS_STORAGE_BUCKET_NAME and DEFAULT_S3_CUSTOM_DOMAIN)
+        )
 
 
 @deconstructible
@@ -518,7 +528,10 @@ class StaticCDNStorage(CDNStorage):
     @cached_property
     def cdn_enabled(self):
         """Check if CDN is properly configured for static files"""
-        return bool(self.cdn_url or (DEFAULT_AWS_STORAGE_BUCKET_NAME and DEFAULT_S3_CUSTOM_DOMAIN))
+        return bool(
+            self.cdn_url
+            or (DEFAULT_AWS_STORAGE_BUCKET_NAME and DEFAULT_S3_CUSTOM_DOMAIN)
+        )
 
 
 class DynamicResizingStorage(MediaCDNStorage):

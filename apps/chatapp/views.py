@@ -123,7 +123,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
         offset = (page - 1) * page_size
 
         # Get messages with pagination (most recent first, then reverse for display)
-        messages = conversation.messages.order_by("-created_at")[offset : offset + page_size]
+        messages = conversation.messages.order_by("-created_at")[
+            offset : offset + page_size
+        ]
         messages = list(reversed(messages))  # Reverse for chronological order
 
         # Mark messages as read if user is not the sender
@@ -133,7 +135,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
             unread_messages = messages.filter(is_read=False).exclude(sender=user)
         else:
             # Mark customer messages as read
-            unread_messages = messages.filter(is_read=False, sender=conversation.customer)
+            unread_messages = messages.filter(
+                is_read=False, sender=conversation.customer
+            )
 
         if unread_messages.exists():
             # Use chat service to mark messages as read
@@ -211,7 +215,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
             )
 
             # Return serialized message
-            return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
+            return Response(
+                MessageSerializer(message).data, status=status.HTTP_201_CREATED
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

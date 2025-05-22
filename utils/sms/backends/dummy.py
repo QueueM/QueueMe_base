@@ -18,7 +18,9 @@ class DummyBackend:
     Useful for testing or environments where SMS is disabled.
     """
 
-    def send(self, phone_number: str, message: str, context: Optional[Dict] = None) -> bool:
+    def send(
+        self, phone_number: str, message: str, context: Optional[Dict] = None
+    ) -> bool:
         """
         Log the SMS message without sending.
 

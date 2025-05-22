@@ -32,7 +32,10 @@ if "production" in os.environ.get("DJANGO_SETTINGS_MODULE", ""):
 else:
     load_dotenv(BASE_DIR / ".env")  # Load development .env if exists
 
-TESTING = any(cmd in sys.argv for cmd in ("test", "pytest", "makemigrations", "migrate"))
+TESTING = any(
+    cmd in sys.argv for cmd in ("test", "pytest", "makemigrations", "migrate")
+)
+
 
 # ---------------------------------------------------------------------------
 # Tiny helper – read env with "required" flag
@@ -40,16 +43,23 @@ TESTING = any(cmd in sys.argv for cmd in ("test", "pytest", "makemigrations", "m
 def env(key: str, default: Optional[str] = None, *, required: bool = False) -> str:
     val = os.getenv(key, default)
     if required and (val is None or val == ""):
-        raise RuntimeError(f"⚠️  The environment variable {key} is required but not set.")
+        raise RuntimeError(
+            f"⚠️  The environment variable {key} is required but not set."
+        )
     return val
+
 
 # ---------------------------------------------------------------------------
 # Core toggles
 # ---------------------------------------------------------------------------
-SECRET_KEY = config("SECRET_KEY", default="django-insecure-fallback-key-change-me-in-env")
+SECRET_KEY = config(
+    "SECRET_KEY", default="django-insecure-fallback-key-change-me-in-env"
+)
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS", default="127.0.0.1,localhost", cast=lambda v: [s.strip() for s in v.split(",")]
+    "ALLOWED_HOSTS",
+    default="127.0.0.1,localhost",
+    cast=lambda v: [s.strip() for s in v.split(",")],
 )
 
 # ---------------------------------------------------------------------------
@@ -89,7 +99,9 @@ if os.environ.get("USE_CONNECTION_POOLING", "False").lower() == "true":
         }
         print("Database connection pooling enabled.")
     except ImportError:
-        print("Package django-db-connection-pool not installed. Connection pooling disabled.")
+        print(
+            "Package django-db-connection-pool not installed. Connection pooling disabled."
+        )
         DATABASES["default"]["ENGINE"] = "django.contrib.gis.db.backends.postgis"
 
 # SQLite fallback for local/dev testing
@@ -121,7 +133,7 @@ INSTALLED_APPS = [
     "storages",
     "django_prometheus",
     # "drf_spectacular",
-    'core.apps.CoreConfig',
+    "core.apps.CoreConfig",
     "algorithms",
     "django_extensions",
     "utils",
@@ -199,7 +211,9 @@ TEMPLATES = [
 # Password validation
 # ---------------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -325,9 +339,14 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-if all(env(v) for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")):
+if all(
+    env(v)
+    for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")
+):
     AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", "me-south-1")
-    AWS_S3_CUSTOM_DOMAIN = f"{env('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+    AWS_S3_CUSTOM_DOMAIN = (
+        f"{env('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+    )
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     AWS_DEFAULT_ACL = "public-read"
     AWS_QUERYSTRING_AUTH = False
@@ -353,6 +372,7 @@ MOYASAR_WEBHOOK_SECRET = env("MOYASAR_WEBHOOK_SECRET", "")
 
 try:
     from .moyasar import MOYASAR_ADS, MOYASAR_MER, MOYASAR_SUB, validate_moyasar_config
+
     if DEBUG:
         moyasar_status = validate_moyasar_config()
         has_issues = moyasar_status["missing_keys"] or moyasar_status["empty_keys"]
@@ -487,12 +507,10 @@ SWAGGER_SETTINGS = {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header",
-            "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+            "description": 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
         }
     },
-    "SECURITY_REQUIREMENTS": [
-        {"Bearer": []}
-    ],
+    "SECURITY_REQUIREMENTS": [{"Bearer": []}],
     "USE_SESSION_AUTH": True,  # Allow session auth alongside Bearer tokens
     "OPERATIONS_SORTER": "alpha",
     "TAGS_SORTER": "alpha",
@@ -527,7 +545,11 @@ RATE_LIMIT_OTP_VERIFY_RATE = 10
 RATE_LIMIT_OTP_VERIFY_PERIOD = 300
 RATE_LIMIT_OTP_VERIFY_LOCKOUT = 1800
 
-print("🏗️  Settings loaded  |  DEBUG={}  |  DB={}".format(DEBUG, DATABASES["default"]["ENGINE"]))
+print(
+    "🏗️  Settings loaded  |  DEBUG={}  |  DB={}".format(
+        DEBUG, DATABASES["default"]["ENGINE"]
+    )
+)
 print("🏗️  Installed apps: {}".format(", ".join(INSTALLED_APPS)))
 
 # END OF FILE

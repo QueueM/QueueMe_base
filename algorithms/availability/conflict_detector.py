@@ -31,7 +31,10 @@ class TimeRange:
     def __str__(self) -> str:
         """Return string representation."""
         if isinstance(self.start, datetime):
-            return f"{self.start.strftime('%Y-%m-%d %H:%M')} - " f"{self.end.strftime('%H:%M')}"
+            return (
+                f"{self.start.strftime('%Y-%m-%d %H:%M')} - "
+                f"{self.end.strftime('%H:%M')}"
+            )
         else:
             return f"{self.start.strftime('%H:%M')} - {self.end.strftime('%H:%M')}"
 
@@ -156,14 +159,18 @@ class ConflictDetector:
         result = {"has_conflict": False, "conflicts": []}
 
         # 1. Create a TimeRange for the new booking
-        new_booking_range = TimeRange(new_booking["start_time"], new_booking["end_time"])
+        new_booking_range = TimeRange(
+            new_booking["start_time"], new_booking["end_time"]
+        )
 
         # Add buffer times if provided
         buffer_before = new_booking.get("buffer_before", 0)
         buffer_after = new_booking.get("buffer_after", 0)
 
         if buffer_before > 0 or buffer_after > 0:
-            buffered_start = new_booking["start_time"] - timedelta(minutes=buffer_before)
+            buffered_start = new_booking["start_time"] - timedelta(
+                minutes=buffer_before
+            )
             buffered_end = new_booking["end_time"] + timedelta(minutes=buffer_after)
             buffered_range = TimeRange(buffered_start, buffered_end)
         else:
@@ -402,8 +409,12 @@ class ConflictDetector:
                     buffer_before = booking1.get("buffer_before", 0)
                     buffer_after = booking1.get("buffer_after", 0)
 
-                    buffered_start = booking1["start_time"] - timedelta(minutes=buffer_before)
-                    buffered_end = booking1["end_time"] + timedelta(minutes=buffer_after)
+                    buffered_start = booking1["start_time"] - timedelta(
+                        minutes=buffer_before
+                    )
+                    buffered_end = booking1["end_time"] + timedelta(
+                        minutes=buffer_after
+                    )
                     buffered_range = TimeRange(buffered_start, buffered_end)
 
                     # Check if booking time is within any available slot
@@ -451,7 +462,9 @@ class ConflictDetector:
                             # Find if there's a booking for the dependent service that ends before
                             # this one starts
                             dep_satisfied = False
-                            for dep_idx, dep_booking in service_bookings.get(dep_service_id, []):
+                            for dep_idx, dep_booking in service_bookings.get(
+                                dep_service_id, []
+                            ):
                                 if dep_booking["end_time"] <= booking["start_time"]:
                                     dep_satisfied = True
                                     break
@@ -507,7 +520,8 @@ class ConflictDetector:
 
         # Get duration and buffer times
         duration = int(
-            (failed_booking["end_time"] - failed_booking["start_time"]).total_seconds() / 60
+            (failed_booking["end_time"] - failed_booking["start_time"]).total_seconds()
+            / 60
         )
         buffer_before = failed_booking.get("buffer_before", 0)
         buffer_after = failed_booking.get("buffer_after", 0)
@@ -549,11 +563,16 @@ class ConflictDetector:
 
             # Adjust for minimum starting time on current day
             min_start = datetime.now()
-            if current_date == datetime.now().date() and min_start.time() > day_hours["from_hour"]:
+            if (
+                current_date == datetime.now().date()
+                and min_start.time() > day_hours["from_hour"]
+            ):
                 day_start = datetime.combine(current_date, min_start.time())
 
             # Find all bookings for this day
-            day_bookings = [b for b in existing_bookings if b["start_time"].date() == current_date]
+            day_bookings = [
+                b for b in existing_bookings if b["start_time"].date() == current_date
+            ]
 
             # Get specialist availability for this day if applicable
             specialist_day_slots = []
@@ -607,7 +626,9 @@ class ConflictDetector:
                     return {
                         "date": current_date.strftime("%Y-%m-%d"),
                         "start_time": current_time.strftime("%H:%M"),
-                        "end_time": (current_time + timedelta(minutes=duration)).strftime("%H:%M"),
+                        "end_time": (
+                            current_time + timedelta(minutes=duration)
+                        ).strftime("%H:%M"),
                         "duration": duration,
                         "buffer_before": buffer_before,
                         "buffer_after": buffer_after,
@@ -708,7 +729,9 @@ class ConflictDetector:
 
             elif conflict_type == "dependency_violation":
                 # Try to reorder bookings to satisfy dependencies
-                result = self._resolve_dependency_conflict(working_bookings, conflict_bookings)
+                result = self._resolve_dependency_conflict(
+                    working_bookings, conflict_bookings
+                )
                 if not result["success"]:
                     return {"success": False, "unresolvable_conflicts": [conflict]}
                 working_bookings = result["bookings"]
@@ -743,7 +766,9 @@ class ConflictDetector:
             "resource_conflict": 4,
         }
 
-        return priorities.get(conflict_type, 10)  # Default low priority for unknown types
+        return priorities.get(
+            conflict_type, 10
+        )  # Default low priority for unknown types
 
     def _resolve_specialist_conflict(
         self,
@@ -779,10 +804,14 @@ class ConflictDetector:
             buffer_before2 = booking2.get("buffer_before", 0)
 
             # Calculate new start time for booking2
-            new_start = booking1["end_time"] + timedelta(minutes=buffer_after1 + buffer_before2)
+            new_start = booking1["end_time"] + timedelta(
+                minutes=buffer_after1 + buffer_before2
+            )
 
             # Calculate duration
-            duration = int((booking2["end_time"] - booking2["start_time"]).total_seconds() / 60)
+            duration = int(
+                (booking2["end_time"] - booking2["start_time"]).total_seconds() / 60
+            )
 
             # Set new times
             bookings[idx2]["start_time"] = new_start
@@ -826,10 +855,14 @@ class ConflictDetector:
             buffer_before2 = booking2.get("buffer_before", 0)
 
             # Calculate new start time for booking2
-            new_start = booking1["end_time"] + timedelta(minutes=buffer_after1 + buffer_before2)
+            new_start = booking1["end_time"] + timedelta(
+                minutes=buffer_after1 + buffer_before2
+            )
 
             # Calculate duration
-            duration = int((booking2["end_time"] - booking2["start_time"]).total_seconds() / 60)
+            duration = int(
+                (booking2["end_time"] - booking2["start_time"]).total_seconds() / 60
+            )
 
             # Set new times
             bookings[idx2]["start_time"] = new_start

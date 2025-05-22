@@ -40,7 +40,9 @@ class PerformanceMiddleware(MiddlewareMixin):
             or request.path.startswith("/api/reports/")
             or request.path.startswith("/api/analytics/")
         ):
-            _thread_locals.start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+            _thread_locals.start_memory = (
+                psutil.Process().memory_info().rss / 1024 / 1024
+            )  # MB
 
         return None
 

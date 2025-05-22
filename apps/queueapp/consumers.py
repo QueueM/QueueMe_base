@@ -36,7 +36,9 @@ class QueueConsumer(AsyncWebsocketConsumer):
 
             try:
                 if query_string:
-                    query_params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
+                    query_params = dict(
+                        x.split("=") for x in query_string.split("&") if "=" in x
+                    )
             except Exception as e:
                 logger.warning(f"Error parsing query params: {str(e)}")
                 await self.close(code=4000)
@@ -62,7 +64,9 @@ class QueueConsumer(AsyncWebsocketConsumer):
 
             if not has_access:
                 # Reject connection if user doesn't have access
-                logger.warning(f"User {self.user_id} denied access to queue {self.queue_id}")
+                logger.warning(
+                    f"User {self.user_id} denied access to queue {self.queue_id}"
+                )
                 await self.close(code=4003)
                 return
 
@@ -103,7 +107,9 @@ class QueueConsumer(AsyncWebsocketConsumer):
             while True:
                 await asyncio.sleep(20)  # Send ping every 20 seconds
                 await self.send(
-                    text_data=json.dumps({"type": "ping", "timestamp": datetime.now().isoformat()})
+                    text_data=json.dumps(
+                        {"type": "ping", "timestamp": datetime.now().isoformat()}
+                    )
                 )
         except asyncio.CancelledError:
             # Task was cancelled, clean exit
@@ -120,7 +126,9 @@ class QueueConsumer(AsyncWebsocketConsumer):
 
             # Leave queue group
             if hasattr(self, "queue_group_name") and hasattr(self, "channel_name"):
-                await self.channel_layer.group_discard(self.queue_group_name, self.channel_name)
+                await self.channel_layer.group_discard(
+                    self.queue_group_name, self.channel_name
+                )
 
             # Log disconnection with code
             logger.info(
@@ -425,7 +433,9 @@ class QueueConsumer(AsyncWebsocketConsumer):
                         "id": str(ticket.id),
                         "ticket_number": ticket.ticket_number,
                         "customer_id": str(ticket.customer_id),
-                        "service_id": (str(ticket.service_id) if ticket.service_id else None),
+                        "service_id": (
+                            str(ticket.service_id) if ticket.service_id else None
+                        ),
                         "specialist_id": (
                             str(ticket.specialist_id) if ticket.specialist_id else None
                         ),

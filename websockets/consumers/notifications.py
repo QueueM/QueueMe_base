@@ -13,7 +13,6 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.serializers.json import DjangoJSONEncoder
 
 from apps.authapp.services.token_service import TokenService
-from apps.notificationsapp.models import Notification
 from apps.notificationsapp.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
@@ -32,7 +31,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             # Get token from query string
             query_string = self.scope["query_string"].decode()
-            query_params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
+            query_params = dict(
+                x.split("=") for x in query_string.split("&") if "=" in x
+            )
             token = query_params.get("token", "")
 
             if not token:
@@ -49,7 +50,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 return
 
             if not user.is_active:
-                logger.warning(f"Notification connection rejected: User {user.id} is inactive")
+                logger.warning(
+                    f"Notification connection rejected: User {user.id} is inactive"
+                )
                 await self.close(code=4002)
                 return
 
@@ -68,7 +71,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             self.notification_group_name = f"notifications_{self.user_id}"
 
             # Join notification group
-            await self.channel_layer.group_add(self.notification_group_name, self.channel_name)
+            await self.channel_layer.group_add(
+                self.notification_group_name, self.channel_name
+            )
 
             # Accept connection
             await self.accept()
@@ -119,9 +124,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 return
 
             # Mark notification as read
-            success = await database_sync_to_async(NotificationService.mark_notification_read)(
-                notification_id, self.user_id
-            )
+            success = await database_sync_to_async(
+                NotificationService.mark_notification_read
+            )(notification_id, self.user_id)
 
             if success:
                 # Send updated unread count
@@ -145,8 +150,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def send_unread_count(self):
         """Send unread notification count to the client."""
         try:
-            count = await database_sync_to_async(NotificationService.get_unread_count)(self.user_id)
+            count = await database_sync_to_async(NotificationService.get_unread_count)(
+                self.user_id
+            )
 
-            await self.send(text_data=json.dumps({"type": "unread_count", "count": count}))
+            await self.send(
+                text_data=json.dumps({"type": "unread_count", "count": count})
+            )
         except Exception as e:
             logger.error(f"Error sending unread count: {str(e)}")

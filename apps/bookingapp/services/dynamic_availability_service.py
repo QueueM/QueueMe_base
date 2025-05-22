@@ -17,7 +17,6 @@ from django.utils import timezone
 
 from algorithms.availability.dynamic_slot_allocator import DynamicSlotAllocator
 from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +74,9 @@ class DynamicAvailabilityService:
             # For example, enforcing minimum notice period
             minimum_notice = service.min_booking_notice or 0
             if minimum_notice > 0:
-                min_notice_time = timezone.now() + timezone.timedelta(minutes=minimum_notice)
+                min_notice_time = timezone.now() + timezone.timedelta(
+                    minutes=minimum_notice
+                )
 
                 # Filter out slots that don't meet notice requirement
                 filtered_slots = []
@@ -97,7 +98,9 @@ class DynamicAvailabilityService:
         except Exception as e:
             logger.error(f"Error in dynamic availability service: {e}")
             # Fall back to standard availability service
-            from apps.bookingapp.services.availability_service import AvailabilityService
+            from apps.bookingapp.services.availability_service import (
+                AvailabilityService,
+            )
 
             return AvailabilityService.get_service_availability(service_id, target_date)
 
@@ -116,8 +119,12 @@ class DynamicAvailabilityService:
         """
         try:
             allocator = DynamicSlotAllocator()
-            allocator.invalidate_cache(shop_id=shop_id, service_id=service_id, date_str=date_str)
-            logger.debug(f"Invalidated dynamic slot cache for appointment {appointment_id}")
+            allocator.invalidate_cache(
+                shop_id=shop_id, service_id=service_id, date_str=date_str
+            )
+            logger.debug(
+                f"Invalidated dynamic slot cache for appointment {appointment_id}"
+            )
         except Exception as e:
             logger.error(f"Error invalidating dynamic slot cache: {e}")
 
@@ -150,9 +157,9 @@ class DynamicAvailabilityService:
             )
 
             # Sort by popularity
-            popular_slots = sorted(all_slots, key=lambda x: x.get("popularity", 0), reverse=True)[
-                :limit
-            ]
+            popular_slots = sorted(
+                all_slots, key=lambda x: x.get("popularity", 0), reverse=True
+            )[:limit]
 
             return popular_slots
 
@@ -161,7 +168,9 @@ class DynamicAvailabilityService:
             return []
 
     @staticmethod
-    def get_quiet_slots(service_id: str, target_date: date, limit: int = 3) -> List[Dict[str, Any]]:
+    def get_quiet_slots(
+        service_id: str, target_date: date, limit: int = 3
+    ) -> List[Dict[str, Any]]:
         """
         Get the least busy time slots for a service
 
@@ -187,7 +196,9 @@ class DynamicAvailabilityService:
             )
 
             # Sort by popularity (ascending)
-            quiet_slots = sorted(all_slots, key=lambda x: x.get("popularity", 1))[:limit]
+            quiet_slots = sorted(all_slots, key=lambda x: x.get("popularity", 1))[
+                :limit
+            ]
 
             return quiet_slots
 
@@ -230,7 +241,9 @@ class DynamicAvailabilityService:
                         "specialist_id": slot.get("specialist_id"),
                         "specialist_name": slot.get("specialist_name"),
                         "optimization_score": slot.get("optimization_score", 0.5),
-                        "alternative_specialists": slot.get("alternative_specialists", []),
+                        "alternative_specialists": slot.get(
+                            "alternative_specialists", []
+                        ),
                     }
 
             return None

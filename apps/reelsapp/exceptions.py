@@ -41,5 +41,7 @@ class InvalidReelStatus(APIException):
 
 class ServiceRequiredForPublishing(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = _("At least one service or package must be linked before publishing.")
+    default_detail = _(
+        "At least one service or package must be linked before publishing."
+    )
     default_code = "service_required"

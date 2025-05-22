@@ -94,11 +94,15 @@ class GeoServiceTest(TestCase):
     def test_is_same_city_by_locations(self):
         """Test checking if two locations are in the same city"""
         # Same city (Riyadh)
-        result = GeoService.is_same_city_by_locations(self.loc_riyadh_1.id, self.loc_riyadh_2.id)
+        result = GeoService.is_same_city_by_locations(
+            self.loc_riyadh_1.id, self.loc_riyadh_2.id
+        )
         self.assertTrue(result)
 
         # Different cities (Riyadh and Jeddah)
-        result = GeoService.is_same_city_by_locations(self.loc_riyadh_1.id, self.loc_jeddah.id)
+        result = GeoService.is_same_city_by_locations(
+            self.loc_riyadh_1.id, self.loc_jeddah.id
+        )
         self.assertFalse(result)
 
     def test_is_same_city_by_coordinates(self):
@@ -126,13 +130,17 @@ class TravelTimeServiceTest(TestCase):
         destination = Point(50.0888, 26.4207)  # Dammam
 
         # Test with different modes
-        driving_time = TravelTimeService.estimate_travel_time(origin, destination, mode="driving")
+        driving_time = TravelTimeService.estimate_travel_time(
+            origin, destination, mode="driving"
+        )
 
         # Driving should take around 4-5 hours
         self.assertTrue(240 <= driving_time <= 360)
 
         # Walking should take way longer
-        walking_time = TravelTimeService.estimate_travel_time(origin, destination, mode="walking")
+        walking_time = TravelTimeService.estimate_travel_time(
+            origin, destination, mode="walking"
+        )
 
         # Should be much longer than driving
         self.assertTrue(walking_time > driving_time * 5)

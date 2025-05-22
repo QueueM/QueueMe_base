@@ -85,7 +85,9 @@ class WorkloadOptimizer:
 
             appointments_with_duration = appointments.annotate(duration=duration_expr)
 
-            total_duration = appointments_with_duration.aggregate(total=Sum("duration"))["total"]
+            total_duration = appointments_with_duration.aggregate(
+                total=Sum("duration")
+            )["total"]
 
             if total_duration:
                 hours_worked = total_duration.total_seconds() / 3600
@@ -168,7 +170,9 @@ class WorkloadOptimizer:
                 weekday_names = dict(
                     [
                         (k, v)
-                        for k, (v, _) in enumerate(Employee.EmployeeWorkingHours.WEEKDAY_CHOICES)
+                        for k, (v, _) in enumerate(
+                            Employee.EmployeeWorkingHours.WEEKDAY_CHOICES
+                        )
                     ]
                 )
 
@@ -202,7 +206,9 @@ class WorkloadOptimizer:
 
                 if shop_average > 0:
                     relative_workload = total_appointments / shop_average
-                    result["comparison"]["relative_workload"] = round(relative_workload, 2)
+                    result["comparison"]["relative_workload"] = round(
+                        relative_workload, 2
+                    )
 
             # Generate workload optimization recommendations
             WorkloadOptimizer._generate_recommendations(result, employee)
@@ -269,11 +275,16 @@ class WorkloadOptimizer:
             )
 
             if peak_appointments > 0 and result["workload"]["total_appointments"] > 0:
-                peak_percentage = peak_appointments / result["workload"]["total_appointments"]
+                peak_percentage = (
+                    peak_appointments / result["workload"]["total_appointments"]
+                )
 
                 if peak_percentage > 0.6:  # 60% of work in peak hours
                     peak_hours_str = ", ".join(
-                        [hour["hour_display"] for hour in result["workload"]["peak_hours"]]
+                        [
+                            hour["hour_display"]
+                            for hour in result["workload"]["peak_hours"]
+                        ]
                     )
                     recommendations.append(
                         {
@@ -300,7 +311,6 @@ class WorkloadOptimizer:
         """
         try:
             from apps.employeeapp.services.schedule_service import ScheduleService
-            from apps.serviceapp.models import Service
             from apps.specialistsapp.models import SpecialistService
 
             # Get service
@@ -368,7 +378,9 @@ class WorkloadOptimizer:
                 # Calculate total appointment duration
                 total_minutes = 0
                 for appointment in appointments:
-                    duration = (appointment.end_time - appointment.start_time).total_seconds() / 60
+                    duration = (
+                        appointment.end_time - appointment.start_time
+                    ).total_seconds() / 60
                     total_minutes += duration
 
                 # Check if specialist is primary for this service

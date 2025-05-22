@@ -29,7 +29,9 @@ class QueueViewsTest(TestCase):
         )
 
         # Create a customer user
-        self.customer = User.objects.create(phone_number="9876543210", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="9876543210", user_type="customer"
+        )
 
         # Create a company
         self.company = Company.objects.create(
@@ -45,7 +47,9 @@ class QueueViewsTest(TestCase):
         )
 
         # Create a queue
-        self.queue = Queue.objects.create(name="Test Queue", shop=self.shop, status="open")
+        self.queue = Queue.objects.create(
+            name="Test Queue", shop=self.shop, status="open"
+        )
 
         # Create a category
         self.category = Category.objects.create(name="Test Category")
@@ -191,7 +195,9 @@ class QueueViewsTest(TestCase):
         self.assertEqual(response.data["status"], "serving")
 
         # QueueService.mark_serving should have been called with the right args
-        mock_queue_service.mark_serving.assert_called_once_with(str(self.ticket.id), None)
+        mock_queue_service.mark_serving.assert_called_once_with(
+            str(self.ticket.id), None
+        )
 
     @patch("apps.queueapp.views.QueueService")
     def test_mark_served_view(self, mock_queue_service):

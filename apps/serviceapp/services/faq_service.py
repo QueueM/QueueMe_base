@@ -14,9 +14,9 @@ class FAQService:
         # If order not provided, put at the end
         if order is None:
             max_order = (
-                ServiceFAQ.objects.filter(service=service).aggregate(max_order=models.Max("order"))[
-                    "max_order"
-                ]
+                ServiceFAQ.objects.filter(service=service).aggregate(
+                    max_order=models.Max("order")
+                )["max_order"]
                 or 0
             )
             order = max_order + 1
@@ -61,7 +61,9 @@ class FAQService:
         service = Service.objects.get(id=service_id)
 
         # Verify all FAQs belong to this service
-        faqs = set(ServiceFAQ.objects.filter(service=service).values_list("id", flat=True))
+        faqs = set(
+            ServiceFAQ.objects.filter(service=service).values_list("id", flat=True)
+        )
         if not all(str(faq_id) in faqs for faq_id in faq_order):
             raise ValueError("All FAQ IDs must belong to this service")
 

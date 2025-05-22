@@ -37,7 +37,9 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
         try:
             # Get token from query string
             query_string = self.scope["query_string"].decode()
-            query_params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
+            query_params = dict(
+                x.split("=") for x in query_string.split("&") if "=" in x
+            )
             token = query_params.get("token", "")
 
             if not token:
@@ -54,7 +56,9 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
                 return
 
             if not user.is_active:
-                logger.warning(f"Queue status connection rejected: User {user.id} is inactive")
+                logger.warning(
+                    f"Queue status connection rejected: User {user.id} is inactive"
+                )
                 await self.close(code=4002)
                 return
 
@@ -98,7 +102,9 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
         """Handle WebSocket disconnection."""
         try:
             if self.queue_group_name:
-                await self.channel_layer.group_discard(self.queue_group_name, self.channel_name)
+                await self.channel_layer.group_discard(
+                    self.queue_group_name, self.channel_name
+                )
             logger.info(
                 f"Queue status connection closed for user {self.user_id} to queue {self.queue_id}"
             )

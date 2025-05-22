@@ -1,3 +1,3 @@
-#from apps.reportanalyticsapp import patches
+# from apps.reportanalyticsapp import patches
 
-#default_app_config = "apps.reportanalyticsapp.apps.ReportAnalyticsConfig"
+# default_app_config = "apps.reportanalyticsapp.apps.ReportAnalyticsConfig"

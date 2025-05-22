@@ -58,7 +58,9 @@ class SettingsService:
 
         for i, kpi_key in enumerate(kpi_keys):
             # Find KPI info
-            kpi_info = next((kpi for kpi in DEFAULT_KPIS if kpi["key"] == kpi_key), None)
+            kpi_info = next(
+                (kpi for kpi in DEFAULT_KPIS if kpi["key"] == kpi_key), None
+            )
 
             if kpi_info:
                 DashboardWidget.objects.create(
@@ -121,7 +123,9 @@ class SettingsService:
 
         if shop:
             # Try to find an existing default layout
-            default_layout = DashboardLayout.objects.filter(shop=shop, is_default=True).first()
+            default_layout = DashboardLayout.objects.filter(
+                shop=shop, is_default=True
+            ).first()
 
             # Create default layout if none exists
             if not default_layout:

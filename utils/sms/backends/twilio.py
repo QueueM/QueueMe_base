@@ -48,7 +48,9 @@ class TwilioBackend:
         except ImportError:
             raise ImportError("Twilio package is required for TwilioBackend")
 
-    def send(self, phone_number: str, message: str, context: Optional[Dict] = None) -> bool:
+    def send(
+        self, phone_number: str, message: str, context: Optional[Dict] = None
+    ) -> bool:
         """
         Send an SMS message through Twilio.
 

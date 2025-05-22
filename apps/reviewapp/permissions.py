@@ -44,7 +44,9 @@ class CanManageReviews(permissions.BasePermission):
             from apps.shopapp.models import Shop
 
             # Check if user is shop manager
-            is_manager = Shop.objects.filter(id=obj.shop.id, manager=request.user).exists()
+            is_manager = Shop.objects.filter(
+                id=obj.shop.id, manager=request.user
+            ).exists()
 
             if is_manager:
                 return True

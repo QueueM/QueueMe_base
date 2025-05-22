@@ -6,7 +6,7 @@ This module defines the database models for the notification system.
 
 import math
 import uuid
-from datetime import datetime, time, timedelta
+from datetime import time, timedelta
 
 from django.conf import settings
 from django.db import models
@@ -91,8 +91,12 @@ class NotificationTemplate(models.Model):
         blank=True,
         help_text="Subject line for emails, or title for other notifications",
     )
-    body_en = models.TextField(help_text="Template content in English with variable placeholders")
-    body_ar = models.TextField(help_text="Template content in Arabic with variable placeholders")
+    body_en = models.TextField(
+        help_text="Template content in English with variable placeholders"
+    )
+    body_ar = models.TextField(
+        help_text="Template content in Arabic with variable placeholders"
+    )
     variables = models.JSONField(
         default=list,
         blank=True,
@@ -139,7 +143,9 @@ class Notification(models.Model):
     seen_at = models.DateTimeField(null=True, blank=True)
     cancelled = models.BooleanField(default=False)
     in_app_seen = models.BooleanField(default=False)
-    idempotency_key = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    idempotency_key = models.CharField(
+        max_length=255, null=True, blank=True, db_index=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -190,7 +196,9 @@ class NotificationDelivery(models.Model):
         unique_together = [["notification", "user_id", "channel"]]
 
     def __str__(self):
-        return f"{self.notification} to {self.user_id} via {self.channel}: {self.status}"
+        return (
+            f"{self.notification} to {self.user_id} via {self.channel}: {self.status}"
+        )
 
 
 class DeviceToken(models.Model):
@@ -291,7 +299,9 @@ class DeadLetterNotification(models.Model):
         """
         Manually retry sending this notification
         """
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         # Create a new notification based on this dead letter
         result = NotificationService.send_notification(
@@ -398,7 +408,9 @@ class Campaign(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("admin_communications_campaign_detail", kwargs={"campaign_id": self.id})
+        return reverse(
+            "admin_communications_campaign_detail", kwargs={"campaign_id": self.id}
+        )
 
     def get_content_for_channel(self, channel):
         """Get content for a specific channel"""
@@ -475,7 +487,9 @@ class CampaignRecipient(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="recipients")
+    campaign = models.ForeignKey(
+        Campaign, on_delete=models.CASCADE, related_name="recipients"
+    )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     # Delivery status for each channel
@@ -569,7 +583,9 @@ class EmailTemplate(models.Model):
         ("payment", "Payment"),
         ("other", "Other"),
     )
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="other")
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default="other"
+    )
 
     # Variables that can be used in this template
     variables = models.JSONField(default=dict, blank=True)
@@ -638,7 +654,9 @@ class SMSTemplate(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    content = models.TextField(help_text="SMS content with variable placeholders (max 160 chars)")
+    content = models.TextField(
+        help_text="SMS content with variable placeholders (max 160 chars)"
+    )
 
     # Template category for organization (same categories as EmailTemplate)
     CATEGORY_CHOICES = (
@@ -649,10 +667,14 @@ class SMSTemplate(models.Model):
         ("payment", "Payment"),
         ("other", "Other"),
     )
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="other")
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default="other"
+    )
 
     # Language support
-    content_ar = models.TextField(blank=True, null=True, help_text="Arabic version of SMS content")
+    content_ar = models.TextField(
+        blank=True, null=True, help_text="Arabic version of SMS content"
+    )
 
     # Variables that can be used in this template
     variables = models.JSONField(default=dict, blank=True)
@@ -769,7 +791,9 @@ class PushNotificationTemplate(models.Model):
 
     # Optional fields
     image_url = models.URLField(
-        blank=True, null=True, help_text="Optional image URL to display with the notification"
+        blank=True,
+        null=True,
+        help_text="Optional image URL to display with the notification",
     )
     action_url = models.CharField(
         max_length=255,
@@ -778,7 +802,10 @@ class PushNotificationTemplate(models.Model):
         help_text="Deep link or URL to open when notification is tapped",
     )
     action_button_text = models.CharField(
-        max_length=30, blank=True, null=True, help_text="Optional text for action button"
+        max_length=30,
+        blank=True,
+        null=True,
+        help_text="Optional text for action button",
     )
 
     # Template category for organization (same categories as other templates)
@@ -790,7 +817,9 @@ class PushNotificationTemplate(models.Model):
         ("payment", "Payment"),
         ("other", "Other"),
     )
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="other")
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default="other"
+    )
 
     # Platform specific settings
     PLATFORM_CHOICES = (
@@ -803,16 +832,23 @@ class PushNotificationTemplate(models.Model):
 
     # Additional notification data (key-value pairs to send with notification)
     additional_data = models.JSONField(
-        default=dict, blank=True, help_text="Additional data to send with the notification"
+        default=dict,
+        blank=True,
+        help_text="Additional data to send with the notification",
     )
 
     # Language support
     title_ar = models.CharField(
         max_length=100, blank=True, null=True, help_text="Arabic version of title"
     )
-    body_ar = models.TextField(blank=True, null=True, help_text="Arabic version of body text")
+    body_ar = models.TextField(
+        blank=True, null=True, help_text="Arabic version of body text"
+    )
     action_button_text_ar = models.CharField(
-        max_length=30, blank=True, null=True, help_text="Arabic version of action button text"
+        max_length=30,
+        blank=True,
+        null=True,
+        help_text="Arabic version of action button text",
     )
 
     # Variables that can be used in this template
@@ -910,7 +946,9 @@ class TemplateAnalytics(models.Model):
     """Analytics data for template performance tracking"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    template_id = models.UUIDField(help_text="ID of the template this analytics data belongs to")
+    template_id = models.UUIDField(
+        help_text="ID of the template this analytics data belongs to"
+    )
     template_type = models.CharField(
         max_length=20,
         choices=[
@@ -940,11 +978,17 @@ class TemplateAnalytics(models.Model):
     )
 
     # Time-based analysis
-    hourly_stats = models.JSONField(default=dict, blank=True, help_text="Engagement by hour of day")
-    daily_stats = models.JSONField(default=dict, blank=True, help_text="Engagement by day of week")
+    hourly_stats = models.JSONField(
+        default=dict, blank=True, help_text="Engagement by hour of day"
+    )
+    daily_stats = models.JSONField(
+        default=dict, blank=True, help_text="Engagement by day of week"
+    )
 
     # A/B testing data
-    a_b_test_results = models.JSONField(default=dict, blank=True, help_text="Results of A/B tests")
+    a_b_test_results = models.JSONField(
+        default=dict, blank=True, help_text="Results of A/B tests"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1002,7 +1046,9 @@ class TemplateAnalytics(models.Model):
             self.hourly_stats["by_hour"] = {str(h): 0 for h in range(24)}
 
         hour_str = str(hour)
-        self.hourly_stats["by_hour"][hour_str] = self.hourly_stats["by_hour"].get(hour_str, 0) + 1
+        self.hourly_stats["by_hour"][hour_str] = (
+            self.hourly_stats["by_hour"].get(hour_str, 0) + 1
+        )
         self.save(update_fields=["hourly_stats"])
 
     def update_daily_stats(self, day):
@@ -1011,7 +1057,9 @@ class TemplateAnalytics(models.Model):
             self.daily_stats["by_day"] = {str(d): 0 for d in range(7)}
 
         day_str = str(day)
-        self.daily_stats["by_day"][day_str] = self.daily_stats["by_day"].get(day_str, 0) + 1
+        self.daily_stats["by_day"][day_str] = (
+            self.daily_stats["by_day"].get(day_str, 0) + 1
+        )
         self.save(update_fields=["daily_stats"])
 
 
@@ -1025,7 +1073,11 @@ EmailTemplate.analytics = models.OneToOneField(
 )
 
 SMSTemplate.analytics = models.OneToOneField(
-    TemplateAnalytics, on_delete=models.SET_NULL, null=True, blank=True, related_name="sms_template"
+    TemplateAnalytics,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name="sms_template",
 )
 
 PushNotificationTemplate.analytics = models.OneToOneField(
@@ -1069,10 +1121,18 @@ class ABTest(models.Model):
     )
 
     sms_template_a = models.ForeignKey(
-        SMSTemplate, on_delete=models.SET_NULL, related_name="ab_tests_as_a", null=True, blank=True
+        SMSTemplate,
+        on_delete=models.SET_NULL,
+        related_name="ab_tests_as_a",
+        null=True,
+        blank=True,
     )
     sms_template_b = models.ForeignKey(
-        SMSTemplate, on_delete=models.SET_NULL, related_name="ab_tests_as_b", null=True, blank=True
+        SMSTemplate,
+        on_delete=models.SET_NULL,
+        related_name="ab_tests_as_b",
+        null=True,
+        blank=True,
     )
 
     push_template_a = models.ForeignKey(
@@ -1126,16 +1186,21 @@ class ABTest(models.Model):
 
     # Auto-selection if enabled
     auto_select_winner = models.BooleanField(
-        default=False, help_text="Automatically select the winner at the end of the test"
+        default=False,
+        help_text="Automatically select the winner at the end of the test",
     )
     minimum_confidence = models.FloatField(
-        default=95.0, help_text="Minimum statistical confidence for auto-selection (0-100)"
+        default=95.0,
+        help_text="Minimum statistical confidence for auto-selection (0-100)",
     )
 
     # Test results
     results = models.JSONField(default=dict, blank=True)
     winning_variant = models.CharField(
-        max_length=1, choices=[("A", "Variant A"), ("B", "Variant B")], null=True, blank=True
+        max_length=1,
+        choices=[("A", "Variant A"), ("B", "Variant B")],
+        null=True,
+        blank=True,
     )
     confidence_level = models.FloatField(null=True, blank=True)
 
@@ -1189,9 +1254,11 @@ class ABTest(models.Model):
             "start_date": self.start_date,
             "end_date": self.end_date,
             "duration_days": (self.end_date - self.start_date).days,
-            "days_remaining": (self.end_date - timezone.now()).days
-            if self.end_date > timezone.now()
-            else 0,
+            "days_remaining": (
+                (self.end_date - timezone.now()).days
+                if self.end_date > timezone.now()
+                else 0
+            ),
             "progress_percent": 0,
             "results": self.results,
         }
@@ -1203,7 +1270,9 @@ class ABTest(models.Model):
             total_duration = (self.end_date - self.start_date).total_seconds()
             elapsed = (timezone.now() - self.start_date).total_seconds()
             if total_duration > 0:
-                status_data["progress_percent"] = min(round((elapsed / total_duration) * 100), 99)
+                status_data["progress_percent"] = min(
+                    round((elapsed / total_duration) * 100), 99
+                )
 
         return status_data
 
@@ -1325,9 +1394,9 @@ class ABTest(models.Model):
         )
 
         if a_results["sent"] > 0 and b_results["sent"] > 0:
-            self.results["improvement"]["revenue"] = (b_results["revenue"] / b_results["sent"]) - (
-                a_results["revenue"] / a_results["sent"]
-            )
+            self.results["improvement"]["revenue"] = (
+                b_results["revenue"] / b_results["sent"]
+            ) - (a_results["revenue"] / a_results["sent"])
 
         # In a real implementation, we would calculate statistical significance
         # For now, we'll use a placeholder with random confidence level
@@ -1457,9 +1526,13 @@ class ABTestRecipient(models.Model):
     """Tracks individual recipients in an A/B test"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    test = models.ForeignKey(ABTest, on_delete=models.CASCADE, related_name="recipients")
+    test = models.ForeignKey(
+        ABTest, on_delete=models.CASCADE, related_name="recipients"
+    )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    variant = models.CharField(max_length=1, choices=[("A", "Variant A"), ("B", "Variant B")])
+    variant = models.CharField(
+        max_length=1, choices=[("A", "Variant A"), ("B", "Variant B")]
+    )
 
     # Delivery and engagement tracking
     sent_at = models.DateTimeField(null=True, blank=True)
@@ -1469,7 +1542,9 @@ class ABTestRecipient(models.Model):
     converted_at = models.DateTimeField(null=True, blank=True)
 
     # For revenue tracking if applicable
-    conversion_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    conversion_value = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1520,7 +1595,9 @@ class Language(models.Model):
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
     direction = models.CharField(
-        max_length=3, choices=[("ltr", "Left to Right"), ("rtl", "Right to Left")], default="ltr"
+        max_length=3,
+        choices=[("ltr", "Left to Right"), ("rtl", "Right to Left")],
+        default="ltr",
     )
     sort_order = models.IntegerField(default=0)
 
@@ -1550,10 +1627,18 @@ class TemplateTranslation(models.Model):
 
     # References to each template type - only one will be used
     email_template = models.ForeignKey(
-        EmailTemplate, on_delete=models.CASCADE, null=True, blank=True, related_name="translations"
+        EmailTemplate,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="translations",
     )
     sms_template = models.ForeignKey(
-        SMSTemplate, on_delete=models.CASCADE, null=True, blank=True, related_name="translations"
+        SMSTemplate,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="translations",
     )
     push_template = models.ForeignKey(
         PushNotificationTemplate,
@@ -1639,7 +1724,11 @@ class AIContentSuggestion(models.Model):
         related_name="ai_suggestions",
     )
     sms_template = models.ForeignKey(
-        SMSTemplate, on_delete=models.CASCADE, null=True, blank=True, related_name="ai_suggestions"
+        SMSTemplate,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="ai_suggestions",
     )
     push_template = models.ForeignKey(
         PushNotificationTemplate,
@@ -1660,7 +1749,9 @@ class AIContentSuggestion(models.Model):
         ("grammar", "Fix Grammar Issues"),
         ("localize", "Culturally Localize"),
     ]
-    optimization_type = models.CharField(max_length=20, choices=OPTIMIZATION_TYPE_CHOICES)
+    optimization_type = models.CharField(
+        max_length=20, choices=OPTIMIZATION_TYPE_CHOICES
+    )
     language = models.CharField(max_length=10, default="en")
     target_audience = models.CharField(max_length=100, blank=True, null=True)
     additional_instructions = models.TextField(blank=True, null=True)
@@ -1674,7 +1765,9 @@ class AIContentSuggestion(models.Model):
     suggested_content = models.TextField(blank=True, null=True)
 
     # Suggestion metadata
-    explanation = models.TextField(blank=True, null=True, help_text="AI's explanation of changes")
+    explanation = models.TextField(
+        blank=True, null=True, help_text="AI's explanation of changes"
+    )
     improvements = models.JSONField(
         default=dict, blank=True, help_text="Specific improvements made"
     )
@@ -1795,7 +1888,9 @@ class AIContentSuggestion(models.Model):
         ]
 
         if self.additional_instructions:
-            prompt_parts.append(f"Additional instructions: {self.additional_instructions}")
+            prompt_parts.append(
+                f"Additional instructions: {self.additional_instructions}"
+            )
 
         prompt_parts.append("\nOriginal content:")
 
@@ -1818,7 +1913,9 @@ class AIContentSuggestion(models.Model):
         else:
             prompt_parts.append("1. Optimized SMS content")
 
-        prompt_parts.append("3. A brief explanation of the changes and improvements made")
+        prompt_parts.append(
+            "3. A brief explanation of the changes and improvements made"
+        )
 
         return "\n".join(prompt_parts)
 
@@ -1835,7 +1932,9 @@ class AIContentSuggestion(models.Model):
         # Extract body/content
         if self.template_type == "email":
             # Look for email body, might be in HTML
-            content_pattern = r"(?:Body|Content):\s*([\s\S]*?)(?:\n\d\.|\n\nExplanation|\Z)"
+            content_pattern = (
+                r"(?:Body|Content):\s*([\s\S]*?)(?:\n\d\.|\n\nExplanation|\Z)"
+            )
             content_match = re.search(content_pattern, response_text)
             if content_match:
                 self.suggested_content = content_match.group(1).strip()
@@ -1849,7 +1948,9 @@ class AIContentSuggestion(models.Model):
 
         elif self.template_type == "push":
             # Look for push body
-            content_pattern = r"(?:Body|Content):\s*([\s\S]*?)(?:\n\d\.|\n\nExplanation|\Z)"
+            content_pattern = (
+                r"(?:Body|Content):\s*([\s\S]*?)(?:\n\d\.|\n\nExplanation|\Z)"
+            )
             content_match = re.search(content_pattern, response_text)
             if content_match:
                 self.suggested_content = content_match.group(1).strip()
@@ -1865,7 +1966,10 @@ class AIContentSuggestion(models.Model):
             # Try to parse sections by looking for common patterns
             sections = re.split(r"\n\d+\.\s+|\n\n", response_text)
             if len(sections) >= 2:
-                if self.template_type in ["email", "push"] and not self.suggested_subject:
+                if (
+                    self.template_type in ["email", "push"]
+                    and not self.suggested_subject
+                ):
                     self.suggested_subject = sections[0].strip()
 
                 if not self.suggested_content:
@@ -1899,10 +2003,18 @@ class ScheduledTemplate(models.Model):
     template_type = models.CharField(max_length=20, choices=TEMPLATE_TYPE_CHOICES)
 
     email_template = models.ForeignKey(
-        EmailTemplate, on_delete=models.CASCADE, null=True, blank=True, related_name="schedules"
+        EmailTemplate,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="schedules",
     )
     sms_template = models.ForeignKey(
-        SMSTemplate, on_delete=models.CASCADE, null=True, blank=True, related_name="schedules"
+        SMSTemplate,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="schedules",
     )
     push_template = models.ForeignKey(
         PushNotificationTemplate,
@@ -2048,7 +2160,9 @@ class ScheduledTemplate(models.Model):
                 if now < self.end_date:
                     status_data["ends_in"] = (self.end_date - now).days
 
-                status_data["total_scheduled_days"] = (self.end_date - self.start_date).days
+                status_data["total_scheduled_days"] = (
+                    self.end_date - self.start_date
+                ).days
 
                 # Add recurrence info
                 status_data["recurrence"] = {
@@ -2102,13 +2216,17 @@ class ScheduledTemplate(models.Model):
 
                 # Get time from config, default to same time as start_date
                 send_hour = self.recurrence_config.get("hour", self.start_date.hour)
-                send_minute = self.recurrence_config.get("minute", self.start_date.minute)
+                send_minute = self.recurrence_config.get(
+                    "minute", self.start_date.minute
+                )
 
                 # Combine date and time
                 from datetime import datetime
 
                 next_datetime = datetime.combine(
-                    next_date, time(hour=send_hour, minute=send_minute), tzinfo=now.tzinfo
+                    next_date,
+                    time(hour=send_hour, minute=send_minute),
+                    tzinfo=now.tzinfo,
                 )
 
                 # If the time today is already past, schedule for tomorrow
@@ -2124,11 +2242,15 @@ class ScheduledTemplate(models.Model):
                 )
 
                 # Convert to integers if needed
-                days_of_week = [int(d) if isinstance(d, str) else d for d in days_of_week]
+                days_of_week = [
+                    int(d) if isinstance(d, str) else d for d in days_of_week
+                ]
 
                 # Get time from config
                 send_hour = self.recurrence_config.get("hour", self.start_date.hour)
-                send_minute = self.recurrence_config.get("minute", self.start_date.minute)
+                send_minute = self.recurrence_config.get(
+                    "minute", self.start_date.minute
+                )
 
                 # Find next occurrence
                 current_weekday = now.weekday()
@@ -2165,26 +2287,36 @@ class ScheduledTemplate(models.Model):
                 from datetime import datetime
 
                 self.next_send_at = datetime.combine(
-                    next_date, time(hour=send_hour, minute=send_minute), tzinfo=now.tzinfo
+                    next_date,
+                    time(hour=send_hour, minute=send_minute),
+                    tzinfo=now.tzinfo,
                 )
 
             elif self.recurrence_pattern == "monthly":
                 # Get days of month to send
-                days_of_month = self.recurrence_config.get("days_of_month", [self.start_date.day])
+                days_of_month = self.recurrence_config.get(
+                    "days_of_month", [self.start_date.day]
+                )
 
                 # Convert to integers if needed
-                days_of_month = [int(d) if isinstance(d, str) else d for d in days_of_month]
+                days_of_month = [
+                    int(d) if isinstance(d, str) else d for d in days_of_month
+                ]
 
                 # Get time from config
                 send_hour = self.recurrence_config.get("hour", self.start_date.hour)
-                send_minute = self.recurrence_config.get("minute", self.start_date.minute)
+                send_minute = self.recurrence_config.get(
+                    "minute", self.start_date.minute
+                )
 
                 # Start with current month
                 current_month = now.replace(day=1)
 
                 # Find the next valid day in the current month
                 valid_days = [
-                    d for d in days_of_month if d >= now.day and d <= self._days_in_month(now)
+                    d
+                    for d in days_of_month
+                    if d >= now.day and d <= self._days_in_month(now)
                 ]
 
                 if valid_days:
@@ -2199,7 +2331,9 @@ class ScheduledTemplate(models.Model):
                         next_month = now.replace(month=now.month + 1, day=1)
 
                     # Find the first valid day next month
-                    valid_days = [d for d in days_of_month if d <= self._days_in_month(next_month)]
+                    valid_days = [
+                        d for d in days_of_month if d <= self._days_in_month(next_month)
+                    ]
                     if not valid_days:
                         # If no valid days (e.g. trying to send on day 31 in February),
                         # use the last day of the month
@@ -2212,7 +2346,9 @@ class ScheduledTemplate(models.Model):
                 from datetime import datetime
 
                 next_datetime = datetime.combine(
-                    next_date.date(), time(hour=send_hour, minute=send_minute), tzinfo=now.tzinfo
+                    next_date.date(),
+                    time(hour=send_hour, minute=send_minute),
+                    tzinfo=now.tzinfo,
                 )
 
                 # If the calculated time is in the past, recalculate
@@ -2226,7 +2362,9 @@ class ScheduledTemplate(models.Model):
                             next_month = now.replace(month=now.month + 1, day=1)
 
                         valid_days = [
-                            d for d in days_of_month if d <= self._days_in_month(next_month)
+                            d
+                            for d in days_of_month
+                            if d <= self._days_in_month(next_month)
                         ]
                         if not valid_days:
                             valid_days = [self._days_in_month(next_month)]
@@ -2253,7 +2391,9 @@ class ScheduledTemplate(models.Model):
         """Helper method to get the number of days in a month"""
         if date_obj.month == 12:
             return 31
-        return (date_obj.replace(month=date_obj.month + 1, day=1) - timedelta(days=1)).day
+        return (
+            date_obj.replace(month=date_obj.month + 1, day=1) - timedelta(days=1)
+        ).day
 
     def process_send(self):
         """Process the scheduled send if it's time"""
@@ -2294,7 +2434,9 @@ class ScheduledTemplate(models.Model):
             # For recurring, calculate the next send time
             self.calculate_next_send_time()
 
-        self.save(update_fields=["last_sent_at", "total_sends", "status", "next_send_at"])
+        self.save(
+            update_fields=["last_sent_at", "total_sends", "status", "next_send_at"]
+        )
         return True
 
     def pause(self):

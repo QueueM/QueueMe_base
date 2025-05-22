@@ -52,8 +52,12 @@ class PermissionServiceTest(TestCase):
 
         # Check for some key permissions
         self.assertTrue(Permission.objects.filter(resource="*", action="*").exists())
-        self.assertTrue(Permission.objects.filter(resource="shop", action="view").exists())
-        self.assertTrue(Permission.objects.filter(resource="service", action="add").exists())
+        self.assertTrue(
+            Permission.objects.filter(resource="shop", action="view").exists()
+        )
+        self.assertTrue(
+            Permission.objects.filter(resource="service", action="add").exists()
+        )
 
     def test_create_default_role(self):
         """Test creating a default role"""
@@ -86,7 +90,9 @@ class PermissionServiceTest(TestCase):
         # Create a shop entity
         from apps.shopapp.models import Shop
 
-        shop = Shop.objects.create(name="Test Shop", phone_number="5555555555", username="testshop")
+        shop = Shop.objects.create(
+            name="Test Shop", phone_number="5555555555", username="testshop"
+        )
 
         # Create default roles for the shop
         roles = PermissionService.create_default_roles_for_entity(
@@ -103,7 +109,9 @@ class PermissionServiceTest(TestCase):
         manager_role = roles["manager"]
         self.assertEqual(manager_role.name, f"{shop.name} Manager")
         self.assertEqual(manager_role.role_type, "shop_manager")
-        self.assertEqual(manager_role.content_type, ContentType.objects.get_for_model(shop))
+        self.assertEqual(
+            manager_role.content_type, ContentType.objects.get_for_model(shop)
+        )
         self.assertEqual(manager_role.object_id, shop.id)
 
         # Verify employee role
@@ -166,8 +174,12 @@ class RoleServiceTest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create users
-        self.admin_user = User.objects.create(phone_number="1234567890", user_type="admin")
-        self.employee_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.admin_user = User.objects.create(
+            phone_number="1234567890", user_type="admin"
+        )
+        self.employee_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create roles
         self.admin_role = Role.objects.create(
@@ -184,9 +196,15 @@ class RoleServiceTest(TestCase):
         )
 
         # Assign roles
-        UserRole.objects.create(user=self.admin_user, role=self.admin_role, is_primary=True)
-        UserRole.objects.create(user=self.employee_user, role=self.employee_role, is_primary=True)
-        UserRole.objects.create(user=self.employee_user, role=self.custom_role, is_primary=False)
+        UserRole.objects.create(
+            user=self.admin_user, role=self.admin_role, is_primary=True
+        )
+        UserRole.objects.create(
+            user=self.employee_user, role=self.employee_role, is_primary=True
+        )
+        UserRole.objects.create(
+            user=self.employee_user, role=self.custom_role, is_primary=False
+        )
 
         # Create a shop entity for context testing
         from apps.shopapp.models import Shop
@@ -299,7 +317,9 @@ class RoleServiceTest(TestCase):
         self.assertEqual(custom_role.description, "Custom role description")
         self.assertEqual(custom_role.role_type, "custom")
         self.assertEqual(custom_role.parent, self.custom_role)
-        self.assertEqual(custom_role.content_type, ContentType.objects.get_for_model(self.shop))
+        self.assertEqual(
+            custom_role.content_type, ContentType.objects.get_for_model(self.shop)
+        )
         self.assertEqual(custom_role.object_id, self.shop.id)
 
         # Verify permissions
@@ -318,7 +338,9 @@ class RoleServiceTest(TestCase):
         self.assertEqual(UserRole.objects.filter(role=self.custom_role).count(), 2)
 
         # Create target role
-        target_role = Role.objects.create(name="Target Role", role_type="custom", is_active=True)
+        target_role = Role.objects.create(
+            name="Target Role", role_type="custom", is_active=True
+        )
 
         # Transfer users
         count = RoleService.transfer_users_between_roles(
@@ -333,14 +355,24 @@ class RoleServiceTest(TestCase):
     def test_can_user_manage_role(self):
         """Test checking if a user can manage a role"""
         # Admin can manage any role
-        self.assertTrue(RoleService.can_user_manage_role(self.admin_user, self.employee_role))
-        self.assertTrue(RoleService.can_user_manage_role(self.admin_user, self.custom_role))
-        self.assertTrue(RoleService.can_user_manage_role(self.admin_user, self.shop_employee_role))
+        self.assertTrue(
+            RoleService.can_user_manage_role(self.admin_user, self.employee_role)
+        )
+        self.assertTrue(
+            RoleService.can_user_manage_role(self.admin_user, self.custom_role)
+        )
+        self.assertTrue(
+            RoleService.can_user_manage_role(self.admin_user, self.shop_employee_role)
+        )
 
         # Employee can manage shop_employee_role (lower in hierarchy) but not admin_role (higher)
-        self.assertFalse(RoleService.can_user_manage_role(self.employee_user, self.admin_role))
+        self.assertFalse(
+            RoleService.can_user_manage_role(self.employee_user, self.admin_role)
+        )
         self.assertTrue(
-            RoleService.can_user_manage_role(self.employee_user, self.shop_employee_role)
+            RoleService.can_user_manage_role(
+                self.employee_user, self.shop_employee_role
+            )
         )
 
 
@@ -370,7 +402,9 @@ class PermissionResolverTest(TestCase):
         self.admin_user = User.objects.create_user(
             phone_number="1234567890", user_type="admin", is_superuser=True
         )
-        self.normal_user = User.objects.create_user(phone_number="0987654321", user_type="employee")
+        self.normal_user = User.objects.create_user(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create roles
         self.admin_role = Role.objects.create(
@@ -404,8 +438,12 @@ class PermissionResolverTest(TestCase):
         self.shop_role.permissions.add(self.add_shop)
 
         # Assign roles to users
-        UserRole.objects.create(user=self.normal_user, role=self.employee_role, is_primary=True)
-        UserRole.objects.create(user=self.normal_user, role=self.shop_role, is_primary=True)
+        UserRole.objects.create(
+            user=self.normal_user, role=self.employee_role, is_primary=True
+        )
+        UserRole.objects.create(
+            user=self.normal_user, role=self.shop_role, is_primary=True
+        )
 
     def test_get_user_permissions(self):
         """Test getting user permissions"""
@@ -429,14 +467,26 @@ class PermissionResolverTest(TestCase):
     def test_has_permission(self):
         """Test checking if user has a permission"""
         # Admin user should have all permissions
-        self.assertTrue(PermissionResolver.has_permission(self.admin_user, "shop", "view"))
-        self.assertTrue(PermissionResolver.has_permission(self.admin_user, "shop", "add"))
-        self.assertTrue(PermissionResolver.has_permission(self.admin_user, "service", "delete"))
+        self.assertTrue(
+            PermissionResolver.has_permission(self.admin_user, "shop", "view")
+        )
+        self.assertTrue(
+            PermissionResolver.has_permission(self.admin_user, "shop", "add")
+        )
+        self.assertTrue(
+            PermissionResolver.has_permission(self.admin_user, "service", "delete")
+        )
 
         # Normal user should have specific permissions
-        self.assertTrue(PermissionResolver.has_permission(self.normal_user, "shop", "view"))
-        self.assertTrue(PermissionResolver.has_permission(self.normal_user, "service", "view"))
-        self.assertFalse(PermissionResolver.has_permission(self.normal_user, "shop", "delete"))
+        self.assertTrue(
+            PermissionResolver.has_permission(self.normal_user, "shop", "view")
+        )
+        self.assertTrue(
+            PermissionResolver.has_permission(self.normal_user, "service", "view")
+        )
+        self.assertFalse(
+            PermissionResolver.has_permission(self.normal_user, "shop", "delete")
+        )
 
     def test_has_context_permission(self):
         """Test checking if user has a permission in a specific context"""
@@ -476,8 +526,12 @@ class PermissionResolverTest(TestCase):
 
         # Test has_role_type with multiple types
         self.assertTrue(
-            PermissionResolver.has_role_type(self.normal_user, ["queue_me_admin", "custom"])
+            PermissionResolver.has_role_type(
+                self.normal_user, ["queue_me_admin", "custom"]
+            )
         )
 
         # Test with non-existent role type
-        self.assertFalse(PermissionResolver.has_role_type(self.normal_user, "non_existent_type"))
+        self.assertFalse(
+            PermissionResolver.has_role_type(self.normal_user, "non_existent_type")
+        )

@@ -22,7 +22,9 @@ class CustomerModelTest(TestCase):
 
     def test_customer_creation(self):
         """Test creating a customer profile"""
-        customer = Customer.objects.create(user=self.user, name="Test Customer", city="Riyadh")
+        customer = Customer.objects.create(
+            user=self.user, name="Test Customer", city="Riyadh"
+        )
 
         self.assertEqual(customer.user, self.user)
         self.assertEqual(customer.name, "Test Customer")
@@ -181,8 +183,12 @@ class FavoriteEntitiesModelTest(TestCase):
         shop_mock.id = self.shop_id
         shop_mock.__str__.return_value = "Mock Shop"
 
-        with patch("apps.customersapp.models.FavoriteShop.shop.__get__", return_value=shop_mock):
-            favorite = FavoriteShop.objects.create(customer=self.customer, shop_id=self.shop_id)
+        with patch(
+            "apps.customersapp.models.FavoriteShop.shop.__get__", return_value=shop_mock
+        ):
+            favorite = FavoriteShop.objects.create(
+                customer=self.customer, shop_id=self.shop_id
+            )
 
             self.assertEqual(favorite.customer, self.customer)
             self.assertEqual(favorite.shop_id, self.shop_id)

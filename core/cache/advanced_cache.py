@@ -15,7 +15,6 @@ import functools
 import hashlib
 import json
 import logging
-import pickle
 import time
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
@@ -54,7 +53,9 @@ local_cache_hits = 0
 local_cache_misses = 0
 
 
-def secure_hash(data: Union[str, bytes], length: int = 8, used_for_security: bool = False) -> str:
+def secure_hash(
+    data: Union[str, bytes], length: int = 8, used_for_security: bool = False
+) -> str:
     """
     Create a secure hash of data using SHA-256
 
@@ -108,7 +109,9 @@ class CacheHierarchy:
 
         if recursive:
             # Recursively get children of children
-            for child in list(children):  # Create a copy to avoid modification during iteration
+            for child in list(
+                children
+            ):  # Create a copy to avoid modification during iteration
                 children.update(self.get_children(child, recursive=True))
 
         return children
@@ -122,7 +125,9 @@ class CacheHierarchy:
 
         if recursive:
             # Recursively get parents of parents
-            for parent in list(parents):  # Create a copy to avoid modification during iteration
+            for parent in list(
+                parents
+            ):  # Create a copy to avoid modification during iteration
                 parents.update(self.get_parents(parent, recursive=True))
 
         return parents
@@ -211,7 +216,9 @@ class AdvancedCache:
         if self.failure_count >= 3:
             self.circuit_open = True
             self.circuit_check_time = datetime.now() + timedelta(minutes=1)
-            logger.warning(f"Cache circuit breaker tripped for namespace {self.namespace}")
+            logger.warning(
+                f"Cache circuit breaker tripped for namespace {self.namespace}"
+            )
 
     def _add_to_local_cache(self, key: str, value: Any, ttl: int) -> None:
         """Add item to local in-memory cache"""

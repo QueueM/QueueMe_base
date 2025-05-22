@@ -7,7 +7,12 @@ from django.utils import timezone
 from apps.authapp.models import User
 from apps.categoriesapp.models import Category
 from apps.companiesapp.models import Company
-from apps.packageapp.models import Package, PackageAvailability, PackageFAQ, PackageService
+from apps.packageapp.models import (
+    Package,
+    PackageAvailability,
+    PackageFAQ,
+    PackageService,
+)
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
 
@@ -161,7 +166,9 @@ class PackageModelTests(TestCase):
             is_closed=False,
         )
 
-        self.assertEqual(str(avail), f"{self.package.name} - Sunday: 09:00 AM - 05:00 PM")
+        self.assertEqual(
+            str(avail), f"{self.package.name} - Sunday: 09:00 AM - 05:00 PM"
+        )
 
         # Create closed day
         closed = PackageAvailability.objects.create(

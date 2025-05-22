@@ -2,13 +2,16 @@ import random
 import string
 import uuid
 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    PermissionsMixin,
+)
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from model_utils import FieldTracker
 
-from apps.authapp.constants import OTP_LENGTH, USER_TYPE_CHOICES, USER_TYPE_CUSTOMER
+from apps.authapp.constants import OTP_LENGTH
 from apps.authapp.managers import UserManager
 from apps.authapp.validators import normalize_phone_number, validate_phone_number
 
@@ -113,7 +116,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         elif self.user_type == "employee":
             # For employees, we might want to check if they have an employee profile
             try:
-                return bool(hasattr(self, "employee") and getattr(self, "employee", None))
+                return bool(
+                    hasattr(self, "employee") and getattr(self, "employee", None)
+                )
             except BaseException:
                 return False
         else:
@@ -275,7 +280,9 @@ class PasswordResetToken(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="password_reset_tokens")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="password_reset_tokens"
+    )
     token = models.CharField(max_length=255, unique=True)
     is_used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -7,7 +7,11 @@ from rest_framework.test import APIClient
 
 from apps.authapp.models import User
 from apps.rolesapp.models import Permission, Role, UserRole
-from apps.rolesapp.serializers import PermissionSerializer, RoleSerializer, UserRoleSerializer
+from apps.rolesapp.serializers import (
+    PermissionSerializer,
+    RoleSerializer,
+    UserRoleSerializer,
+)
 
 
 class PermissionViewSetTest(TestCase):
@@ -34,7 +38,9 @@ class PermissionViewSetTest(TestCase):
 
         # API endpoints
         self.list_url = reverse("rolesapp:permission-list")
-        self.detail_url = reverse("rolesapp:permission-detail", args=[self.permission1.id])
+        self.detail_url = reverse(
+            "rolesapp:permission-detail", args=[self.permission1.id]
+        )
         self.grouped_url = reverse("rolesapp:permission-grouped")
 
     def test_get_permissions_list(self):
@@ -120,7 +126,9 @@ class RoleViewSetTest(TestCase):
         self.admin_user = User.objects.create_user(
             phone_number="1234567890", user_type="admin", is_superuser=True
         )
-        self.normal_user = User.objects.create_user(phone_number="0987654321", user_type="employee")
+        self.normal_user = User.objects.create_user(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create permissions
         self.permission1 = Permission.objects.create(
@@ -142,7 +150,9 @@ class RoleViewSetTest(TestCase):
             is_active=True,
             is_system=True,
         )
-        self.role1.permissions.add(self.permission1, self.permission2, self.roles_manage)
+        self.role1.permissions.add(
+            self.permission1, self.permission2, self.roles_manage
+        )
 
         self.role2 = Role.objects.create(
             name="Custom Role",
@@ -281,7 +291,9 @@ class RoleViewSetTest(TestCase):
         self.assertFalse(cloned_role.is_system)
 
         # Verify permissions were cloned
-        self.assertEqual(cloned_role.permissions.count(), self.role1.permissions.count())
+        self.assertEqual(
+            cloned_role.permissions.count(), self.role1.permissions.count()
+        )
         for perm in self.role1.permissions.all():
             self.assertIn(perm, cloned_role.permissions.all())
 
@@ -295,8 +307,12 @@ class UserRoleViewSetTest(TestCase):
         self.admin_user = User.objects.create_user(
             phone_number="1234567890", user_type="admin", is_superuser=True
         )
-        self.user1 = User.objects.create_user(phone_number="1111111111", user_type="employee")
-        self.user2 = User.objects.create_user(phone_number="2222222222", user_type="employee")
+        self.user1 = User.objects.create_user(
+            phone_number="1111111111", user_type="employee"
+        )
+        self.user2 = User.objects.create_user(
+            phone_number="2222222222", user_type="employee"
+        )
 
         # Create permissions
         self.roles_manage = Permission.objects.create(
@@ -304,8 +320,12 @@ class UserRoleViewSetTest(TestCase):
         )
 
         # Create roles
-        self.role1 = Role.objects.create(name="Role 1", role_type="custom", is_active=True)
-        self.role2 = Role.objects.create(name="Role 2", role_type="custom", is_active=True)
+        self.role1 = Role.objects.create(
+            name="Role 1", role_type="custom", is_active=True
+        )
+        self.role2 = Role.objects.create(
+            name="Role 2", role_type="custom", is_active=True
+        )
 
         # Create user roles
         self.user_role = UserRole.objects.create(
@@ -368,7 +388,9 @@ class UserRoleViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Verify user role was created
-        self.assertTrue(UserRole.objects.filter(user=self.user2, role=self.role2).exists())
+        self.assertTrue(
+            UserRole.objects.filter(user=self.user2, role=self.role2).exists()
+        )
 
         # Verify assigned_by was set to the current user
         user_role = UserRole.objects.get(user=self.user2, role=self.role2)
@@ -403,7 +425,9 @@ class UserRoleViewSetTest(TestCase):
     def test_get_my_roles(self):
         """Test getting current user's roles"""
         # Create a role for admin_user
-        admin_role = UserRole.objects.create(user=self.admin_user, role=self.role1, is_primary=True)
+        admin_role = UserRole.objects.create(
+            user=self.admin_user, role=self.role1, is_primary=True
+        )
 
         response = self.client.get(self.my_roles_url)
 

@@ -133,7 +133,9 @@ class DBMigrator:
             table_to_model[model._meta.db_table] = model
 
         # Filter models to only those in our tables list
-        relevant_models = [table_to_model[table] for table in tables if table in table_to_model]
+        relevant_models = [
+            table_to_model[table] for table in tables if table in table_to_model
+        ]
 
         # Sort models topologically
         sorted_models = []
@@ -199,7 +201,9 @@ class DBMigrator:
         )
 
         # Write data in batches
-        cursor.execute(f"SELECT * FROM {table_name} LIMIT {rows_to_fetch} OFFSET {start_row};")
+        cursor.execute(
+            f"SELECT * FROM {table_name} LIMIT {rows_to_fetch} OFFSET {start_row};"
+        )
 
         for row in cursor:
             # Convert row to list with proper handling of None values
@@ -260,7 +264,11 @@ class DBMigrator:
 
         # Update state
         self.state["current_table"] = table_name
-        start_row = self.state["rows_completed"] if self.state["current_table"] == table_name else 0
+        start_row = (
+            self.state["rows_completed"]
+            if self.state["current_table"] == table_name
+            else 0
+        )
         self.state["rows_completed"] = start_row
         self._save_state()
 
@@ -271,7 +279,9 @@ class DBMigrator:
 
             # Process in batches
             while start_row < total_rows:
-                csv_file, rows_processed = self.export_table_to_csv(table_name, columns, start_row)
+                csv_file, rows_processed = self.export_table_to_csv(
+                    table_name, columns, start_row
+                )
                 self.import_csv_to_postgres(table_name, csv_file, columns)
 
                 start_row += rows_processed
@@ -391,15 +401,21 @@ class DBMigrator:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Migrate data from SQLite to PostgreSQL.")
-    parser.add_argument("--sqlite-path", default="db.sqlite3", help="Path to SQLite database file")
+    parser = argparse.ArgumentParser(
+        description="Migrate data from SQLite to PostgreSQL."
+    )
+    parser.add_argument(
+        "--sqlite-path", default="db.sqlite3", help="Path to SQLite database file"
+    )
     parser.add_argument(
         "--batch-size",
         type=int,
         default=1000,
         help="Number of rows to process in each batch",
     )
-    parser.add_argument("--resume", action="store_true", help="Resume from last position")
+    parser.add_argument(
+        "--resume", action="store_true", help="Resume from last position"
+    )
     parser.add_argument(
         "--clean",
         action="store_true",
@@ -425,7 +441,9 @@ def main():
         sqlite_path=args.sqlite_path,
         pg_config=pg_config,
         batch_size=args.batch_size,
-        resume_file=(None if not args.resume else None),  # Use default resume file if resuming
+        resume_file=(
+            None if not args.resume else None
+        ),  # Use default resume file if resuming
     )
 
     success = migrator.migrate()

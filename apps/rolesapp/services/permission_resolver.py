@@ -73,7 +73,9 @@ class PermissionResolver:
         # Get all user roles
         if context_type and context_id:
             # For context-specific roles
-            content_type = ContentType.objects.get(app_label="apps", model=context_type.lower())
+            content_type = ContentType.objects.get(
+                app_label="apps", model=context_type.lower()
+            )
             user_roles = UserRole.objects.filter(
                 user=user,
                 role__content_type=content_type,
@@ -283,7 +285,9 @@ class PermissionResolver:
     @cache_permission_result()
     def get_user_roles_by_context(user, context_type, context_id):
         """Get all roles for a user in a specific context"""
-        content_type = ContentType.objects.get(app_label="apps", model=context_type.lower())
+        content_type = ContentType.objects.get(
+            app_label="apps", model=context_type.lower()
+        )
         return UserRole.objects.filter(
             user=user,
             role__is_active=True,
@@ -331,7 +335,9 @@ class PermissionResolver:
         """
         if user.is_superuser or PermissionResolver.is_queue_me_admin(user):
             # Admin users can access all entities
-            content_type = ContentType.objects.get(app_label="apps", model=entity_type.lower())
+            content_type = ContentType.objects.get(
+                app_label="apps", model=entity_type.lower()
+            )
             model_class = content_type.model_class()
             return model_class.objects.all()
 
@@ -345,7 +351,9 @@ class PermissionResolver:
         # Extract entity IDs
         entity_ids = user_roles.values_list("role__object_id", flat=True).distinct()
 
-        content_type = ContentType.objects.get(app_label="apps", model=entity_type.lower())
+        content_type = ContentType.objects.get(
+            app_label="apps", model=entity_type.lower()
+        )
         model_class = content_type.model_class()
 
         # Return entities by ID

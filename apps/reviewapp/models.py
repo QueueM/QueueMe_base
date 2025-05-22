@@ -194,9 +194,7 @@ class ReviewMedia(models.Model):
         ]
 
     def __str__(self):
-        return (
-            f"Media for {self.content_type.model} review - {self.created_at.strftime('%Y-%m-%d')}"
-        )
+        return f"Media for {self.content_type.model} review - {self.created_at.strftime('%Y-%m-%d')}"
 
 
 class ReviewHelpfulness(models.Model):
@@ -290,11 +288,17 @@ class ReviewMetric(models.Model):
     object_id = models.UUIDField()
     entity = GenericForeignKey("content_type", "object_id")
 
-    avg_rating = models.DecimalField(_("Average Rating"), max_digits=3, decimal_places=2)
-    weighted_rating = models.DecimalField(_("Weighted Rating"), max_digits=3, decimal_places=2)
+    avg_rating = models.DecimalField(
+        _("Average Rating"), max_digits=3, decimal_places=2
+    )
+    weighted_rating = models.DecimalField(
+        _("Weighted Rating"), max_digits=3, decimal_places=2
+    )
     review_count = models.PositiveIntegerField(_("Review Count"), default=0)
     rating_distribution = models.JSONField(_("Rating Distribution"), default=dict)
-    last_reviewed_at = models.DateTimeField(_("Last Reviewed At"), null=True, blank=True)
+    last_reviewed_at = models.DateTimeField(
+        _("Last Reviewed At"), null=True, blank=True
+    )
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
 
     class Meta:

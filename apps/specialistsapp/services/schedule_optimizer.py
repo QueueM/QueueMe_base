@@ -79,7 +79,8 @@ class ScheduleOptimizer:
         ).get("total") or timedelta(0)
 
         utilization_rate = (
-            (total_appointment_hours.total_seconds() / 3600) / (total_working_hours * days_back)
+            (total_appointment_hours.total_seconds() / 3600)
+            / (total_working_hours * days_back)
             if total_working_hours > 0
             else 0
         )
@@ -103,7 +104,9 @@ class ScheduleOptimizer:
         # Calculate average duration for each service
         for service_id, data in service_data.items():
             if data["count"] > 0:
-                data["avg_duration"] = data["total_duration"].total_seconds() / (60 * data["count"])
+                data["avg_duration"] = data["total_duration"].total_seconds() / (
+                    60 * data["count"]
+                )
             else:
                 data["avg_duration"] = 0
 
@@ -153,7 +156,9 @@ class ScheduleOptimizer:
 
         # Get current specialist working hours
         current_hours = {}
-        for working_hour in SpecialistWorkingHours.objects.filter(specialist=specialist):
+        for working_hour in SpecialistWorkingHours.objects.filter(
+            specialist=specialist
+        ):
             current_hours[working_hour.weekday] = {
                 "from_hour": working_hour.from_hour,
                 "to_hour": working_hour.to_hour,
@@ -189,7 +194,9 @@ class ScheduleOptimizer:
 
             # Get peak hours from analysis
             peak_hours = [
-                hour for hour, data in analysis["hour_of_day_data"].items() if data["count"] > 0
+                hour
+                for hour, data in analysis["hour_of_day_data"].items()
+                if data["count"] > 0
             ]
 
             # Determine optimal working hours
@@ -201,11 +208,15 @@ class ScheduleOptimizer:
                 # Convert to time objects
                 from_hour = max(
                     shop_from_hour,
-                    time(hour=max(min_peak_hour - 1, 0), minute=0),  # Start 1 hour before peak
+                    time(
+                        hour=max(min_peak_hour - 1, 0), minute=0
+                    ),  # Start 1 hour before peak
                 )
                 to_hour = min(
                     shop_to_hour,
-                    time(hour=min(max_peak_hour + 1, 23), minute=59),  # End 1 hour after peak
+                    time(
+                        hour=min(max_peak_hour + 1, 23), minute=59
+                    ),  # End 1 hour after peak
                 )
 
                 suggested_hours[day] = {
@@ -383,7 +394,9 @@ class ScheduleOptimizer:
         shop = Shop.objects.get(id=shop_id)
 
         # Get all active specialists in shop
-        specialists = Specialist.objects.filter(employee__shop=shop, employee__is_active=True)
+        specialists = Specialist.objects.filter(
+            employee__shop=shop, employee__is_active=True
+        )
 
         if not specialists.exists():
             return {
@@ -405,14 +418,18 @@ class ScheduleOptimizer:
             # Calculate total hours booked
             total_hours = 0
             for appointment in upcoming_appointments:
-                duration = (appointment.end_time - appointment.start_time).total_seconds() / 3600
+                duration = (
+                    appointment.end_time - appointment.start_time
+                ).total_seconds() / 3600
                 total_hours += duration
 
             # Calculate available hours based on working schedule
             available_hours = self._calculate_specialist_available_hours(specialist)
 
             # Calculate utilization percentage
-            utilization = (total_hours / available_hours) * 100 if available_hours > 0 else 0
+            utilization = (
+                (total_hours / available_hours) * 100 if available_hours > 0 else 0
+            )
 
             workload_data[str(specialist.id)] = {
                 "name": f"{specialist.employee.first_name} {specialist.employee.last_name}",
@@ -490,7 +507,9 @@ class ScheduleOptimizer:
                                         "appointment_time": appointment.start_time.strftime(
                                             "%Y-%m-%d %H:%M"
                                         ),
-                                        "reason": _("Balance workload between specialists"),
+                                        "reason": _(
+                                            "Balance workload between specialists"
+                                        ),
                                     }
                                 )
 

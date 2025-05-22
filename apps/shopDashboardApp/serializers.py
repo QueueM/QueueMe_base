@@ -6,12 +6,15 @@ from apps.reportanalyticsapp.models import (
     AnalyticsSnapshot,
     AnomalyDetection,
     ReportExecution,
+)
+from apps.reportanalyticsapp.models import (
     ScheduledReport as AnalyticsScheduledReport,  # Avoid name conflict
+)
+from apps.reportanalyticsapp.models import (
     ShopAnalytics,
     SpecialistAnalytics,
 )
 from apps.shopapp.serializers import ShopSerializer
-from apps.specialistsapp.serializers import SpecialistSerializer
 from apps.shopDashboardApp.models import (
     DashboardLayout,
     DashboardPreference,
@@ -20,6 +23,7 @@ from apps.shopDashboardApp.models import (
     SavedFilter,
     ScheduledReport,
 )
+from apps.specialistsapp.serializers import SpecialistSerializer
 
 
 class AnalyticsSnapshotSerializer(serializers.ModelSerializer):
@@ -130,13 +134,21 @@ class ScheduledReportSerializer(serializers.ModelSerializer):
         day_of_month = data.get("day_of_month")
 
         if frequency == "weekly" and day_of_week is None:
-            raise serializers.ValidationError(_("Weekly reports must specify a day of week (0-6)."))
+            raise serializers.ValidationError(
+                _("Weekly reports must specify a day of week (0-6).")
+            )
         if frequency == "monthly" and day_of_month is None:
-            raise serializers.ValidationError(_("Monthly reports must specify a day of month (1-31)."))
+            raise serializers.ValidationError(
+                _("Monthly reports must specify a day of month (1-31).")
+            )
         if day_of_month is not None and (day_of_month < 1 or day_of_month > 31):
-            raise serializers.ValidationError(_("Day of month must be between 1 and 31."))
+            raise serializers.ValidationError(
+                _("Day of month must be between 1 and 31.")
+            )
         if day_of_week is not None and (day_of_week < 0 or day_of_week > 6):
-            raise serializers.ValidationError(_("Day of week must be between 0 (Sunday) and 6 (Saturday)."))
+            raise serializers.ValidationError(
+                _("Day of week must be between 0 (Sunday) and 6 (Saturday).")
+            )
 
         recipients = data.get("recipients", [])
         for recipient in recipients:
@@ -160,7 +172,9 @@ class ScheduledReportSerializer(serializers.ModelSerializer):
 
 class ReportExecutionSerializer(serializers.ModelSerializer):
     created_by_details = UserSerializer(source="created_by", read_only=True)
-    scheduled_report_name = serializers.CharField(source="scheduled_report.name", read_only=True)
+    scheduled_report_name = serializers.CharField(
+        source="scheduled_report.name", read_only=True
+    )
     parameters = serializers.JSONField(required=False)
     result_data = serializers.JSONField(read_only=True)
     execution_time_seconds = serializers.SerializerMethodField()
@@ -231,6 +245,7 @@ class AnomalyDetectionSerializer(serializers.ModelSerializer):
 
         if entity_type == "shop":
             from apps.shopapp.models import Shop
+
             try:
                 shop = Shop.objects.get(id=entity_id)
                 return shop.name
@@ -238,6 +253,7 @@ class AnomalyDetectionSerializer(serializers.ModelSerializer):
                 return None
         elif entity_type == "specialist":
             from apps.specialistsapp.models import Specialist
+
             try:
                 specialist = Specialist.objects.get(id=entity_id)
                 employee = specialist.employee
@@ -246,6 +262,7 @@ class AnomalyDetectionSerializer(serializers.ModelSerializer):
                 return None
         elif entity_type == "service":
             from apps.serviceapp.models import Service
+
             try:
                 service = Service.objects.get(id=entity_id)
                 return service.name
@@ -260,7 +277,9 @@ class DashboardMetricsSerializer(serializers.Serializer):
     completed_bookings = serializers.IntegerField(read_only=True)
     cancelled_bookings = serializers.IntegerField(read_only=True)
     no_show_bookings = serializers.IntegerField(read_only=True)
-    total_revenue = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    total_revenue = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
     average_wait_time = serializers.FloatField(read_only=True)
     average_rating = serializers.FloatField(read_only=True)
     new_customers = serializers.IntegerField(read_only=True)
@@ -312,13 +331,19 @@ class DashboardWidgetSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("KPI widgets must have a KPI key."))
         if widget_type == "chart":
             if not data.get("chart_type"):
-                raise serializers.ValidationError(_("Chart widgets must have a chart type."))
+                raise serializers.ValidationError(
+                    _("Chart widgets must have a chart type.")
+                )
             if not data.get("data_source"):
-                raise serializers.ValidationError(_("Chart widgets must have a data source."))
+                raise serializers.ValidationError(
+                    _("Chart widgets must have a data source.")
+                )
         position = data.get("position", {})
         required_pos_fields = ["x", "y", "w", "h"]
         if not all(field in position for field in required_pos_fields):
-            raise serializers.ValidationError(_("Position must contain x, y, w, and h values."))
+            raise serializers.ValidationError(
+                _("Position must contain x, y, w, and h values.")
+            )
         return data
 
 
@@ -429,7 +454,9 @@ class SavedFilterSerializer(serializers.ModelSerializer):
 
 class DashboardPreferenceSerializer(serializers.ModelSerializer):
     user_details = UserSerializer(source="user", read_only=True)
-    preferred_layout_details = DashboardLayoutSerializer(source="preferred_layout", read_only=True)
+    preferred_layout_details = DashboardLayoutSerializer(
+        source="preferred_layout", read_only=True
+    )
 
     class Meta:
         model = DashboardPreference

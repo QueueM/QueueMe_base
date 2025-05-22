@@ -105,7 +105,9 @@ def cache_result(
 
             # Create the cache key
             key_prefix = prefix or f"{func.__module__}.{func.__qualname__}"
-            cache_key = cache_key_builder(*cache_args, prefix=key_prefix, **cache_kwargs)
+            cache_key = cache_key_builder(
+                *cache_args, prefix=key_prefix, **cache_kwargs
+            )
 
             # Try to get cached result
             cached_value = cache.get(cache_key)

@@ -16,8 +16,12 @@ def api_root(request, format=None):
     return Response(
         {
             "auth": {
-                "request_otp": reverse("auth-request-otp", request=request, format=format),
-                "verify_otp": reverse("auth-verify-otp", request=request, format=format),
+                "request_otp": reverse(
+                    "auth-request-otp", request=request, format=format
+                ),
+                "verify_otp": reverse(
+                    "auth-verify-otp", request=request, format=format
+                ),
             },
             "shops": reverse("shop-list", request=request, format=format),
             "services": reverse("service-list", request=request, format=format),
@@ -27,11 +31,15 @@ def api_root(request, format=None):
             "customers": reverse("customer-list", request=request, format=format),
             "companies": reverse("company-list", request=request, format=format),
             "categories": reverse("category-list", request=request, format=format),
-            "conversations": reverse("conversation-list", request=request, format=format),
+            "conversations": reverse(
+                "conversation-list", request=request, format=format
+            ),
             "reels": reverse("reel-list", request=request, format=format),
             "stories": reverse("story-list", request=request, format=format),
             "reviews": reverse("review-list", request=request, format=format),
-            "notifications": reverse("notification-list", request=request, format=format),
+            "notifications": reverse(
+                "notification-list", request=request, format=format
+            ),
             "payments": reverse("payment-list", request=request, format=format),
             "documentation": {
                 "swagger": reverse("schema-swagger-ui", request=request, format=format),

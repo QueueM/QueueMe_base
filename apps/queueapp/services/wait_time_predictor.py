@@ -52,7 +52,10 @@ class WaitTimePredictor:
 
             # Calculate base metrics
             avg_wait_per_position = (
-                completed_tickets.aggregate(avg_wait=Avg("actual_wait_time"))["avg_wait"] or 15
+                completed_tickets.aggregate(avg_wait=Avg("actual_wait_time"))[
+                    "avg_wait"
+                ]
+                or 15
             )  # Default to 15 minutes if no data
 
             # Get current conditions
@@ -63,7 +66,9 @@ class WaitTimePredictor:
             # Factor 1: Hourly patterns
             hourly_waits = (
                 completed_tickets.annotate(
-                    hour=ExpressionWrapper(F("join_time__hour"), output_field=fields.IntegerField())
+                    hour=ExpressionWrapper(
+                        F("join_time__hour"), output_field=fields.IntegerField()
+                    )
                 )
                 .values("hour")
                 .annotate(avg_wait=Avg("actual_wait_time"), count=Count("id"))
@@ -101,9 +106,9 @@ class WaitTimePredictor:
             # Factor 3: Service-specific duration
             service_factor = 1.0
             if service_id:
-                service_waits = completed_tickets.filter(service_id=service_id).aggregate(
-                    avg_wait=Avg("actual_wait_time"), count=Count("id")
-                )
+                service_waits = completed_tickets.filter(
+                    service_id=service_id
+                ).aggregate(avg_wait=Avg("actual_wait_time"), count=Count("id"))
 
                 if service_waits["count"] >= 3:
                     service_factor = service_waits["avg_wait"] / avg_wait_per_position
@@ -111,12 +116,14 @@ class WaitTimePredictor:
             # Factor 4: Specialist-specific performance
             specialist_factor = 1.0
             if specialist_id:
-                specialist_waits = completed_tickets.filter(specialist_id=specialist_id).aggregate(
-                    avg_wait=Avg("actual_wait_time"), count=Count("id")
-                )
+                specialist_waits = completed_tickets.filter(
+                    specialist_id=specialist_id
+                ).aggregate(avg_wait=Avg("actual_wait_time"), count=Count("id"))
 
                 if specialist_waits["count"] >= 3:
-                    specialist_factor = specialist_waits["avg_wait"] / avg_wait_per_position
+                    specialist_factor = (
+                        specialist_waits["avg_wait"] / avg_wait_per_position
+                    )
 
             # Factor 5: Current queue load
             active_tickets = QueueTicket.objects.filter(
@@ -144,10 +151,14 @@ class WaitTimePredictor:
                 if entry["hour"] == current_hour and entry["day"] == current_day
             ]
 
-            historical_avg_load = np.mean(historical_loads) if historical_loads else active_tickets
+            historical_avg_load = (
+                np.mean(historical_loads) if historical_loads else active_tickets
+            )
 
             # Calculate load factor (how busy it is compared to normal)
-            load_factor = active_tickets / historical_avg_load if historical_avg_load > 0 else 1.0
+            load_factor = (
+                active_tickets / historical_avg_load if historical_avg_load > 0 else 1.0
+            )
 
             # Cap the load factor to prevent extreme values
             load_factor = max(0.8, min(1.5, load_factor))
@@ -174,7 +185,9 @@ class WaitTimePredictor:
 
             # Adjust for multiple staff
             if active_specialists > 1:
-                staff_factor = 1 / min(active_specialists, position)  # Can't go below 1/position
+                staff_factor = 1 / min(
+                    active_specialists, position
+                )  # Can't go below 1/position
                 predicted_wait *= staff_factor
 
             # Ensure reasonable bounds
@@ -256,7 +269,9 @@ class WaitTimePredictor:
                     "position": ticket.position,
                     "queue_id": str(ticket.queue_id),
                     "service_id": str(ticket.service_id) if ticket.service else "none",
-                    "specialist_id": (str(ticket.specialist_id) if ticket.specialist else "none"),
+                    "specialist_id": (
+                        str(ticket.specialist_id) if ticket.specialist else "none"
+                    ),
                     "ticket_count": QueueTicket.objects.filter(
                         queue=ticket.queue,
                         status__in=["waiting", "called", "serving"],
@@ -285,11 +300,15 @@ class WaitTimePredictor:
 
             # Calculate average wait time by feature
             hour_factors = {
-                hour: np.mean(waits) for hour, waits in hour_coefficients.items() if len(waits) >= 5
+                hour: np.mean(waits)
+                for hour, waits in hour_coefficients.items()
+                if len(waits) >= 5
             }
 
             day_factors = {
-                day: np.mean(waits) for day, waits in day_coefficients.items() if len(waits) >= 5
+                day: np.mean(waits)
+                for day, waits in day_coefficients.items()
+                if len(waits) >= 5
             }
 
             service_factors = {
@@ -392,9 +411,13 @@ class WaitTimePredictor:
             # Get factors
             hour_factor = hour_factors.get(str(current_hour), 1.0)
             day_factor = day_factors.get(str(current_day), 1.0)
-            service_factor = service_factors.get(str(service_id), 1.0) if service_id else 1.0
+            service_factor = (
+                service_factors.get(str(service_id), 1.0) if service_id else 1.0
+            )
             specialist_factor = (
-                specialist_factors.get(str(specialist_id), 1.0) if specialist_id else 1.0
+                specialist_factors.get(str(specialist_id), 1.0)
+                if specialist_id
+                else 1.0
             )
 
             # Get staff count
@@ -409,7 +432,11 @@ class WaitTimePredictor:
 
             # Apply factors
             predicted_wait = (
-                base_wait * hour_factor * day_factor * service_factor * specialist_factor
+                base_wait
+                * hour_factor
+                * day_factor
+                * service_factor
+                * specialist_factor
             )
 
             # Adjust for staff

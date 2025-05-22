@@ -75,7 +75,9 @@ class MessageAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
 
     def conversation_info(self, obj):
-        return f"{obj.conversation.customer.phone_number} - {obj.conversation.shop.name}"
+        return (
+            f"{obj.conversation.customer.phone_number} - {obj.conversation.shop.name}"
+        )
 
     conversation_info.short_description = _("Conversation")
 
@@ -112,7 +114,9 @@ class PresenceAdmin(admin.ModelAdmin):
     user_info.short_description = _("User")
 
     def conversation_info(self, obj):
-        return f"{obj.conversation.customer.phone_number} - {obj.conversation.shop.name}"
+        return (
+            f"{obj.conversation.customer.phone_number} - {obj.conversation.shop.name}"
+        )
 
     conversation_info.short_description = _("Conversation")
 
@@ -128,6 +132,8 @@ class TypingStatusAdmin(admin.ModelAdmin):
     user_info.short_description = _("User")
 
     def conversation_info(self, obj):
-        return f"{obj.conversation.customer.phone_number} - {obj.conversation.shop.name}"
+        return (
+            f"{obj.conversation.customer.phone_number} - {obj.conversation.shop.name}"
+        )
 
     conversation_info.short_description = _("Conversation")

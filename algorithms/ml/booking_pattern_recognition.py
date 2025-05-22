@@ -12,17 +12,14 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 from django.core.cache import cache
-from django.db import connection
-from django.db.models import Avg, Case, Count, F, IntegerField, Sum, Value, When
-from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from django.db.models import Avg, Count, F
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from apps.bookingapp.models import Appointment
 from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop
 from apps.specialistsapp.models import Specialist
 
 logger = logging.getLogger(__name__)
@@ -155,7 +152,9 @@ class BookingPatternRecognition:
                 hours.append({"hour": hour, "predicted_bookings": count})
 
         # Sort by predicted count, descending
-        sorted_hours = sorted(hours, key=lambda x: x["predicted_bookings"], reverse=True)
+        sorted_hours = sorted(
+            hours, key=lambda x: x["predicted_bookings"], reverse=True
+        )
 
         return sorted_hours
 
@@ -182,7 +181,9 @@ class BookingPatternRecognition:
             shop_demand = self.predict_demand(shop_id, date_range, granularity="day")
 
             # Analyze historical allocation ratio for this specialist
-            allocation_ratio = self._calculate_specialist_allocation_ratio(specialist_id, shop_id)
+            allocation_ratio = self._calculate_specialist_allocation_ratio(
+                specialist_id, shop_id
+            )
 
             # Apply ratio to shop demand
             specialist_demand = {}
@@ -202,7 +203,9 @@ class BookingPatternRecognition:
 
         except Exception as e:
             logger.error(f"Error predicting specialist workload: {e}")
-            return {date.strftime("%Y-%m-%d"): 4 for date in date_range}  # Default fallback
+            return {
+                date.strftime("%Y-%m-%d"): 4 for date in date_range
+            }  # Default fallback
 
     def detect_booking_anomalies(self, shop_id, lookback_days=30):
         """
@@ -241,11 +244,16 @@ class BookingPatternRecognition:
             # Calculate moving average and standard deviation
             df["moving_avg"] = df["count"].rolling(window=7, min_periods=1).mean()
             df["moving_std"] = (
-                df["count"].rolling(window=7, min_periods=1).std().fillna(df["count"].std())
+                df["count"]
+                .rolling(window=7, min_periods=1)
+                .std()
+                .fillna(df["count"].std())
             )
 
             # Detect anomalies (values more than 2 standard deviations from moving average)
-            df["z_score"] = (df["count"] - df["moving_avg"]) / df["moving_std"].replace(0, 1)
+            df["z_score"] = (df["count"] - df["moving_avg"]) / df["moving_std"].replace(
+                0, 1
+            )
             df["is_anomaly"] = abs(df["z_score"]) > 2
 
             # Extract anomalies
@@ -338,7 +346,9 @@ class BookingPatternRecognition:
                     "afternoon_shift": afternoon_shift,
                     "evening_shift": evening_shift,
                 },
-                "total_staff_needed": max(morning_shift, afternoon_shift, evening_shift),
+                "total_staff_needed": max(
+                    morning_shift, afternoon_shift, evening_shift
+                ),
                 "avg_service_duration": round(avg_duration_minutes, 1),
             }
 
@@ -397,7 +407,9 @@ class BookingPatternRecognition:
                         "service_id": booking.service_id,
                         "service_duration": booking.service.duration,
                         "service_price": float(booking.service.price),
-                        "specialist_id": (booking.specialist_id if booking.specialist else None),
+                        "specialist_id": (
+                            booking.specialist_id if booking.specialist else None
+                        ),
                     }
                 )
 
@@ -429,7 +441,9 @@ class BookingPatternRecognition:
 
             encoded_train = encoder.transform(X_train[categorical_features])
 
-            numerical_features = [col for col in X_train.columns if col not in categorical_features]
+            numerical_features = [
+                col for col in X_train.columns if col not in categorical_features
+            ]
             if numerical_features:
                 scaler = StandardScaler()
                 scaler.fit(X_train[numerical_features])
@@ -440,7 +454,9 @@ class BookingPatternRecognition:
                 X_train_processed = encoded_train
 
             # Train the model
-            model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, random_state=42)
+            model = GradientBoostingRegressor(
+                n_estimators=100, learning_rate=0.1, random_state=42
+            )
             model.fit(X_train_processed, y_train)
 
             # Evaluate the model

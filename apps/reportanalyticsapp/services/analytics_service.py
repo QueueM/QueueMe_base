@@ -9,12 +9,22 @@ trends analysis, user engagement, and operational efficiency indicators.
 from datetime import timedelta
 
 from django.db.models import Avg, Case, Count, F, FloatField, Sum, Value, When
-from django.db.models.functions import Extract, ExtractWeekDay, TruncDay, TruncMonth, TruncWeek
+from django.db.models.functions import (
+    Extract,
+    ExtractWeekDay,
+    TruncDay,
+    TruncMonth,
+    TruncWeek,
+)
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
 from apps.queueapp.models import QueueTicket
-from apps.reportanalyticsapp.queries import business_queries, platform_queries, specialist_queries
+from apps.reportanalyticsapp.queries import (
+    business_queries,
+    platform_queries,
+    specialist_queries,
+)
 from apps.reviewapp.models import Review
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
@@ -70,22 +80,34 @@ class AnalyticsService:
         )
 
         # Get queue metrics
-        queue_metrics = AnalyticsService._get_queue_metrics(shop_id, start_date, end_date)
+        queue_metrics = AnalyticsService._get_queue_metrics(
+            shop_id, start_date, end_date
+        )
 
         # Get review metrics
-        review_metrics = AnalyticsService._get_review_metrics(shop_id, start_date, end_date)
+        review_metrics = AnalyticsService._get_review_metrics(
+            shop_id, start_date, end_date
+        )
 
         # Get specialist metrics
-        specialist_metrics = AnalyticsService._get_specialist_metrics(shop_id, start_date, end_date)
+        specialist_metrics = AnalyticsService._get_specialist_metrics(
+            shop_id, start_date, end_date
+        )
 
         # Get service metrics
-        service_metrics = AnalyticsService._get_service_metrics(shop_id, start_date, end_date)
+        service_metrics = AnalyticsService._get_service_metrics(
+            shop_id, start_date, end_date
+        )
 
         # Get financial metrics
-        financial_metrics = AnalyticsService._get_financial_metrics(shop_id, start_date, end_date)
+        financial_metrics = AnalyticsService._get_financial_metrics(
+            shop_id, start_date, end_date
+        )
 
         # Get customer metrics
-        customer_metrics = AnalyticsService._get_customer_metrics(shop_id, start_date, end_date)
+        customer_metrics = AnalyticsService._get_customer_metrics(
+            shop_id, start_date, end_date
+        )
 
         return {
             "shop_name": shop.name,
@@ -106,14 +128,22 @@ class AnalyticsService:
                 "average_rating": review_metrics["average_rating"],
                 "new_customer_count": customer_metrics["new_customer_count"],
                 "returning_customer_rate": customer_metrics["returning_rate"],
-                "busiest_day": appointment_metrics.get("busiest_day", {}).get("day", "N/A"),
-                "most_popular_service": service_metrics.get("most_popular", {}).get("name", "N/A"),
-                "top_specialist": specialist_metrics.get("top_performer", {}).get("name", "N/A"),
+                "busiest_day": appointment_metrics.get("busiest_day", {}).get(
+                    "day", "N/A"
+                ),
+                "most_popular_service": service_metrics.get("most_popular", {}).get(
+                    "name", "N/A"
+                ),
+                "top_specialist": specialist_metrics.get("top_performer", {}).get(
+                    "name", "N/A"
+                ),
             },
         }
 
     @staticmethod
-    def get_time_series_data(shop_id, metric_type, start_date, end_date, grouping="daily"):
+    def get_time_series_data(
+        shop_id, metric_type, start_date, end_date, grouping="daily"
+    ):
         """
         Get time series data for the specified metric type and time period.
 
@@ -138,7 +168,9 @@ class AnalyticsService:
                 shop_id, start_date, end_date, group_by
             )
         elif metric_type == "queues":
-            return AnalyticsService._get_queue_time_series(shop_id, start_date, end_date, group_by)
+            return AnalyticsService._get_queue_time_series(
+                shop_id, start_date, end_date, group_by
+            )
         elif metric_type == "reviews":
             return AnalyticsService._get_review_count_time_series(
                 shop_id, start_date, end_date, group_by
@@ -173,9 +205,15 @@ class AnalyticsService:
         # Get metrics using platform queries
         active_shops = platform_queries.get_active_shops_count(start_date, end_date)
         new_shops = platform_queries.get_new_shops_count(start_date, end_date)
-        total_appointments = platform_queries.get_total_appointments_count(start_date, end_date)
-        total_revenue = platform_queries.get_total_platform_revenue(start_date, end_date)
-        subscription_revenue = platform_queries.get_subscription_revenue(start_date, end_date)
+        total_appointments = platform_queries.get_total_appointments_count(
+            start_date, end_date
+        )
+        total_revenue = platform_queries.get_total_platform_revenue(
+            start_date, end_date
+        )
+        subscription_revenue = platform_queries.get_subscription_revenue(
+            start_date, end_date
+        )
         ad_revenue = platform_queries.get_ad_revenue(start_date, end_date)
         merchant_revenue = platform_queries.get_merchant_revenue(start_date, end_date)
         active_users = platform_queries.get_active_users_count(start_date, end_date)
@@ -303,7 +341,9 @@ class AnalyticsService:
             start_date = end_date - timedelta(days=30)
 
         # Get service metrics from business queries
-        services = business_queries.get_service_performance(shop_id, start_date, end_date, limit)
+        services = business_queries.get_service_performance(
+            shop_id, start_date, end_date, limit
+        )
 
         # Calculate additional metrics for each service
         result = []
@@ -394,18 +434,25 @@ class AnalyticsService:
             )
 
             total_duration = sum(
-                [(b.end_time - b.start_time).total_seconds() / 60 for b in completed_bookings],
+                [
+                    (b.end_time - b.start_time).total_seconds() / 60
+                    for b in completed_bookings
+                ],
                 0,
             )
 
-            scheduled_duration = sum([b.service.duration for b in completed_bookings], 0)
+            scheduled_duration = sum(
+                [b.service.duration for b in completed_bookings], 0
+            )
 
             efficiency_rate = (
                 (scheduled_duration / total_duration * 100) if total_duration > 0 else 0
             )
 
             # Calculate return customer rate
-            customer_ids = list(bookings.values_list("customer_id", flat=True).distinct())
+            customer_ids = list(
+                bookings.values_list("customer_id", flat=True).distinct()
+            )
 
             if customer_ids:
                 # Count customers who had previous bookings with this specialist
@@ -450,7 +497,9 @@ class AnalyticsService:
         """
         if not start_date:
             end_date = timezone.now()
-            start_date = end_date - timedelta(days=180)  # 6 months for better segmentation
+            start_date = end_date - timedelta(
+                days=180
+            )  # 6 months for better segmentation
 
         # Get all customers who made bookings in this shop
         bookings = Appointment.objects.filter(
@@ -488,7 +537,9 @@ class AnalyticsService:
                 service_counts[service_id] = service_counts.get(service_id, 0) + 1
 
             most_frequent_service = (
-                max(service_counts.items(), key=lambda x: x[1])[0] if service_counts else None
+                max(service_counts.items(), key=lambda x: x[1])[0]
+                if service_counts
+                else None
             )
 
             # Store metrics
@@ -552,7 +603,9 @@ class AnalyticsService:
                 "high_value": {
                     "count": len(high_value),
                     "percentage": (
-                        round(len(high_value) / len(customer_ids) * 100, 2) if customer_ids else 0
+                        round(len(high_value) / len(customer_ids) * 100, 2)
+                        if customer_ids
+                        else 0
                     ),
                 },
                 "high_frequency": {
@@ -566,25 +619,33 @@ class AnalyticsService:
                 "regular": {
                     "count": len(regular),
                     "percentage": (
-                        round(len(regular) / len(customer_ids) * 100, 2) if customer_ids else 0
+                        round(len(regular) / len(customer_ids) * 100, 2)
+                        if customer_ids
+                        else 0
                     ),
                 },
                 "at_risk": {
                     "count": len(at_risk),
                     "percentage": (
-                        round(len(at_risk) / len(customer_ids) * 100, 2) if customer_ids else 0
+                        round(len(at_risk) / len(customer_ids) * 100, 2)
+                        if customer_ids
+                        else 0
                     ),
                 },
                 "inactive": {
                     "count": len(inactive),
                     "percentage": (
-                        round(len(inactive) / len(customer_ids) * 100, 2) if customer_ids else 0
+                        round(len(inactive) / len(customer_ids) * 100, 2)
+                        if customer_ids
+                        else 0
                     ),
                 },
                 "one_time": {
                     "count": len(one_time),
                     "percentage": (
-                        round(len(one_time) / len(customer_ids) * 100, 2) if customer_ids else 0
+                        round(len(one_time) / len(customer_ids) * 100, 2)
+                        if customer_ids
+                        else 0
                     ),
                 },
             },
@@ -615,14 +676,18 @@ class AnalyticsService:
         no_show_count = appointments.filter(status="no_show").count()
 
         # Completion rate
-        completion_rate = (completed_count / total_count * 100) if total_count > 0 else 0
+        completion_rate = (
+            (completed_count / total_count * 100) if total_count > 0 else 0
+        )
 
         # Average duration
         avg_duration = (
             appointments.filter(
                 status="completed", start_time__isnull=False, end_time__isnull=False
             )
-            .annotate(duration_minutes=Extract(F("end_time") - F("start_time"), "epoch") / 60)
+            .annotate(
+                duration_minutes=Extract(F("end_time") - F("start_time"), "epoch") / 60
+            )
             .aggregate(avg_duration=Avg("duration_minutes"))["avg_duration"]
             or 0
         )
@@ -654,7 +719,8 @@ class AnalyticsService:
             "Saturday",
         ]
         day_distribution_dict = {
-            day_names[item["day_of_week"] % 7]: item["count"] for item in day_distribution
+            day_names[item["day_of_week"] % 7]: item["count"]
+            for item in day_distribution
         }
 
         return {
@@ -666,7 +732,9 @@ class AnalyticsService:
             "average_duration_minutes": round(avg_duration, 2),
             "busiest_day": {
                 "day": (
-                    busiest_day["appointment_date"].strftime("%Y-%m-%d") if busiest_day else None
+                    busiest_day["appointment_date"].strftime("%Y-%m-%d")
+                    if busiest_day
+                    else None
                 ),
                 "count": busiest_day["count"] if busiest_day else 0,
             },
@@ -698,16 +766,25 @@ class AnalyticsService:
 
         # Average wait time (from join to serve)
         avg_wait_time = (
-            tickets.filter(status="served", join_time__isnull=False, serve_time__isnull=False)
-            .annotate(wait_minutes=Extract(F("serve_time") - F("join_time"), "epoch") / 60)
+            tickets.filter(
+                status="served", join_time__isnull=False, serve_time__isnull=False
+            )
+            .annotate(
+                wait_minutes=Extract(F("serve_time") - F("join_time"), "epoch") / 60
+            )
             .aggregate(avg_wait=Avg("wait_minutes"))["avg_wait"]
             or 0
         )
 
         # Average service time (from serve to complete)
         avg_service_time = (
-            tickets.filter(status="served", serve_time__isnull=False, complete_time__isnull=False)
-            .annotate(service_minutes=Extract(F("complete_time") - F("serve_time"), "epoch") / 60)
+            tickets.filter(
+                status="served", serve_time__isnull=False, complete_time__isnull=False
+            )
+            .annotate(
+                service_minutes=Extract(F("complete_time") - F("serve_time"), "epoch")
+                / 60
+            )
             .aggregate(avg_service=Avg("service_minutes"))["avg_service"]
             or 0
         )
@@ -756,9 +833,9 @@ class AnalyticsService:
         )
 
         # Get specialist reviews for the shop
-        specialist_ids = Specialist.objects.filter(employee__shop_id=shop_id).values_list(
-            "id", flat=True
-        )
+        specialist_ids = Specialist.objects.filter(
+            employee__shop_id=shop_id
+        ).values_list("id", flat=True)
 
         specialist_reviews = Review.objects.filter(
             content_type__model="specialist",
@@ -768,7 +845,9 @@ class AnalyticsService:
         )
 
         # Get service reviews for the shop
-        service_ids = Service.objects.filter(shop_id=shop_id).values_list("id", flat=True)
+        service_ids = Service.objects.filter(shop_id=shop_id).values_list(
+            "id", flat=True
+        )
 
         service_reviews = Review.objects.filter(
             content_type__model="service",
@@ -778,7 +857,9 @@ class AnalyticsService:
         )
 
         # Combine all reviews
-        all_reviews = list(shop_reviews) + list(specialist_reviews) + list(service_reviews)
+        all_reviews = (
+            list(shop_reviews) + list(specialist_reviews) + list(service_reviews)
+        )
 
         # Total count
         total_count = len(all_reviews)
@@ -800,7 +881,9 @@ class AnalyticsService:
 
         # Calculate positive ratio (4 and 5 stars)
         positive_reviews = rating_distribution["5_star"] + rating_distribution["4_star"]
-        positive_ratio = (positive_reviews / total_count * 100) if total_count > 0 else 0
+        positive_ratio = (
+            (positive_reviews / total_count * 100) if total_count > 0 else 0
+        )
 
         # Calculate review rate (vs total appointments and queues)
         appointments = Appointment.objects.filter(
@@ -835,7 +918,9 @@ class AnalyticsService:
     @staticmethod
     def _get_specialist_metrics(shop_id, start_date, end_date):
         """Get key specialist metrics for the shop"""
-        specialists = Specialist.objects.filter(employee__shop_id=shop_id, employee__is_active=True)
+        specialists = Specialist.objects.filter(
+            employee__shop_id=shop_id, employee__is_active=True
+        )
 
         if not specialists.exists():
             return {
@@ -894,12 +979,17 @@ class AnalyticsService:
 
             # Calculate booked minutes
             booked_minutes = (
-                appointments.aggregate(total_minutes=Sum("service__duration"))["total_minutes"] or 0
+                appointments.aggregate(total_minutes=Sum("service__duration"))[
+                    "total_minutes"
+                ]
+                or 0
             )
 
             # Calculate utilization rate
             utilization_rate = (
-                (booked_minutes / total_working_minutes * 100) if total_working_minutes > 0 else 0
+                (booked_minutes / total_working_minutes * 100)
+                if total_working_minutes > 0
+                else 0
             )
 
             specialist_stats.append(
@@ -1006,7 +1096,9 @@ class AnalyticsService:
 
         # Calculate average price
         avg_price = (
-            sum(s["price"] for s in service_stats) / len(service_stats) if service_stats else 0
+            sum(s["price"] for s in service_stats) / len(service_stats)
+            if service_stats
+            else 0
         )
 
         return {
@@ -1094,10 +1186,14 @@ class AnalyticsService:
                 new_customers.append(customer_id)
 
         # Calculate returning customer rate
-        returning_rate = (len(returning_customers) / len(customer_ids) * 100) if customer_ids else 0
+        returning_rate = (
+            (len(returning_customers) / len(customer_ids) * 100) if customer_ids else 0
+        )
 
         # Calculate appointment frequency
-        appointments_per_customer = appointments.count() / len(customer_ids) if customer_ids else 0
+        appointments_per_customer = (
+            appointments.count() / len(customer_ids) if customer_ids else 0
+        )
 
         # Calculate customer retention
         # This requires data from before the start date
@@ -1115,7 +1211,9 @@ class AnalyticsService:
 
         # Find how many of those returned in the current period
         current_period_customers = set(customer_ids)
-        returning_from_previous = previous_period_customers.intersection(current_period_customers)
+        returning_from_previous = previous_period_customers.intersection(
+            current_period_customers
+        )
 
         retention_rate = (
             (len(returning_from_previous) / len(previous_period_customers) * 100)
@@ -1185,9 +1283,13 @@ class AnalyticsService:
 
         # Group by appropriate time unit
         if group_by == "day":
-            completed_appointments = completed_appointments.annotate(period=TruncDay("start_time"))
+            completed_appointments = completed_appointments.annotate(
+                period=TruncDay("start_time")
+            )
         elif group_by == "week":
-            completed_appointments = completed_appointments.annotate(period=TruncWeek("start_time"))
+            completed_appointments = completed_appointments.annotate(
+                period=TruncWeek("start_time")
+            )
         else:  # month
             completed_appointments = completed_appointments.annotate(
                 period=TruncMonth("start_time")
@@ -1239,7 +1341,8 @@ class AnalyticsService:
                             status="served",
                             join_time__isnull=False,
                             serve_time__isnull=False,
-                            then=Extract(F("serve_time") - F("join_time"), "epoch") / 60,
+                            then=Extract(F("serve_time") - F("join_time"), "epoch")
+                            / 60,
                         ),
                         default=None,
                         output_field=FloatField(),
@@ -1257,7 +1360,9 @@ class AnalyticsService:
                     "date": item["period"].strftime("%Y-%m-%d"),
                     "total": item["total"],
                     "served": item["served"],
-                    "average_wait_minutes": (round(item["avg_wait"], 2) if item["avg_wait"] else 0),
+                    "average_wait_minutes": (
+                        round(item["avg_wait"], 2) if item["avg_wait"] else 0
+                    ),
                 }
             )
 
@@ -1275,9 +1380,9 @@ class AnalyticsService:
         )
 
         # Get specialist reviews for the shop
-        specialist_ids = Specialist.objects.filter(employee__shop_id=shop_id).values_list(
-            "id", flat=True
-        )
+        specialist_ids = Specialist.objects.filter(
+            employee__shop_id=shop_id
+        ).values_list("id", flat=True)
 
         specialist_reviews = Review.objects.filter(
             content_type__model="specialist",
@@ -1287,7 +1392,9 @@ class AnalyticsService:
         )
 
         # Get service reviews for the shop
-        service_ids = Service.objects.filter(shop_id=shop_id).values_list("id", flat=True)
+        service_ids = Service.objects.filter(shop_id=shop_id).values_list(
+            "id", flat=True
+        )
 
         service_reviews = Review.objects.filter(
             content_type__model="service",
@@ -1308,12 +1415,16 @@ class AnalyticsService:
             all_reviews = all_reviews.annotate(period=TruncMonth("created_at"))
 
         # Aggregate by period
-        data = all_reviews.values("period").annotate(count=Count("id")).order_by("period")
+        data = (
+            all_reviews.values("period").annotate(count=Count("id")).order_by("period")
+        )
 
         # Format for time series
         result = []
         for item in data:
-            result.append({"date": item["period"].strftime("%Y-%m-%d"), "count": item["count"]})
+            result.append(
+                {"date": item["period"].strftime("%Y-%m-%d"), "count": item["count"]}
+            )
 
         return result
 
@@ -1329,9 +1440,9 @@ class AnalyticsService:
         )
 
         # Get specialist reviews for the shop
-        specialist_ids = Specialist.objects.filter(employee__shop_id=shop_id).values_list(
-            "id", flat=True
-        )
+        specialist_ids = Specialist.objects.filter(
+            employee__shop_id=shop_id
+        ).values_list("id", flat=True)
 
         specialist_reviews = Review.objects.filter(
             content_type__model="specialist",
@@ -1341,7 +1452,9 @@ class AnalyticsService:
         )
 
         # Get service reviews for the shop
-        service_ids = Service.objects.filter(shop_id=shop_id).values_list("id", flat=True)
+        service_ids = Service.objects.filter(shop_id=shop_id).values_list(
+            "id", flat=True
+        )
 
         service_reviews = Review.objects.filter(
             content_type__model="service",

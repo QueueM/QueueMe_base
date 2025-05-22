@@ -13,7 +13,9 @@ router = DefaultRouter()
 router.register(r"service-discounts", ServiceDiscountViewSet)
 router.register(r"coupons", CouponViewSet)
 router.register(r"campaigns", PromotionalCampaignViewSet)
-router.register(r"calculations", DiscountCalculationViewSet, basename="discount-calculation")
+router.register(
+    r"calculations", DiscountCalculationViewSet, basename="discount-calculation"
+)
 
 urlpatterns = [
     path("", include(router.urls)),

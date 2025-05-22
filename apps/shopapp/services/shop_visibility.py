@@ -1,5 +1,15 @@
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Avg, Case, Count, F, FloatField, OuterRef, Subquery, Value, When
+from django.db.models import (
+    Avg,
+    Case,
+    Count,
+    F,
+    FloatField,
+    OuterRef,
+    Subquery,
+    Value,
+    When,
+)
 
 from apps.reviewapp.models import Review
 from apps.shopapp.models import Shop
@@ -42,7 +52,9 @@ class ShopVisibilityService:
             try:
                 from apps.geoapp.services.geo_service import GeoService
 
-                shop_ids = GeoService.find_nearby_entities((float(lat), float(lng)), radius, "shop")
+                shop_ids = GeoService.find_nearby_entities(
+                    (float(lat), float(lng)), radius, "shop"
+                )
                 queryset = queryset.filter(id__in=shop_ids)
             except (ValueError, TypeError):
                 pass

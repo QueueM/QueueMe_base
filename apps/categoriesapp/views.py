@@ -96,7 +96,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         queryset = Category.objects.all()
 
         # Apply filter for active status
-        active_only = self.request.query_params.get("active_only", "true").lower() == "true"
+        active_only = (
+            self.request.query_params.get("active_only", "true").lower() == "true"
+        )
         if active_only:
             queryset = queryset.filter(is_active=True)
 
@@ -149,7 +151,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
         """
         if self.action == "list":
             return CategoryListSerializer
-        elif self.action == "create" or self.action == "update" or self.action == "partial_update":
+        elif (
+            self.action == "create"
+            or self.action == "update"
+            or self.action == "partial_update"
+        ):
             return CategoryCreateUpdateSerializer
         elif self.action == "hierarchy":
             return CategoryHierarchySerializer
@@ -199,7 +205,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         Returns:
             Response: Nested category hierarchy
         """
-        include_inactive = request.query_params.get("include_inactive", "false").lower() == "true"
+        include_inactive = (
+            request.query_params.get("include_inactive", "false").lower() == "true"
+        )
         tree = HierarchyService.build_category_tree(include_inactive)
         return Response(tree)
 
@@ -281,7 +289,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
                 ]
         """
         parent_id = request.query_params.get("parent")
-        include_inactive = request.query_params.get("include_inactive", "false").lower() == "true"
+        include_inactive = (
+            request.query_params.get("include_inactive", "false").lower() == "true"
+        )
         flattened = HierarchyService.flatten_category_tree(parent_id, include_inactive)
         return Response(flattened)
 
@@ -380,7 +390,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser])
+    @action(
+        detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser]
+    )
     def statistics(self, request):
         """
         Get statistics about the category structure
@@ -405,7 +417,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         stats = HierarchyService.get_category_statistics()
         return Response(stats)
 
-    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser])
+    @action(
+        detail=False, methods=["get"], permission_classes=[IsAuthenticated, IsAdminUser]
+    )
     def check_integrity(self, request):
         """
         Check category hierarchy integrity
@@ -474,7 +488,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            category = CategoryService.update_category(instance.id, serializer.validated_data)
+            category = CategoryService.update_category(
+                instance.id, serializer.validated_data
+            )
             if not category:
                 return Response(
                     {"status": "error", "message": _("Category not found")},
@@ -624,7 +640,9 @@ class CategoryRelationViewSet(viewsets.ModelViewSet):
 
             if relation:
                 response_serializer = CategoryRelationSerializer(relation)
-                return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    response_serializer.data, status=status.HTTP_201_CREATED
+                )
             else:
                 return Response(
                     {"status": "error", "message": _("Failed to create relation")},

@@ -140,7 +140,9 @@ class BusinessQueries:
                     0,
                 ),
             )
-            .values("id", "name", "price", "bookings", "completed", "cancelled", "revenue")
+            .values(
+                "id", "name", "price", "bookings", "completed", "cancelled", "revenue"
+            )
         )
 
         # Calculate cancellation rate
@@ -339,7 +341,9 @@ class BusinessQueries:
         avg_service_rating = (
             Review.objects.filter(
                 content_type__model="service",
-                object_id__in=Service.objects.filter(shop_id=shop_id).values_list("id", flat=True),
+                object_id__in=Service.objects.filter(shop_id=shop_id).values_list(
+                    "id", flat=True
+                ),
                 created_at__gte=start_date,
                 created_at__lt=end_date,
             ).aggregate(avg=Coalesce(Avg("rating"), 0))["avg"]
@@ -468,8 +472,12 @@ class BusinessQueries:
             no_show_rate = 0
 
             if specialist["bookings"] > 0:
-                completion_rate = (specialist["completed"] / specialist["bookings"]) * 100
-                cancellation_rate = (specialist["cancelled"] / specialist["bookings"]) * 100
+                completion_rate = (
+                    specialist["completed"] / specialist["bookings"]
+                ) * 100
+                cancellation_rate = (
+                    specialist["cancelled"] / specialist["bookings"]
+                ) * 100
                 no_show_rate = (specialist["no_show"] / specialist["bookings"]) * 100
 
             # Calculate revenue per booking
@@ -510,16 +518,24 @@ class BusinessQueries:
                 "revenue_per_booking": round(revenue_per_booking, 2),
                 "utilization_rate": round(utilization_rate, 2),
                 "bookings_per_day": (
-                    round(specialist["bookings"] / days_in_period, 2) if days_in_period > 0 else 0
+                    round(specialist["bookings"] / days_in_period, 2)
+                    if days_in_period > 0
+                    else 0
                 ),
             }
 
             specialist_data.append(specialist_with_rates)
 
         # Get top-level metrics for all specialists
-        total_bookings = sum(specialist["bookings"] for specialist in specialist_metrics)
-        total_completed = sum(specialist["completed"] for specialist in specialist_metrics)
-        total_cancelled = sum(specialist["cancelled"] for specialist in specialist_metrics)
+        total_bookings = sum(
+            specialist["bookings"] for specialist in specialist_metrics
+        )
+        total_completed = sum(
+            specialist["completed"] for specialist in specialist_metrics
+        )
+        total_cancelled = sum(
+            specialist["cancelled"] for specialist in specialist_metrics
+        )
         total_no_show = sum(specialist["no_show"] for specialist in specialist_metrics)
         total_revenue = sum(specialist["revenue"] for specialist in specialist_metrics)
 
@@ -645,7 +661,9 @@ class BusinessQueries:
                 completed=Count("id", filter=Q(status="completed")),
                 cancelled=Count("id", filter=Q(status="cancelled")),
                 revenue=Coalesce(
-                    Sum("transaction__amount", filter=Q(transaction__status="succeeded")),
+                    Sum(
+                        "transaction__amount", filter=Q(transaction__status="succeeded")
+                    ),
                     0,
                 ),
             )
@@ -670,7 +688,9 @@ class BusinessQueries:
             .annotate(
                 count=Count("id"),
                 total_spent=Coalesce(
-                    Sum("transaction__amount", filter=Q(transaction__status="succeeded")),
+                    Sum(
+                        "transaction__amount", filter=Q(transaction__status="succeeded")
+                    ),
                     0,
                 ),
             )
@@ -710,7 +730,9 @@ class BusinessQueries:
                 "online_bookings": online_bookings,
                 "walkin_bookings": walkin_bookings,
                 "online_booking_percentage": (
-                    round((online_bookings / total_bookings) * 100, 2) if total_bookings > 0 else 0
+                    round((online_bookings / total_bookings) * 100, 2)
+                    if total_bookings > 0
+                    else 0
                 ),
             },
             "hourly_distribution": hourly_dict,
@@ -770,7 +792,12 @@ class BusinessQueries:
         )
 
         # Get customer segmentation by booking count
-        one_time = bookings.values("customer").annotate(count=Count("id")).filter(count=1).count()
+        one_time = (
+            bookings.values("customer")
+            .annotate(count=Count("id"))
+            .filter(count=1)
+            .count()
+        )
         two_to_five = (
             bookings.values("customer")
             .annotate(count=Count("id"))
@@ -778,7 +805,10 @@ class BusinessQueries:
             .count()
         )
         more_than_five = (
-            bookings.values("customer").annotate(count=Count("id")).filter(count__gt=5).count()
+            bookings.values("customer")
+            .annotate(count=Count("id"))
+            .filter(count__gt=5)
+            .count()
         )
 
         # Get review metrics
@@ -803,7 +833,9 @@ class BusinessQueries:
         )
 
         # Convert to dictionary
-        rating_dict = {str(item["rating"]): item["count"] for item in review_distribution}
+        rating_dict = {
+            str(item["rating"]): item["count"] for item in review_distribution
+        }
 
         # Get follow metrics
         from apps.followapp.models import Follow
@@ -919,12 +951,16 @@ class BusinessQueries:
 
         # Convert to minutes
         avg_wait_minutes = (
-            avg_wait_time.total_seconds() / 60 if hasattr(avg_wait_time, "total_seconds") else 0
+            avg_wait_time.total_seconds() / 60
+            if hasattr(avg_wait_time, "total_seconds")
+            else 0
         )
 
         # Get average service time (difference between serve_time and complete_time)
         avg_service_time = (
-            tickets.filter(status="served", serve_time__isnull=False, complete_time__isnull=False)
+            tickets.filter(
+                status="served", serve_time__isnull=False, complete_time__isnull=False
+            )
             .annotate(
                 service_time=ExpressionWrapper(
                     F("complete_time") - F("serve_time"), output_field=FloatField()
@@ -1063,7 +1099,9 @@ class BusinessQueries:
         )
 
         # Get total revenue
-        total_revenue = transactions.aggregate(total=Coalesce(Sum("amount"), 0))["total"] or 0
+        total_revenue = (
+            transactions.aggregate(total=Coalesce(Sum("amount"), 0))["total"] or 0
+        )
 
         # Get daily revenue
         daily_revenue = (
@@ -1081,14 +1119,19 @@ class BusinessQueries:
 
         # Get revenue by service
         revenue_by_service = (
-            transactions.values("content_object__service_id", "content_object__service__name")
+            transactions.values(
+                "content_object__service_id", "content_object__service__name"
+            )
             .annotate(total=Coalesce(Sum("amount"), 0))
             .order_by("-total")
         )
 
         service_revenue = []
         for entry in revenue_by_service:
-            if entry["content_object__service_id"] and entry["content_object__service__name"]:
+            if (
+                entry["content_object__service_id"]
+                and entry["content_object__service__name"]
+            ):
                 service_revenue.append(
                     {
                         "service_id": entry["content_object__service_id"],
@@ -1152,7 +1195,9 @@ class BusinessQueries:
             status="succeeded",
         )
 
-        total_refunds = refunds.aggregate(total=Coalesce(Sum("amount"), 0))["total"] or 0
+        total_refunds = (
+            refunds.aggregate(total=Coalesce(Sum("amount"), 0))["total"] or 0
+        )
 
         refund_rate = 0
         if total_revenue > 0:
@@ -1220,12 +1265,16 @@ class BusinessQueries:
         )
 
         # Convert to dictionary
-        rating_dict = {str(item["rating"]): item["count"] for item in rating_distribution}
+        rating_dict = {
+            str(item["rating"]): item["count"] for item in rating_distribution
+        }
 
         # Get service reviews
         service_reviews = Review.objects.filter(
             content_type__model="service",
-            object_id__in=Service.objects.filter(shop_id=shop_id).values_list("id", flat=True),
+            object_id__in=Service.objects.filter(shop_id=shop_id).values_list(
+                "id", flat=True
+            ),
             created_at__gte=start_date,
             created_at__lt=end_date,
         )
@@ -1237,9 +1286,9 @@ class BusinessQueries:
         # Get specialist reviews
         specialist_reviews = Review.objects.filter(
             content_type__model="specialist",
-            object_id__in=Specialist.objects.filter(employee__shop_id=shop_id).values_list(
-                "id", flat=True
-            ),
+            object_id__in=Specialist.objects.filter(
+                employee__shop_id=shop_id
+            ).values_list("id", flat=True),
             created_at__gte=start_date,
             created_at__lt=end_date,
         )
@@ -1250,7 +1299,9 @@ class BusinessQueries:
 
         # Get overall metrics
         all_reviews = (
-            review_metrics["count"] + service_metrics["count"] + specialist_metrics["count"]
+            review_metrics["count"]
+            + service_metrics["count"]
+            + specialist_metrics["count"]
         )
 
         weighted_rating = 0
@@ -1345,14 +1396,22 @@ class BusinessQueries:
                         negative_counts[keyword] = negative_counts.get(keyword, 0) + 1
 
         # Get top positive and negative keywords
-        top_positive = sorted(positive_counts.items(), key=lambda x: x[1], reverse=True)[:5]
-        top_negative = sorted(negative_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_positive = sorted(
+            positive_counts.items(), key=lambda x: x[1], reverse=True
+        )[:5]
+        top_negative = sorted(
+            negative_counts.items(), key=lambda x: x[1], reverse=True
+        )[:5]
 
         sentiment_analysis = {
             "positive_keywords": [keyword for keyword, count in top_positive],
             "negative_keywords": [keyword for keyword, count in top_negative],
-            "positive_keyword_counts": {keyword: count for keyword, count in top_positive},
-            "negative_keyword_counts": {keyword: count for keyword, count in top_negative},
+            "positive_keyword_counts": {
+                keyword: count for keyword, count in top_positive
+            },
+            "negative_keyword_counts": {
+                keyword: count for keyword, count in top_negative
+            },
         }
 
         # Format results

@@ -44,9 +44,13 @@ class ReportAPITest(TestCase):
         )
 
         # Create report permissions
-        self.view_report_permission = Permission.objects.create(resource="report", action="view")
+        self.view_report_permission = Permission.objects.create(
+            resource="report", action="view"
+        )
 
-        self.add_report_permission = Permission.objects.create(resource="report", action="add")
+        self.add_report_permission = Permission.objects.create(
+            resource="report", action="add"
+        )
 
         # Add permissions to role
         self.admin_role.permissions.add(self.view_report_permission)
@@ -114,7 +118,9 @@ class ReportAPITest(TestCase):
         self.assertEqual(response.data["name"], "Test Report")
         self.assertEqual(response.data["report_type"], "business_overview")
 
-    @patch("apps.reportanalyticsapp.services.report_service.ReportService.generate_report")
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.ReportService.generate_report"
+    )
     def test_create_report(self, mock_generate_report):
         """Test creating a report"""
         # Mock report generation
@@ -163,7 +169,9 @@ class ReportAPITest(TestCase):
         self.assertEqual(response.data["name"], "Test Schedule")
         self.assertEqual(response.data["frequency"], "weekly")
 
-    @patch("apps.reportanalyticsapp.services.report_service.ReportService.schedule_report")
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.ReportService.schedule_report"
+    )
     def test_create_schedule(self, mock_schedule_report):
         """Test creating a schedule"""
         # Mock schedule creation
@@ -201,7 +209,9 @@ class ReportAPITest(TestCase):
         self.schedule.refresh_from_db()
         self.assertFalse(self.schedule.is_active)
 
-    @patch("apps.reportanalyticsapp.services.report_service.ReportService.execute_scheduled_report")
+    @patch(
+        "apps.reportanalyticsapp.services.report_service.ReportService.execute_scheduled_report"
+    )
     def test_execute_schedule(self, mock_execute):
         """Test executing a schedule"""
         # Mock execution

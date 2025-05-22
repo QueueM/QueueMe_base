@@ -3,17 +3,19 @@ Enhanced token service with robust error handling and security measures.
 """
 
 import datetime
-import json
 import logging
 import secrets
 import uuid
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple
 
 import jwt
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.authapp.constants import (
@@ -22,7 +24,6 @@ from apps.authapp.constants import (
 )
 from apps.authapp.models import User
 from core.exceptions.auth_exceptions import (
-    InvalidTokenError,
     TokenBlacklistedError,
     TokenExpiredError,
     TokenGenerationError,
@@ -60,7 +61,9 @@ class TokenService:
                     minutes=settings.TOKEN_EXPIRE_MINUTES,
                 )
             elif token_type == "refresh":
-                expires_delta = datetime.timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+                expires_delta = datetime.timedelta(
+                    days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+                )
             else:
                 raise ValueError(f"Invalid token type: {token_type}")
 
@@ -330,7 +333,9 @@ class TokenService:
         """
         # In a production environment, this might write to a database table
         # For now, just log it
-        logger.info(f"Token created: user={user.id}, type={token_type}, token_id={token_id}")
+        logger.info(
+            f"Token created: user={user.id}, type={token_type}, token_id={token_id}"
+        )
 
     @classmethod
     def _check_token_creation_rate(cls, user_id: str) -> None:
@@ -345,7 +350,6 @@ class TokenService:
         """
         # Implementation would use Redis or similar in production
         # This is a placeholder for the concept
-        pass
 
     @staticmethod
     def get_tokens_for_user(user):
@@ -366,15 +370,21 @@ class TokenService:
         refresh["is_verified"] = user.is_verified
 
         # Configure token lifetime
-        access_token_lifetime = datetime.timedelta(minutes=JWT_ACCESS_TOKEN_LIFETIME_MINUTES)
-        refresh_token_lifetime = datetime.timedelta(days=JWT_REFRESH_TOKEN_LIFETIME_DAYS)
+        access_token_lifetime = datetime.timedelta(
+            minutes=JWT_ACCESS_TOKEN_LIFETIME_MINUTES
+        )
+        refresh_token_lifetime = datetime.timedelta(
+            days=JWT_REFRESH_TOKEN_LIFETIME_DAYS
+        )
 
         # Get the tokens
         tokens = {
             "refresh": str(refresh),
             "access": str(refresh.access_token),
-            "access_expires": datetime.datetime.now(timezone.utc) + access_token_lifetime,
-            "refresh_expires": datetime.datetime.now(timezone.utc) + refresh_token_lifetime,
+            "access_expires": datetime.datetime.now(timezone.utc)
+            + access_token_lifetime,
+            "refresh_expires": datetime.datetime.now(timezone.utc)
+            + refresh_token_lifetime,
         }
 
         logger.info(f"Tokens generated for user {user.id}")

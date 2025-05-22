@@ -11,7 +11,7 @@ import json
 import logging
 import zlib
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import msgpack
 from channels.db import database_sync_to_async
@@ -22,13 +22,17 @@ logger = logging.getLogger(__name__)
 
 # Message compression settings
 ENABLE_COMPRESSION = getattr(settings, "WEBSOCKET_COMPRESSION_ENABLED", True)
-COMPRESSION_THRESHOLD = getattr(settings, "WEBSOCKET_COMPRESSION_THRESHOLD", 1024)  # bytes
+COMPRESSION_THRESHOLD = getattr(
+    settings, "WEBSOCKET_COMPRESSION_THRESHOLD", 1024
+)  # bytes
 COMPRESSION_LEVEL = getattr(
     settings, "WEBSOCKET_COMPRESSION_LEVEL", 6
 )  # 0-9, higher = more compression
 
 # Swift compatibility settings
-USE_MSGPACK = getattr(settings, "WEBSOCKET_USE_MSGPACK", True)  # More efficient binary format
+USE_MSGPACK = getattr(
+    settings, "WEBSOCKET_USE_MSGPACK", True
+)  # More efficient binary format
 PING_INTERVAL = getattr(settings, "WEBSOCKET_PING_INTERVAL", 30)  # seconds
 
 
@@ -70,7 +74,9 @@ async def send_to_client(
         if compress is None:
             # Auto-detect based on message size
             serialized = json.dumps(message).encode("utf-8")
-            should_compress = ENABLE_COMPRESSION and len(serialized) >= COMPRESSION_THRESHOLD
+            should_compress = (
+                ENABLE_COMPRESSION and len(serialized) >= COMPRESSION_THRESHOLD
+            )
         else:
             should_compress = compress and ENABLE_COMPRESSION
             serialized = json.dumps(message).encode("utf-8")
@@ -80,7 +86,9 @@ async def send_to_client(
             compressed = zlib.compress(serialized, COMPRESSION_LEVEL)
             encoded = base64.b64encode(compressed).decode("ascii")
 
-            await consumer.send(text_data=json.dumps({"compressed": True, "data": encoded}))
+            await consumer.send(
+                text_data=json.dumps({"compressed": True, "data": encoded})
+            )
         elif USE_MSGPACK:
             # Use binary msgpack format for efficiency (supported by Swift MessagePack libraries)
             binary_data = msgpack.packb(message, use_bin_type=True)
@@ -124,7 +132,9 @@ async def send_bulk_to_clients(
     # Determine compression once
     if compress is None:
         serialized = json.dumps(base_message).encode("utf-8")
-        should_compress = ENABLE_COMPRESSION and len(serialized) >= COMPRESSION_THRESHOLD
+        should_compress = (
+            ENABLE_COMPRESSION and len(serialized) >= COMPRESSION_THRESHOLD
+        )
     else:
         should_compress = compress and ENABLE_COMPRESSION
         serialized = json.dumps(base_message).encode("utf-8")
@@ -176,7 +186,6 @@ def get_client_preferences(user_id: str) -> Dict[str, Any]:
     """
     try:
         from apps.authapp.models import User
-        from apps.customersapp.models import Customer
 
         user = User.objects.get(id=user_id)
 

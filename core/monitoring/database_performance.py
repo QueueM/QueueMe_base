@@ -64,7 +64,9 @@ def stop_query_timer() -> Optional[Dict[str, Any]]:
     queries = connection.queries[previous_query_count:new_query_count]
 
     # Track slow queries for analysis
-    slow_query_threshold = getattr(settings, "SLOW_QUERY_THRESHOLD", DEFAULT_SLOW_QUERY_THRESHOLD)
+    slow_query_threshold = getattr(
+        settings, "SLOW_QUERY_THRESHOLD", DEFAULT_SLOW_QUERY_THRESHOLD
+    )
 
     slow_queries = []
     total_slow_query_time = 0

@@ -32,7 +32,9 @@ DEFAULT_FIREBASE_CREDENTIALS = getattr(
 )
 
 # Default APNs certificate path
-DEFAULT_APNS_CERT_PATH = getattr(settings, "APNS_CERT_PATH", "credentials/apns-cert.pem")
+DEFAULT_APNS_CERT_PATH = getattr(
+    settings, "APNS_CERT_PATH", "credentials/apns-cert.pem"
+)
 
 # Default VAPID keys for Web Push
 DEFAULT_VAPID_PUBLIC_KEY = getattr(settings, "VAPID_PUBLIC_KEY", None)
@@ -41,7 +43,9 @@ DEFAULT_VAPID_CLAIM_EMAIL = getattr(settings, "VAPID_CLAIM_EMAIL", "admin@queuem
 
 # Notification scheduler settings
 DEFAULT_BATCH_SIZE = getattr(settings, "NOTIFICATION_BATCH_SIZE", 100)
-DEFAULT_RATE_LIMIT = getattr(settings, "NOTIFICATION_RATE_LIMIT", 60)  # notifications per minute
+DEFAULT_RATE_LIMIT = getattr(
+    settings, "NOTIFICATION_RATE_LIMIT", 60
+)  # notifications per minute
 
 # Channel priorities (higher is more important)
 CHANNEL_PRIORITIES = {"push": 3, "sms": 4, "in_app": 2, "email": 1}

@@ -8,7 +8,9 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.authapp.models import User
 
-from .constants import PAYMENT_TYPES, REFUND_STATUSES, TRANSACTION_STATUSES, TRANSACTION_TYPES
+from .constants import (
+    PAYMENT_TYPES,
+)
 
 
 class PaymentStatus(models.TextChoices):
@@ -37,7 +39,9 @@ class PaymentWalletType(models.TextChoices):
     Types of payment wallets for different payment purposes
     """
 
-    SUBSCRIPTION = "subscription", _("Subscription")  # For company subscription payments
+    SUBSCRIPTION = "subscription", _(
+        "Subscription"
+    )  # For company subscription payments
     ADS = "ads", _("Advertising")  # For company advertising payments
     MERCHANT = "merchant", _("Merchant")  # For customer service payments (default)
 
@@ -54,9 +58,15 @@ class PaymentMethod(models.Model):
     )
     type = models.CharField(_("Type"), max_length=20, choices=PAYMENT_TYPES)
     token = models.CharField(_("Token"), max_length=255)
-    last_digits = models.CharField(_("Last Digits"), max_length=4, null=True, blank=True)
-    expiry_month = models.CharField(_("Expiry Month"), max_length=2, null=True, blank=True)
-    expiry_year = models.CharField(_("Expiry Year"), max_length=4, null=True, blank=True)
+    last_digits = models.CharField(
+        _("Last Digits"), max_length=4, null=True, blank=True
+    )
+    expiry_month = models.CharField(
+        _("Expiry Month"), max_length=2, null=True, blank=True
+    )
+    expiry_year = models.CharField(
+        _("Expiry Year"), max_length=4, null=True, blank=True
+    )
     card_brand = models.CharField(_("Card Brand"), max_length=20, null=True, blank=True)
     is_default = models.BooleanField(_("Default"), default=False)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
@@ -107,7 +117,9 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default="SAR")
     description = models.CharField(max_length=255, default="Payment transaction")
-    status = models.CharField(max_length=20, choices=[(s.value, s.value) for s in PaymentStatus])
+    status = models.CharField(
+        max_length=20, choices=[(s.value, s.value) for s in PaymentStatus]
+    )
     payment_method = models.ForeignKey(
         PaymentMethod,
         null=True,
@@ -125,17 +137,21 @@ class Transaction(models.Model):
 
     # --- FIX: Add these fields for generic linkage and transaction type ---
     transaction_type = models.CharField(
-        max_length=40, null=True, blank=True,
-        help_text="Type of transaction (booking, subscription, ad, etc.)"
+        max_length=40,
+        null=True,
+        blank=True,
+        help_text="Type of transaction (booking, subscription, ad, etc.)",
     )
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        help_text="The Django content type of the related object."
+        help_text="The Django content type of the related object.",
     )
-    object_id = models.UUIDField(null=True, blank=True, help_text="ID of the related object.")
+    object_id = models.UUIDField(
+        null=True, blank=True, help_text="ID of the related object."
+    )
     content_object = GenericForeignKey("content_type", "object_id")
     # ----------------------------------------------------------------------
 
@@ -215,7 +231,9 @@ class Refund(models.Model):
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     reason = models.CharField(max_length=255)
-    status = models.CharField(max_length=20, choices=[(s.value, s.value) for s in RefundStatus])
+    status = models.CharField(
+        max_length=20, choices=[(s.value, s.value) for s in RefundStatus]
+    )
     provider_refund_id = models.CharField(max_length=255, null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -341,7 +359,9 @@ class PaymentTransaction(models.Model):
         help_text="The wallet used for this payment",
     )
     external_id = models.CharField(max_length=100, blank=True, null=True)
-    idempotency_key = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    idempotency_key = models.CharField(
+        max_length=255, blank=True, null=True, db_index=True
+    )
     description = models.TextField(blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     source_type = models.CharField(max_length=50, blank=True)

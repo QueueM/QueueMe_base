@@ -50,7 +50,9 @@ class PaymentMethodRecommender:
                 usage_count=Count("id"),
                 success_rate=Count(
                     "id",
-                    filter=Q(status__in=["succeeded", "refunded", "partially_refunded"]),
+                    filter=Q(
+                        status__in=["succeeded", "refunded", "partially_refunded"]
+                    ),
                 )
                 * 100.0
                 / Count("id"),
@@ -83,7 +85,9 @@ class PaymentMethodRecommender:
             score += normalized_usage * USAGE_WEIGHT
 
             # Success rate factor
-            success_rate = usage_data.get("success_rate", 100.0 if usage_count == 0 else 0.0)
+            success_rate = usage_data.get(
+                "success_rate", 100.0 if usage_count == 0 else 0.0
+            )
             normalized_success = success_rate / 100.0
             score += normalized_success * SUCCESS_RATE_WEIGHT
 
@@ -116,7 +120,9 @@ class PaymentMethodRecommender:
 
             # Filter out methods that are already saved
             saved_types = [m.type for m in saved_methods]
-            generic_methods = [m for m in generic_methods if m["type"] not in saved_types]
+            generic_methods = [
+                m for m in generic_methods if m["type"] not in saved_types
+            ]
 
             # Add generic methods with lower scores
             for method in generic_methods:

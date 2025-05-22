@@ -223,7 +223,9 @@ class CompanyDocumentViewSetTestCase(TestCase):
         ) as mock_has_perm:
             mock_has_perm.return_value = True
 
-            url = reverse("company-documents-verify", args=[self.company.id, self.document.id])
+            url = reverse(
+                "company-documents-verify", args=[self.company.id, self.document.id]
+            )
             data = {"is_verified": True}
             response = self.client.patch(url, data)
 
@@ -238,7 +240,9 @@ class CompanyDocumentViewSetTestCase(TestCase):
     def test_delete_document(self):
         """Test deleting a document"""
         self.client.force_authenticate(user=self.user)
-        url = reverse("company-documents-detail", args=[self.company.id, self.document.id])
+        url = reverse(
+            "company-documents-detail", args=[self.company.id, self.document.id]
+        )
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

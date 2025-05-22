@@ -65,7 +65,9 @@ def check_pending_transactions():
                     transaction.status = "succeeded"
                 else:
                     transaction.status = "failed"
-                    transaction.failure_message = status.get("message", "Transaction timed out")
+                    transaction.failure_message = status.get(
+                        "message", "Transaction timed out"
+                    )
 
                 transaction.metadata.update(status)
                 transaction.save()

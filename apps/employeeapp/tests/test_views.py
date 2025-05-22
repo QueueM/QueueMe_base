@@ -130,7 +130,9 @@ class EmployeeViewSetTest(APITestCase):
             "shop": str(self.shop.id),
         }
 
-        response = self.admin_client.post(self.list_url, new_employee_data, format="json")
+        response = self.admin_client.post(
+            self.list_url, new_employee_data, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Employee.objects.count(), 3)
 
@@ -212,11 +214,15 @@ class EmployeeWorkingHoursViewSetTest(APITestCase):
         }
 
         # Admin should be able to create working hours
-        response = self.admin_client.post(self.list_url, working_hours_data, format="json")
+        response = self.admin_client.post(
+            self.list_url, working_hours_data, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Verify working hours were created
-        working_hours = EmployeeWorkingHours.objects.get(employee=self.employee, weekday=0)
+        working_hours = EmployeeWorkingHours.objects.get(
+            employee=self.employee, weekday=0
+        )
         self.assertEqual(working_hours.from_hour.strftime("%H:%M"), "09:00")
         self.assertEqual(working_hours.to_hour.strftime("%H:%M"), "17:00")
         self.assertFalse(working_hours.is_day_off)

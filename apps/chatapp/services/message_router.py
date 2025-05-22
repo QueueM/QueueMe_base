@@ -53,7 +53,9 @@ class MessageRouter:
             score += workload_score * 0.4  # 40% weight for workload
 
             # Expertise match (if message contains service keywords)
-            expertise_score = MessageRouter._calculate_expertise_match(message.content, staff)
+            expertise_score = MessageRouter._calculate_expertise_match(
+                message.content, staff
+            )
             score += expertise_score * 0.3  # 30% weight for expertise
 
             # Response time history
@@ -105,7 +107,9 @@ class MessageRouter:
     def _is_staff_overloaded(staff, threshold=10):
         """Check if staff has too many active conversations"""
         active_conversations = (
-            Conversation.objects.filter(messages__employee=staff, is_active=True).distinct().count()
+            Conversation.objects.filter(messages__employee=staff, is_active=True)
+            .distinct()
+            .count()
         )
 
         return active_conversations >= threshold
@@ -115,7 +119,9 @@ class MessageRouter:
         """Calculate score based on staff's current workload (lower is better)"""
         # Count active conversations where staff sent a message
         active_conversations = (
-            Conversation.objects.filter(messages__employee=staff, is_active=True).distinct().count()
+            Conversation.objects.filter(messages__employee=staff, is_active=True)
+            .distinct()
+            .count()
         )
 
         # Invert score (fewer conversations = higher score)
@@ -173,7 +179,9 @@ class MessageRouter:
 
         # This query finds messages pairs (customer -> staff response)
         # and calculates average time difference
-        conversations = Conversation.objects.filter(messages__employee=staff).values("id")
+        conversations = Conversation.objects.filter(messages__employee=staff).values(
+            "id"
+        )
 
         # If no previous conversations, return neutral score
         if not conversations:
@@ -184,7 +192,9 @@ class MessageRouter:
 
         for conv in conversations:
             # Get messages in this conversation
-            messages = Message.objects.filter(conversation_id=conv["id"]).order_by("created_at")
+            messages = Message.objects.filter(conversation_id=conv["id"]).order_by(
+                "created_at"
+            )
 
             # Find customer-staff message pairs
             customer_msgs = messages.filter(employee__isnull=True)

@@ -52,7 +52,9 @@ class TimeSlot:
             True if the slots overlap, False otherwise
         """
         # Start time of one slot is between start and end of the other
-        if (self.start <= other.start < self.end) or (other.start <= self.start < other.end):
+        if (self.start <= other.start < self.end) or (
+            other.start <= self.start < other.end
+        ):
             return True
         return False
 
@@ -165,7 +167,9 @@ class SlotGenerator:
         # 2. Apply service availability constraints if provided
         available_slots = base_slots
         if service_availability:
-            service_slots = self._apply_service_availability(base_slots, service_availability)
+            service_slots = self._apply_service_availability(
+                base_slots, service_availability
+            )
             available_slots = self._intersect_slot_lists(available_slots, service_slots)
 
         # 3. Apply specialist availability if provided
@@ -173,7 +177,9 @@ class SlotGenerator:
             specialist_slots = self._apply_specialist_availability(
                 available_slots, specialist_hours, specialist_ids
             )
-            available_slots = self._intersect_slot_lists(available_slots, specialist_slots)
+            available_slots = self._intersect_slot_lists(
+                available_slots, specialist_slots
+            )
 
         # 4. Remove booked slots
         if existing_bookings:
@@ -231,7 +237,10 @@ class SlotGenerator:
         if shop_hours:
             shop_hours_str = json.dumps(
                 [
-                    {k: v.strftime("%H:%M") if isinstance(v, time) else v for k, v in hour.items()}
+                    {
+                        k: v.strftime("%H:%M") if isinstance(v, time) else v
+                        for k, v in hour.items()
+                    }
                     for hour in shop_hours
                 ],
                 sort_keys=True,
@@ -242,23 +251,33 @@ class SlotGenerator:
         if service_availability:
             service_avail_str = json.dumps(
                 [
-                    {k: v.strftime("%H:%M") if isinstance(v, time) else v for k, v in avail.items()}
+                    {
+                        k: v.strftime("%H:%M") if isinstance(v, time) else v
+                        for k, v in avail.items()
+                    }
                     for avail in service_availability
                 ],
                 sort_keys=True,
             )
-            params["service_availability"] = hashlib.md5(service_avail_str.encode()).hexdigest()
+            params["service_availability"] = hashlib.md5(
+                service_avail_str.encode()
+            ).hexdigest()
 
         # Add specialist_hours hash
         if specialist_hours:
             specialist_hours_str = json.dumps(
                 [
-                    {k: v.strftime("%H:%M") if isinstance(v, time) else v for k, v in hour.items()}
+                    {
+                        k: v.strftime("%H:%M") if isinstance(v, time) else v
+                        for k, v in hour.items()
+                    }
                     for hour in specialist_hours
                 ],
                 sort_keys=True,
             )
-            params["specialist_hours"] = hashlib.md5(specialist_hours_str.encode()).hexdigest()
+            params["specialist_hours"] = hashlib.md5(
+                specialist_hours_str.encode()
+            ).hexdigest()
 
         # Add existing_bookings hash
         if existing_bookings:
@@ -273,7 +292,9 @@ class SlotGenerator:
                             else ""
                         ),
                         "end_time": (
-                            booking.get("end_time").isoformat() if booking.get("end_time") else ""
+                            booking.get("end_time").isoformat()
+                            if booking.get("end_time")
+                            else ""
                         ),
                         "specialist_id": str(booking.get("specialist_id", "")),
                     }
@@ -465,7 +486,9 @@ class SlotGenerator:
                     if remaining.overlaps(booked):
                         # Split into before and after segments if needed
                         if remaining.start < booked.start:
-                            new_remaining.append(TimeSlot(remaining.start, booked.start))
+                            new_remaining.append(
+                                TimeSlot(remaining.start, booked.start)
+                            )
                         if booked.end < remaining.end:
                             new_remaining.append(TimeSlot(booked.end, remaining.end))
                     else:
@@ -513,7 +536,9 @@ class SlotGenerator:
             current = slot_start + timedelta(minutes=buffer_before)
 
             # Generate slots until we reach end minus total duration
-            while current + timedelta(minutes=service_duration + buffer_after) <= slot_end:
+            while (
+                current + timedelta(minutes=service_duration + buffer_after) <= slot_end
+            ):
                 start_time = current.time()
                 end_time = (current + timedelta(minutes=service_duration)).time()
 
@@ -524,7 +549,9 @@ class SlotGenerator:
 
         return discrete_slots
 
-    def _intersect_slot_lists(self, list1: List[TimeSlot], list2: List[TimeSlot]) -> List[TimeSlot]:
+    def _intersect_slot_lists(
+        self, list1: List[TimeSlot], list2: List[TimeSlot]
+    ) -> List[TimeSlot]:
         """
         Find the intersection of two lists of time slots.
 
@@ -579,7 +606,9 @@ class SlotGenerator:
 
         return merged
 
-    def _format_slots(self, slots: List[TimeSlot], duration: int) -> List[Dict[str, Any]]:
+    def _format_slots(
+        self, slots: List[TimeSlot], duration: int
+    ) -> List[Dict[str, Any]]:
         """
         Format time slots for API response.
 
@@ -598,7 +627,9 @@ class SlotGenerator:
                     "start": slot.start.strftime("%H:%M"),  # 24-hour format
                     "end": slot.end.strftime("%H:%M"),
                     "duration": duration,
-                    "start_formatted": slot.start.strftime("%I:%M %p"),  # 12-hour format with AM/PM
+                    "start_formatted": slot.start.strftime(
+                        "%I:%M %p"
+                    ),  # 12-hour format with AM/PM
                     "end_formatted": slot.end.strftime("%I:%M %p"),
                 }
             )

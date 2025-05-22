@@ -10,17 +10,10 @@ from datetime import datetime, timedelta
 
 import numpy as np
 from django.core.cache import cache
-from django.db import connection
-from django.db.models import Avg, Count, ExpressionWrapper, F, FloatField, Q
 
 from apps.categoriesapp.models import Category
-from apps.customersapp.models import Customer
 from apps.followapp.models import Follow
-from apps.geoapp.models import Location
 from apps.reelsapp.models import Reel, ReelComment, ReelLike, ReelView
-from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop
-from apps.storiesapp.models import Story, StoryView
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +102,9 @@ class ContentRecommendationService:
         )
 
         commented_reels = set(
-            ReelComment.objects.filter(customer=customer).values_list("reel_id", flat=True)
+            ReelComment.objects.filter(customer=customer).values_list(
+                "reel_id", flat=True
+            )
         )
 
         # Get user preferences
@@ -128,8 +123,12 @@ class ContentRecommendationService:
             # Calculate content score components
             recency_score = self._calculate_recency_score(reel.created_at)
             popularity_score = self._get_content_popularity_score(reel)
-            relevance_score = self._calculate_relevance_score(reel, preferred_categories)
-            engagement_score = self._calculate_engagement_score(reel, liked_reels, commented_reels)
+            relevance_score = self._calculate_relevance_score(
+                reel, preferred_categories
+            )
+            engagement_score = self._calculate_engagement_score(
+                reel, liked_reels, commented_reels
+            )
 
             # Merge scores with weights
             total_score = (
@@ -191,11 +190,17 @@ class ContentRecommendationService:
                 distance_score = np.exp(-0.2 * distance)  # Decay parameter can be tuned
 
                 # Get some personalization factors
-                recency_score = self._calculate_recency_score(content_item["content"].created_at)
-                popularity_score = self._get_content_popularity_score(content_item["content"])
+                recency_score = self._calculate_recency_score(
+                    content_item["content"].created_at
+                )
+                popularity_score = self._get_content_popularity_score(
+                    content_item["content"]
+                )
 
                 # Calculate total score (mostly distance, with some personalization)
-                total_score = distance_score * 0.7 + recency_score * 0.2 + popularity_score * 0.1
+                total_score = (
+                    distance_score * 0.7 + recency_score * 0.2 + popularity_score * 0.1
+                )
 
                 scored_content.append(
                     {
@@ -391,7 +396,9 @@ class ContentRecommendationService:
         # No match
         return 0.3
 
-    def _calculate_engagement_score(self, content, liked_content_ids, commented_content_ids):
+    def _calculate_engagement_score(
+        self, content, liked_content_ids, commented_content_ids
+    ):
         """
         Calculate an engagement score based on the user's past interactions
         """
@@ -413,7 +420,9 @@ class ContentRecommendationService:
         """
         # Look at views, likes, bookings to determine preferences
         liked_content = ReelLike.objects.filter(customer=customer)
-        liked_content_with_categories = liked_content.select_related("reel__service__category")
+        liked_content_with_categories = liked_content.select_related(
+            "reel__service__category"
+        )
 
         # Extract categories from liked content
         category_ids = set()
@@ -454,7 +463,9 @@ class ContentRecommendationService:
         from apps.bookingapp.models import Appointment
 
         booked_shops = set(
-            Appointment.objects.filter(customer=customer).values_list("service__shop_id", flat=True)
+            Appointment.objects.filter(customer=customer).values_list(
+                "service__shop_id", flat=True
+            )
         )
 
         # Combine all preferred shops
@@ -579,4 +590,3 @@ class ContentRecommendationService:
         """
         # This would be implemented with a more sophisticated approach
         # such as collaborative filtering with matrix factorization
-        pass

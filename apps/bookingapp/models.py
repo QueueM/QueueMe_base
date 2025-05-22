@@ -82,7 +82,9 @@ class Appointment(models.Model):
         db_index=True,
     )
     notes = models.TextField(_("Notes"), blank=True)
-    transaction_id = models.CharField(_("Transaction ID"), max_length=100, null=True, blank=True)
+    transaction_id = models.CharField(
+        _("Transaction ID"), max_length=100, null=True, blank=True
+    )
     payment_status = models.CharField(
         _("Payment Status"),
         max_length=20,
@@ -102,7 +104,9 @@ class Appointment(models.Model):
     cancellation_reason = models.TextField(_("Cancellation Reason"), blank=True)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
-    total_price = models.DecimalField(_("Total Price"), max_digits=10, decimal_places=2, default=0)
+    total_price = models.DecimalField(
+        _("Total Price"), max_digits=10, decimal_places=2, default=0
+    )
     buffer_before = models.PositiveIntegerField(_("Buffer Before (minutes)"), default=0)
     buffer_after = models.PositiveIntegerField(_("Buffer After (minutes)"), default=0)
     duration = models.PositiveIntegerField(_("Duration (minutes)"), default=0)
@@ -314,7 +318,11 @@ class Booking(models.Model):
 
     # Status
     status = models.ForeignKey(
-        BookingStatus, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Status")
+        BookingStatus,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Status"),
     )
 
     # Additional information
@@ -343,7 +351,9 @@ class MultiServiceBooking(models.Model):
         null=True,  # Allow null for existing records
         verbose_name=_("Booking"),
     )
-    service_name = models.CharField(_("Service Name"), max_length=255, default="Unknown Service")
+    service_name = models.CharField(
+        _("Service Name"), max_length=255, default="Unknown Service"
+    )
     duration = models.IntegerField(_("Duration (minutes)"), default=30)
     price = models.DecimalField(_("Price"), max_digits=10, decimal_places=2, default=0)
 

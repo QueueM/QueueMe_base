@@ -45,9 +45,9 @@ def error_404_view(request: HttpRequest, exception=None) -> HttpResponse:
     )
 
     # Check if API request (based on path or Accept header)
-    is_api_request = request.path.startswith("/api/") or "application/json" in request.META.get(
-        "HTTP_ACCEPT", ""
-    )
+    is_api_request = request.path.startswith(
+        "/api/"
+    ) or "application/json" in request.META.get("HTTP_ACCEPT", "")
 
     if is_api_request:
         # Return JSON response for API requests
@@ -89,9 +89,9 @@ def error_500_view(request: HttpRequest, *args, **kwargs) -> HttpResponse:
         logger.error(f"500 Error in {request.path}\n{traceback.format_exc()}")
 
     # Check if API request
-    is_api_request = request.path.startswith("/api/") or "application/json" in request.META.get(
-        "HTTP_ACCEPT", ""
-    )
+    is_api_request = request.path.startswith(
+        "/api/"
+    ) or "application/json" in request.META.get("HTTP_ACCEPT", "")
 
     if is_api_request:
         # Return JSON response for API requests
@@ -203,7 +203,9 @@ def custom_exception_handler(exc, context):
         else:
             # Try to get error code from exception class name
             error_code = (
-                exc.__class__.__name__.lower().replace("error", "").replace("exception", "")
+                exc.__class__.__name__.lower()
+                .replace("error", "")
+                .replace("exception", "")
             )
 
         # Extract original data

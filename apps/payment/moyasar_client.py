@@ -8,7 +8,6 @@ supporting the three wallets (subscription, ads, merchant).
 import base64
 import hashlib
 import hmac
-import json
 import logging
 from decimal import Decimal
 
@@ -114,7 +113,9 @@ class MoyasarClient:
 
         try:
             # Make API request
-            response = requests.post(PAYMENTS_ENDPOINT, json=payload, headers=headers, timeout=30)
+            response = requests.post(
+                PAYMENTS_ENDPOINT, json=payload, headers=headers, timeout=30
+            )
 
             # Parse response
             result = response.json()
@@ -125,7 +126,8 @@ class MoyasarClient:
                     "success": True,
                     "transaction_id": result["id"],
                     "status": PaymentStatus.COMPLETED,
-                    "amount": Decimal(result["amount"]) / 100,  # Convert from halalas to SAR
+                    "amount": Decimal(result["amount"])
+                    / 100,  # Convert from halalas to SAR
                     "currency": result["currency"],
                     "source": result.get("source", {}),
                     "fee": Decimal(result.get("fee", 0)) / 100,
@@ -161,7 +163,9 @@ class MoyasarClient:
                 "status": PaymentStatus.FAILED,
             }
 
-    def process_refund(self, payment_id, amount=None, reason=None, idempotency_key=None):
+    def process_refund(
+        self, payment_id, amount=None, reason=None, idempotency_key=None
+    ):
         """
         Process a refund for a payment
 
@@ -194,7 +198,9 @@ class MoyasarClient:
         try:
             # Make API request
             refund_url = REFUNDS_ENDPOINT.format(payment_id)
-            response = requests.post(refund_url, json=payload, headers=headers, timeout=30)
+            response = requests.post(
+                refund_url, json=payload, headers=headers, timeout=30
+            )
 
             # Parse response
             result = response.json()
@@ -205,7 +211,8 @@ class MoyasarClient:
                     "success": True,
                     "refund_id": result["id"],
                     "payment_id": result["payment_id"],
-                    "amount": Decimal(result["amount"]) / 100,  # Convert from halalas to SAR
+                    "amount": Decimal(result["amount"])
+                    / 100,  # Convert from halalas to SAR
                     "reason": result.get("reason"),
                     "created_at": result.get("created_at"),
                     "raw_response": result,

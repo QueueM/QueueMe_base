@@ -85,7 +85,9 @@ class JWTAuthMiddleware(MiddlewareMixin):
 
         if not auth_header.startswith("Bearer "):
             return JsonResponse(
-                {"detail": "Authentication required. Please provide a valid Bearer token."},
+                {
+                    "detail": "Authentication required. Please provide a valid Bearer token."
+                },
                 status=401,
             )
 
@@ -118,7 +120,9 @@ class JWTAuthMiddleware(MiddlewareMixin):
             auth_time = time.time() - request._auth_start_time
             # Only log if it took longer than 50ms
             if auth_time > 0.05:
-                logger.warning(f"Auth middleware took {auth_time:.3f}s for {request.path}")
+                logger.warning(
+                    f"Auth middleware took {auth_time:.3f}s for {request.path}"
+                )
 
         return response
 
@@ -145,7 +149,11 @@ class JWTAuthMiddleware(MiddlewareMixin):
         requests = cache.get(cache_key, [])
 
         # Remove old requests outside the window
-        requests = [ts for ts in requests if now - ts < timedelta(seconds=self.RATE_LIMIT_WINDOW)]
+        requests = [
+            ts
+            for ts in requests
+            if now - ts < timedelta(seconds=self.RATE_LIMIT_WINDOW)
+        ]
 
         # Check if we're over the limit
         if len(requests) >= self.MAX_REQUESTS_PER_WINDOW:

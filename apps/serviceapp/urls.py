@@ -13,7 +13,9 @@ from .views import (
 
 router = DefaultRouter()
 router.register(r"services", ServiceViewSet, basename="service")
-router.register(r"services/(?P<service_id>[^/.]+)/faqs", ServiceFAQViewSet, basename="service-faq")
+router.register(
+    r"services/(?P<service_id>[^/.]+)/faqs", ServiceFAQViewSet, basename="service-faq"
+)
 router.register(
     r"services/(?P<service_id>[^/.]+)/availability",
     ServiceAvailabilityViewSet,

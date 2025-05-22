@@ -14,7 +14,9 @@ from .distance import distance_between
 logger = logging.getLogger(__name__)
 
 
-def is_in_same_city(customer_location: Dict[str, Any], content_location: Dict[str, Any]) -> bool:
+def is_in_same_city(
+    customer_location: Dict[str, Any], content_location: Dict[str, Any]
+) -> bool:
     """
     Determine if a customer and content are in the same city.
 
@@ -32,7 +34,9 @@ def is_in_same_city(customer_location: Dict[str, Any], content_location: Dict[st
     return customer_city == content_city
 
 
-def is_in_same_region(customer_location: Dict[str, Any], content_location: Dict[str, Any]) -> bool:
+def is_in_same_region(
+    customer_location: Dict[str, Any], content_location: Dict[str, Any]
+) -> bool:
     """
     Determine if a customer and content are in the same broader region.
 
@@ -101,7 +105,9 @@ def filter_visible_content(
             continue
 
         # If not strict matching, check region match
-        if not strict_city_match and not is_in_same_region(customer_location, content_location):
+        if not strict_city_match and not is_in_same_region(
+            customer_location, content_location
+        ):
             continue
 
         # Check distance constraint if coordinates are available and max_distance is set
@@ -147,7 +153,9 @@ def filter_visible_content(
                         "latitude": content_location["latitude"],
                         "longitude": content_location["longitude"],
                     }
-                    item["distance_km"] = distance_between(customer_coords, content_coords)
+                    item["distance_km"] = distance_between(
+                        customer_coords, content_coords
+                    )
                 else:
                     # Default to a large distance if coordinates not available
                     item["distance_km"] = float("inf")

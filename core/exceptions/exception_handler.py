@@ -10,7 +10,6 @@ import socket
 import traceback
 from typing import Any, Dict, Optional
 
-import requests
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.utils import (
@@ -22,9 +21,14 @@ from django.db.utils import (
 )
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
-from requests.exceptions import ConnectionError, RequestException, Timeout
+from requests.exceptions import ConnectionError, Timeout
 from rest_framework import status
-from rest_framework.exceptions import APIException, NotAuthenticated, NotFound, ValidationError
+from rest_framework.exceptions import (
+    APIException,
+    NotAuthenticated,
+    NotFound,
+    ValidationError,
+)
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
 
@@ -70,7 +74,11 @@ def get_error_code(exception: Exception) -> str:
         return exception.error_code
     else:
         # Convert exception class name to snake case
-        return exception.__class__.__name__.lower().replace("error", "").replace("exception", "")
+        return (
+            exception.__class__.__name__.lower()
+            .replace("error", "")
+            .replace("exception", "")
+        )
 
 
 def get_error_message(exception: Exception, error_code: str) -> str:
@@ -170,7 +178,9 @@ def exception_handler(exc: Exception, context: Dict[str, Any]) -> Response:
     error_details = get_error_details(exc)
 
     # Log the exception with appropriate level
-    if isinstance(exc, (ValidationError, Http404, NotFound, NotAuthenticated, PermissionDenied)):
+    if isinstance(
+        exc, (ValidationError, Http404, NotFound, NotAuthenticated, PermissionDenied)
+    ):
         # Less severe errors
         logger.warning(
             f"Exception: {error_code} - {error_message}\n"
@@ -208,7 +218,9 @@ def exception_handler(exc: Exception, context: Dict[str, Any]) -> Response:
         return Response(
             {
                 "error": "network_error",
-                "message": _("Network error. Please check your connection and try again."),
+                "message": _(
+                    "Network error. Please check your connection and try again."
+                ),
                 "details": error_details or {"type": "connection_error"},
             },
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -246,12 +258,12 @@ def log_exception(request, exception):
 
     # Get user information if authenticated
     if hasattr(request, "user") and request.user.is_authenticated:
-        user_info = (
-            f"ID: {request.user.id}, Phone: {getattr(request.user, 'phone_number', 'unknown')}"
-        )
+        user_info = f"ID: {request.user.id}, Phone: {getattr(request.user, 'phone_number', 'unknown')}"
 
     # Get client IP
-    client_ip = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", "unknown"))
+    client_ip = request.META.get(
+        "HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", "unknown")
+    )
 
     # Log exception details
     logger.error(

@@ -11,7 +11,10 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 from apps.reviewapp.filters import (
     PlatformReviewFilter,
     ReviewReportFilter,
@@ -102,7 +105,9 @@ class ReviewViewSet(viewsets.ViewSet):
         elif review_type == "platform":
             return self.get_platform_review_viewset()(request)
         else:
-            return Response({"error": _("Invalid review type")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": _("Invalid review type")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     @document_api_endpoint(
         summary="Create review",
@@ -127,7 +132,9 @@ class ReviewViewSet(viewsets.ViewSet):
         elif review_type == "platform":
             return self.get_platform_review_viewset()(request)
         else:
-            return Response({"error": _("Invalid review type")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": _("Invalid review type")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     # Add this line at the end to ensure the ViewSet has a queryset attribute
     # needed for router registration
@@ -180,7 +187,9 @@ class ShopReviewViewSet(viewsets.ModelViewSet):
         path_params=[{"name": "pk", "description": "Review ID", "type": "string"}],
         tags=["Reviews", "Shops", "Helpfulness"],
     )
-    @action(detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness])
+    @action(
+        detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness]
+    )
     def helpful(self, request, pk=None):
         """Mark review as helpful/not helpful"""
         review = self.get_object()
@@ -318,7 +327,9 @@ class SpecialistReviewViewSet(viewsets.ModelViewSet):
         path_params=[{"name": "pk", "description": "Review ID", "type": "string"}],
         tags=["Reviews", "Specialists", "Helpfulness"],
     )
-    @action(detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness])
+    @action(
+        detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness]
+    )
     def helpful(self, request, pk=None):
         """Mark review as helpful/not helpful"""
         review = self.get_object()
@@ -456,7 +467,9 @@ class ServiceReviewViewSet(viewsets.ModelViewSet):
         path_params=[{"name": "pk", "description": "Review ID", "type": "string"}],
         tags=["Reviews", "Services", "Helpfulness"],
     )
-    @action(detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness])
+    @action(
+        detail=True, methods=["post"], permission_classes=[CanVoteReviewHelpfulness]
+    )
     def helpful(self, request, pk=None):
         """Mark review as helpful/not helpful"""
         review = self.get_object()
@@ -573,7 +586,9 @@ class PlatformReviewViewSet(viewsets.ModelViewSet):
         user = self.request.user
 
         # Queue Me admins can see all
-        if user.is_authenticated and PermissionResolver.has_permission(user, "review", "view"):
+        if user.is_authenticated and PermissionResolver.has_permission(
+            user, "review", "view"
+        ):
             return queryset
 
         # Companies can see their own reviews
@@ -581,7 +596,9 @@ class PlatformReviewViewSet(viewsets.ModelViewSet):
             # Check if user is company owner
             from apps.companiesapp.models import Company
 
-            company_ids = Company.objects.filter(owner=user).values_list("id", flat=True)
+            company_ids = Company.objects.filter(owner=user).values_list(
+                "id", flat=True
+            )
 
             # Check if user is shop manager for any company
             from apps.shopapp.models import Shop
@@ -670,7 +687,9 @@ class ReviewReportViewSet(viewsets.ReadOnlyModelViewSet):
 
         status_val = request.data.get("status")
         if status_val not in ["reviewed", "resolved", "rejected"]:
-            return Response({"error": _("Invalid status.")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": _("Invalid status.")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Update report status
         report.status = status_val
@@ -758,7 +777,9 @@ class ReviewMetricViewSet(viewsets.ReadOnlyModelViewSet):
             app_label, model = entity_type.split(".")
             content_type = ContentType.objects.get(app_label=app_label, model=model)
         except (ValueError, ContentType.DoesNotExist):
-            return Response({"error": _("Invalid entity type")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": _("Invalid entity type")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Get or create metrics
         metrics, created = ReviewMetric.objects.get_or_create(

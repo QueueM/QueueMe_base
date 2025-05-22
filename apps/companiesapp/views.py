@@ -11,7 +11,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Company, CompanyDocument
-from .permissions import CanManageCompanyDocuments, HasCompanyPermission, IsAdminOrCompanyOwner
+from .permissions import (
+    CanManageCompanyDocuments,
+    HasCompanyPermission,
+    IsAdminOrCompanyOwner,
+)
 from .serializers import (
     CompanyDocumentSerializer,
     CompanySerializer,
@@ -193,9 +197,13 @@ class CompanyViewSet(viewsets.ModelViewSet):
         company = self.get_object()
 
         if not hasattr(company, "settings"):
-            return Response({"detail": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Settings not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
-        serializer = CompanySettingsSerializer(company.settings, data=request.data, partial=True)
+        serializer = CompanySettingsSerializer(
+            company.settings, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

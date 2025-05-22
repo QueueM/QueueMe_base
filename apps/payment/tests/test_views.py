@@ -16,7 +16,9 @@ from ..models import PaymentMethod, Transaction
 class PaymentViewSetTest(TestCase):
     def setUp(self):
         # Create test users
-        self.customer = User.objects.create_user(phone_number="+1234567890", user_type="customer")
+        self.customer = User.objects.create_user(
+            phone_number="+1234567890", user_type="customer"
+        )
 
         self.admin = User.objects.create_user(
             phone_number="+0987654321", user_type="admin", is_staff=True

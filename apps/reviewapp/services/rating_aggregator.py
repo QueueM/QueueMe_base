@@ -8,12 +8,12 @@ with weighted algorithms, trend analysis, and fraud detection.
 import logging
 import math
 import statistics
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import timedelta
+from typing import Any, Dict, Optional
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Avg, Count, ExpressionWrapper, F, FloatField, Q, Sum
+from django.db.models import Avg, Q
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
@@ -41,7 +41,9 @@ class RatingAggregator:
     BAYESIAN_PRIOR_MEAN = 3.0  # Prior mean rating for Bayesian average
 
     @classmethod
-    def calculate_shop_rating(cls, shop_id: str, recalculate_all: bool = False) -> Dict[str, Any]:
+    def calculate_shop_rating(
+        cls, shop_id: str, recalculate_all: bool = False
+    ) -> Dict[str, Any]:
         """
         Calculate the aggregate rating for a shop
 
@@ -79,7 +81,9 @@ class RatingAggregator:
             # Calculate the rating relative to category average
             category_relative_score = 0
             if category_metrics["average"] > 0:
-                category_relative_score = (bayesian_average / category_metrics["average"]) - 1
+                category_relative_score = (
+                    bayesian_average / category_metrics["average"]
+                ) - 1
 
             # Perform fraud detection
             fraud_check = cls._detect_rating_fraud(shop_id, "shop")
@@ -91,7 +95,9 @@ class RatingAggregator:
             if fraud_check["suspected_fraud"]:
                 # Apply penalty to the rating
                 final_rating = min(final_rating, fraud_check["adjusted_rating"])
-                logger.warning(f"Applied fraud adjustment to shop {shop_id}: {fraud_check}")
+                logger.warning(
+                    f"Applied fraud adjustment to shop {shop_id}: {fraud_check}"
+                )
 
             # Calculate rating components by dimension
             dimensions = cls._calculate_dimension_ratings(ratings)
@@ -101,7 +107,9 @@ class RatingAggregator:
                 shop.rating = final_rating
                 shop.rating_count = ratings.count()
                 shop.last_rating_update = timezone.now()
-                shop.save(update_fields=["rating", "rating_count", "last_rating_update"])
+                shop.save(
+                    update_fields=["rating", "rating_count", "last_rating_update"]
+                )
 
             # Return the calculated metrics
             return {
@@ -183,7 +191,9 @@ class RatingAggregator:
                 "simple_average": simple_average,
                 "weighted_average": weighted_average,
                 "bayesian_average": bayesian_average,
-                "shop_relative": ((final_rating / shop_average - 1) if shop_average > 0 else 0),
+                "shop_relative": (
+                    (final_rating / shop_average - 1) if shop_average > 0 else 0
+                ),
                 "service_ratings": service_ratings,
                 "calculated_at": timezone.now(),
             }
@@ -227,7 +237,9 @@ class RatingAggregator:
                     cls.calculate_specialist_rating(specialist.id)
                     specialists_updated += 1
                 except Exception as e:
-                    logger.error(f"Error updating specialist {specialist.id} rating: {e}")
+                    logger.error(
+                        f"Error updating specialist {specialist.id} rating: {e}"
+                    )
                     errors += 1
 
             duration = (timezone.now() - start_time).total_seconds()
@@ -289,7 +301,9 @@ class RatingAggregator:
                 and hasattr(review, "specialist_rating")
                 and review.specialist_rating
             ):
-                specialist_results = cls.calculate_specialist_rating(review.specialist_id)
+                specialist_results = cls.calculate_specialist_rating(
+                    review.specialist_id
+                )
 
             return {
                 "review_id": review_id,
@@ -331,7 +345,9 @@ class RatingAggregator:
 
         # Get recent and older ratings
         recent_ratings = ratings.filter(created_at__gte=recent_cutoff)
-        older_ratings = ratings.filter(created_at__lt=recent_cutoff, created_at__gte=old_cutoff)
+        older_ratings = ratings.filter(
+            created_at__lt=recent_cutoff, created_at__gte=old_cutoff
+        )
 
         # Calculate averages for each time period
         recent_avg = recent_ratings.aggregate(avg=Avg("rating"))["avg"] or 0
@@ -366,9 +382,9 @@ class RatingAggregator:
         # Apply Bayesian average formula: (C × m + R × v) / (C + R)
         # where C is the prior count, m is the prior mean,
         # R is the number of ratings, and v is the average rating
-        bayesian_avg = (cls.BAYESIAN_PRIOR_COUNT * cls.BAYESIAN_PRIOR_MEAN + count * avg) / (
-            cls.BAYESIAN_PRIOR_COUNT + count
-        )
+        bayesian_avg = (
+            cls.BAYESIAN_PRIOR_COUNT * cls.BAYESIAN_PRIOR_MEAN + count * avg
+        ) / (cls.BAYESIAN_PRIOR_COUNT + count)
 
         return round(bayesian_avg, 2)
 
@@ -385,7 +401,7 @@ class RatingAggregator:
         # Convert to positive/negative for Wilson score calculation
         total = ratings.count()
         positive = ratings.filter(rating__gte=4).count()  # 4-5 stars are positive
-        negative = total - positive
+        total - positive
 
         if total == 0:
             return 0
@@ -527,7 +543,9 @@ class RatingAggregator:
                 continue
 
             service_id = appointment.service_id
-            service_name = appointment.service.name if appointment.service else "Unknown Service"
+            service_name = (
+                appointment.service.name if appointment.service else "Unknown Service"
+            )
             rating = getattr(appointment.review, "rating", 0)
 
             if service_id not in service_ratings:
@@ -581,7 +599,9 @@ class RatingAggregator:
         flags = []
 
         # Check for unusual distribution (too many 5-star ratings)
-        five_star_ratio = distribution.get(5, 0) / ratings.count() if ratings.count() > 0 else 0
+        five_star_ratio = (
+            distribution.get(5, 0) / ratings.count() if ratings.count() > 0 else 0
+        )
         if five_star_ratio > 0.9 and ratings.count() >= 10:
             flags.append(
                 {
@@ -603,7 +623,9 @@ class RatingAggregator:
             )
 
         # Check for ratings with no review text
-        empty_reviews = ratings.filter(Q(review_text="") | Q(review_text__isnull=True)).count()
+        empty_reviews = ratings.filter(
+            Q(review_text="") | Q(review_text__isnull=True)
+        ).count()
         empty_ratio = empty_reviews / ratings.count() if ratings.count() > 0 else 0
 
         if empty_ratio > 0.8 and ratings.count() >= 10:
@@ -663,7 +685,9 @@ class RatingAggregator:
         # Check if created very soon after appointment
         if hasattr(review, "appointment") and review.appointment:
             appointment_time = review.appointment.appointment_time
-            if (review.created_at - appointment_time).total_seconds() < 60 * 5:  # 5 minutes
+            if (
+                review.created_at - appointment_time
+            ).total_seconds() < 60 * 5:  # 5 minutes
                 flags += 1
 
         # Check for suspicious words/patterns in text

@@ -80,7 +80,9 @@ class ServiceService:
 
                 # Ensure specialist belongs to the same shop
                 if specialist.employee.shop_id == shop.id:
-                    SpecialistService.objects.create(specialist=specialist, service=service)
+                    SpecialistService.objects.create(
+                        specialist=specialist, service=service
+                    )
 
         return service
 
@@ -207,7 +209,9 @@ class ServiceService:
 
                 # Ensure specialist belongs to the same shop
                 if specialist.employee.shop_id == service.shop_id:
-                    SpecialistService.objects.create(specialist=specialist, service=service)
+                    SpecialistService.objects.create(
+                        specialist=specialist, service=service
+                    )
             except Specialist.DoesNotExist:
                 continue  # Skip invalid specialist
 
@@ -220,13 +224,17 @@ class ServiceService:
         service = Service.objects.get(id=service_id)
         specialist = Specialist.objects.get(id=specialist_id)
 
-        SpecialistService.objects.filter(service=service, specialist=specialist).delete()
+        SpecialistService.objects.filter(
+            service=service, specialist=specialist
+        ).delete()
 
         return service
 
     @staticmethod
     @transaction.atomic
-    def add_service_exception(service_id, date, is_closed, from_hour=None, to_hour=None, reason=""):
+    def add_service_exception(
+        service_id, date, is_closed, from_hour=None, to_hour=None, reason=""
+    ):
         """
         Add a service exception (special day or holiday)
 
@@ -335,7 +343,9 @@ class ServiceService:
 
         # Duplicate specialist assignments if requested
         if include_specialists:
-            specialist_services = SpecialistService.objects.filter(service_id=service_id)
+            specialist_services = SpecialistService.objects.filter(
+                service_id=service_id
+            )
             for specialist_service in specialist_services:
                 specialist_service.pk = None
                 specialist_service.service = service
@@ -370,7 +380,9 @@ class ServiceService:
             # Include subcategories
             from apps.categoriesapp.models import Category
 
-            categories = Category.objects.filter(Q(id=category_id) | Q(parent_id=category_id))
+            categories = Category.objects.filter(
+                Q(id=category_id) | Q(parent_id=category_id)
+            )
             services = services.filter(category__in=categories)
 
         # Filter by service location if provided
@@ -424,7 +436,9 @@ class ServiceService:
         )
 
         # Convert to dictionary for easier lookup
-        booking_dict = {item["service_id"]: item["booking_count"] for item in booking_counts}
+        booking_dict = {
+            item["service_id"]: item["booking_count"] for item in booking_counts
+        }
 
         # Get ratings
         from apps.reviewapp.models import Review
@@ -457,7 +471,9 @@ class ServiceService:
             booking_count = booking_dict.get(service.id, 0)
 
             # Get rating data (default 0)
-            rating_data = rating_dict.get(service_id_str, {"avg_rating": 0, "rating_count": 0})
+            rating_data = rating_dict.get(
+                service_id_str, {"avg_rating": 0, "rating_count": 0}
+            )
             avg_rating = rating_data["avg_rating"] or 0
             rating_count = rating_data["rating_count"]
 
@@ -465,7 +481,9 @@ class ServiceService:
             # Weighted formula: 0.5 * normalized_booking_count + 0.5 * avg_rating
             # Max booking count used for normalization
             max_booking_count = max(booking_dict.values()) if booking_dict else 1
-            normalized_bookings = (booking_count / max_booking_count) * 5  # Scale to 0-5
+            normalized_bookings = (
+                booking_count / max_booking_count
+            ) * 5  # Scale to 0-5
 
             # Apply minimum thresholds to avoid random services with few bookings/ratings
             if booking_count < 3 and rating_count < 3:

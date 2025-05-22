@@ -113,7 +113,9 @@ class BaseReviewSerializer(serializers.ModelSerializer):
     def get_report_count(self, obj):
         """Get count of reports for this review"""
         content_type = ContentType.objects.get_for_model(obj)
-        return ReviewReport.objects.filter(content_type=content_type, object_id=obj.id).count()
+        return ReviewReport.objects.filter(
+            content_type=content_type, object_id=obj.id
+        ).count()
 
     def get_is_helpful(self, obj):
         """Check if current user found review helpful"""
@@ -147,7 +149,9 @@ class ShopReviewSerializer(BaseReviewSerializer):
 
     shop = ShopBasicSerializer(read_only=True)
     shop_id = serializers.UUIDField(write_only=True)
-    related_booking_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
+    related_booking_id = serializers.UUIDField(
+        required=False, allow_null=True, write_only=True
+    )
 
     class Meta(BaseReviewSerializer.Meta):
         model = ShopReview
@@ -179,7 +183,9 @@ class ShopReviewSerializer(BaseReviewSerializer):
                         _("You have already reviewed this shop for this booking")
                     )
             else:
-                raise serializers.ValidationError(_("You have already reviewed this shop"))
+                raise serializers.ValidationError(
+                    _("You have already reviewed this shop")
+                )
 
         # Verify user has visited the shop (has a booking)
         from apps.bookingapp.models import Appointment
@@ -189,7 +195,9 @@ class ShopReviewSerializer(BaseReviewSerializer):
         ).exists()
 
         if not has_booking and "related_booking_id" not in data:
-            raise serializers.ValidationError(_("You must have visited this shop to review it"))
+            raise serializers.ValidationError(
+                _("You must have visited this shop to review it")
+            )
 
         return data
 
@@ -235,7 +243,9 @@ class SpecialistReviewSerializer(BaseReviewSerializer):
 
     specialist = SpecialistBasicSerializer(read_only=True)
     specialist_id = serializers.UUIDField(write_only=True)
-    related_booking_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
+    related_booking_id = serializers.UUIDField(
+        required=False, allow_null=True, write_only=True
+    )
 
     class Meta(BaseReviewSerializer.Meta):
         model = SpecialistReview
@@ -255,7 +265,9 @@ class SpecialistReviewSerializer(BaseReviewSerializer):
         user = request.user
 
         # Check if user has already reviewed this specialist
-        if SpecialistReview.objects.filter(user=user, specialist_id=data["specialist_id"]).exists():
+        if SpecialistReview.objects.filter(
+            user=user, specialist_id=data["specialist_id"]
+        ).exists():
             # Allow if related to a different booking
             if "related_booking_id" in data and data["related_booking_id"]:
                 if SpecialistReview.objects.filter(
@@ -267,7 +279,9 @@ class SpecialistReviewSerializer(BaseReviewSerializer):
                         _("You have already reviewed this specialist for this booking")
                     )
             else:
-                raise serializers.ValidationError(_("You have already reviewed this specialist"))
+                raise serializers.ValidationError(
+                    _("You have already reviewed this specialist")
+                )
 
         # Verify user has had an appointment with the specialist
         from apps.bookingapp.models import Appointment
@@ -278,7 +292,9 @@ class SpecialistReviewSerializer(BaseReviewSerializer):
 
         if not has_booking and "related_booking_id" not in data:
             raise serializers.ValidationError(
-                _("You must have had an appointment with this specialist to review them")
+                _(
+                    "You must have had an appointment with this specialist to review them"
+                )
             )
 
         return data
@@ -325,7 +341,9 @@ class ServiceReviewSerializer(BaseReviewSerializer):
 
     service = ServiceBasicSerializer(read_only=True)
     service_id = serializers.UUIDField(write_only=True)
-    related_booking_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
+    related_booking_id = serializers.UUIDField(
+        required=False, allow_null=True, write_only=True
+    )
 
     class Meta(BaseReviewSerializer.Meta):
         model = ServiceReview
@@ -345,7 +363,9 @@ class ServiceReviewSerializer(BaseReviewSerializer):
         user = request.user
 
         # Check if user has already reviewed this service
-        if ServiceReview.objects.filter(user=user, service_id=data["service_id"]).exists():
+        if ServiceReview.objects.filter(
+            user=user, service_id=data["service_id"]
+        ).exists():
             # Allow if related to a different booking
             if "related_booking_id" in data and data["related_booking_id"]:
                 if ServiceReview.objects.filter(
@@ -357,7 +377,9 @@ class ServiceReviewSerializer(BaseReviewSerializer):
                         _("You have already reviewed this service for this booking")
                     )
             else:
-                raise serializers.ValidationError(_("You have already reviewed this service"))
+                raise serializers.ValidationError(
+                    _("You have already reviewed this service")
+                )
 
         # Verify user has used the service (has a booking)
         from apps.bookingapp.models import Appointment
@@ -367,7 +389,9 @@ class ServiceReviewSerializer(BaseReviewSerializer):
         ).exists()
 
         if not has_booking and "related_booking_id" not in data:
-            raise serializers.ValidationError(_("You must have used this service to review it"))
+            raise serializers.ValidationError(
+                _("You must have used this service to review it")
+            )
 
         return data
 
@@ -435,7 +459,9 @@ class PlatformReviewSerializer(BaseReviewSerializer):
         is_owner = Company.objects.filter(id=data["company_id"], owner=user).exists()
 
         # Check if user is shop manager for the company
-        is_manager = Shop.objects.filter(company_id=data["company_id"], manager=user).exists()
+        is_manager = Shop.objects.filter(
+            company_id=data["company_id"], manager=user
+        ).exists()
 
         if not (is_owner or is_manager):
             raise serializers.ValidationError(
@@ -453,7 +479,9 @@ class PlatformReviewSerializer(BaseReviewSerializer):
 
         if recent_review:
             raise serializers.ValidationError(
-                _("This company has already reviewed the platform within the last 30 days")
+                _(
+                    "This company has already reviewed the platform within the last 30 days"
+                )
             )
 
         return data
@@ -467,7 +495,9 @@ class PlatformReviewSerializer(BaseReviewSerializer):
         user = request.user
 
         # Create the review
-        review = PlatformReview.objects.create(user=user, company_id=company_id, **validated_data)
+        review = PlatformReview.objects.create(
+            user=user, company_id=company_id, **validated_data
+        )
 
         # Platform reviews don't update metrics yet, but we could add this in the future
 
@@ -490,7 +520,9 @@ class ReviewHelpfulnessSerializer(serializers.ModelSerializer):
         # Get content type from string (e.g., 'shopapp.shopreview')
         try:
             app_label, model = data.pop("content_type_str").lower().split(".")
-            data["content_type"] = ContentType.objects.get(app_label=app_label, model=model)
+            data["content_type"] = ContentType.objects.get(
+                app_label=app_label, model=model
+            )
         except (ValueError, ContentType.DoesNotExist):
             raise serializers.ValidationError(_("Invalid review type"))
 
@@ -554,7 +586,9 @@ class ReviewReportSerializer(serializers.ModelSerializer):
         # Get content type from string (e.g., 'shopapp.shopreview')
         try:
             app_label, model = data.pop("content_type_str").lower().split(".")
-            data["content_type"] = ContentType.objects.get(app_label=app_label, model=model)
+            data["content_type"] = ContentType.objects.get(
+                app_label=app_label, model=model
+            )
         except (ValueError, ContentType.DoesNotExist):
             raise serializers.ValidationError(_("Invalid review type"))
 
@@ -579,7 +613,9 @@ class ReviewReportSerializer(serializers.ModelSerializer):
         ).exists()
 
         if existing_report:
-            raise serializers.ValidationError(_("You have already reported this review"))
+            raise serializers.ValidationError(
+                _("You have already reported this review")
+            )
 
         return data
 

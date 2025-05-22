@@ -1,11 +1,8 @@
 import logging
 import os
-import subprocess
 from pathlib import Path
 
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.translation import gettext_lazy as _
 
 
 class Command(BaseCommand):
@@ -40,7 +37,7 @@ class Command(BaseCommand):
             level=logging.INFO,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
-        logger = logging.getLogger("api_docs")
+        logging.getLogger("api_docs")
 
         # Get parameters
         output_dir = options["output_dir"]
@@ -58,7 +55,9 @@ class Command(BaseCommand):
         # Check if documentation already exists and if we should overwrite
         if not force and (output_path / "swagger.json").exists():
             self.stdout.write(
-                self.style.WARNING("API documentation already exists. Use --force to overwrite.")
+                self.style.WARNING(
+                    "API documentation already exists. Use --force to overwrite."
+                )
             )
             return
 
@@ -88,12 +87,16 @@ class Command(BaseCommand):
                     from shutil import copy
 
                     copy(landing_path / "index.html", output_path / "index.html")
-                    self.stdout.write(self.style.SUCCESS("Copied landing page to output directory"))
+                    self.stdout.write(
+                        self.style.SUCCESS("Copied landing page to output directory")
+                    )
 
             # Apply fixes if api_docs_fix.py exists
             api_docs_fix_path = Path("api_docs_fix.py")
             if api_docs_fix_path.exists():
-                self.stdout.write(self.style.HTTP_INFO("Applying documentation fixes..."))
+                self.stdout.write(
+                    self.style.HTTP_INFO("Applying documentation fixes...")
+                )
 
                 try:
                     from api_docs_fix import fix_api_docs
@@ -104,7 +107,9 @@ class Command(BaseCommand):
                     )
                 except ImportError:
                     self.stdout.write(
-                        self.style.WARNING("Could not import api_docs_fix. Skipping fixes.")
+                        self.style.WARNING(
+                            "Could not import api_docs_fix. Skipping fixes."
+                        )
                     )
 
             # Set proper permissions
@@ -117,7 +122,9 @@ class Command(BaseCommand):
                     os.chmod(file_path, 0o644)
 
             # Success message
-            self.stdout.write(self.style.SUCCESS("API documentation generated successfully!"))
+            self.stdout.write(
+                self.style.SUCCESS("API documentation generated successfully!")
+            )
             self.stdout.write(self.style.HTTP_INFO("Documentation is available at:"))
             self.stdout.write(f"  - Swagger UI: /{output_dir}/swagger-ui.html")
             self.stdout.write(f"  - ReDoc: /{output_dir}/redoc.html")
@@ -132,5 +139,7 @@ class Command(BaseCommand):
             raise CommandError("API documentation generation failed")
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Error generating API documentation: {e}"))
+            self.stdout.write(
+                self.style.ERROR(f"Error generating API documentation: {e}")
+            )
             raise CommandError(f"API documentation generation failed: {e}")

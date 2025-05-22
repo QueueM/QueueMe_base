@@ -16,7 +16,9 @@ def update_shop_metrics(sender, instance, created, **kwargs):
 def update_specialist_metrics(sender, instance, created, **kwargs):
     """Update specialist metrics when a review is saved"""
     if instance.status == "approved":
-        RatingService.update_entity_metrics("specialistsapp.Specialist", instance.specialist_id)
+        RatingService.update_entity_metrics(
+            "specialistsapp.Specialist", instance.specialist_id
+        )
 
 
 @receiver(post_save, sender=ServiceReview)
@@ -35,7 +37,9 @@ def update_shop_metrics_on_delete(sender, instance, **kwargs):
 @receiver(post_delete, sender=SpecialistReview)
 def update_specialist_metrics_on_delete(sender, instance, **kwargs):
     """Update specialist metrics when a review is deleted"""
-    RatingService.update_entity_metrics("specialistsapp.Specialist", instance.specialist_id)
+    RatingService.update_entity_metrics(
+        "specialistsapp.Specialist", instance.specialist_id
+    )
 
 
 @receiver(post_delete, sender=ServiceReview)

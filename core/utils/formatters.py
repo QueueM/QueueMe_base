@@ -351,7 +351,9 @@ def format_json(data, pretty=True, ensure_ascii=False):
             return super().default(obj)
 
     if pretty:
-        return json.dumps(data, indent=2, ensure_ascii=ensure_ascii, cls=CustomJSONEncoder)
+        return json.dumps(
+            data, indent=2, ensure_ascii=ensure_ascii, cls=CustomJSONEncoder
+        )
     else:
         return json.dumps(data, ensure_ascii=ensure_ascii, cls=CustomJSONEncoder)
 
@@ -379,7 +381,9 @@ def truncate_text(text, max_length=100, suffix="..."):
 
     # Try to truncate at word boundary
     last_space = truncated.rfind(" ")
-    if last_space > max_length * 0.7:  # Only truncate at word if we're keeping most of the text
+    if (
+        last_space > max_length * 0.7
+    ):  # Only truncate at word if we're keeping most of the text
         truncated = truncated[:last_space]
 
     return truncated + suffix

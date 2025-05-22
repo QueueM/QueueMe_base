@@ -44,7 +44,9 @@ class JWTAuthMiddleware(BaseMiddleware):
                 return
 
             if not user.is_active:
-                logger.warning(f"WebSocket connection rejected: User {user.id} is inactive")
+                logger.warning(
+                    f"WebSocket connection rejected: User {user.id} is inactive"
+                )
                 await self.close_connection(scope, receive, send, 4002)
                 return
 

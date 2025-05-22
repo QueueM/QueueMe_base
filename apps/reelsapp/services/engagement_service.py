@@ -104,7 +104,9 @@ class EngagementService:
         # Update user's engagement history/preferences
         try:
             from apps.customersapp.models import CustomerPreference
-            from apps.customersapp.services.preference_extractor import PreferenceExtractor
+            from apps.customersapp.services.preference_extractor import (
+                PreferenceExtractor,
+            )
 
             # Extract categories and add to user preferences
             if hasattr(user, "customer"):

@@ -54,7 +54,9 @@ class ContentRecommender:
         """
         try:
             # Import here to avoid circular imports
-            from apps.customersapp.services.preference_extractor import CustomerPreferenceExtractor
+            from apps.customersapp.services.preference_extractor import (
+                CustomerPreferenceExtractor,
+            )
             from apps.reelsapp.models import Reel
 
             # Get customer preferences
@@ -76,7 +78,9 @@ class ContentRecommender:
             scored_content = self._score_content(reels, preferences)
 
             # Sort by score descending and limit results
-            recommendations = sorted(scored_content, key=lambda x: x["score"], reverse=True)[:limit]
+            recommendations = sorted(
+                scored_content, key=lambda x: x["score"], reverse=True
+            )[:limit]
 
             return [item["content"] for item in recommendations]
 
@@ -177,10 +181,14 @@ class ContentRecommender:
             score += min(content_item.likes_count * 0.1, 5.0)  # Cap at 5.0
 
         if hasattr(content_item, "comments_count"):
-            score += min(content_item.comments_count * 0.2, 5.0)  # Comments worth more than likes
+            score += min(
+                content_item.comments_count * 0.2, 5.0
+            )  # Comments worth more than likes
 
         if hasattr(content_item, "shares_count"):
-            score += min(content_item.shares_count * 0.3, 5.0)  # Shares worth more than comments
+            score += min(
+                content_item.shares_count * 0.3, 5.0
+            )  # Shares worth more than comments
 
         if hasattr(content_item, "views_count"):
             # Views have less weight but still matter
@@ -219,7 +227,9 @@ class ContentRecommender:
 
         # Content older than 30 days gets minimal score
         else:
-            return max(0.1 - ((age_in_days - 30) / 60 * 0.1), 0)  # Gradually decrease to 0
+            return max(
+                0.1 - ((age_in_days - 30) / 60 * 0.1), 0
+            )  # Gradually decrease to 0
 
 
 class SpecialistRecommender:
@@ -263,7 +273,9 @@ class SpecialistRecommender:
         """
         try:
             # Import here to avoid circular imports
-            from apps.customersapp.services.preference_extractor import CustomerPreferenceExtractor
+            from apps.customersapp.services.preference_extractor import (
+                CustomerPreferenceExtractor,
+            )
             from apps.specialistsapp.models import Specialist
 
             # Get customer preferences
@@ -291,12 +303,14 @@ class SpecialistRecommender:
             specialists = Specialist.objects.filter(query).distinct()
 
             # Score and rank the specialists
-            scored_specialists = self._score_specialists(specialists, preferences, service_id)
+            scored_specialists = self._score_specialists(
+                specialists, preferences, service_id
+            )
 
             # Sort by score descending and limit results
-            recommendations = sorted(scored_specialists, key=lambda x: x["score"], reverse=True)[
-                :limit
-            ]
+            recommendations = sorted(
+                scored_specialists, key=lambda x: x["score"], reverse=True
+            )[:limit]
 
             return [item["specialist"] for item in recommendations]
 
@@ -383,7 +397,9 @@ class SpecialistRecommender:
 
             # Availability bonus (if service_id provided, check availability)
             if service_id:
-                available = self._check_specialist_availability(specialist.id, service_id)
+                available = self._check_specialist_availability(
+                    specialist.id, service_id
+                )
                 if available:
                     score += self.AVAILABILITY_BONUS
 
@@ -392,7 +408,9 @@ class SpecialistRecommender:
 
         return scored_specialists
 
-    def _check_specialist_availability(self, specialist_id: str, service_id: str) -> bool:
+    def _check_specialist_availability(
+        self, specialist_id: str, service_id: str
+    ) -> bool:
         """
         Check if specialist is available for a service in the near future.
 
@@ -406,7 +424,9 @@ class SpecialistRecommender:
         try:
             # This is a simplified version, the full implementation would query
             # the booking system for actual availability slots
-            from apps.serviceapp.services.availability_service import AvailabilityService
+            from apps.serviceapp.services.availability_service import (
+                AvailabilityService,
+            )
 
             # Check for any availability in the next 7 days
             today = timezone.now().date()
@@ -471,7 +491,9 @@ class ShopRecommender:
         try:
             # Import here to avoid circular imports
             from algorithms.geo.distance import haversine_distance
-            from apps.customersapp.services.preference_extractor import CustomerPreferenceExtractor
+            from apps.customersapp.services.preference_extractor import (
+                CustomerPreferenceExtractor,
+            )
             from apps.shopapp.models import Shop
 
             # Get customer preferences
@@ -520,7 +542,9 @@ class ShopRecommender:
                 scored_shops = self._score_shops(shops, preferences, category_id)
 
             # Sort by score descending and limit results
-            recommendations = sorted(scored_shops, key=lambda x: x["score"], reverse=True)[:limit]
+            recommendations = sorted(
+                scored_shops, key=lambda x: x["score"], reverse=True
+            )[:limit]
 
             return [item["shop"] for item in recommendations]
 
@@ -577,7 +601,9 @@ class ShopRecommender:
 
         return scored_shops
 
-    def _score_shops(self, shop_queryset, preferences: Dict, category_id: str = None) -> List[Dict]:
+    def _score_shops(
+        self, shop_queryset, preferences: Dict, category_id: str = None
+    ) -> List[Dict]:
         """
         Score shops without distance information.
 
@@ -646,7 +672,9 @@ class ShopRecommender:
             from apps.serviceapp.models import Service
 
             service_categories = (
-                Service.objects.filter(shop=shop).values_list("category_id", flat=True).distinct()
+                Service.objects.filter(shop=shop)
+                .values_list("category_id", flat=True)
+                .distinct()
             )
 
             category_score = 0

@@ -6,7 +6,6 @@ This script checks for common security vulnerabilities and misconfigurations.
 
 import json
 import os
-import re
 import sys
 
 # Add the parent directory to Python path
@@ -118,7 +117,10 @@ def check_django_security_settings():
         )
 
     # Check X-Frame-Options
-    if not getattr(settings, "X_FRAME_OPTIONS", None) or settings.X_FRAME_OPTIONS == "ALLOW":
+    if (
+        not getattr(settings, "X_FRAME_OPTIONS", None)
+        or settings.X_FRAME_OPTIONS == "ALLOW"
+    ):
         add_issue(
             "medium",
             "authentication",
@@ -150,7 +152,9 @@ def check_django_security_settings():
             try:
                 with open(settings_file) as f:
                     content = f.read()
-                    if "SECRET_KEY" in content and any(secret in content for secret in ["'", '"']):
+                    if "SECRET_KEY" in content and any(
+                        secret in content for secret in ["'", '"']
+                    ):
                         add_issue(
                             "critical",
                             "authentication",
@@ -184,10 +188,8 @@ def check_authentication_models():
                 )
 
         # Check login attempt throttling
-        login_attempt_exists = False
         try:
-            LoginAttempt = apps.get_model("authapp", "LoginAttempt")
-            login_attempt_exists = True
+            apps.get_model("authapp", "LoginAttempt")
         except LookupError:
             add_issue(
                 "high",
@@ -198,10 +200,8 @@ def check_authentication_models():
             )
 
         # Check password reset token model
-        password_reset_exists = False
         try:
             PasswordResetToken = apps.get_model("authapp", "PasswordResetToken")
-            password_reset_exists = True
 
             # Check if tokens expire
             if not hasattr(PasswordResetToken, "expires_at"):
@@ -379,7 +379,9 @@ def check_dependency_vulnerabilities():
                             package_name = vuln.get("package_name")
                             vulnerable_version = vuln.get("vulnerable_version")
                             advisory = vuln.get("advisory")
-                            fixed_version = vuln.get("fixed_version") or "Latest version"
+                            fixed_version = (
+                                vuln.get("fixed_version") or "Latest version"
+                            )
 
                             add_issue(
                                 "high",
@@ -394,7 +396,9 @@ def check_dependency_vulnerabilities():
 
                     except json.JSONDecodeError:
                         # If JSON parsing fails, run the standard output version
-                        raise subprocess.CalledProcessError(1, [], "JSON parsing failed")
+                        raise subprocess.CalledProcessError(
+                            1, [], "JSON parsing failed"
+                        )
 
                 except subprocess.CalledProcessError:
                     # Run the standard output version that's more human-readable
@@ -411,7 +415,9 @@ def check_dependency_vulnerabilities():
                     for line in output_lines:
                         if "Vulnerability found in" in line:
                             vulnerabilities_found = True
-                            package_info = line.split("Vulnerability found in")[1].strip()
+                            package_info = line.split("Vulnerability found in")[
+                                1
+                            ].strip()
                             add_issue(
                                 "high",
                                 "dependencies",
@@ -431,7 +437,9 @@ def check_dependency_vulnerabilities():
                         )
                         with open(vuln_report_path, "w") as f:
                             f.write(plain_result.stdout)
-                        print(f"Detailed vulnerability report saved to {vuln_report_path}")
+                        print(
+                            f"Detailed vulnerability report saved to {vuln_report_path}"
+                        )
                     else:
                         print("No vulnerable packages found or error reading results.")
 

@@ -5,7 +5,12 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from apps.authapp.models import User
-from apps.customersapp.models import Customer, CustomerPreference, FavoriteShop, SavedPaymentMethod
+from apps.customersapp.models import (
+    Customer,
+    CustomerPreference,
+    FavoriteShop,
+    SavedPaymentMethod,
+)
 
 
 class CustomerViewSetTest(APITestCase):
@@ -88,7 +93,9 @@ class PaymentMethodViewSetTest(APITestCase):
         self.customer_user = User.objects.create_user(
             phone_number="1234567890", user_type="customer", is_verified=True
         )
-        self.customer = Customer.objects.create(user=self.customer_user, name="Test Customer")
+        self.customer = Customer.objects.create(
+            user=self.customer_user, name="Test Customer"
+        )
 
         # Create an existing payment method
         self.payment_method = SavedPaymentMethod.objects.create(
@@ -174,7 +181,9 @@ class FavoritesViewSetTest(APITestCase):
         self.customer_user = User.objects.create_user(
             phone_number="1234567890", user_type="customer", is_verified=True
         )
-        self.customer = Customer.objects.create(user=self.customer_user, name="Test Customer")
+        self.customer = Customer.objects.create(
+            user=self.customer_user, name="Test Customer"
+        )
 
         # Generate IDs for mock entities
         self.shop_id = uuid.uuid4()
@@ -203,13 +212,17 @@ class FavoritesViewSetTest(APITestCase):
 
             # Check that favorite was created
             self.assertTrue(
-                FavoriteShop.objects.filter(customer=self.customer, shop_id=self.shop_id).exists()
+                FavoriteShop.objects.filter(
+                    customer=self.customer, shop_id=self.shop_id
+                ).exists()
             )
 
     def test_remove_favorite_shop(self):
         """Test removing a shop from favorites"""
         # Create a favorite first
-        favorite = FavoriteShop.objects.create(customer=self.customer, shop_id=self.shop_id)
+        favorite = FavoriteShop.objects.create(
+            customer=self.customer, shop_id=self.shop_id
+        )
 
         url = reverse("favorites-remove-shop")
         data = {"shop_id": str(self.shop_id)}
@@ -220,13 +233,17 @@ class FavoritesViewSetTest(APITestCase):
 
         # Check that favorite was deleted
         self.assertFalse(
-            FavoriteShop.objects.filter(customer=self.customer, shop_id=self.shop_id).exists()
+            FavoriteShop.objects.filter(
+                customer=self.customer, shop_id=self.shop_id
+            ).exists()
         )
 
     def test_get_favorite_shops(self):
         """Test getting favorite shops"""
         # Create a favorite
-        favorite = FavoriteShop.objects.create(customer=self.customer, shop_id=self.shop_id)
+        favorite = FavoriteShop.objects.create(
+            customer=self.customer, shop_id=self.shop_id
+        )
 
         # Mock the related shop
         from unittest.mock import MagicMock, patch
@@ -235,7 +252,9 @@ class FavoritesViewSetTest(APITestCase):
         mock_shop.id = self.shop_id
         mock_shop.name = "Test Shop"
 
-        with patch("apps.customersapp.models.FavoriteShop.shop.__get__", return_value=mock_shop):
+        with patch(
+            "apps.customersapp.models.FavoriteShop.shop.__get__", return_value=mock_shop
+        ):
             url = reverse("favorites-shops")
             response = self.client.get(url)
 

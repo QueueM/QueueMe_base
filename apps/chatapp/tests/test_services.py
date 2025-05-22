@@ -18,9 +18,13 @@ class ChatServiceTest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.shop_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.shop_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create company
         self.company = Company.objects.create(
@@ -72,7 +76,9 @@ class ChatServiceTest(TestCase):
     def test_send_message(self):
         """Test sending a message"""
         # Create a conversation first
-        conversation, _ = ChatService.get_or_create_conversation(self.customer.id, self.shop.id)
+        conversation, _ = ChatService.get_or_create_conversation(
+            self.customer.id, self.shop.id
+        )
 
         # Send a customer message
         message = ChatService.send_message(
@@ -107,7 +113,9 @@ class ChatServiceTest(TestCase):
         mock_upload_file.return_value = "https://example.com/image.jpg"
 
         # Create a conversation first
-        conversation, _ = ChatService.get_or_create_conversation(self.customer.id, self.shop.id)
+        conversation, _ = ChatService.get_or_create_conversation(
+            self.customer.id, self.shop.id
+        )
 
         # Create a mock file
         mock_file = MagicMock()
@@ -129,7 +137,9 @@ class ChatServiceTest(TestCase):
     def test_mark_messages_as_read(self):
         """Test marking messages as read"""
         # Create a conversation
-        conversation, _ = ChatService.get_or_create_conversation(self.customer.id, self.shop.id)
+        conversation, _ = ChatService.get_or_create_conversation(
+            self.customer.id, self.shop.id
+        )
 
         # Send a customer message
         customer_message = ChatService.send_message(
@@ -171,12 +181,16 @@ class ChatServiceTest(TestCase):
     def test_get_unread_count(self):
         """Test getting unread message count"""
         # Create conversations and messages
-        conversation1, _ = ChatService.get_or_create_conversation(self.customer.id, self.shop.id)
+        conversation1, _ = ChatService.get_or_create_conversation(
+            self.customer.id, self.shop.id
+        )
 
         # Create another customer for a second conversation
         customer2 = User.objects.create(phone_number="5556667777", user_type="customer")
 
-        conversation2, _ = ChatService.get_or_create_conversation(customer2.id, self.shop.id)
+        conversation2, _ = ChatService.get_or_create_conversation(
+            customer2.id, self.shop.id
+        )
 
         # Send messages (unread)
         ChatService.send_message(
@@ -236,9 +250,13 @@ class PresenceServiceTest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create users
-        self.customer = User.objects.create(phone_number="1234567890", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="1234567890", user_type="customer"
+        )
 
-        self.shop_user = User.objects.create(phone_number="0987654321", user_type="employee")
+        self.shop_user = User.objects.create(
+            phone_number="0987654321", user_type="employee"
+        )
 
         # Create company
         self.company = Company.objects.create(
@@ -254,7 +272,9 @@ class PresenceServiceTest(TestCase):
         )
 
         # Create conversation
-        self.conversation = Conversation.objects.create(customer=self.customer, shop=self.shop)
+        self.conversation = Conversation.objects.create(
+            customer=self.customer, shop=self.shop
+        )
 
     def test_set_user_online(self):
         """Test setting a user as online"""
@@ -268,7 +288,9 @@ class PresenceServiceTest(TestCase):
         self.assertEqual(presence.conversation, self.conversation)
 
         # Verify in database
-        db_presence = Presence.objects.get(user=self.customer, conversation=self.conversation)
+        db_presence = Presence.objects.get(
+            user=self.customer, conversation=self.conversation
+        )
         self.assertTrue(db_presence.is_online)
 
     def test_set_user_offline(self):
@@ -286,7 +308,9 @@ class PresenceServiceTest(TestCase):
         self.assertFalse(presence.is_online)
 
         # Verify in database
-        db_presence = Presence.objects.get(user=self.customer, conversation=self.conversation)
+        db_presence = Presence.objects.get(
+            user=self.customer, conversation=self.conversation
+        )
         self.assertFalse(db_presence.is_online)
 
     def test_set_typing_status(self):
@@ -301,7 +325,9 @@ class PresenceServiceTest(TestCase):
         self.assertTrue(typing_status.is_typing)
 
         # Verify in database
-        db_typing = TypingStatus.objects.get(user=self.customer, conversation=self.conversation)
+        db_typing = TypingStatus.objects.get(
+            user=self.customer, conversation=self.conversation
+        )
         self.assertTrue(db_typing.is_typing)
 
         # Change to not typing

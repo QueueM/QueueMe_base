@@ -6,7 +6,11 @@ This module provides custom pagination classes for DRF APIs.
 
 from collections import OrderedDict
 
-from rest_framework.pagination import CursorPagination, LimitOffsetPagination, PageNumberPagination
+from rest_framework.pagination import (
+    CursorPagination,
+    LimitOffsetPagination,
+    PageNumberPagination,
+)
 from rest_framework.response import Response
 
 

@@ -60,8 +60,12 @@ class AdvertisementSerializer(serializers.ModelSerializer):
     campaign_name = serializers.SerializerMethodField()
     targeting_cities = serializers.SerializerMethodField()
     targeting_categories = serializers.SerializerMethodField()
-    linked_content_type = serializers.CharField(write_only=True, required=False, allow_null=True)
-    linked_content_id = serializers.CharField(write_only=True, required=False, allow_null=True)
+    linked_content_type = serializers.CharField(
+        write_only=True, required=False, allow_null=True
+    )
+    linked_content_id = serializers.CharField(
+        write_only=True, required=False, allow_null=True
+    )
     linked_object_info = serializers.SerializerMethodField()
     click_through_rate = serializers.SerializerMethodField()
 
@@ -107,7 +111,9 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         return obj.campaign.name if obj.campaign else None
 
     def get_targeting_cities(self, obj):
-        return [{"id": str(city.id), "name": city.name} for city in obj.target_cities.all()]
+        return [
+            {"id": str(city.id), "name": city.name} for city in obj.target_cities.all()
+        ]
 
     def get_targeting_categories(self, obj):
         return [
@@ -130,7 +136,9 @@ class AdvertisementSerializer(serializers.ModelSerializer):
 
         if linked_content_type and linked_content_id:
             try:
-                content_type = ContentType.objects.get(model=linked_content_type.lower())
+                content_type = ContentType.objects.get(
+                    model=linked_content_type.lower()
+                )
                 validated_data["content_type"] = content_type
                 validated_data["object_id"] = linked_content_id
             except ContentType.DoesNotExist:
@@ -159,7 +167,9 @@ class AdvertisementSerializer(serializers.ModelSerializer):
 
         if linked_content_type and linked_content_id:
             try:
-                content_type = ContentType.objects.get(model=linked_content_type.lower())
+                content_type = ContentType.objects.get(
+                    model=linked_content_type.lower()
+                )
                 validated_data["content_type"] = content_type
                 validated_data["object_id"] = linked_content_id
             except ContentType.DoesNotExist:
@@ -268,4 +278,6 @@ class TargetingTypeChoiceSerializer(serializers.Serializer):
 
     @classmethod
     def get_choices(cls):
-        return [{"value": choice[0], "label": choice[1]} for choice in TargetingType.choices]
+        return [
+            {"value": choice[0], "label": choice[1]} for choice in TargetingType.choices
+        ]

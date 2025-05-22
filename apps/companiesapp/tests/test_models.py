@@ -62,7 +62,9 @@ class CompanyModelTestCase(TestCase):
         mock_shop_query.count.return_value = 3
         mock_shop_query.values_list.return_value = [1, 2, 3]
 
-        with patch("apps.employeeapp.models.Employee.objects.filter") as mock_employee_filter:
+        with patch(
+            "apps.employeeapp.models.Employee.objects.filter"
+        ) as mock_employee_filter:
             mock_employee_filter.return_value.count.return_value = 10
 
             # Call method

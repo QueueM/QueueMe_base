@@ -11,7 +11,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 
 from .filters import PackageFilter
 from .models import Package, PackageFAQ
@@ -98,7 +101,9 @@ class PackageViewSet(viewsets.ModelViewSet):
                 city = customer.city
 
                 # Filter by status and city
-                return queryset.filter(Q(status="active") & Q(shop__location__city=city))
+                return queryset.filter(
+                    Q(status="active") & Q(shop__location__city=city)
+                )
             except Customer.DoesNotExist:
                 # If customer profile doesn't exist, just filter by status
                 return queryset.filter(status="active")

@@ -15,7 +15,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("shop_id", type=str, help="ID of the shop")
-        parser.add_argument("--name", type=str, default="Generated Coupon", help="Coupon name")
+        parser.add_argument(
+            "--name", type=str, default="Generated Coupon", help="Coupon name"
+        )
         parser.add_argument(
             "--discount-type",
             type=str,
@@ -25,8 +27,12 @@ class Command(BaseCommand):
         )
         parser.add_argument("--value", type=float, required=True, help="Discount value")
         parser.add_argument("--duration", type=int, default=30, help="Duration in days")
-        parser.add_argument("--quantity", type=int, default=1, help="Number of coupons to generate")
-        parser.add_argument("--usage-limit", type=int, default=1, help="Usage limit per coupon")
+        parser.add_argument(
+            "--quantity", type=int, default=1, help="Number of coupons to generate"
+        )
+        parser.add_argument(
+            "--usage-limit", type=int, default=1, help="Usage limit per coupon"
+        )
         parser.add_argument(
             "--service-ids", type=str, nargs="*", help="Service IDs to apply coupon to"
         )
@@ -36,7 +42,9 @@ class Command(BaseCommand):
             nargs="*",
             help="Category IDs to apply coupon to",
         )
-        parser.add_argument("--all-services", action="store_true", help="Apply to all services")
+        parser.add_argument(
+            "--all-services", action="store_true", help="Apply to all services"
+        )
 
     def handle(self, *args, **options):
         shop_id = options["shop_id"]

@@ -25,14 +25,18 @@ class SpecialistMatcher:
             Specialist object or None if no match found
         """
         # Get specialists qualified for this service
-        specialists = Specialist.objects.filter(specialist_services__service_id=service_id)
+        specialists = Specialist.objects.filter(
+            specialist_services__service_id=service_id
+        )
 
         # If time slot provided, filter by availability
         if time_slot:
             start_time, end_time = time_slot
             available_specialists = []
 
-            from apps.bookingapp.services.availability_service import AvailabilityService
+            from apps.bookingapp.services.availability_service import (
+                AvailabilityService,
+            )
 
             for specialist in specialists:
                 if AvailabilityService.is_specialist_available(
@@ -99,7 +103,9 @@ class SpecialistMatcher:
         for specialist in specialists:
             # Normalize workload (fewer appointments = higher score)
             if max_appointments > 0:
-                workload_score = 1 - (appointment_counts.get(specialist.id, 0) / max_appointments)
+                workload_score = 1 - (
+                    appointment_counts.get(specialist.id, 0) / max_appointments
+                )
             else:
                 workload_score = 1
 

@@ -17,16 +17,24 @@ class CanManageSubscriptions(permissions.BasePermission):
     def has_permission(self, request, view):
         # Check if user is from Queue Me Admin (only admin can manage subscriptions)
         if request.method == "GET":
-            return PermissionResolver.has_permission(request.user, "subscription", "view")
+            return PermissionResolver.has_permission(
+                request.user, "subscription", "view"
+            )
 
         if request.method == "POST":
-            return PermissionResolver.has_permission(request.user, "subscription", "add")
+            return PermissionResolver.has_permission(
+                request.user, "subscription", "add"
+            )
 
         if request.method in ["PUT", "PATCH"]:
-            return PermissionResolver.has_permission(request.user, "subscription", "edit")
+            return PermissionResolver.has_permission(
+                request.user, "subscription", "edit"
+            )
 
         if request.method == "DELETE":
-            return PermissionResolver.has_permission(request.user, "subscription", "delete")
+            return PermissionResolver.has_permission(
+                request.user, "subscription", "delete"
+            )
 
         return False
 
@@ -46,7 +54,9 @@ class CanViewOwnCompanySubscription(permissions.BasePermission):
             employee = Employee.objects.get(user=request.user)
             # Check if employee is a manager or has subscription view permission
             is_manager = employee.position == "manager"
-            has_permission = PermissionResolver.has_permission(request.user, "subscription", "view")
+            has_permission = PermissionResolver.has_permission(
+                request.user, "subscription", "view"
+            )
             return is_manager or has_permission
         except Employee.DoesNotExist:
             return False

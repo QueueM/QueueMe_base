@@ -16,17 +16,19 @@ Key features:
 import logging
 from collections import defaultdict
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from django.db import transaction
-from django.db.models import Avg, Case, Count, F, IntegerField, Max, Min, Q, Sum, Value, When
+from django.db.models import (
+    Avg,
+    Count,
+)
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
 from apps.customersapp.models import CustomerSpecialistPreference
 from apps.serviceapp.models import Service, ServiceRequirement
-from apps.shopapp.models import Shop
-from apps.specialistsapp.models import Specialist, SpecialistService, SpecialistSkill
+from apps.specialistsapp.models import Specialist, SpecialistSkill
 
 logger = logging.getLogger(__name__)
 
@@ -131,20 +133,27 @@ class SpecialistAllocationService:
                 overall_score = (
                     workload_scores.get(specialist_id, 0.0) * cls.WEIGHT_WORKLOAD
                     + skill_scores.get(specialist_id, 0.0) * cls.WEIGHT_SKILLS
-                    + preference_scores.get(specialist_id, 0.0) * cls.WEIGHT_CUSTOMER_PREFERENCE
-                    + waiting_time_scores.get(specialist_id, 0.0) * cls.WEIGHT_WAITING_TIME
-                    + performance_scores.get(specialist_id, 0.0) * cls.WEIGHT_PERFORMANCE
+                    + preference_scores.get(specialist_id, 0.0)
+                    * cls.WEIGHT_CUSTOMER_PREFERENCE
+                    + waiting_time_scores.get(specialist_id, 0.0)
+                    * cls.WEIGHT_WAITING_TIME
+                    + performance_scores.get(specialist_id, 0.0)
+                    * cls.WEIGHT_PERFORMANCE
                 )
 
                 specialist_scores[specialist_id] = overall_score
 
             # Sort specialists by score (highest first)
-            sorted_specialists = sorted(specialist_scores.items(), key=lambda x: x[1], reverse=True)
+            sorted_specialists = sorted(
+                specialist_scores.items(), key=lambda x: x[1], reverse=True
+            )
 
             # Get detailed information for the top specialists
             top_specialists = []
             for specialist_id, score in sorted_specialists[:3]:  # Return top 3
-                specialist = next(s for s in eligible_specialists if str(s.id) == specialist_id)
+                specialist = next(
+                    s for s in eligible_specialists if str(s.id) == specialist_id
+                )
 
                 top_specialists.append(
                     {
@@ -158,7 +167,9 @@ class SpecialistAllocationService:
                         "workload_score": workload_scores.get(specialist_id, 0.0),
                         "skill_score": skill_scores.get(specialist_id, 0.0),
                         "preference_score": preference_scores.get(specialist_id, 0.0),
-                        "waiting_time_score": waiting_time_scores.get(specialist_id, 0.0),
+                        "waiting_time_score": waiting_time_scores.get(
+                            specialist_id, 0.0
+                        ),
                         "performance_score": performance_scores.get(specialist_id, 0.0),
                     }
                 )
@@ -261,7 +272,9 @@ class SpecialistAllocationService:
                         shop_id=shop_id,
                         appointment_datetime=appointment.start_time,
                         customer_id=(
-                            str(appointment.customer_id) if appointment.customer else None
+                            str(appointment.customer_id)
+                            if appointment.customer
+                            else None
                         ),
                     )
 
@@ -363,7 +376,9 @@ class SpecialistAllocationService:
                 day_data["total_hours"] = round(total_minutes / 60, 1)
 
                 # Get appointments for this day
-                day_appointments = [a for a in appointments if a.start_time.date() == current_date]
+                day_appointments = [
+                    a for a in appointments if a.start_time.date() == current_date
+                ]
 
                 # Calculate booked hours
                 booked_minutes = 0
@@ -383,7 +398,9 @@ class SpecialistAllocationService:
                     )
 
                 day_data["booked_hours"] = round(booked_minutes / 60, 1)
-                day_data["available_hours"] = round((total_minutes - booked_minutes) / 60, 1)
+                day_data["available_hours"] = round(
+                    (total_minutes - booked_minutes) / 60, 1
+                )
 
                 if total_minutes > 0:
                     day_data["utilization_percentage"] = round(
@@ -406,7 +423,9 @@ class SpecialistAllocationService:
             return {
                 "specialist_id": specialist_id,
                 "name": (
-                    specialist.employee.name if hasattr(specialist, "employee") else "Unknown"
+                    specialist.employee.name
+                    if hasattr(specialist, "employee")
+                    else "Unknown"
                 ),
                 "start_date": start_date.isoformat(),
                 "end_date": (end_date - timedelta(days=1)).isoformat(),
@@ -462,8 +481,10 @@ class SpecialistAllocationService:
 
             for specialist in service_specialists:
                 # Check if specialist is working at this time
-                working_hours = SpecialistAllocationService._get_specialist_working_hours(
-                    specialist_id=str(specialist.id), day_of_week=day_of_week
+                working_hours = (
+                    SpecialistAllocationService._get_specialist_working_hours(
+                        specialist_id=str(specialist.id), day_of_week=day_of_week
+                    )
                 )
 
                 if not working_hours:
@@ -523,7 +544,9 @@ class SpecialistAllocationService:
                     ).values_list("skill_id", flat=True)
 
                     # Convert to set for efficient comparison
-                    specialist_skill_set = set(str(skill_id) for skill_id in specialist_skills)
+                    specialist_skill_set = set(
+                        str(skill_id) for skill_id in specialist_skills
+                    )
                     required_skill_set = set(required_skills)
 
                     # Specialist must have all required skills
@@ -599,7 +622,9 @@ class SpecialistAllocationService:
                 # 0 appointments = 1.0 score
                 # max appointments = 0.0 score
                 if max_count > 0:
-                    scores[specialist_id] = 1.0 - (count - min_count) / (max_count - min_count)
+                    scores[specialist_id] = 1.0 - (count - min_count) / (
+                        max_count - min_count
+                    )
                 else:
                     scores[specialist_id] = 1.0
 
@@ -641,7 +666,9 @@ class SpecialistAllocationService:
 
             # If no specific skills required, all specialists get same score
             if not required_skills:
-                return {specialist_id: 0.8 for specialist_id in specialist_ids}  # Good default
+                return {
+                    specialist_id: 0.8 for specialist_id in specialist_ids
+                }  # Good default
 
             # Get all specialists' skills and proficiency levels
             specialist_skills = SpecialistSkill.objects.filter(
@@ -654,7 +681,9 @@ class SpecialistAllocationService:
             for skill in specialist_skills:
                 specialist_id = str(skill.specialist_id)
                 skill_id = str(skill.skill_id)
-                proficiency = skill.proficiency_level or 3  # Default to medium if not set
+                proficiency = (
+                    skill.proficiency_level or 3
+                )  # Default to medium if not set
 
                 skill_map[specialist_id][skill_id] = proficiency
 
@@ -684,7 +713,9 @@ class SpecialistAllocationService:
                 proficiency_score = 0
 
                 if covered_skills > 0:
-                    proficiency_score = (total_proficiency / max_possible_proficiency) * 0.5
+                    proficiency_score = (
+                        total_proficiency / max_possible_proficiency
+                    ) * 0.5
 
                 # Combined score
                 scores[specialist_id] = coverage_score + proficiency_score
@@ -839,7 +870,9 @@ class SpecialistAllocationService:
                     scores[specialist_id] = 0.6
                 else:
                     # Normalize to 0-1 range and invert (lower wait = higher score)
-                    scores[specialist_id] = 1.0 - (wait_time - min_wait) / (max_wait - min_wait)
+                    scores[specialist_id] = 1.0 - (wait_time - min_wait) / (
+                        max_wait - min_wait
+                    )
 
             return scores
 
@@ -889,7 +922,9 @@ class SpecialistAllocationService:
 
                 avg_rating = 0
                 if rated_appointments.exists():
-                    avg_rating = rated_appointments.aggregate(Avg("rating"))["rating__avg"] or 0
+                    avg_rating = (
+                        rated_appointments.aggregate(Avg("rating"))["rating__avg"] or 0
+                    )
 
                 # Normalize rating to 0-0.5 range
                 rating_score = (avg_rating / 5.0) * 0.5
@@ -916,13 +951,17 @@ class SpecialistAllocationService:
                         if 0 < actual_duration < expected_duration * 2:
                             # Efficiency ratio (closer to 1 is better)
                             efficiency_ratio = expected_duration / actual_duration
-                            total_efficiency += min(efficiency_ratio, 1.5)  # Cap at 150%
+                            total_efficiency += min(
+                                efficiency_ratio, 1.5
+                            )  # Cap at 150%
                             count += 1
 
                     if count > 0:
                         avg_efficiency = total_efficiency / count
                         # Normalize to 0-0.5 range (0.67 to 1.5 efficiency)
-                        efficiency_score = min(0.5, (avg_efficiency - 0.67) / (1.5 - 0.67) * 0.5)
+                        efficiency_score = min(
+                            0.5, (avg_efficiency - 0.67) / (1.5 - 0.67) * 0.5
+                        )
 
                 # Combined score
                 scores[specialist_id] = rating_score + efficiency_score
@@ -1019,7 +1058,9 @@ class SpecialistAllocationService:
             for appt in appointments:
                 start_hour = appt.start_time.hour
                 end_hour = (
-                    appt.end_time.hour if appt.end_time.minute == 0 else appt.end_time.hour + 1
+                    appt.end_time.hour
+                    if appt.end_time.minute == 0
+                    else appt.end_time.hour + 1
                 )
 
                 for hour in range(start_hour, end_hour):

@@ -127,7 +127,9 @@ class ShopRanker:
             shop_id = shop["id"]
 
             # Calculate ranking factors
-            factors = self._calculate_ranking_factors(shop, customer_data, location_data)
+            factors = self._calculate_ranking_factors(
+                shop, customer_data, location_data
+            )
 
             # Apply weights to each factor
             weighted_score = (
@@ -165,10 +167,14 @@ class ShopRanker:
             scored_shops.append(shop_copy)
 
         # Sort shops by score (highest first)
-        ranked_shops = sorted(scored_shops, key=lambda x: x.get("_score", 0), reverse=True)
+        ranked_shops = sorted(
+            scored_shops, key=lambda x: x.get("_score", 0), reverse=True
+        )
 
         # Apply pagination
-        paginated_shops = ranked_shops[offset : offset + limit] if limit > 0 else ranked_shops
+        paginated_shops = (
+            ranked_shops[offset : offset + limit] if limit > 0 else ranked_shops
+        )
 
         # Cleanup - remove internal score
         for shop in paginated_shops:
@@ -184,7 +190,9 @@ class ShopRanker:
 
         return result
 
-    def _apply_filters(self, shops: List[Dict], search_params: Optional[Dict]) -> List[Dict]:
+    def _apply_filters(
+        self, shops: List[Dict], search_params: Optional[Dict]
+    ) -> List[Dict]:
         """
         Apply initial filtering based on search parameters.
         """
@@ -216,7 +224,9 @@ class ShopRanker:
         if "rating_min" in search_params and search_params["rating_min"]:
             min_rating = float(search_params["rating_min"])
             filtered_shops = [
-                shop for shop in filtered_shops if shop.get("average_rating", 0) >= min_rating
+                shop
+                for shop in filtered_shops
+                if shop.get("average_rating", 0) >= min_rating
             ]
 
         # Filter by text query if specified
@@ -263,7 +273,9 @@ class ShopRanker:
 
         # Calculate service match score if customer data provided
         if customer_data:
-            factors["service_match"] = self._calculate_service_match(shop, customer_data)
+            factors["service_match"] = self._calculate_service_match(
+                shop, customer_data
+            )
 
             # Check if shop is followed
             followed_shops = customer_data.get("followed_shops", [])
@@ -316,7 +328,9 @@ class ShopRanker:
 
         return location_score
 
-    def _calculate_distance(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    def _calculate_distance(
+        self, lat1: float, lng1: float, lat2: float, lng2: float
+    ) -> float:
         """
         Calculate distance between two points using Haversine formula.
         """
@@ -438,7 +452,9 @@ class ShopRanker:
 
                 # Calculate engagement rate
                 # Weight different engagement types differently
-                engagement_rate = ((likes * 1.0) + (comments * 3.0) + (shares * 5.0)) / views
+                engagement_rate = (
+                    (likes * 1.0) + (comments * 3.0) + (shares * 5.0)
+                ) / views
 
                 # Cap the rate at a reasonable maximum
                 capped_rate = min(engagement_rate, 0.5)

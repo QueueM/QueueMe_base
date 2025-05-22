@@ -85,7 +85,9 @@ class CreatePaymentSerializer(serializers.Serializer):
 
 class TransactionSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
-    payment_method_details = PaymentMethodSerializer(source="payment_method", read_only=True)
+    payment_method_details = PaymentMethodSerializer(
+        source="payment_method", read_only=True
+    )
     refund_count = serializers.SerializerMethodField()
     refunded_amount = serializers.SerializerMethodField()
     content_type_info = serializers.SerializerMethodField()
@@ -117,7 +119,6 @@ class TransactionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-
 
     def get_refund_count(self, obj):
         return obj.refunds.count()
@@ -180,10 +181,14 @@ class CreateRefundSerializer(serializers.Serializer):
 
             # Check if transaction can be refunded
             if transaction.status != "succeeded":
-                raise serializers.ValidationError(_("Only succeeded transactions can be refunded."))
+                raise serializers.ValidationError(
+                    _("Only succeeded transactions can be refunded.")
+                )
 
             # Check if refund amount is not greater than transaction amount
-            total_refunded = sum(r.amount for r in transaction.refunds.filter(status="succeeded"))
+            total_refunded = sum(
+                r.amount for r in transaction.refunds.filter(status="succeeded")
+            )
 
             if data["amount"] > (transaction.amount - total_refunded):
                 raise serializers.ValidationError(

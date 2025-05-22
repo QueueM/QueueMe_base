@@ -20,7 +20,9 @@ def appointment_saved(sender, instance, created, **kwargs):
     appointment_date = instance.start_time.date()
 
     # Update shop analytics
-    update_shop_analytics.delay(shop_id=str(instance.shop.id), date=appointment_date.isoformat())
+    update_shop_analytics.delay(
+        shop_id=str(instance.shop.id), date=appointment_date.isoformat()
+    )
 
     # Update specialist analytics if specialist is assigned
     if instance.specialist:
@@ -75,7 +77,9 @@ def shop_review_saved(sender, instance, created, **kwargs):
         review_date = instance.created_at.date()
 
         # Update shop analytics
-        update_shop_analytics.delay(shop_id=str(instance.shop.id), date=review_date.isoformat())
+        update_shop_analytics.delay(
+            shop_id=str(instance.shop.id), date=review_date.isoformat()
+        )
 
         # Check for rating anomalies
         detect_anomalies.delay(

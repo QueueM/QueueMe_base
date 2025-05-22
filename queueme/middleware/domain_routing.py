@@ -1,4 +1,5 @@
 import logging
+
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -20,10 +21,10 @@ class DomainRoutingMiddleware(MiddlewareMixin):
         domain = request.get_host().split(":")[0]  # remove port if present
 
         # Special case: Allow access to django-admin and its static files on api.queueme.net
-        if domain == 'api.queueme.net' and (
-            request.path.startswith('/django-admin/') or 
-            request.path.startswith('/static/admin/') or
-            request.path.startswith('/django-admin/static/admin/')
+        if domain == "api.queueme.net" and (
+            request.path.startswith("/django-admin/")
+            or request.path.startswith("/static/admin/")
+            or request.path.startswith("/django-admin/static/admin/")
         ):
             # Let django-admin and its static files pass through
             response = self.get_response(request)
@@ -53,7 +54,7 @@ class DomainRoutingMiddleware(MiddlewareMixin):
         path = request.path
 
         # Skip redirecting django-admin and its static assets
-        if path.startswith('/django-admin/') or path.startswith('/static/admin/'):
+        if path.startswith("/django-admin/") or path.startswith("/static/admin/"):
             return False
 
         # API paths should go to the API domain
@@ -120,7 +121,7 @@ class DomainRoutingMiddleware(MiddlewareMixin):
         # Skip for static/media requests
         if request.path.startswith("/static/") or request.path.startswith("/media/"):
             return None
-            
+
         # Skip for django-admin requests
         if request.path.startswith("/django-admin/"):
             return None

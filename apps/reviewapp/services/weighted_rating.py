@@ -172,11 +172,15 @@ class WeightedRatingCalculator:
         elif entity_type == "specialist":
             from apps.reviewapp.models import SpecialistReview
 
-            reviews = SpecialistReview.objects.filter(specialist_id=entity_id, status="approved")
+            reviews = SpecialistReview.objects.filter(
+                specialist_id=entity_id, status="approved"
+            )
         elif entity_type == "service":
             from apps.reviewapp.models import ServiceReview
 
-            reviews = ServiceReview.objects.filter(service_id=entity_id, status="approved")
+            reviews = ServiceReview.objects.filter(
+                service_id=entity_id, status="approved"
+            )
         else:
             return {"error": f"Invalid entity type: {entity_type}"}
 
@@ -204,7 +208,9 @@ class WeightedRatingCalculator:
         # Calculate various weighted ratings
         bayesian_avg = WeightedRatingCalculator.calculate_bayesian_average(reviews)
         imdb_weighted = WeightedRatingCalculator.calculate_imdb_weighted_rating(reviews)
-        recency_weighted = WeightedRatingCalculator.calculate_recency_weighted_rating(reviews)
+        recency_weighted = WeightedRatingCalculator.calculate_recency_weighted_rating(
+            reviews
+        )
         wilson_score = WeightedRatingCalculator.calculate_wilson_score(reviews)
 
         # Scale wilson score (0-1) to rating scale (1-5)

@@ -9,9 +9,7 @@ import logging
 import random
 from typing import Any, Dict, List, Optional
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F, Q
-from django.utils import timezone
 
 from apps.marketingapp.models import AdStatus, Advertisement, AdView, TargetingType
 
@@ -65,7 +63,9 @@ class AdServingService:
             ads_query = Advertisement.objects.filter(status=AdStatus.ACTIVE)
 
             # Apply targeting filters
-            targeted_ads = cls._apply_targeting_filters(ads_query, user_id, city_id, category_ids)
+            targeted_ads = cls._apply_targeting_filters(
+                ads_query, user_id, city_id, category_ids
+            )
 
             # If no targeted ads available, fall back to non-targeted ads
             if not targeted_ads.exists():
@@ -265,7 +265,9 @@ class AdServingService:
 
         # Add location targeting if city provided
         if city_id:
-            location_query = Q(targeting_type=TargetingType.LOCATION, target_cities__id=city_id)
+            location_query = Q(
+                targeting_type=TargetingType.LOCATION, target_cities__id=city_id
+            )
             targeting_query |= location_query
 
         # Add category targeting if categories provided

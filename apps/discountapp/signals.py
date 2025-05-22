@@ -3,7 +3,12 @@ from django.db.models.signals import m2m_changed, post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from apps.discountapp.models import Coupon, CouponUsage, PromotionalCampaign, ServiceDiscount
+from apps.discountapp.models import (
+    Coupon,
+    CouponUsage,
+    PromotionalCampaign,
+    ServiceDiscount,
+)
 
 
 @receiver(pre_save, sender=ServiceDiscount)

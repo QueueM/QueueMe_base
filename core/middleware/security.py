@@ -11,7 +11,6 @@ import uuid
 
 from django.conf import settings
 from django.http import HttpResponseForbidden
-from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +55,9 @@ class ContentSecurityPolicyMiddleware:
         }
 
         # Build CSP header value
-        csp_value = "; ".join([f"{key} {value}" for key, value in directives.items() if value])
+        csp_value = "; ".join(
+            [f"{key} {value}" for key, value in directives.items() if value]
+        )
 
         # Add CSP header to response
         response["Content-Security-Policy"] = csp_value
@@ -95,7 +96,9 @@ class StrictTransportSecurityMiddleware:
         # Only add HSTS header if HTTPS is enabled
         if settings.SECURE_SSL_REDIRECT:
             max_age = 31536000  # 1 year in seconds
-            response["Strict-Transport-Security"] = f"max-age={max_age}; includeSubDomains; preload"
+            response["Strict-Transport-Security"] = (
+                f"max-age={max_age}; includeSubDomains; preload"
+            )
 
         return response
 
@@ -161,7 +164,9 @@ class PermissionsPolicyMiddleware:
             "autoplay": "(self)",
         }
 
-        policy_value = ", ".join([f"{key}={value}" for key, value in permissions.items()])
+        policy_value = ", ".join(
+            [f"{key}={value}" for key, value in permissions.items()]
+        )
         response["Permissions-Policy"] = policy_value
 
         return response
@@ -213,13 +218,17 @@ class SQLInjectionProtectionMiddleware:
         # Check GET parameters
         for key, value in request.GET.items():
             if self.check_sql_injection(value):
-                logger.warning(f"Potential SQL injection detected in GET parameter: {key}={value}")
+                logger.warning(
+                    f"Potential SQL injection detected in GET parameter: {key}={value}"
+                )
                 return HttpResponseForbidden("Forbidden: Invalid request")
 
         # Check POST parameters (excluding file uploads)
         for key, value in request.POST.items():
             if self.check_sql_injection(value):
-                logger.warning(f"Potential SQL injection detected in POST parameter: {key}={value}")
+                logger.warning(
+                    f"Potential SQL injection detected in POST parameter: {key}={value}"
+                )
                 return HttpResponseForbidden("Forbidden: Invalid request")
 
         return self.get_response(request)

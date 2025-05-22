@@ -3,7 +3,6 @@ import re
 from django import template
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as _
 
 from ..utils.payment_utils import format_amount, mask_card_number
 

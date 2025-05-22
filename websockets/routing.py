@@ -12,7 +12,6 @@ from websockets.consumers.admin_dashboard import BookingStatsConsumer
 from websockets.consumers.chat import ChatConsumer
 from websockets.consumers.notifications import NotificationConsumer
 from websockets.consumers.queue_consumer import QueueConsumer
-from websockets.consumers.queue_status import QueueStatusConsumer
 
 from . import consumers
 from .consumers.analytics_consumer import AdminDashboardConsumer, AnalyticsConsumer
@@ -40,7 +39,9 @@ websocket_urlpatterns = [
     re_path(r"ws/analytics/(?P<room_name>\w+)/$", AnalyticsConsumer.as_asgi()),
     # Admin dashboard WebSocket for real-time metrics
     re_path(r"ws/admin/dashboard/$", AdminDashboardConsumer.as_asgi()),
-    re_path(r"ws/admin/system-monitoring/$", consumers.SystemMonitoringConsumer.as_asgi()),
+    re_path(
+        r"ws/admin/system-monitoring/$", consumers.SystemMonitoringConsumer.as_asgi()
+    ),
 ]
 
 # Apply authentication for WebSocket connections

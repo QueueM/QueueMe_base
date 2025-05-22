@@ -36,7 +36,10 @@ def process_subscription_renewals():
 @shared_task
 def check_past_due_subscriptions():
     """Check past due subscriptions and expire them if grace period has passed"""
-    from apps.subscriptionapp.constants import PAST_DUE_GRACE_PERIOD_DAYS, STATUS_PAST_DUE
+    from apps.subscriptionapp.constants import (
+        PAST_DUE_GRACE_PERIOD_DAYS,
+        STATUS_PAST_DUE,
+    )
     from apps.subscriptionapp.models import Subscription
     from apps.subscriptionapp.services.subscription_service import SubscriptionService
 
@@ -96,7 +99,9 @@ def update_usage_statistics():
     from apps.subscriptionapp.services.usage_monitor import UsageMonitor
 
     # Get all active subscriptions
-    subscriptions = Subscription.objects.filter(status__in=[STATUS_ACTIVE, STATUS_TRIAL])
+    subscriptions = Subscription.objects.filter(
+        status__in=[STATUS_ACTIVE, STATUS_TRIAL]
+    )
 
     update_count = 0
     for subscription in subscriptions:
@@ -105,7 +110,9 @@ def update_usage_statistics():
             UsageMonitor.update_all_usage(company_id)
             update_count += 1
         except Exception as e:
-            logger.error(f"Error updating usage for subscription {subscription.id}: {str(e)}")
+            logger.error(
+                f"Error updating usage for subscription {subscription.id}: {str(e)}"
+            )
 
     return f"Updated usage statistics for {update_count} subscriptions"
 
@@ -113,7 +120,10 @@ def update_usage_statistics():
 @shared_task
 def retry_failed_payments():
     """Retry failed subscription payments"""
-    from apps.subscriptionapp.constants import MAX_PAYMENT_RETRY_ATTEMPTS, STATUS_PAST_DUE
+    from apps.subscriptionapp.constants import (
+        MAX_PAYMENT_RETRY_ATTEMPTS,
+        STATUS_PAST_DUE,
+    )
     from apps.subscriptionapp.models import Subscription, SubscriptionInvoice
     from apps.subscriptionapp.services.subscription_service import SubscriptionService
 
@@ -132,6 +142,8 @@ def retry_failed_payments():
                 SubscriptionService.retry_payment(subscription.id)
                 retry_count += 1
             except Exception as e:
-                logger.error(f"Error retrying payment for subscription {subscription.id}: {str(e)}")
+                logger.error(
+                    f"Error retrying payment for subscription {subscription.id}: {str(e)}"
+                )
 
     return f"Retried {retry_count} failed payments"

@@ -14,11 +14,24 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.documentation.api_doc_decorators import document_api_endpoint, document_api_viewset
+from api.documentation.api_doc_decorators import (
+    document_api_endpoint,
+    document_api_viewset,
+)
 
-from .filters import ShopFilter, ShopFollowerFilter, ShopHoursFilter, ShopVerificationFilter
+from .filters import (
+    ShopFilter,
+    ShopFollowerFilter,
+    ShopHoursFilter,
+    ShopVerificationFilter,
+)
 from .models import Shop, ShopFollower, ShopHours, ShopSettings, ShopVerification
-from .permissions import CanManageShopHours, CanVerifyShops, CanViewShopFollowers, HasShopPermission
+from .permissions import (
+    CanManageShopHours,
+    CanVerifyShops,
+    CanViewShopFollowers,
+    HasShopPermission,
+)
 from .serializers import (
     ShopFollowerSerializer,
     ShopHoursSerializer,
@@ -129,7 +142,9 @@ class ShopViewSet(viewsets.ModelViewSet):
         path_params=[{"name": "pk", "description": "Shop ID", "type": "integer"}],
         tags=["Shops", "Verification"],
     )
-    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
+    )
     def request_verification(self, request, pk=None):
         """
         Request verification for a shop.
@@ -147,7 +162,9 @@ class ShopViewSet(viewsets.ModelViewSet):
             )
 
         # Check if verification is already in progress
-        pending_verification = ShopVerification.objects.filter(shop=shop, status="pending").exists()
+        pending_verification = ShopVerification.objects.filter(
+            shop=shop, status="pending"
+        ).exists()
         if pending_verification:
             raise ValidationError(_("Verification request is already pending."))
 
@@ -170,7 +187,9 @@ class ShopViewSet(viewsets.ModelViewSet):
         path_params=[{"name": "pk", "description": "Shop ID", "type": "integer"}],
         tags=["Shops", "Hours"],
     )
-    @action(detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated]
+    )
     def hours(self, request, pk=None):
         """
         Get shop hours.
@@ -190,7 +209,9 @@ class ShopViewSet(viewsets.ModelViewSet):
         path_params=[{"name": "pk", "description": "Shop ID", "type": "integer"}],
         tags=["Shops", "Settings"],
     )
-    @action(detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated]
+    )
     def settings(self, request, pk=None):
         """
         Get shop settings.
@@ -238,7 +259,9 @@ class ShopViewSet(viewsets.ModelViewSet):
         path_params=[{"name": "pk", "description": "Shop ID", "type": "integer"}],
         tags=["Shops", "Statistics"],
     )
-    @action(detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated]
+    )
     def statistics(self, request, pk=None):
         """
         Get shop statistics.
@@ -256,7 +279,9 @@ class ShopViewSet(viewsets.ModelViewSet):
         # Get statistics
         stats = {
             "total_bookings": Appointment.objects.filter(shop=shop).count(),
-            "today_bookings": Appointment.objects.filter(shop=shop, start_time__date=today).count(),
+            "today_bookings": Appointment.objects.filter(
+                shop=shop, start_time__date=today
+            ).count(),
             "upcoming_bookings": Appointment.objects.filter(
                 shop=shop,
                 start_time__gte=timezone.now(),
@@ -297,13 +322,14 @@ class ShopViewSet(viewsets.ModelViewSet):
         )
 
         stats["bookings_by_day"] = {
-            day_of_week_mapping[item["weekday"] - 1]: item["count"] for item in bookings_by_day
+            day_of_week_mapping[item["weekday"] - 1]: item["count"]
+            for item in bookings_by_day
         }
 
         # Get top services
-        top_services = shop.services.annotate(booking_count=Count("appointments")).order_by(
-            "-booking_count"
-        )[:5]
+        top_services = shop.services.annotate(
+            booking_count=Count("appointments")
+        ).order_by("-booking_count")[:5]
 
         stats["top_services"] = [
             {
@@ -369,7 +395,9 @@ class ShopHoursViewSet(viewsets.ModelViewSet):
         existing_hour = ShopHours.objects.filter(shop=shop, weekday=weekday).first()
         if existing_hour:
             raise ValidationError(
-                _("Shop hours for this day already exist. Please update existing hours.")
+                _(
+                    "Shop hours for this day already exist. Please update existing hours."
+                )
             )
 
         serializer.save()
@@ -405,10 +433,14 @@ class ShopHoursListView(generics.ListCreateAPIView):
         weekday = serializer.validated_data.get("weekday")
 
         # Check if hour already exists for this day
-        existing_hour = ShopHours.objects.filter(shop_id=shop_id, weekday=weekday).first()
+        existing_hour = ShopHours.objects.filter(
+            shop_id=shop_id, weekday=weekday
+        ).first()
         if existing_hour:
             raise ValidationError(
-                _("Shop hours for this day already exist. Please update existing hours.")
+                _(
+                    "Shop hours for this day already exist. Please update existing hours."
+                )
             )
 
         serializer.save(shop_id=shop_id)
@@ -465,7 +497,9 @@ class FollowerViewSet(viewsets.ModelViewSet):
         shop = serializer.validated_data.get("shop")
 
         # Check if customer already follows this shop
-        existing_follow = ShopFollower.objects.filter(shop=shop, customer=self.request.user).first()
+        existing_follow = ShopFollower.objects.filter(
+            shop=shop, customer=self.request.user
+        ).first()
 
         if existing_follow:
             raise ValidationError(_("You are already following this shop."))
@@ -603,7 +637,9 @@ class ShopVerificationViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission to verify shops",
             404: "Not Found - Verification not found",
         },
-        path_params=[{"name": "pk", "description": "Verification ID", "type": "integer"}],
+        path_params=[
+            {"name": "pk", "description": "Verification ID", "type": "integer"}
+        ],
         tags=["Shops", "Verification", "Admin"],
     )
     @action(
@@ -622,7 +658,9 @@ class ShopVerificationViewSet(viewsets.ModelViewSet):
 
         VerificationService.approve_verification(verification.id, request.user.id)
 
-        return Response({"status": "success", "message": _("Verification approved successfully.")})
+        return Response(
+            {"status": "success", "message": _("Verification approved successfully.")}
+        )
 
     @document_api_endpoint(
         summary="Reject shop verification",
@@ -633,7 +671,9 @@ class ShopVerificationViewSet(viewsets.ModelViewSet):
             403: "Forbidden - User doesn't have permission to verify shops",
             404: "Not Found - Verification not found",
         },
-        path_params=[{"name": "pk", "description": "Verification ID", "type": "integer"}],
+        path_params=[
+            {"name": "pk", "description": "Verification ID", "type": "integer"}
+        ],
         tags=["Shops", "Verification", "Admin"],
     )
     @action(
@@ -654,9 +694,13 @@ class ShopVerificationViewSet(viewsets.ModelViewSet):
         if not reason:
             raise ValidationError(_("Rejection reason is required."))
 
-        VerificationService.reject_verification(verification.id, request.user.id, reason)
+        VerificationService.reject_verification(
+            verification.id, request.user.id, reason
+        )
 
-        return Response({"status": "success", "message": _("Verification rejected successfully.")})
+        return Response(
+            {"status": "success", "message": _("Verification rejected successfully.")}
+        )
 
 
 @document_api_endpoint(
@@ -683,7 +727,9 @@ class VerifyShopView(APIView):
         # Verify shop
         ShopService.verify_shop(shop.id, request.user.id)
 
-        return Response({"status": "success", "message": _("Shop verified successfully.")})
+        return Response(
+            {"status": "success", "message": _("Shop verified successfully.")}
+        )
 
 
 @document_api_endpoint(
@@ -712,7 +758,9 @@ class FollowShopView(APIView):
             raise PermissionDenied(_("Only customers can follow shops."))
 
         # Check if customer already follows this shop
-        existing_follow = ShopFollower.objects.filter(shop=shop, customer=request.user).first()
+        existing_follow = ShopFollower.objects.filter(
+            shop=shop, customer=request.user
+        ).first()
 
         if existing_follow:
             return Response(
@@ -722,7 +770,9 @@ class FollowShopView(APIView):
         # Create follow relationship
         ShopFollower.objects.create(shop=shop, customer=request.user)
 
-        return Response({"status": "success", "message": _("You are now following this shop.")})
+        return Response(
+            {"status": "success", "message": _("You are now following this shop.")}
+        )
 
 
 @document_api_endpoint(
@@ -751,15 +801,21 @@ class UnfollowShopView(APIView):
             raise PermissionDenied(_("Only customers can unfollow shops."))
 
         # Check if customer follows this shop
-        existing_follow = ShopFollower.objects.filter(shop=shop, customer=request.user).first()
+        existing_follow = ShopFollower.objects.filter(
+            shop=shop, customer=request.user
+        ).first()
 
         if not existing_follow:
-            return Response({"status": "info", "message": _("You are not following this shop.")})
+            return Response(
+                {"status": "info", "message": _("You are not following this shop.")}
+            )
 
         # Delete follow relationship
         existing_follow.delete()
 
-        return Response({"status": "success", "message": _("You have unfollowed this shop.")})
+        return Response(
+            {"status": "success", "message": _("You have unfollowed this shop.")}
+        )
 
 
 @document_api_endpoint(
@@ -821,7 +877,9 @@ class NearbyShopsView(generics.ListAPIView):
             try:
                 from apps.geoapp.services.geo_service import GeoService
 
-                shop_ids = GeoService.find_nearby_entities((float(lat), float(lng)), radius, "shop")
+                shop_ids = GeoService.find_nearby_entities(
+                    (float(lat), float(lng)), radius, "shop"
+                )
                 queryset = queryset.filter(id__in=shop_ids)
             except (ValueError, TypeError):
                 pass
@@ -909,7 +967,8 @@ class TopShopsView(generics.ListAPIView):
             weighted_score=Case(
                 When(
                     review_count__gt=0,
-                    then=F("avg_rating") * 0.6 + (F("booking_count") / Value(10.0)) * 0.4,
+                    then=F("avg_rating") * 0.6
+                    + (F("booking_count") / Value(10.0)) * 0.4,
                 ),
                 default=F("booking_count") / Value(10.0),
                 output_field=FloatField(),

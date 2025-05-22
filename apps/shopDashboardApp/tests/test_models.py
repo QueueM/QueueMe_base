@@ -146,6 +146,8 @@ class DashboardModelsTestCase(TestCase):
 
     def test_dashboard_preference(self):
         """Test DashboardPreference model"""
-        self.assertEqual(str(self.preference), f"{self.user.phone_number} - Dashboard Preferences")
+        self.assertEqual(
+            str(self.preference), f"{self.user.phone_number} - Dashboard Preferences"
+        )
         self.assertEqual(self.preference.preferred_layout, self.layout)
         self.assertEqual(self.preference.preferred_date_range, "month")

@@ -87,7 +87,9 @@ class WaitTimePredictor:
             # If position is 1 and someone is currently being served,
             # we need to estimate the remaining time for the current service
             if position == 1:
-                current_ticket = QueueTicket.objects.filter(queue=queue, status="serving").first()
+                current_ticket = QueueTicket.objects.filter(
+                    queue=queue, status="serving"
+                ).first()
 
                 if current_ticket:
                     remaining_time = self._estimate_remaining_time(current_ticket)
@@ -111,7 +113,9 @@ class WaitTimePredictor:
             if service_id:
                 service_times = self._get_service_time_statistics(service_id=service_id)
             elif specialist_id:
-                service_times = self._get_service_time_statistics(specialist_id=specialist_id)
+                service_times = self._get_service_time_statistics(
+                    specialist_id=specialist_id
+                )
 
             # If no specific service/specialist or not enough data, get average for
             # all services in this queue
@@ -164,7 +168,8 @@ class WaitTimePredictor:
             if current_speed_factor:
                 final_estimate = (
                     total_estimated_time * self.HISTORICAL_WEIGHT
-                    + (total_estimated_time / current_speed_factor) * self.CURRENT_SPEED_WEIGHT
+                    + (total_estimated_time / current_speed_factor)
+                    * self.CURRENT_SPEED_WEIGHT
                     + (total_estimated_time * time_factor) * self.TIME_PATTERN_WEIGHT
                 )
             else:
@@ -252,7 +257,9 @@ class WaitTimePredictor:
             # Calculate service times in minutes
             service_times = []
             for ticket in tickets:
-                service_duration = (ticket.complete_time - ticket.serve_time).total_seconds() / 60
+                service_duration = (
+                    ticket.complete_time - ticket.serve_time
+                ).total_seconds() / 60
 
                 # Filter out unreasonable values (e.g. system errors, forgotten checkouts)
                 if 0 < service_duration < 180:  # Between 0 and 3 hours
@@ -264,7 +271,9 @@ class WaitTimePredictor:
                     "avg": mean(service_times),
                     "median": median(service_times),
                     "std_dev": (
-                        stdev(service_times) if len(service_times) > 1 else self.DEFAULT_VARIANCE
+                        stdev(service_times)
+                        if len(service_times) > 1
+                        else self.DEFAULT_VARIANCE
                     ),
                     "min": min(service_times),
                     "max": max(service_times),
@@ -308,7 +317,9 @@ class WaitTimePredictor:
             from apps.queueapp.models import QueueTicket
 
             # Count tickets currently in 'serving' status
-            currently_serving = QueueTicket.objects.filter(queue=queue, status="serving").count()
+            currently_serving = QueueTicket.objects.filter(
+                queue=queue, status="serving"
+            ).count()
 
             # If some tickets are being served, that's our count
             if currently_serving > 0:
@@ -317,7 +328,9 @@ class WaitTimePredictor:
             # Otherwise check employees assigned to this queue
             if hasattr(queue, "shop"):
                 # Get count of active employees who can serve from this queue
-                employee_count = Employee.objects.filter(shop=queue.shop, is_active=True).count()
+                employee_count = Employee.objects.filter(
+                    shop=queue.shop, is_active=True
+                ).count()
 
                 return max(1, employee_count)  # At least 1 staff member
 
@@ -368,7 +381,9 @@ class WaitTimePredictor:
             # unused_unused_hour_end = (current_hour + 1) % 24
 
             similar_hour_tickets = [
-                ticket for ticket in similar_tickets if ticket.serve_time.hour == current_hour
+                ticket
+                for ticket in similar_tickets
+                if ticket.serve_time.hour == current_hour
             ]
 
             # Filter to same day of week
@@ -386,7 +401,9 @@ class WaitTimePredictor:
             if len(similar_tickets) >= self.MIN_SAMPLES:
                 service_times = []
                 for ticket in similar_tickets:
-                    duration = (ticket.complete_time - ticket.serve_time).total_seconds() / 60
+                    duration = (
+                        ticket.complete_time - ticket.serve_time
+                    ).total_seconds() / 60
                     if 0 < duration < 180:  # Sanity check
                         service_times.append(duration)
 
@@ -398,7 +415,9 @@ class WaitTimePredictor:
             if len(similar_hour_tickets) >= self.MIN_SAMPLES:
                 hour_times = []
                 for ticket in similar_hour_tickets:
-                    duration = (ticket.complete_time - ticket.serve_time).total_seconds() / 60
+                    duration = (
+                        ticket.complete_time - ticket.serve_time
+                    ).total_seconds() / 60
                     if 0 < duration < 180:
                         hour_times.append(duration)
 
@@ -410,7 +429,9 @@ class WaitTimePredictor:
             if len(similar_day_tickets) >= self.MIN_SAMPLES:
                 day_times = []
                 for ticket in similar_day_tickets:
-                    duration = (ticket.complete_time - ticket.serve_time).total_seconds() / 60
+                    duration = (
+                        ticket.complete_time - ticket.serve_time
+                    ).total_seconds() / 60
                     if 0 < duration < 180:
                         day_times.append(duration)
 
@@ -464,7 +485,9 @@ class WaitTimePredictor:
             # Calculate recent service times
             recent_times = []
             for ticket in recent_tickets:
-                duration = (ticket.complete_time - ticket.serve_time).total_seconds() / 60
+                duration = (
+                    ticket.complete_time - ticket.serve_time
+                ).total_seconds() / 60
                 if 0 < duration < 180:  # Sanity check
                     recent_times.append(duration)
 
@@ -562,13 +585,17 @@ class WaitTimePredictor:
 
         # Variability penalty - higher std_dev means less confidence
         variability_ratio = std_dev / self.DEFAULT_SERVICE_TIME
-        variability_factor = max(0.7, 1.0 - (variability_ratio * 0.1))  # Cap penalty at 30%
+        variability_factor = max(
+            0.7, 1.0 - (variability_ratio * 0.1)
+        )  # Cap penalty at 30%
 
         # Speed data bonus
         speed_bonus = 0.1 if has_speed_data else 0.0
 
         # Calculate final confidence
-        confidence = base_confidence * position_factor * variability_factor + speed_bonus
+        confidence = (
+            base_confidence * position_factor * variability_factor + speed_bonus
+        )
 
         # Cap at 0.95 - we can never be 100% confident
         return min(0.95, confidence)

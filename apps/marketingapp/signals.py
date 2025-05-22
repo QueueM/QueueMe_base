@@ -4,7 +4,7 @@ Signal handlers for Marketing app.
 
 import logging
 
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .models import AdClick, Advertisement, AdView, Campaign
@@ -61,7 +61,9 @@ def check_campaign_budget_limit(sender, instance, **kwargs):
             instance.save(update_fields=["is_active"])
 
             # Deactivate all active ads in the campaign
-            active_ads = Advertisement.objects.filter(campaign=instance, status="active")
+            active_ads = Advertisement.objects.filter(
+                campaign=instance, status="active"
+            )
 
             for ad in active_ads:
                 ad.status = "paused"

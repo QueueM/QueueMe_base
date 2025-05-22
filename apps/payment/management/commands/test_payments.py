@@ -53,10 +53,12 @@ class Command(BaseCommand):
                 return
 
         # Get an appointment to pay for, or create a fake one
-        appointment = Appointment.objects.filter(user=user, payment_status="pending").first()
+        appointment = Appointment.objects.filter(
+            user=user, payment_status="pending"
+        ).first()
         if not appointment:
             # This is just a placeholder, it won't be saved to DB
-            from django.contrib.contenttypes.models import ContentType
+            pass
 
             # unused_unused_ct = ContentType.objects.get_for_model(Appointment)
 
@@ -89,18 +91,24 @@ class Command(BaseCommand):
             if "redirect_url" in result:
                 self.stdout.write(f'Redirect URL: {result["redirect_url"]}')
         else:
-            self.stdout.write(self.style.ERROR(f'Failed to create payment: {result["error"]}'))
+            self.stdout.write(
+                self.style.ERROR(f'Failed to create payment: {result["error"]}')
+            )
 
     def _create_test_refund(self, options):
         transaction_id = options.get("transaction_id")
         if not transaction_id:
-            self.stdout.write(self.style.ERROR("Transaction ID is required for refunds"))
+            self.stdout.write(
+                self.style.ERROR("Transaction ID is required for refunds")
+            )
             return
 
         # Get an admin user for refunding
         admin_user = User.objects.filter(user_type="admin").first()
         if not admin_user:
-            self.stdout.write(self.style.ERROR("No admin users found to process refund"))
+            self.stdout.write(
+                self.style.ERROR("No admin users found to process refund")
+            )
             return
 
         # Get amount or use half of the transaction amount
@@ -117,19 +125,27 @@ class Command(BaseCommand):
             )
 
             if result["success"]:
-                self.stdout.write(self.style.SUCCESS(f'Created test refund: {result["refund_id"]}'))
+                self.stdout.write(
+                    self.style.SUCCESS(f'Created test refund: {result["refund_id"]}')
+                )
                 self.stdout.write(f'Status: {result["status"]}')
                 self.stdout.write(f'Amount: {result["amount"]}')
             else:
-                self.stdout.write(self.style.ERROR(f'Failed to create refund: {result["error"]}'))
+                self.stdout.write(
+                    self.style.ERROR(f'Failed to create refund: {result["error"]}')
+                )
 
         except Transaction.DoesNotExist:
-            self.stdout.write(self.style.ERROR(f"Transaction with ID {transaction_id} not found"))
+            self.stdout.write(
+                self.style.ERROR(f"Transaction with ID {transaction_id} not found")
+            )
 
     def _check_transaction_status(self, options):
         transaction_id = options.get("transaction_id")
         if not transaction_id:
-            self.stdout.write(self.style.ERROR("Transaction ID is required for status check"))
+            self.stdout.write(
+                self.style.ERROR("Transaction ID is required for status check")
+            )
             return
 
         try:
@@ -148,4 +164,6 @@ class Command(BaseCommand):
                 )
 
         except Transaction.DoesNotExist:
-            self.stdout.write(self.style.ERROR(f"Transaction with ID {transaction_id} not found"))
+            self.stdout.write(
+                self.style.ERROR(f"Transaction with ID {transaction_id} not found")
+            )

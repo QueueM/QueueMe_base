@@ -187,6 +187,8 @@ class ShopVerificationAdmin(admin.ModelAdmin):
     approve_verification.short_description = _("Approve selected verifications")
 
     def reject_verification(self, request, queryset):
-        self.message_user(request, _("Please reject verifications individually to provide reason."))
+        self.message_user(
+            request, _("Please reject verifications individually to provide reason.")
+        )
 
     reject_verification.short_description = _("Reject selected verifications")

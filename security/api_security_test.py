@@ -13,10 +13,7 @@ This script tests the security of API endpoints by conducting:
 import json
 import os
 import random
-import string
-import sys
 import time
-from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
@@ -80,7 +77,9 @@ def test_authentication_bypasses():
     for endpoint in protected_endpoints:
         response = requests.get(f"{API_BASE_URL}{endpoint}")
 
-        if response.status_code < 400:  # Any 2XX or 3XX response indicates potential bypass
+        if (
+            response.status_code < 400
+        ):  # Any 2XX or 3XX response indicates potential bypass
             add_issue(
                 "critical",
                 endpoint,
@@ -167,7 +166,9 @@ def test_input_validation():
 
     for endpoint in test_endpoints:
         for payload in sql_injection_payloads:
-            response = requests.get(f"{API_BASE_URL}{endpoint}?q={payload}", headers=headers)
+            response = requests.get(
+                f"{API_BASE_URL}{endpoint}?q={payload}", headers=headers
+            )
 
             # Look for signs of SQL error leakage in response
             if (
@@ -203,14 +204,20 @@ def test_input_validation():
                 data[key] = payload
 
             if method == "POST":
-                response = requests.post(f"{API_BASE_URL}{endpoint}", json=data, headers=headers)
+                response = requests.post(
+                    f"{API_BASE_URL}{endpoint}", json=data, headers=headers
+                )
             elif method == "PATCH":
-                response = requests.patch(f"{API_BASE_URL}{endpoint}", json=data, headers=headers)
+                response = requests.patch(
+                    f"{API_BASE_URL}{endpoint}", json=data, headers=headers
+                )
 
             if response.status_code < 400:
                 # Check if we can retrieve the saved XSS payload
                 if method == "PATCH" and endpoint == "/users/profile/":
-                    check_response = requests.get(f"{API_BASE_URL}/users/profile/", headers=headers)
+                    check_response = requests.get(
+                        f"{API_BASE_URL}/users/profile/", headers=headers
+                    )
                     if payload in check_response.text:
                         add_issue(
                             "high",

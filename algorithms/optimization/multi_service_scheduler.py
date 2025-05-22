@@ -110,7 +110,9 @@ class MultiServiceScheduler:
                 return result
 
         # Step 1: Calculate service dependencies and constraints
-        service_constraints = self._calculate_service_constraints(service_ids, service_map)
+        service_constraints = self._calculate_service_constraints(
+            service_ids, service_map
+        )
 
         # Step 2: Get available time slots for each service
         available_slots = self._get_available_slots(
@@ -206,7 +208,8 @@ class MultiServiceScheduler:
         # If any service is significantly longer, it should be done first/last
         # if gap between appointments is likely
         services_with_duration = [
-            (service_id, constraints["service_durations"][service_id]) for service_id in service_ids
+            (service_id, constraints["service_durations"][service_id])
+            for service_id in service_ids
         ]
         services_with_duration.sort(key=lambda x: x[1], reverse=True)
 
@@ -279,7 +282,10 @@ class MultiServiceScheduler:
                         pref_end_dt = datetime.combine(preferred_date, pref_end)
 
                         # Check if window overlaps with preferred window
-                        if window_end_dt <= pref_start_dt or window_start_dt >= pref_end_dt:
+                        if (
+                            window_end_dt <= pref_start_dt
+                            or window_start_dt >= pref_end_dt
+                        ):
                             continue
 
                         # Adjust window to fit within preferred time
@@ -501,7 +507,10 @@ class MultiServiceScheduler:
                     specialists = [appt["specialist_id"] for appt in current_schedule]
 
                     # Check if total duration exceeds maximum (if set)
-                    if self.max_total_duration and total_duration > self.max_total_duration:
+                    if (
+                        self.max_total_duration
+                        and total_duration > self.max_total_duration
+                    ):
                         return
 
                     possible_schedules.append(
@@ -525,7 +534,9 @@ class MultiServiceScheduler:
             if preferred_specialist_id:
                 # Sort slots to put preferred specialist first
                 slots.sort(
-                    key=lambda x: (0 if x["specialist_id"] == preferred_specialist_id else 1)
+                    key=lambda x: (
+                        0 if x["specialist_id"] == preferred_specialist_id else 1
+                    )
                 )
 
             # Try each available slot for this service
@@ -556,7 +567,9 @@ class MultiServiceScheduler:
                         if prev_specialist != specialist_id:
                             # Look for slots with same specialist before trying different ones
                             same_specialist_slots = [
-                                s for s in slots if s["specialist_id"] == prev_specialist
+                                s
+                                for s in slots
+                                if s["specialist_id"] == prev_specialist
                             ]
 
                             # If there are slots with the same specialist, skip this one
@@ -668,7 +681,9 @@ class MultiServiceScheduler:
             if preferred_specialist_id:
                 # Count appointments with preferred specialist
                 preferred_count = specialists.count(preferred_specialist_id)
-                score += preferred_count * 15  # 15 points per appointment with preferred specialist
+                score += (
+                    preferred_count * 15
+                )  # 15 points per appointment with preferred specialist
 
             # Store score in schedule
             schedule["score"] = score

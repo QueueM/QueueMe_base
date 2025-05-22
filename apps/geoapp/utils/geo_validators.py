@@ -24,7 +24,9 @@ def validate_latitude(value):
                 code="invalid_latitude",
             )
     except (ValueError, TypeError):
-        raise ValidationError(_("Latitude must be a valid number"), code="invalid_latitude")
+        raise ValidationError(
+            _("Latitude must be a valid number"), code="invalid_latitude"
+        )
 
 
 def validate_longitude(value):
@@ -45,7 +47,9 @@ def validate_longitude(value):
                 code="invalid_longitude",
             )
     except (ValueError, TypeError):
-        raise ValidationError(_("Longitude must be a valid number"), code="invalid_longitude")
+        raise ValidationError(
+            _("Longitude must be a valid number"), code="invalid_longitude"
+        )
 
 
 def validate_coordinates_pair(lat, lng):
@@ -115,7 +119,9 @@ def validate_postal_code(value, country_code="SA"):
     else:
         # Generic validation
         if not re.match(r"^[\w\d\s-]{3,10}$", value):
-            raise ValidationError(_("Invalid postal code format"), code="invalid_postal_code")
+            raise ValidationError(
+                _("Invalid postal code format"), code="invalid_postal_code"
+            )
 
 
 def validate_address_format(value):

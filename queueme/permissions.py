@@ -90,7 +90,11 @@ class IsAdminUser(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated and request.user.user_type == "admin"
+        return (
+            request.user
+            and request.user.is_authenticated
+            and request.user.user_type == "admin"
+        )
 
 
 class IsShopUser(permissions.BasePermission):
@@ -126,7 +130,9 @@ class IsCustomerUser(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (
-            request.user and request.user.is_authenticated and request.user.user_type == "customer"
+            request.user
+            and request.user.is_authenticated
+            and request.user.user_type == "customer"
         )
 
     def has_object_permission(self, request, view, obj):
@@ -162,7 +168,9 @@ class SubscriptionActivePermission(permissions.BasePermission):
 
             try:
                 # Get employee record
-                employee = Employee.objects.select_related("shop__company").get(user=request.user)
+                employee = Employee.objects.select_related("shop__company").get(
+                    user=request.user
+                )
 
                 # Check if company has active subscription
                 active_subscription = Subscription.objects.filter(

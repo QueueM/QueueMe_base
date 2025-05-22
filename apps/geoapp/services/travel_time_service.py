@@ -62,7 +62,9 @@ class TravelTimeService:
                 import datetime
 
                 current_hour = datetime.datetime.now().hour
-                traffic_factor = TravelTimeService.TRAFFIC_FACTORS.get(current_hour, 1.0)
+                traffic_factor = TravelTimeService.TRAFFIC_FACTORS.get(
+                    current_hour, 1.0
+                )
                 speed_kmh = speed_kmh / traffic_factor
 
             # Calculate time in hours

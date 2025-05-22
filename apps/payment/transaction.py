@@ -104,14 +104,18 @@ class TransactionManager:
             else:
                 # Handle error
                 transaction.status = "failed"
-                transaction.failure_message = moyasar_response.get("message", "Unknown error")
+                transaction.failure_message = moyasar_response.get(
+                    "message", "Unknown error"
+                )
                 transaction.failure_code = moyasar_response.get("type", "unknown")
                 transaction.save()
 
                 return transaction, False, transaction.failure_message
 
         except Exception as e:
-            logger.error(f"Error creating payment for transaction {transaction.id}: {str(e)}")
+            logger.error(
+                f"Error creating payment for transaction {transaction.id}: {str(e)}"
+            )
 
             # Update transaction with error
             transaction.status = "failed"

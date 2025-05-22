@@ -75,7 +75,9 @@ class AggregationUtils:
         z_scores = {k: (v - mean) / std for k, v in data.items()}
 
         # Detect anomalies
-        anomalies = {k: v for k, v in data.items() if abs(z_scores[k]) > z_score_threshold}
+        anomalies = {
+            k: v for k, v in data.items() if abs(z_scores[k]) > z_score_threshold
+        }
 
         return anomalies
 
@@ -236,7 +238,9 @@ class AggregationUtils:
 
         # Create date range for forecast
         last_date = series.index[-1]
-        forecast_dates = pd.date_range(start=last_date + timedelta(days=1), periods=periods)
+        forecast_dates = pd.date_range(
+            start=last_date + timedelta(days=1), periods=periods
+        )
 
         # Simple exponential smoothing
         alpha = 0.3  # Smoothing factor
@@ -257,4 +261,7 @@ class AggregationUtils:
         combined = pd.concat([series, forecast_series])
 
         # Convert back to dictionary
-        return {date.strftime("%Y-%m-%d"): round(value, 2) for date, value in combined.items()}
+        return {
+            date.strftime("%Y-%m-%d"): round(value, 2)
+            for date, value in combined.items()
+        }

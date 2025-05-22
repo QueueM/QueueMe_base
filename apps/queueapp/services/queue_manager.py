@@ -12,21 +12,20 @@ A comprehensive service for managing real-time queues including:
 
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional
 
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Avg, Case, Count, F, IntegerField, Q, QuerySet, Sum, Value, When
+from django.db.models import (
+    QuerySet,
+)
 from django.utils import timezone
 
 from apps.bookingapp.models import Appointment
-from apps.customersapp.models import Customer
 from apps.notificationsapp.services.notification_service import NotificationService
-from apps.queueapp.models import QueueEntry, QueueStatus, ServiceQueue
-from apps.serviceapp.models import Service
-from apps.shopapp.models import Shop
+from apps.queueapp.models import QueueEntry, ServiceQueue
 from apps.specialistsapp.models import Specialist
 
 logger = logging.getLogger(__name__)
@@ -171,7 +170,9 @@ class QueueManager:
                     # Update priority based on appointment status
                     if timezone.now() > appointment.start_time:
                         # Appointment is late, give higher priority
-                        minutes_late = (timezone.now() - appointment.start_time).seconds // 60
+                        minutes_late = (
+                            timezone.now() - appointment.start_time
+                        ).seconds // 60
                         if minutes_late > 30:
                             priority = QueuePriority.URGENT
                         elif minutes_late > 15:
@@ -188,7 +189,9 @@ class QueueManager:
             with transaction.atomic():
                 # Get the position
                 last_entry = (
-                    QueueEntry.objects.filter(queue=service_queue, status__in=["waiting", "called"])
+                    QueueEntry.objects.filter(
+                        queue=service_queue, status__in=["waiting", "called"]
+                    )
                     .order_by("-position")
                     .first()
                 )
@@ -246,7 +249,9 @@ class QueueManager:
             )
 
     @classmethod
-    def remove_from_queue(cls, entry_id: str, reason: str = "customer_left") -> QueueActionResult:
+    def remove_from_queue(
+        cls, entry_id: str, reason: str = "customer_left"
+    ) -> QueueActionResult:
         """
         Remove an entry from the queue.
 
@@ -340,10 +345,16 @@ class QueueManager:
                         "active_entry": {
                             "entry_id": str(entry.id),
                             "status": entry.status,
-                            "customer_id": (str(entry.customer_id) if entry.customer_id else None),
-                            "customer_name": (entry.customer.name if entry.customer else "Unknown"),
+                            "customer_id": (
+                                str(entry.customer_id) if entry.customer_id else None
+                            ),
+                            "customer_name": (
+                                entry.customer.name if entry.customer else "Unknown"
+                            ),
                             "start_time": (
-                                entry.start_time.isoformat() if entry.start_time else None
+                                entry.start_time.isoformat()
+                                if entry.start_time
+                                else None
                             ),
                         }
                     },
@@ -352,7 +363,9 @@ class QueueManager:
             # Get the next entry in the queue based on priority and position
             with transaction.atomic():
                 # Lock the queue to prevent race conditions
-                service_queue = ServiceQueue.objects.select_for_update().get(id=queue_id)
+                service_queue = ServiceQueue.objects.select_for_update().get(
+                    id=queue_id
+                )
 
                 # Find the next entry - first by priority, then by position
                 next_entries = QueueEntry.objects.filter(
@@ -427,7 +440,9 @@ class QueueManager:
                     "service_id": str(service_queue.service_id),
                     "service_name": service_queue.service.name,
                     "call_time": (
-                        next_entry.call_time.isoformat() if next_entry.call_time else None
+                        next_entry.call_time.isoformat()
+                        if next_entry.call_time
+                        else None
                     ),
                 },
             )
@@ -499,7 +514,9 @@ class QueueManager:
                     "start_time": entry.start_time.isoformat(),
                     "wait_time_minutes": wait_time,
                     "service_id": str(entry.queue.service_id),
-                    "specialist_id": (str(entry.specialist_id) if entry.specialist_id else None),
+                    "specialist_id": (
+                        str(entry.specialist_id) if entry.specialist_id else None
+                    ),
                 },
             )
 
@@ -512,7 +529,9 @@ class QueueManager:
             )
 
     @classmethod
-    def complete_service(cls, entry_id: str, notes: Optional[str] = None) -> QueueActionResult:
+    def complete_service(
+        cls, entry_id: str, notes: Optional[str] = None
+    ) -> QueueActionResult:
         """
         Complete service for a customer.
 
@@ -574,7 +593,9 @@ class QueueManager:
                     "queue_id": str(entry.queue_id),
                     "end_time": entry.end_time.isoformat(),
                     "service_duration_minutes": service_duration,
-                    "specialist_id": (str(entry.specialist_id) if entry.specialist_id else None),
+                    "specialist_id": (
+                        str(entry.specialist_id) if entry.specialist_id else None
+                    ),
                 },
             )
 
@@ -587,7 +608,9 @@ class QueueManager:
             )
 
     @classmethod
-    def update_priority(cls, entry_id: str, new_priority: QueuePriority) -> QueueActionResult:
+    def update_priority(
+        cls, entry_id: str, new_priority: QueuePriority
+    ) -> QueueActionResult:
         """
         Update the priority of a queue entry.
 
@@ -622,9 +645,7 @@ class QueueManager:
                 entry.save()
 
                 # Note the priority change
-                entry.notes = (
-                    f"{entry.notes}\nPriority changed: {old_priority} -> {new_priority.value}"
-                )
+                entry.notes = f"{entry.notes}\nPriority changed: {old_priority} -> {new_priority.value}"
                 entry.save(update_fields=["notes"])
 
                 # Update position in queue
@@ -684,9 +705,13 @@ class QueueManager:
                 queue_id=queue_id, status="waiting"
             ).order_by("-priority", "position")
 
-            called_entries = QueueEntry.objects.filter(queue_id=queue_id, status="called")
+            called_entries = QueueEntry.objects.filter(
+                queue_id=queue_id, status="called"
+            )
 
-            serving_entries = QueueEntry.objects.filter(queue_id=queue_id, status="serving")
+            serving_entries = QueueEntry.objects.filter(
+                queue_id=queue_id, status="serving"
+            )
 
             # Count by entry type
             waiting_by_type = cls._count_by_entry_type(waiting_entries)
@@ -796,7 +821,9 @@ class QueueManager:
 
             # Get queue average service time
             service_queue = entry.queue
-            avg_service_time = service_queue.current_wait_time or 15  # Default to 15 minutes
+            avg_service_time = (
+                service_queue.current_wait_time or 15
+            )  # Default to 15 minutes
 
             # Get position in queue
             position = cls.get_position(entry_id)
@@ -814,7 +841,9 @@ class QueueManager:
             active_specialists = cls._count_active_specialists(entry.queue_id)
             if active_specialists > 1:
                 # Adjust for parallel processing
-                specialist_factor = max(1, active_specialists * 0.7)  # Diminishing returns
+                specialist_factor = max(
+                    1, active_specialists * 0.7
+                )  # Diminishing returns
                 priority_adjusted = priority_adjusted / specialist_factor
 
             return max(5, round(priority_adjusted))  # Minimum 5 minutes wait
@@ -871,7 +900,9 @@ class QueueManager:
                         "position": entry.position,
                         "priority": entry.priority,
                         "entry_type": entry.entry_type,
-                        "customer_name": (entry.customer.name if entry.customer else "Anonymous"),
+                        "customer_name": (
+                            entry.customer.name if entry.customer else "Anonymous"
+                        ),
                         "check_in_time": entry.check_in_time.isoformat(),
                         "wait_time_minutes": cls._calculate_wait_time_minutes(entry),
                     }
@@ -888,23 +919,35 @@ class QueueManager:
                     "service_id": str(current_entry.queue.service_id),
                     "service_name": current_entry.queue.service.name,
                     "customer_id": (
-                        str(current_entry.customer_id) if current_entry.customer_id else None
+                        str(current_entry.customer_id)
+                        if current_entry.customer_id
+                        else None
                     ),
                     "customer_name": (
-                        current_entry.customer.name if current_entry.customer else "Anonymous"
+                        current_entry.customer.name
+                        if current_entry.customer
+                        else "Anonymous"
                     ),
                     "entry_type": current_entry.entry_type,
                     "appointment_id": (
-                        str(current_entry.appointment_id) if current_entry.appointment_id else None
+                        str(current_entry.appointment_id)
+                        if current_entry.appointment_id
+                        else None
                     ),
                     "check_in_time": current_entry.check_in_time.isoformat(),
                     "call_time": (
-                        current_entry.call_time.isoformat() if current_entry.call_time else None
+                        current_entry.call_time.isoformat()
+                        if current_entry.call_time
+                        else None
                     ),
                     "start_time": (
-                        current_entry.start_time.isoformat() if current_entry.start_time else None
+                        current_entry.start_time.isoformat()
+                        if current_entry.start_time
+                        else None
                     ),
-                    "wait_time_minutes": cls._calculate_wait_time_minutes(current_entry),
+                    "wait_time_minutes": cls._calculate_wait_time_minutes(
+                        current_entry
+                    ),
                 }
 
             # Get counts from all queues for this specialist
@@ -994,9 +1037,9 @@ class QueueManager:
         """Reorder queue entries based on priority and check-in time."""
         try:
             # Get waiting entries ordered by priority (desc) and check-in time (asc)
-            entries = QueueEntry.objects.filter(queue_id=queue_id, status="waiting").order_by(
-                "-priority", "check_in_time"
-            )
+            entries = QueueEntry.objects.filter(
+                queue_id=queue_id, status="waiting"
+            ).order_by("-priority", "check_in_time")
 
             # Reorder positions
             position = 1
@@ -1084,7 +1127,9 @@ class QueueManager:
             logger.error(f"Error sending customer added notification: {str(e)}")
 
     @classmethod
-    def _notify_customer_called(cls, entry_id: str, customer_id: str, specialist_id: str) -> None:
+    def _notify_customer_called(
+        cls, entry_id: str, customer_id: str, specialist_id: str
+    ) -> None:
         """Send notification to customer when called from queue."""
         try:
             # Get specialist name if available
@@ -1110,7 +1155,9 @@ class QueueManager:
             logger.error(f"Error sending customer called notification: {str(e)}")
 
     @classmethod
-    def _notify_customer_removed(cls, entry_id: str, customer_id: str, reason: str) -> None:
+    def _notify_customer_removed(
+        cls, entry_id: str, customer_id: str, reason: str
+    ) -> None:
         """Send notification to customer when removed from queue."""
         try:
             notification_data = {"entry_id": entry_id, "reason": reason}
@@ -1121,9 +1168,7 @@ class QueueManager:
                 message = "You have been removed from the queue."
 
                 if reason == "no_show":
-                    message = (
-                        "You were removed from the queue because you didn't respond when called."
-                    )
+                    message = "You were removed from the queue because you didn't respond when called."
                 elif reason == "rescheduled":
                     message = "Your appointment has been rescheduled and you've been removed from the current queue."
 

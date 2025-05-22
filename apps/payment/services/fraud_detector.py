@@ -44,14 +44,18 @@ class FraudDetector:
 
         # Get customer history (past 90 days)
         start_date = timezone.now() - timedelta(days=90)
-        customer_history = Transaction.objects.filter(user_id=user_id, created_at__gte=start_date)
+        customer_history = Transaction.objects.filter(
+            user_id=user_id, created_at__gte=start_date
+        )
 
         # Initialize risk score and flagged factors
         risk_score = 0
         flagged_factors = []
 
         # 1. Amount factor (unusually large amounts are suspicious)
-        avg_amount = customer_history.exclude(id=transaction.id).values_list("amount", flat=True)
+        avg_amount = customer_history.exclude(id=transaction.id).values_list(
+            "amount", flat=True
+        )
         if avg_amount:
             avg_transaction_amount = sum(avg_amount) / len(avg_amount)
 
@@ -71,7 +75,9 @@ class FraudDetector:
                 flagged_factors.append("new_payment_method")
 
             # Check payment method usage history
-            method_usage = customer_history.filter(payment_method=payment_method).count()
+            method_usage = customer_history.filter(
+                payment_method=payment_method
+            ).count()
             if method_usage == 0:
                 risk_score += 0.1
                 flagged_factors.append("first_use_of_payment_method")
@@ -82,14 +88,18 @@ class FraudDetector:
 
         # 3. Device factor
         if device_fingerprint:
-            device_usage = customer_history.filter(device_fingerprint=device_fingerprint).count()
+            device_usage = customer_history.filter(
+                device_fingerprint=device_fingerprint
+            ).count()
             if device_usage == 0:
                 risk_score += 0.2
                 flagged_factors.append("new_device")
 
         # 4. Velocity factor (many transactions in short time)
         recent_window = timezone.now() - timedelta(hours=1)
-        recent_transactions = customer_history.filter(created_at__gte=recent_window).count()
+        recent_transactions = customer_history.filter(
+            created_at__gte=recent_window
+        ).count()
 
         if recent_transactions > VELOCITY_THRESHOLD:
             risk_score += VELOCITY_RISK_SCORE
@@ -116,9 +126,7 @@ class FraudDetector:
         risk_level = (
             "high"
             if risk_score >= HIGH_RISK_THRESHOLD
-            else "medium"
-            if risk_score >= 0.3
-            else "low"
+            else "medium" if risk_score >= 0.3 else "low"
         )
 
         return {
@@ -168,7 +176,10 @@ class FraudDetector:
                 .order_by("-count")
             )
 
-            if usual_types and usual_types[0]["payment_type"] != transaction.payment_type:
+            if (
+                usual_types
+                and usual_types[0]["payment_type"] != transaction.payment_type
+            ):
                 return True
 
         return False

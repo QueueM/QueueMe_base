@@ -130,7 +130,9 @@ def verify_backup_file(backup_path):
     try:
         # Try to list contents of the backup
         cmd = ["pg_restore", "-l", verify_path]
-        result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(
+            cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
 
         # Check if we got content listing output
         if result.stdout:
@@ -339,7 +341,9 @@ def send_notification(success, details=None, error=None):
 
         django.setup()
 
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         # Construct message
         if success:
@@ -412,7 +416,9 @@ def main():
         local_backup.close()
 
         # Download from S3
-        download_success, download_error = download_from_s3(bucket, key, local_backup.name)
+        download_success, download_error = download_from_s3(
+            bucket, key, local_backup.name
+        )
         if not download_success:
             logger.error(f"Download failed: {download_error}")
             return 1
@@ -433,7 +439,9 @@ def main():
         local_backup.close()
 
         # Download from GCS
-        download_success, download_error = download_from_gcs(bucket, path, local_backup.name)
+        download_success, download_error = download_from_gcs(
+            bucket, path, local_backup.name
+        )
         if not download_success:
             logger.error(f"Download failed: {download_error}")
             return 1
@@ -451,7 +459,9 @@ def main():
     }
 
     # Execute restore
-    restore_success, restore_error = restore_backup(backup_path, db_config, restore_options)
+    restore_success, restore_error = restore_backup(
+        backup_path, db_config, restore_options
+    )
 
     # Send notification
     if not args.no_notify:

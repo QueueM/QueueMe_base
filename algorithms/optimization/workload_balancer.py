@@ -163,7 +163,9 @@ class WorkloadBalancer:
 
         # Step 4: Calculate target workload per specialist
         total_appointments = len(fixed_appointments) + len(reassignable_appointments)
-        target_per_specialist = total_appointments / len(specialists) if specialists else 0
+        target_per_specialist = (
+            total_appointments / len(specialists) if specialists else 0
+        )
 
         # Track current workload accounting for fixed appointments
         current_specialist_count = {specialist["id"]: 0 for specialist in specialists}
@@ -266,7 +268,9 @@ class WorkloadBalancer:
                     if specialist_id in preferred_specialists:
                         score += 2.0  # Strong bonus for customer preference
 
-                scored_specialists.append({"specialist_id": specialist_id, "score": score})
+                scored_specialists.append(
+                    {"specialist_id": specialist_id, "score": score}
+                )
 
             # Find the specialist with the highest score
             best_specialist = max(scored_specialists, key=lambda x: x["score"])
@@ -283,7 +287,9 @@ class WorkloadBalancer:
             )
 
         # Step 6: Calculate final workload statistics
-        specialist_appointment_counts = {specialist["id"]: 0 for specialist in specialists}
+        specialist_appointment_counts = {
+            specialist["id"]: 0 for specialist in specialists
+        }
         specialist_service_minutes = {specialist["id"]: 0 for specialist in specialists}
 
         for appointment in balanced_appointments:
@@ -308,13 +314,19 @@ class WorkloadBalancer:
                 1 for a in balanced_appointments if not a.get("specialist_id")
             ),
             "min_appointments": (
-                min(specialist_appointment_counts.values()) if specialist_appointment_counts else 0
+                min(specialist_appointment_counts.values())
+                if specialist_appointment_counts
+                else 0
             ),
             "max_appointments": (
-                max(specialist_appointment_counts.values()) if specialist_appointment_counts else 0
+                max(specialist_appointment_counts.values())
+                if specialist_appointment_counts
+                else 0
             ),
             "avg_appointments": (
-                sum(specialist_appointment_counts.values()) / len(specialists) if specialists else 0
+                sum(specialist_appointment_counts.values()) / len(specialists)
+                if specialists
+                else 0
             ),
         }
 
@@ -422,14 +434,18 @@ class WorkloadBalancer:
                 continue
 
             # Increment appointment count
-            appointment_counts[specialist_id] = appointment_counts.get(specialist_id, 0) + 1
+            appointment_counts[specialist_id] = (
+                appointment_counts.get(specialist_id, 0) + 1
+            )
 
             # Add service duration
             service_id = appointment["service_id"]
             service = service_map.get(service_id, {})
             duration = service.get("duration", 30)  # Default to 30 minutes
 
-            service_minutes[specialist_id] = service_minutes.get(specialist_id, 0) + duration
+            service_minutes[specialist_id] = (
+                service_minutes.get(specialist_id, 0) + duration
+            )
 
         # Group appointments by day for each specialist
         daily_counts = {}

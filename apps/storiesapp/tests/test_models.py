@@ -22,7 +22,9 @@ class StoryModelTest(TestCase):
         )
 
         # Create location
-        self.location = Location.objects.create(city="Test City", latitude=0.0, longitude=0.0)
+        self.location = Location.objects.create(
+            city="Test City", latitude=0.0, longitude=0.0
+        )
 
         # Create shop
         self.shop = Shop.objects.create(
@@ -71,7 +73,9 @@ class StoryModelTest(TestCase):
         self.story.save()
 
         # Should be approximately 1 hour
-        self.assertAlmostEqual(self.story.time_left, 3600, delta=60)  # Allow 1 min difference
+        self.assertAlmostEqual(
+            self.story.time_left, 3600, delta=60
+        )  # Allow 1 min difference
 
 
 class StoryViewModelTest(TestCase):
@@ -86,7 +90,9 @@ class StoryViewModelTest(TestCase):
         )
 
         # Create location
-        self.location = Location.objects.create(city="Test City", latitude=0.0, longitude=0.0)
+        self.location = Location.objects.create(
+            city="Test City", latitude=0.0, longitude=0.0
+        )
 
         # Create shop
         self.shop = Shop.objects.create(
@@ -103,10 +109,14 @@ class StoryViewModelTest(TestCase):
         )
 
         # Create test customer
-        self.customer = User.objects.create(phone_number="9876543210", user_type="customer")
+        self.customer = User.objects.create(
+            phone_number="9876543210", user_type="customer"
+        )
 
         # Create story view
-        self.story_view = StoryView.objects.create(story=self.story, customer=self.customer)
+        self.story_view = StoryView.objects.create(
+            story=self.story, customer=self.customer
+        )
 
     def test_story_view_creation(self):
         """Test story view creation"""
@@ -120,7 +130,9 @@ class StoryViewModelTest(TestCase):
         self.assertEqual(self.story.view_count, 1)
 
         # Create another customer and view
-        another_customer = User.objects.create(phone_number="5555555555", user_type="customer")
+        another_customer = User.objects.create(
+            phone_number="5555555555", user_type="customer"
+        )
 
         StoryView.objects.create(story=self.story, customer=another_customer)
 

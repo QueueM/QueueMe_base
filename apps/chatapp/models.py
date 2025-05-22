@@ -73,7 +73,9 @@ class Message(models.Model):
         blank=True,
     )
     content = models.TextField(_("Content"))
-    message_type = models.CharField(_("Type"), max_length=10, choices=TYPE_CHOICES, default="text")
+    message_type = models.CharField(
+        _("Type"), max_length=10, choices=TYPE_CHOICES, default="text"
+    )
     media_url = models.URLField(_("Media URL"), null=True, blank=True)
     is_read = models.BooleanField(_("Read"), default=False)
     read_at = models.DateTimeField(_("Read At"), null=True, blank=True)
@@ -89,7 +91,9 @@ class Message(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.sender.phone_number} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+        return (
+            f"{self.sender.phone_number} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+        )
 
 
 class Presence(models.Model):
@@ -146,4 +150,6 @@ class TypingStatus(models.Model):
         unique_together = ("user", "conversation")
 
     def __str__(self):
-        return f"{self.user.phone_number} - {'Typing' if self.is_typing else 'Not typing'}"
+        return (
+            f"{self.user.phone_number} - {'Typing' if self.is_typing else 'Not typing'}"
+        )

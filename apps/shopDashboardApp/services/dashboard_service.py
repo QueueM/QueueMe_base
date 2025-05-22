@@ -82,7 +82,9 @@ class DashboardService:
 
                 # Validate date range
                 if start_date > end_date:
-                    raise InvalidDateRangeException("Start date cannot be after end date.")
+                    raise InvalidDateRangeException(
+                        "Start date cannot be after end date."
+                    )
 
                 return {"start_date": start_date, "end_date": end_date}
             except ValueError:
@@ -107,7 +109,10 @@ class DashboardService:
             preference = DashboardPreference.objects.get(user_id=user_id)
 
             # Check if user has a preferred layout for this shop
-            if preference.preferred_layout and preference.preferred_layout.shop_id == shop_id:
+            if (
+                preference.preferred_layout
+                and preference.preferred_layout.shop_id == shop_id
+            ):
                 layout = preference.preferred_layout
             else:
                 # Get default layout for shop
@@ -124,7 +129,9 @@ class DashboardService:
         kpi_keys = [widget.kpi_key for widget in kpi_widgets if widget.kpi_key]
 
         # If no specific KPIs defined in layout, get all KPIs
-        kpis = kpi_service.get_kpis(shop_id, start_date, end_date, kpi_keys if kpi_keys else None)
+        kpis = kpi_service.get_kpis(
+            shop_id, start_date, end_date, kpi_keys if kpi_keys else None
+        )
 
         # Get charts based on layout configuration
         chart_widgets = layout.widgets.filter(widget_type="chart", is_visible=True)
@@ -172,9 +179,13 @@ class DashboardService:
             "time_period": time_period,
             "date_range": {
                 "start_date": (
-                    start_date.isoformat() if hasattr(start_date, "isoformat") else start_date
+                    start_date.isoformat()
+                    if hasattr(start_date, "isoformat")
+                    else start_date
                 ),
-                "end_date": (end_date.isoformat() if hasattr(end_date, "isoformat") else end_date),
+                "end_date": (
+                    end_date.isoformat() if hasattr(end_date, "isoformat") else end_date
+                ),
             },
             "kpis": kpis,
             "charts": charts,

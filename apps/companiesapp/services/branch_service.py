@@ -1,5 +1,4 @@
 # apps/companiesapp/services/branch_service.py
-import uuid
 
 from django.db import models, transaction
 
@@ -68,9 +67,9 @@ class BranchService:
             try:
                 from apps.reviewapp.models import ShopReview
 
-                avg_rating = ShopReview.objects.filter(shop=shop).aggregate(avg=Avg("rating"))[
-                    "avg"
-                ]
+                avg_rating = ShopReview.objects.filter(shop=shop).aggregate(
+                    avg=Avg("rating")
+                )["avg"]
                 shop.avg_rating = avg_rating or 0
             except Exception:
                 shop.avg_rating = 0
@@ -131,8 +130,12 @@ class BranchService:
 
             # Calculate average coordinates (simple approach)
             total_lat = sum(loc.latitude for loc in customer_locations if loc.latitude)
-            total_lng = sum(loc.longitude for loc in customer_locations if loc.longitude)
-            count = len([loc for loc in customer_locations if loc.latitude and loc.longitude])
+            total_lng = sum(
+                loc.longitude for loc in customer_locations if loc.longitude
+            )
+            count = len(
+                [loc for loc in customer_locations if loc.latitude and loc.longitude]
+            )
 
             if count > 0:
                 avg_lat = total_lat / count
@@ -192,7 +195,9 @@ class BranchService:
                     from apps.reviewapp.models import ShopReview
 
                     avg_rating = (
-                        ShopReview.objects.filter(shop=shop).aggregate(avg=Avg("rating"))["avg"]
+                        ShopReview.objects.filter(shop=shop).aggregate(
+                            avg=Avg("rating")
+                        )["avg"]
                         or 0
                     )
                 except Exception:
@@ -207,9 +212,9 @@ class BranchService:
                     revenue = (
                         Transaction.objects.filter(
                             content_type__model="appointment",
-                            object_id__in=Appointment.objects.filter(shop=shop).values_list(
-                                "id", flat=True
-                            ),
+                            object_id__in=Appointment.objects.filter(
+                                shop=shop
+                            ).values_list("id", flat=True),
                             status="succeeded",
                         ).aggregate(total=Sum("amount"))["total"]
                         or 0
@@ -226,7 +231,9 @@ class BranchService:
                         "avg_rating": avg_rating,
                         "revenue": revenue,
                         "employee_count": shop.employees.count(),
-                        "specialist_count": shop.employees.filter(specialist__isnull=False).count(),
+                        "specialist_count": shop.employees.filter(
+                            specialist__isnull=False
+                        ).count(),
                     }
                 )
 
@@ -235,17 +242,23 @@ class BranchService:
 
             # Calculate company-wide averages
             company_averages = {
-                "avg_bookings_per_shop": sum(s["booking_stats"]["total"] for s in shop_metrics)
+                "avg_bookings_per_shop": sum(
+                    s["booking_stats"]["total"] for s in shop_metrics
+                )
                 / len(shop_metrics),
-                "avg_rating": sum(s["avg_rating"] for s in shop_metrics) / len(shop_metrics),
-                "avg_revenue_per_shop": sum(s["revenue"] for s in shop_metrics) / len(shop_metrics),
+                "avg_rating": sum(s["avg_rating"] for s in shop_metrics)
+                / len(shop_metrics),
+                "avg_revenue_per_shop": sum(s["revenue"] for s in shop_metrics)
+                / len(shop_metrics),
             }
 
             return {
                 "status": "success",
                 "shop_metrics": shop_metrics,
                 "company_averages": company_averages,
-                "top_performing_shop": (shop_metrics[0]["name"] if shop_metrics else None),
+                "top_performing_shop": (
+                    shop_metrics[0]["name"] if shop_metrics else None
+                ),
             }
 
         except Exception as e:

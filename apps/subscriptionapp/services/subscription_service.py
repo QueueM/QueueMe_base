@@ -22,7 +22,12 @@ from apps.subscriptionapp.constants import (
     SUBSCRIPTION_PERIOD_CHOICES,
     SUBSCRIPTION_STATUS_CHOICES,
 )
-from apps.subscriptionapp.models import Plan, Subscription, SubscriptionInvoice, SubscriptionLog
+from apps.subscriptionapp.models import (
+    Plan,
+    Subscription,
+    SubscriptionInvoice,
+    SubscriptionLog,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +71,9 @@ class SubscriptionService:
         return subscription
 
     @staticmethod
-    def initiate_subscription_payment(company_id, plan_id, period="monthly", return_url=None):
+    def initiate_subscription_payment(
+        company_id, plan_id, period="monthly", return_url=None
+    ):
         """Initiate payment process for a new subscription"""
         company = Company.objects.get(id=company_id)
         plan = Plan.objects.get(id=plan_id)
@@ -78,7 +85,9 @@ class SubscriptionService:
 
         # Create or get subscription
         try:
-            subscription = Subscription.objects.get(company=company, status=STATUS_INITIATED)
+            subscription = Subscription.objects.get(
+                company=company, status=STATUS_INITIATED
+            )
 
             # Update subscription if plan or period changed
             if subscription.plan_id != plan_id or subscription.period != period:
@@ -202,11 +211,15 @@ class SubscriptionService:
         # Calculate price for the period
         from apps.subscriptionapp.utils.billing_utils import calculate_period_price
 
-        amount = calculate_period_price(subscription.plan.monthly_price, subscription.period)
+        amount = calculate_period_price(
+            subscription.plan.monthly_price, subscription.period
+        )
 
         # Set up period dates
         current_end = subscription.current_period_end or timezone.now()
-        period_delta = PERIOD_TIMEDELTA.get(subscription.period, PERIOD_TIMEDELTA["monthly"])
+        period_delta = PERIOD_TIMEDELTA.get(
+            subscription.period, PERIOD_TIMEDELTA["monthly"]
+        )
         period_end = current_end + period_delta
 
         # Create invoice
@@ -257,9 +270,12 @@ class SubscriptionService:
             response_data = response.json()
 
             if response.status_code != 200:
-                logger.error(f"Moyasar renewal payment initiation failed: {response_data}")
+                logger.error(
+                    f"Moyasar renewal payment initiation failed: {response_data}"
+                )
                 raise ValueError(
-                    _("Renewal payment initiation failed: ") + response_data.get("message", "")
+                    _("Renewal payment initiation failed: ")
+                    + response_data.get("message", "")
                 )
 
             # Get payment details
@@ -317,7 +333,9 @@ class SubscriptionService:
             response_data = response.json()
 
             if response.status_code != 200:
-                logger.error(f"Failed to get payment details from Moyasar: {response_data}")
+                logger.error(
+                    f"Failed to get payment details from Moyasar: {response_data}"
+                )
                 return False
 
             # Get metadata
@@ -405,7 +423,9 @@ class SubscriptionService:
             response_data = response.json()
 
             if response.status_code != 200:
-                logger.error(f"Failed to get payment details from Moyasar: {response_data}")
+                logger.error(
+                    f"Failed to get payment details from Moyasar: {response_data}"
+                )
                 return False
 
             # Get metadata
@@ -479,7 +499,9 @@ class SubscriptionService:
 
         # Set subscription dates
         now = timezone.now()
-        period_delta = PERIOD_TIMEDELTA.get(subscription.period, PERIOD_TIMEDELTA["monthly"])
+        period_delta = PERIOD_TIMEDELTA.get(
+            subscription.period, PERIOD_TIMEDELTA["monthly"]
+        )
 
         subscription.status = STATUS_ACTIVE
         subscription.start_date = now
@@ -645,7 +667,9 @@ class SubscriptionService:
             logger.warning(
                 f"Cannot change plan for subscription {subscription_id}: {subscription.status}"
             )
-            raise ValueError(_("Plan can only be changed for active or trial subscriptions"))
+            raise ValueError(
+                _("Plan can only be changed for active or trial subscriptions")
+            )
 
         old_plan_id = subscription.plan_id
         old_plan_name = subscription.plan_name
@@ -690,7 +714,9 @@ class SubscriptionService:
             logger.warning(
                 f"Cannot change period for subscription {subscription_id}: {subscription.status}"
             )
-            raise ValueError(_("Period can only be changed for active or trial subscriptions"))
+            raise ValueError(
+                _("Period can only be changed for active or trial subscriptions")
+            )
 
         if new_period not in dict(SUBSCRIPTION_PERIOD_CHOICES):
             raise ValueError(_("Invalid subscription period"))
@@ -728,7 +754,9 @@ class SubscriptionService:
         if new_status == STATUS_ACTIVE and not subscription.current_period_end:
             # Set period dates for new active subscription
             now = timezone.now()
-            period_delta = PERIOD_TIMEDELTA.get(subscription.period, PERIOD_TIMEDELTA["monthly"])
+            period_delta = PERIOD_TIMEDELTA.get(
+                subscription.period, PERIOD_TIMEDELTA["monthly"]
+            )
 
             subscription.start_date = now
             subscription.current_period_start = now
@@ -765,7 +793,9 @@ class SubscriptionService:
             logger.warning(
                 f"Cannot retry payment for subscription {subscription_id}: {subscription.status}"
             )
-            raise ValueError(_("Payment can only be retried for past due subscriptions"))
+            raise ValueError(
+                _("Payment can only be retried for past due subscriptions")
+            )
 
         # Initiate renewal payment
         return SubscriptionService.initiate_renewal_payment(subscription_id)

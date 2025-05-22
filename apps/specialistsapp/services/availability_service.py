@@ -33,9 +33,9 @@ class AvailabilityService:
             return cached_availability
 
         # Get specialist and check if they work on this day
-        specialist = Specialist.objects.select_related("employee", "employee__shop").get(
-            id=specialist_id
-        )
+        specialist = Specialist.objects.select_related(
+            "employee", "employee__shop"
+        ).get(id=specialist_id)
 
         shop = specialist.employee.shop
 
@@ -80,14 +80,18 @@ class AvailabilityService:
             return []
 
         # Get services this specialist provides
-        specialist_services = specialist.specialist_services.select_related("service").all()
+        specialist_services = specialist.specialist_services.select_related(
+            "service"
+        ).all()
 
         if not specialist_services.exists():
             # Specialist doesn't provide any services
             return []
 
         # Find the minimum slot length across all services
-        min_slot_duration = min(ss.get_effective_duration() for ss in specialist_services)
+        min_slot_duration = min(
+            ss.get_effective_duration() for ss in specialist_services
+        )
         min_granularity = min(ss.service.slot_granularity for ss in specialist_services)
 
         # Generate all possible time slots based on shortest service and granularity
@@ -140,7 +144,9 @@ class AvailabilityService:
 
         return formatted_slots
 
-    def check_availability_for_service(self, specialist_id, service_id, date, start_time):
+    def check_availability_for_service(
+        self, specialist_id, service_id, date, start_time
+    ):
         """
         Check if a specialist is available for a specific service, date and time.
 
@@ -157,7 +163,9 @@ class AvailabilityService:
         specialist = Specialist.objects.get(id=specialist_id)
 
         # Check if specialist provides this service
-        specialist_service = specialist.specialist_services.filter(service_id=service_id).first()
+        specialist_service = specialist.specialist_services.filter(
+            service_id=service_id
+        ).first()
 
         if not specialist_service:
             return False
@@ -166,7 +174,9 @@ class AvailabilityService:
         duration = specialist_service.get_effective_duration()
 
         # Calculate end time
-        end_time = (datetime.combine(date, start_time) + timedelta(minutes=duration)).time()
+        end_time = (
+            datetime.combine(date, start_time) + timedelta(minutes=duration)
+        ).time()
 
         # Get available slots
         availability = self.get_specialist_availability(specialist_id, date)
@@ -233,7 +243,9 @@ class AvailabilityService:
 
         return result
 
-    def is_specialist_available(self, specialist_id, date, start_time, end_time, service_id=None):
+    def is_specialist_available(
+        self, specialist_id, date, start_time, end_time, service_id=None
+    ):
         """
         Check if a specialist is available during a specific time window.
 
@@ -300,7 +312,9 @@ class AvailabilityService:
 
         return not overlapping_appointments.exists()
 
-    def _generate_time_slots(self, date_obj, start_time, end_time, min_duration, granularity):
+    def _generate_time_slots(
+        self, date_obj, start_time, end_time, min_duration, granularity
+    ):
         """
         Generate all possible time slots for the given time range.
 

@@ -105,7 +105,9 @@ def update_specialist_usage(sender, instance, created, **kwargs):
 @receiver(pre_save, sender=Subscription)
 def update_cached_plan_details(sender, instance, **kwargs):
     """Cache plan details when subscription is created/updated"""
-    if instance.plan and (not instance.plan_name or instance.plan_name != instance.plan.name):
+    if instance.plan and (
+        not instance.plan_name or instance.plan_name != instance.plan.name
+    ):
         # Cache plan details
         instance.plan_name = instance.plan.name
         instance.max_shops = instance.plan.max_shops

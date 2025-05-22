@@ -7,19 +7,18 @@ using geospatial queries and configurable filtering rules.
 
 import logging
 import math
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from django.conf import settings
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.core.cache import cache
-from django.db.models import Case, F, IntegerField, Q, Value, When
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.customersapp.models import Customer
-from apps.geoapp.models import City, Country, Location, Region
+from apps.geoapp.models import City
 from apps.reelsapp.models import Reel
 from apps.serviceapp.models import Service
 from apps.shopapp.models import Shop
@@ -40,7 +39,9 @@ class LocationContentFilter:
     DEFAULT_CACHE_TTL = 60 * 10  # 10 minutes
     MAJOR_CITIES_RANGE_KM = 50  # Range for major cities in kilometers
 
-    def __init__(self, user_location: Optional[Point] = None, user_id: Optional[str] = None):
+    def __init__(
+        self, user_location: Optional[Point] = None, user_id: Optional[str] = None
+    ):
         """
         Initialize the location filter with user location
 
@@ -87,7 +88,9 @@ class LocationContentFilter:
         self.max_results = max_results
         return self
 
-    def set_location(self, latitude: float, longitude: float) -> "LocationContentFilter":
+    def set_location(
+        self, latitude: float, longitude: float
+    ) -> "LocationContentFilter":
         """
         Set the user location
 
@@ -252,9 +255,7 @@ class LocationContentFilter:
         self._ensure_location()
 
         # Cache key based on location and radius
-        cache_key = (
-            f"nearby_cities:{self.user_location.x:.4f},{self.user_location.y:.4f}:{self.radius_km}"
-        )
+        cache_key = f"nearby_cities:{self.user_location.x:.4f},{self.user_location.y:.4f}:{self.radius_km}"
         cached_result = cache.get(cache_key)
 
         if cached_result:
@@ -262,7 +263,9 @@ class LocationContentFilter:
 
         # Query cities within radius
         cities = (
-            City.objects.filter(location__dwithin=(self.user_location, D(km=self.radius_km)))
+            City.objects.filter(
+                location__dwithin=(self.user_location, D(km=self.radius_km))
+            )
             .annotate(distance=Distance("location", self.user_location))
             .order_by("distance")
         )
@@ -336,12 +339,14 @@ class LocationContentFilter:
                     "location": {
                         "latitude": (
                             shop.location.location.y
-                            if hasattr(shop.location, "location") and shop.location.location
+                            if hasattr(shop.location, "location")
+                            and shop.location.location
                             else None
                         ),
                         "longitude": (
                             shop.location.location.x
-                            if hasattr(shop.location, "location") and shop.location.location
+                            if hasattr(shop.location, "location")
+                            and shop.location.location
                             else None
                         ),
                     },
@@ -419,9 +424,9 @@ class LocationContentFilter:
 
             # Get active geofences
             now = timezone.now()
-            geofences = Geofence.objects.filter(is_active=True, active_from__lte=now).filter(
-                Q(active_until__isnull=True) | Q(active_until__gt=now)
-            )
+            geofences = Geofence.objects.filter(
+                is_active=True, active_from__lte=now
+            ).filter(Q(active_until__isnull=True) | Q(active_until__gt=now))
 
             # Filter by location (within radius)
             matching_geofences = []
@@ -455,7 +460,9 @@ class LocationContentFilter:
             raise ValueError("Either user location or city must be specified")
 
         # If we have location but no region data, try to determine it
-        if self.user_location and not (self.country_id or self.city_id or self.region_id):
+        if self.user_location and not (
+            self.country_id or self.city_id or self.region_id
+        ):
             self._determine_region()
 
     def _load_user_location(self):
@@ -468,7 +475,9 @@ class LocationContentFilter:
 
             # If customer has location coordinates
             if customer.latitude and customer.longitude:
-                self.user_location = Point(customer.longitude, customer.latitude, srid=4326)
+                self.user_location = Point(
+                    customer.longitude, customer.latitude, srid=4326
+                )
 
             # If customer has city but no coordinates
             elif customer.city_id and not self.user_location:
@@ -491,7 +500,9 @@ class LocationContentFilter:
             return
 
         # Check if we have this in cache
-        cache_key = f"location_region:{self.user_location.x:.4f},{self.user_location.y:.4f}"
+        cache_key = (
+            f"location_region:{self.user_location.x:.4f},{self.user_location.y:.4f}"
+        )
         cached_data = cache.get(cache_key)
 
         if cached_data:
@@ -594,7 +605,9 @@ class LocationContentFilter:
                         D(km=self.radius_km),
                     )
                 )
-                .annotate(distance=Distance("shop__location__location", self.user_location))
+                .annotate(
+                    distance=Distance("shop__location__location", self.user_location)
+                )
                 .order_by("distance")
             )
 
@@ -604,11 +617,15 @@ class LocationContentFilter:
 
         # Apply region filter if specified
         elif self.region_id:
-            filtered_query = filtered_query.filter(shop__location__region_id=self.region_id)
+            filtered_query = filtered_query.filter(
+                shop__location__region_id=self.region_id
+            )
 
         # Apply country filter if specified
         elif self.country_id:
-            filtered_query = filtered_query.filter(shop__location__country_id=self.country_id)
+            filtered_query = filtered_query.filter(
+                shop__location__country_id=self.country_id
+            )
 
         # Apply result limit
         return filtered_query[: self.max_results]
@@ -628,7 +645,9 @@ class LocationContentFilter:
                         D(km=self.radius_km),
                     )
                 )
-                .annotate(distance=Distance("shop__location__location", self.user_location))
+                .annotate(
+                    distance=Distance("shop__location__location", self.user_location)
+                )
                 .order_by("distance")
             )
 
@@ -638,11 +657,15 @@ class LocationContentFilter:
 
         # Apply region filter if specified
         elif self.region_id:
-            filtered_query = filtered_query.filter(shop__location__region_id=self.region_id)
+            filtered_query = filtered_query.filter(
+                shop__location__region_id=self.region_id
+            )
 
         # Apply country filter if specified
         elif self.country_id:
-            filtered_query = filtered_query.filter(shop__location__country_id=self.country_id)
+            filtered_query = filtered_query.filter(
+                shop__location__country_id=self.country_id
+            )
 
         # Apply result limit
         return filtered_query[: self.max_results]
@@ -661,7 +684,9 @@ class LocationContentFilter:
                         D(km=self.radius_km),
                     )
                 )
-                .annotate(distance=Distance("shop__location__location", self.user_location))
+                .annotate(
+                    distance=Distance("shop__location__location", self.user_location)
+                )
                 .order_by("distance")
             )
 
@@ -671,11 +696,15 @@ class LocationContentFilter:
 
         # Apply region filter if specified
         elif self.region_id:
-            filtered_query = filtered_query.filter(shop__location__region_id=self.region_id)
+            filtered_query = filtered_query.filter(
+                shop__location__region_id=self.region_id
+            )
 
         # Apply country filter if specified
         elif self.country_id:
-            filtered_query = filtered_query.filter(shop__location__country_id=self.country_id)
+            filtered_query = filtered_query.filter(
+                shop__location__country_id=self.country_id
+            )
 
         # Apply result limit
         return filtered_query[: self.max_results]
@@ -720,8 +749,12 @@ class LocationContentFilter:
                     ),
                     "address": shop.location.address,
                     "city": shop.location.city.name if shop.location.city else None,
-                    "region": (shop.location.region.name if shop.location.region else None),
-                    "country": (shop.location.country.name if shop.location.country else None),
+                    "region": (
+                        shop.location.region.name if shop.location.region else None
+                    ),
+                    "country": (
+                        shop.location.country.name if shop.location.country else None
+                    ),
                 }
 
             # Create result dictionary
@@ -730,7 +763,9 @@ class LocationContentFilter:
                 "name": shop.name,
                 "rating": shop.rating,
                 "location": location_data,
-                "distance_km": (round(distance_km, 1) if distance_km is not None else None),
+                "distance_km": (
+                    round(distance_km, 1) if distance_km is not None else None
+                ),
                 "relevance_score": round(relevance_score, 2),
             }
 
@@ -769,7 +804,9 @@ class LocationContentFilter:
                     "id": reel.shop_id,
                     "name": reel.shop.name if hasattr(reel, "shop") else None,
                 },
-                "distance_km": (round(distance_km, 1) if distance_km is not None else None),
+                "distance_km": (
+                    round(distance_km, 1) if distance_km is not None else None
+                ),
                 "relevance_score": round(relevance_score, 2),
             }
 
@@ -808,7 +845,9 @@ class LocationContentFilter:
                     "id": story.shop_id,
                     "name": story.shop.name if hasattr(story, "shop") else None,
                 },
-                "distance_km": (round(distance_km, 1) if distance_km is not None else None),
+                "distance_km": (
+                    round(distance_km, 1) if distance_km is not None else None
+                ),
                 "relevance_score": round(relevance_score, 2),
             }
 
@@ -846,7 +885,9 @@ class LocationContentFilter:
                     "id": service.shop_id,
                     "name": service.shop.name if hasattr(service, "shop") else None,
                 },
-                "distance_km": (round(distance_km, 1) if distance_km is not None else None),
+                "distance_km": (
+                    round(distance_km, 1) if distance_km is not None else None
+                ),
                 "relevance_score": round(relevance_score, 2),
             }
 
@@ -878,7 +919,10 @@ class LocationContentFilter:
         # Haversine formula
         dlon = lon2 - lon1
         dlat = lat2 - lat1
-        a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+        a = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+        )
         c = 2 * math.asin(math.sqrt(a))
 
         # Radius of earth in kilometers

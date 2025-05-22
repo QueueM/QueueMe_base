@@ -2,7 +2,10 @@ from django.db.models import Avg, Count, Q
 from django.db.models.functions import TruncDay, TruncHour, TruncMonth, TruncWeek
 from django.utils import timezone
 
-from apps.shopDashboardApp.exceptions import DataAggregationException, InvalidChartTypeException
+from apps.shopDashboardApp.exceptions import (
+    DataAggregationException,
+    InvalidChartTypeException,
+)
 
 
 class StatsService:
@@ -11,7 +14,9 @@ class StatsService:
     Handles data aggregation and transformation for visualization.
     """
 
-    def get_chart_data(self, shop_id, chart_type, data_source, start_date, end_date, config=None):
+    def get_chart_data(
+        self, shop_id, chart_type, data_source, start_date, end_date, config=None
+    ):
         """
         Get chart data for visualization.
 
@@ -70,7 +75,9 @@ class StatsService:
 
             else:
                 # Unknown data source
-                raise DataAggregationException(f"Unknown chart data source: {data_source}")
+                raise DataAggregationException(
+                    f"Unknown chart data source: {data_source}"
+                )
 
         except Exception as e:
             raise DataAggregationException(f"Error generating chart data: {str(e)}")
@@ -129,7 +136,9 @@ class StatsService:
 
             else:
                 # Unknown data source
-                raise DataAggregationException(f"Unknown table data source: {data_source}")
+                raise DataAggregationException(
+                    f"Unknown table data source: {data_source}"
+                )
 
         except Exception as e:
             raise DataAggregationException(f"Error generating table data: {str(e)}")
@@ -163,7 +172,9 @@ class StatsService:
             # Default to daily
             return TruncDay
 
-    def _get_revenue_trend_chart(self, shop_id, chart_type, start_date, end_date, config=None):
+    def _get_revenue_trend_chart(
+        self, shop_id, chart_type, start_date, end_date, config=None
+    ):
         """Generate revenue trend chart data"""
         from django.contrib.contenttypes.models import ContentType
 
@@ -171,7 +182,9 @@ class StatsService:
         from apps.payment.models import Transaction
 
         if chart_type not in ["line", "bar"]:
-            raise InvalidChartTypeException("Revenue trend chart requires line or bar chart type.")
+            raise InvalidChartTypeException(
+                "Revenue trend chart requires line or bar chart type."
+            )
 
         # Determine granularity based on date range
         granularity = self._get_date_range_granularity(start_date, end_date)
@@ -229,15 +242,21 @@ class StatsService:
         for date_key in sorted_dates:
             # Format label based on granularity
             if granularity == "hourly":
-                label = timezone.datetime.strptime(date_key, "%Y-%m-%d %H:%M:%S").strftime("%I %p")
+                label = timezone.datetime.strptime(
+                    date_key, "%Y-%m-%d %H:%M:%S"
+                ).strftime("%I %p")
             elif granularity == "daily":
-                label = timezone.datetime.strptime(date_key, "%Y-%m-%d %H:%M:%S").strftime("%b %d")
+                label = timezone.datetime.strptime(
+                    date_key, "%Y-%m-%d %H:%M:%S"
+                ).strftime("%b %d")
             elif granularity == "weekly":
-                label = timezone.datetime.strptime(date_key, "%Y-%m-%d %H:%M:%S").strftime(
-                    "Week %W"
-                )
+                label = timezone.datetime.strptime(
+                    date_key, "%Y-%m-%d %H:%M:%S"
+                ).strftime("Week %W")
             elif granularity == "monthly":
-                label = timezone.datetime.strptime(date_key, "%Y-%m-%d %H:%M:%S").strftime("%b %Y")
+                label = timezone.datetime.strptime(
+                    date_key, "%Y-%m-%d %H:%M:%S"
+                ).strftime("%b %Y")
             else:
                 label = date_key
 
@@ -312,7 +331,9 @@ class StatsService:
         )
 
         # Get service details
-        services = Service.objects.filter(id__in=[item["service"] for item in service_counts])
+        services = Service.objects.filter(
+            id__in=[item["service"] for item in service_counts]
+        )
         service_dict = {str(service.id): service.name for service in services}
 
         # Prepare chart data
@@ -389,7 +410,9 @@ class StatsService:
             "options": options,
         }
 
-    def _get_bookings_by_day_chart(self, shop_id, chart_type, start_date, end_date, config=None):
+    def _get_bookings_by_day_chart(
+        self, shop_id, chart_type, start_date, end_date, config=None
+    ):
         """Generate chart showing bookings by day of week"""
         from apps.bookingapp.models import Appointment
 
@@ -459,7 +482,9 @@ class StatsService:
             "options": options,
         }
 
-    def _get_booking_status_chart(self, shop_id, chart_type, start_date, end_date, config=None):
+    def _get_booking_status_chart(
+        self, shop_id, chart_type, start_date, end_date, config=None
+    ):
         """Generate chart showing booking status distribution"""
         from apps.bookingapp.models import Appointment
 
@@ -573,7 +598,9 @@ class StatsService:
         from apps.specialistsapp.models import Specialist
 
         if chart_type not in ["bar", "horizontalBar"]:
-            raise InvalidChartTypeException("Specialist performance chart requires bar chart type.")
+            raise InvalidChartTypeException(
+                "Specialist performance chart requires bar chart type."
+            )
 
         # Convert dates to datetimes for comparison
         start_datetime = timezone.make_aware(
@@ -597,7 +624,9 @@ class StatsService:
 
         # Get specialist details
         specialists = Specialist.objects.filter(
-            id__in=[item["specialist"] for item in specialist_counts if item["specialist"]]
+            id__in=[
+                item["specialist"] for item in specialist_counts if item["specialist"]
+            ]
         )
         specialist_dict = {}
 
@@ -616,7 +645,9 @@ class StatsService:
                 continue
 
             specialist_id = item["specialist"]
-            specialist_name = specialist_dict.get(str(specialist_id), f"Specialist {specialist_id}")
+            specialist_name = specialist_dict.get(
+                str(specialist_id), f"Specialist {specialist_id}"
+            )
             count = item["count"]
 
             # Get completed bookings count
@@ -669,7 +700,9 @@ class StatsService:
             "options": options,
         }
 
-    def _get_customer_retention_chart(self, shop_id, chart_type, start_date, end_date, config=None):
+    def _get_customer_retention_chart(
+        self, shop_id, chart_type, start_date, end_date, config=None
+    ):
         """Generate chart showing new vs. returning customers over time"""
         from apps.bookingapp.models import Appointment
 
@@ -703,9 +736,9 @@ class StatsService:
 
         # Create a set of all customers who have booked before the start date
         previous_customers = set(
-            Appointment.objects.filter(shop_id=shop_id, start_time__lt=start_datetime).values_list(
-                "customer_id", flat=True
-            )
+            Appointment.objects.filter(
+                shop_id=shop_id, start_time__lt=start_datetime
+            ).values_list("customer_id", flat=True)
         )
 
         # Create a dictionary to track when each customer first booked in the period
@@ -739,7 +772,12 @@ class StatsService:
 
         # Sort dates
         sorted_dates = sorted(
-            list(set(list(new_customers_by_date.keys()) + list(returning_customers_by_date.keys())))
+            list(
+                set(
+                    list(new_customers_by_date.keys())
+                    + list(returning_customers_by_date.keys())
+                )
+            )
         )
 
         # Prepare chart data
@@ -750,15 +788,21 @@ class StatsService:
         for date_key in sorted_dates:
             # Format label based on granularity
             if granularity == "hourly":
-                label = timezone.datetime.strptime(date_key, "%Y-%m-%d %H:%M:%S").strftime("%I %p")
+                label = timezone.datetime.strptime(
+                    date_key, "%Y-%m-%d %H:%M:%S"
+                ).strftime("%I %p")
             elif granularity == "daily":
-                label = timezone.datetime.strptime(date_key, "%Y-%m-%d %H:%M:%S").strftime("%b %d")
+                label = timezone.datetime.strptime(
+                    date_key, "%Y-%m-%d %H:%M:%S"
+                ).strftime("%b %d")
             elif granularity == "weekly":
-                label = timezone.datetime.strptime(date_key, "%Y-%m-%d %H:%M:%S").strftime(
-                    "Week %W"
-                )
+                label = timezone.datetime.strptime(
+                    date_key, "%Y-%m-%d %H:%M:%S"
+                ).strftime("Week %W")
             elif granularity == "monthly":
-                label = timezone.datetime.strptime(date_key, "%Y-%m-%d %H:%M:%S").strftime("%b %Y")
+                label = timezone.datetime.strptime(
+                    date_key, "%Y-%m-%d %H:%M:%S"
+                ).strftime("%b %Y")
             else:
                 label = date_key
 
@@ -808,7 +852,9 @@ class StatsService:
             "options": options,
         }
 
-    def _get_queue_wait_times_chart(self, shop_id, chart_type, start_date, end_date, config=None):
+    def _get_queue_wait_times_chart(
+        self, shop_id, chart_type, start_date, end_date, config=None
+    ):
         """Generate chart showing average queue wait times"""
         from apps.queueapp.models import QueueTicket
 
@@ -1052,9 +1098,7 @@ class StatsService:
 
                 customer_profile = Customer.objects.get(user=booking.customer)
                 if customer_profile.first_name or customer_profile.last_name:
-                    customer_name = (
-                        f"{customer_profile.first_name} {customer_profile.last_name}".strip()
-                    )
+                    customer_name = f"{customer_profile.first_name} {customer_profile.last_name}".strip()
             except Exception:
                 pass
 
@@ -1157,7 +1201,9 @@ class StatsService:
             # Calculate completion rate
             booking_count = stat["booking_count"]
             completed_count = stat["completed_count"]
-            completion_rate = (completed_count / booking_count * 100) if booking_count > 0 else 0
+            completion_rate = (
+                (completed_count / booking_count * 100) if booking_count > 0 else 0
+            )
 
             # Get category name
             category_name = service.category.name if service.category else "N/A"
@@ -1262,7 +1308,9 @@ class StatsService:
             # Calculate completion rate
             booking_count = stat["booking_count"]
             completed_count = stat["completed_count"]
-            completion_rate = (completed_count / booking_count * 100) if booking_count > 0 else 0
+            completion_rate = (
+                (completed_count / booking_count * 100) if booking_count > 0 else 0
+            )
 
             # Get customer name
             customer_name = customer.phone_number
@@ -1280,7 +1328,9 @@ class StatsService:
             )
 
             first_booking_date = (
-                first_booking.start_time.strftime("%Y-%m-%d") if first_booking else "N/A"
+                first_booking.start_time.strftime("%Y-%m-%d")
+                if first_booking
+                else "N/A"
             )
 
             # Create row
@@ -1361,7 +1411,9 @@ class StatsService:
             no_show_count = bookings.filter(status="no_show").count()
 
             # Calculate completion rate
-            completion_rate = (completed_count / booking_count * 100) if booking_count > 0 else 0
+            completion_rate = (
+                (completed_count / booking_count * 100) if booking_count > 0 else 0
+            )
 
             # Get average rating
             avg_rating = (
@@ -1374,7 +1426,9 @@ class StatsService:
             )
 
             # Format specialist name
-            specialist_name = f"{specialist.employee.first_name} {specialist.employee.last_name}"
+            specialist_name = (
+                f"{specialist.employee.first_name} {specialist.employee.last_name}"
+            )
 
             # Create row
             row = [
@@ -1449,9 +1503,7 @@ class StatsService:
 
                 customer_profile = Customer.objects.get(user=review.customer)
                 if customer_profile.first_name or customer_profile.last_name:
-                    customer_name = (
-                        f"{customer_profile.first_name} {customer_profile.last_name}".strip()
-                    )
+                    customer_name = f"{customer_profile.first_name} {customer_profile.last_name}".strip()
             except Exception:
                 pass
 

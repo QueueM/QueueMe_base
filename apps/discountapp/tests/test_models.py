@@ -35,14 +35,20 @@ class ServiceDiscountTestCase(TestCase):
         )
 
         # Test basic calculation
-        self.assertEqual(discount.calculate_discount_amount(Decimal("100")), Decimal("20"))
-        self.assertEqual(discount.calculate_discount_amount(Decimal("150")), Decimal("30"))
+        self.assertEqual(
+            discount.calculate_discount_amount(Decimal("100")), Decimal("20")
+        )
+        self.assertEqual(
+            discount.calculate_discount_amount(Decimal("150")), Decimal("30")
+        )
 
         # Test with max discount amount
         discount.max_discount_amount = Decimal("25")
         discount.save()
 
-        self.assertEqual(discount.calculate_discount_amount(Decimal("100")), Decimal("20"))
+        self.assertEqual(
+            discount.calculate_discount_amount(Decimal("100")), Decimal("20")
+        )
         self.assertEqual(
             discount.calculate_discount_amount(Decimal("150")), Decimal("25")
         )  # Capped at max
@@ -71,7 +77,9 @@ class ServiceDiscountTestCase(TestCase):
         )
 
         # Test basic calculation
-        self.assertEqual(discount.calculate_discount_amount(Decimal("100")), Decimal("15"))
+        self.assertEqual(
+            discount.calculate_discount_amount(Decimal("100")), Decimal("15")
+        )
         self.assertEqual(
             discount.calculate_discount_amount(Decimal("10")), Decimal("10")
         )  # Can't discount more than price

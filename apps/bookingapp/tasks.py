@@ -33,7 +33,9 @@ def check_no_shows():
         count += 1
 
         # Notify shop about no-show
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
 
         NotificationService.send_no_show_alert(appointment)
 
@@ -50,7 +52,9 @@ def send_upcoming_appointment_summary():
     from django.db.models import Count
 
     shop_summary = (
-        Appointment.objects.filter(start_time__date=tomorrow, status__in=["scheduled", "confirmed"])
+        Appointment.objects.filter(
+            start_time__date=tomorrow, status__in=["scheduled", "confirmed"]
+        )
         .values("shop")
         .annotate(appointment_count=Count("id"))
     )
@@ -69,7 +73,9 @@ def send_upcoming_appointment_summary():
         ).order_by("start_time")
 
         # Send notification to shop manager
-        from apps.notificationsapp.services.notification_service import NotificationService
+        from apps.notificationsapp.services.notification_service import (
+            NotificationService,
+        )
         from apps.shopapp.models import Shop
 
         shop = Shop.objects.get(id=shop_id)

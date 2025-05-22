@@ -174,7 +174,9 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
         # This requires the specialistsapp to be installed
         try:
-            from apps.specialistsapp.services.specialist_service import SpecialistService
+            from apps.specialistsapp.services.specialist_service import (
+                SpecialistService,
+            )
 
             specialist = SpecialistService.create_specialist_from_employee(employee)
             return Response(
@@ -235,7 +237,9 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             )
 
         # Get schedule from service
-        schedule = ScheduleService.get_employee_schedule(employee.id, start_date, end_date)
+        schedule = ScheduleService.get_employee_schedule(
+            employee.id, start_date, end_date
+        )
 
         return Response(schedule)
 
@@ -322,7 +326,9 @@ class EmployeeWorkingHoursViewSet(viewsets.ModelViewSet):
         working_hours_data = request.data
 
         try:
-            updated_hours = ScheduleService.update_working_hours(employee.id, working_hours_data)
+            updated_hours = ScheduleService.update_working_hours(
+                employee.id, working_hours_data
+            )
             serializer = EmployeeWorkingHoursSerializer(updated_hours, many=True)
             return Response(serializer.data)
         except ValueError as e:
@@ -632,6 +638,8 @@ class EmployeeWorkloadView(APIView):
             )
 
         # Get workload analysis from service
-        workload = WorkloadOptimizer.analyze_employee_workload(employee_id, start_date, end_date)
+        workload = WorkloadOptimizer.analyze_employee_workload(
+            employee_id, start_date, end_date
+        )
 
         return Response(workload)

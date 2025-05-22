@@ -133,7 +133,9 @@ def weighted_content_ranking(
                 overlap = set(item_categories).intersection(already_seen_categories)
                 if overlap:
                     # Decrease score based on how many categories we've already seen
-                    diversity_score = max(0.1, 1.0 - (len(overlap) / max(1, len(item_categories))))
+                    diversity_score = max(
+                        0.1, 1.0 - (len(overlap) / max(1, len(item_categories)))
+                    )
 
                 # Update seen categories set for future items
                 already_seen_categories.update(item_categories)
@@ -153,7 +155,9 @@ def weighted_content_ranking(
                 scored_items.append((item_id, final_score))
 
             except Exception as e:
-                logger.error(f"Error scoring item {item.get('id', 'unknown')}: {str(e)}")
+                logger.error(
+                    f"Error scoring item {item.get('id', 'unknown')}: {str(e)}"
+                )
                 continue
 
         # Sort by final score (descending)
@@ -183,7 +187,7 @@ def weighted_content_ranking(
                     reverse=True,
                 )
             ]
-        except Exception as ex:
+        except Exception:
             # Ultimate fallback - just return IDs as is
             return [item.get("id") for item in content_items if item.get("id")]
 
@@ -331,7 +335,8 @@ def diversity_reranker(
 
                 # Final score combines original relevance with diversity
                 final_score = (
-                    original_score * (1.0 - diversity_threshold) + uniqueness * diversity_threshold
+                    original_score * (1.0 - diversity_threshold)
+                    + uniqueness * diversity_threshold
                 )
 
                 diversity_scores.append((i, final_score))
