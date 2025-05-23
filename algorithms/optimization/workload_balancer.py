@@ -103,7 +103,7 @@ class WorkloadBalancer:
         end_date = end_date or (start_date + timedelta(days=self.balance_window_days))
 
         # Step 1: Analyze current workload distribution
-        current_workload = self._analyze_current_workload(
+        # current_workload = self._analyze_current_workload(
             specialists, appointments, services, start_date, end_date
         )
 

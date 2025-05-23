@@ -110,8 +110,8 @@ class ScheduleOptimizer:
             result["warnings"].append(
                 {
                     "type": "insufficient_capacity",
-                    "message": f"Staff capacity ({total_staff_capacity} hours) is less than required coverage ({total_hours_needed} hours)",
-                    "recommended_action": "Consider hiring additional staff or reducing operating hours",
+#                     "message": f"Staff capacity ({total_staff_capacity} hours) is less than required coverage ({total_hours_needed} hours)",
+#                     "recommended_action": "Consider hiring additional staff or reducing operating hours",
                 }
             )
 
@@ -440,12 +440,12 @@ class ScheduleOptimizer:
                     preferred_range = list(range(pref_start.hour, pref_end.hour))
 
                     # Hours to remove (outside preferred range)
-                    hours_to_remove = [
+                    # hours_to_remove = [
                         h for h in current_hours if h not in preferred_range
                     ]
 
                     # Hours to potentially add (within preferred range but not scheduled)
-                    hours_to_add = [
+                    # hours_to_add = [
                         h for h in preferred_range if h not in current_hours
                     ]
 
@@ -476,12 +476,12 @@ class ScheduleOptimizer:
 
         # Identify staff who are over/under-utilized
         target_avg_hours = sum(staff_hours.values()) / len(staff_hours)
-        overloaded_staff = [
+        # overloaded_staff = [
             staff_id
             for staff_id, hours in staff_hours.items()
             if hours > target_avg_hours * 1.1  # More than 10% over average
         ]
-        underutilized_staff = [
+        # underutilized_staff = [
             staff_id
             for staff_id, hours in staff_hours.items()
             if hours < target_avg_hours * 0.9  # More than 10% under average
@@ -555,7 +555,7 @@ class ScheduleOptimizer:
                                 "date": date_str,
                                 "staff_id": staff_id,
                                 "hours": hours,
-                                "message": f"Split shift detected for staff {staff_id} on {date_str}",
+#                                 "message": f"Split shift detected for staff {staff_id} on {date_str}",
                             }
                         )
 
@@ -568,7 +568,7 @@ class ScheduleOptimizer:
                             "date": date_str,
                             "staff_id": staff_id,
                             "hours": hours,
-                            "message": f"Shift too short ({shift_length} hours) for staff {staff_id} on {date_str}",
+#                             "message": f"Shift too short ({shift_length} hours) for staff {staff_id} on {date_str}",
                         }
                     )
                 elif shift_length > self.max_shift_hours:
@@ -578,7 +578,7 @@ class ScheduleOptimizer:
                             "date": date_str,
                             "staff_id": staff_id,
                             "hours": hours,
-                            "message": f"Shift too long ({shift_length} hours) for staff {staff_id} on {date_str}",
+#                             "message": f"Shift too long ({shift_length} hours) for staff {staff_id} on {date_str}",
                         }
                     )
 

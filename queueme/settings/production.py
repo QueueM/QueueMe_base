@@ -8,6 +8,7 @@ import os
 import sys
 import types
 from datetime import timedelta
+from pathlib import Path
 
 from .base import *
 from .base import env
@@ -17,17 +18,15 @@ dummy_worker = types.ModuleType("core.tasks.worker")
 dummy_worker.WorkerManager = type(
     "WorkerManager", (), {"get_active_workers": staticmethod(lambda: {})}
 )
-dummy_worker.task_with_lock = lambda func=None, **kwargs: (
-    (lambda f: f) if func is None else func
-)
+dummy_worker.task_with_lock = lambda func=None, **kwargs: ((lambda f: f) if func is None else func)
 dummy_worker.task_with_retry = lambda **kwargs: lambda f: f
 sys.modules["core.tasks.worker"] = dummy_worker
 
 # =============================== STATIC FILES ===============================
-STATIC_URL = "/static/"
+STATIC_URL = '/static/'
 STATIC_ROOT = os.environ.get("STATIC_ROOT", "/opt/queueme/static")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 # ============================================================================
 
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
@@ -120,19 +119,20 @@ if os.environ.get("USE_PGBOUNCER", "False").lower() == "true":
         db_config["CONN_MAX_AGE"] = 0
 
 # Remove whitenoise if present (for S3/CDN)
-MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m.lower()]
+MIDDLEWARE = [m for m in MIDDLEWARE if 'whitenoise' not in m.lower()]
 MIDDLEWARE.insert(0, "queueme.middleware.domain_routing.DomainRoutingMiddleware")
 
 # Media configuration
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/opt/queueme/media")
 if os.environ.get("USE_S3_MEDIA", "False").lower() == "true" and all(
-    os.environ.get(v)
-    for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")
+    os.environ.get(v) for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")
 ):
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
     AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "me-south-1")
-    AWS_S3_CUSTOM_DOMAIN = f"{os.environ.get('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+    AWS_S3_CUSTOM_DOMAIN = (
+        f"{os.environ.get('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+    )
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     AWS_DEFAULT_ACL = "public-read"
     AWS_QUERYSTRING_AUTH = False
@@ -144,35 +144,28 @@ else:
 # Debug toolbar for debug only
 if DEBUG and os.environ.get("ENABLE_DEBUG_TOOLBAR", "False").lower() == "true":
     try:
-        pass
-
-        INSTALLED_APPS.append("debug_toolbar")
-        MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+        import debug_toolbar
+        INSTALLED_APPS.append('debug_toolbar')
+        MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
         INTERNAL_IPS = ["127.0.0.1", "::1", "localhost"]
         DEBUG_TOOLBAR_CONFIG = {
-            "DISABLE_PANELS": [
-                "debug_toolbar.panels.history.HistoryPanel",
-                "debug_toolbar.panels.redirects.RedirectsPanel",
+            'DISABLE_PANELS': [
+                'debug_toolbar.panels.history.HistoryPanel',
+                'debug_toolbar.panels.redirects.RedirectsPanel',
             ],
-            "SHOW_TOOLBAR_CALLBACK": lambda request: (
-                request.user.is_superuser
-                and request.META.get("REMOTE_ADDR") in INTERNAL_IPS
+            'SHOW_TOOLBAR_CALLBACK': lambda request: (
+                request.user.is_superuser and
+                request.META.get("REMOTE_ADDR") in INTERNAL_IPS
             ),
-            "RENDER_PANELS": False,
-            "ENABLE_STACKTRACES": False,
-            "SHOW_COLLAPSED": True,
+            'RENDER_PANELS': False,
+            'ENABLE_STACKTRACES': False,
+            'SHOW_COLLAPSED': True,
         }
     except ImportError:
         pass
 else:
-    INSTALLED_APPS = [
-        app
-        for app in INSTALLED_APPS
-        if not (isinstance(app, str) and "debug_toolbar" in app)
-    ]
-    MIDDLEWARE = [
-        mw for mw in MIDDLEWARE if not (isinstance(mw, str) and "debug_toolbar" in mw)
-    ]
+    INSTALLED_APPS = [app for app in INSTALLED_APPS if not (isinstance(app, str) and 'debug_toolbar' in app)]
+    MIDDLEWARE = [mw for mw in MIDDLEWARE if not (isinstance(mw, str) and 'debug_toolbar' in mw)]
 
 # Security middlewares
 security_middlewares = [
@@ -185,14 +178,10 @@ security_middlewares = [
     "core.middleware.security.SQLInjectionProtectionMiddleware",
 ]
 try:
-    pass
-
+    from core.monitoring.metrics import API_REQUEST_LATENCY
     try:
-        pass
-
-        security_middlewares.append(
-            "core.middleware.metrics_middleware.PrometheusMetricsMiddleware"
-        )
+        from core.monitoring.metrics import API_REQUESTS
+        security_middlewares.append("core.middleware.metrics_middleware.PrometheusMetricsMiddleware")
     except ImportError:
         print("⚠️ PrometheusMetricsMiddleware not loaded - API_REQUESTS missing")
 except ImportError:
@@ -201,9 +190,7 @@ MIDDLEWARE += security_middlewares
 
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "1") == "1"
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
-SECURE_HSTS_INCLUDE_SUBDOMAINS = (
-    os.environ.get("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"
-)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"
 SECURE_HSTS_PRELOAD = os.environ.get("SECURE_HSTS_PRELOAD", "1") == "1"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
@@ -216,9 +203,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
         minutes=int(os.environ.get("JWT_ACCESS_TOKEN_MINUTES", "30"))
     ),
-    "REFRESH_TOKEN_LIFETIME": timedelta(
-        days=int(os.environ.get("JWT_REFRESH_TOKEN_DAYS", "7"))
-    ),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.environ.get("JWT_REFRESH_TOKEN_DAYS", "7"))),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "ALGORITHM": "HS256",
@@ -245,13 +230,8 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {"min_length": 10},
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 10}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -429,11 +409,9 @@ CELERY_ALWAYS_EAGER = DISABLE_CELERY
 CELERY_TASK_ALWAYS_EAGER = DISABLE_CELERY
 
 QUEUEME = {
-    "SKIP_OTP_VERIFICATION": os.environ.get("SKIP_OTP_VERIFICATION", "False").lower()
-    == "true",
+    "SKIP_OTP_VERIFICATION": os.environ.get("SKIP_OTP_VERIFICATION", "False").lower() == "true",
     "DEMO_MODE": os.environ.get("DEMO_MODE", "False").lower() == "true",
-    "PERFORMANCE_MONITORING": os.environ.get("PERFORMANCE_MONITORING", "True").lower()
-    == "true",
+    "PERFORMANCE_MONITORING": os.environ.get("PERFORMANCE_MONITORING", "True").lower() == "true",
 }
 
 # CDN configuration (optional)

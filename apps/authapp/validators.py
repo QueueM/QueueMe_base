@@ -11,7 +11,6 @@ def validate_phone_number(value):
     """
     # Remove spaces and dashes
     phone = re.sub(r"[\s-]", "", value)
-
     # Check for valid Saudi format
     saudi_pattern = r"^(?:\+966|966|05|5)\d{8,9}$"
     if not re.match(saudi_pattern, phone):
@@ -21,7 +20,6 @@ def validate_phone_number(value):
             ),
             code="invalid_phone",
         )
-
     # Normalize the phone number to international format
     if phone.startswith("05"):
         phone = "966" + phone[1:]
@@ -29,7 +27,6 @@ def validate_phone_number(value):
         phone = "966" + phone
     elif phone.startswith("+966"):
         phone = phone[1:]
-
     return phone
 
 
@@ -39,10 +36,8 @@ def normalize_phone_number(phone_number):
     """
     if not phone_number:
         return phone_number
-
     # Remove spaces, dashes, and parentheses
     phone = re.sub(r"[\s\-\(\)]", "", phone_number)
-
     # Handle different formats
     if phone.startswith("05"):
         phone = "966" + phone[1:]
@@ -50,5 +45,33 @@ def normalize_phone_number(phone_number):
         phone = "966" + phone
     elif phone.startswith("+966"):
         phone = phone[1:]
-
     return phone
+
+
+def validate_saudi_phone_number(phone_number: str) -> bool:
+    """
+    Validate Saudi phone number format.
+
+    Args:
+        phone_number: Normalized phone number string
+
+    Returns:
+        True if valid Saudi phone number, False otherwise
+    """
+    if not phone_number:
+        return False
+
+    # Check if it's already normalized (starts with +966)
+    if phone_number.startswith("+966"):
+        number_part = phone_number[4:]  # Remove +966
+        return len(number_part) == 9 and number_part.isdigit()
+
+    # Check if it's in 966XXXXXXXXX format
+    if phone_number.startswith("966"):
+        number_part = phone_number[3:]  # Remove 966
+        return len(number_part) == 9 and number_part.isdigit()
+
+    # For other formats, try to validate using the existing pattern
+    saudi_pattern = r"^(?:\+966|966|05|5)\d{8,9}$"
+    phone = re.sub(r"[\s-]", "", phone_number)
+    return bool(re.match(saudi_pattern, phone))

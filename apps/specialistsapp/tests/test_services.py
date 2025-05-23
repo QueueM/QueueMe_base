@@ -17,7 +17,9 @@ from apps.specialistsapp.models import (
 )
 from apps.specialistsapp.services.availability_service import AvailabilityService
 from apps.specialistsapp.services.specialist_ranker import SpecialistRanker
-from apps.specialistsapp.services.specialist_service import SpecialistService as SpecialistManager
+from apps.specialistsapp.services.specialist_service import (
+    SpecialistService as SpecialistManager,
+)
 
 
 class AvailabilityServiceTests(TestCase):

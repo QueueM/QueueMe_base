@@ -54,6 +54,10 @@ class ContentSecurityPolicyMiddleware:
             "upgrade-insecure-requests": "",
         }
 
+        # Add 'unsafe-eval' for Swagger/API docs pages
+        if any(path in request.path for path in ['/swagger', '/docs', '/redoc']):
+            directives["script-src"] += " 'unsafe-eval'"
+
         # Build CSP header value
         csp_value = "; ".join(
             [f"{key} {value}" for key, value in directives.items() if value]

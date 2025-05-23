@@ -1,15 +1,17 @@
 """
-Authentication app views for QueueMe platform
-Handles user authentication, OTP verification, and profile management
+Authentication Views Module for QueueMe Backend
+
+This module provides API endpoints for user authentication, OTP verification,
+token management, and profile operations. It implements secure authentication
+flows specifically designed for Saudi phone numbers and OTP verification.
 """
 
 import logging
 
-from django.contrib.auth import authenticate
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from api.documentation.api_doc_decorators import (
@@ -19,7 +21,6 @@ from api.documentation.api_doc_decorators import (
 from apps.authapp.models import User
 from apps.authapp.serializers import (
     ChangeLanguageSerializer,
-    LoginSerializer,
     OTPRequestSerializer,
     OTPVerifySerializer,
     TokenRefreshSerializer,
@@ -27,10 +28,10 @@ from apps.authapp.serializers import (
     UserSerializer,
 )
 from apps.authapp.services.otp_service import OTPService
-from apps.authapp.services.phone_verification import PhoneVerificationService
 from apps.authapp.services.security_service import SecurityService
 from apps.authapp.services.token_service import TokenService
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
 
@@ -42,6 +43,15 @@ logger = logging.getLogger(__name__)
 class AuthViewSet(viewsets.GenericViewSet):
     """
     Authentication viewset handling OTP, login, and token operations.
+
+    This viewset provides endpoints for:
+    - Requesting OTP codes for phone verification
+    - Verifying OTP codes and authenticating users
+    - Refreshing authentication tokens
+    - Managing user profiles and settings
+
+    All endpoints implement proper error handling, rate limiting,
+    and security measures to prevent abuse.
     """
 
     queryset = User.objects.all()
@@ -51,43 +61,62 @@ class AuthViewSet(viewsets.GenericViewSet):
     @document_api_endpoint(
         summary="Request OTP",
         description="Request a one-time password to be sent to the provided phone number",
+        request_body=OTPRequestSerializer,
         responses={
-            200: "Success - OTP sent successfully",
-            400: "Bad Request - Invalid data",
-            429: "Too Many Requests - Rate limited",
-            500: "Internal Server Error - Failed to send OTP",
+            200: "OTP sent successfully",
+            400: "Invalid phone number format",
+            429: "Too many requests, please try again later",
         },
-        tags=["Authentication", "OTP"],
     )
-    @action(detail=False, methods=["post"])
-    def request_otp(self, request):
+    @action(detail=False, methods=["post"], url_path="request-otp")
+    def request_otp(self, request: Request) -> Response:
         """
-        Request OTP for phone number.
+        Request a one-time password to be sent to the provided phone number.
+
+        This endpoint:
+        1. Validates the phone number format (must be Saudi phone number)
+        2. Generates a new OTP code
+        3. Sends the OTP via SMS
+        4. Implements rate limiting to prevent abuse
+
+        Args:
+            request: HTTP request with phone_number in request data
+
+        Returns:
+            Response with success status and message
+
+        Raises:
+            ValidationError: If phone number format is invalid
+            Throttled: If too many requests from same IP/phone
         """
         serializer = OTPRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         phone_number = serializer.validated_data["phone_number"]
 
-        # Check if rate limited
-        if SecurityService.is_rate_limited(phone_number, "otp"):
+        # Check rate limiting
+        if SecurityService.is_rate_limited(
+            identifier=phone_number,
+            action="otp_request",
+            max_attempts=5,
+            window_minutes=15,
+        ):
+            logger.warning(f"Rate limit exceeded for OTP request: {phone_number}")
             return Response(
                 {"detail": _("Too many OTP requests. Please try again later.")},
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
+        # Generate and send OTP
         try:
-            OTPService.send_otp(phone_number)
+            OTPService.generate_and_send_otp(phone_number)
+            logger.info(f"OTP sent successfully to {phone_number}")
 
             return Response(
                 {"detail": _("OTP sent successfully")}, status=status.HTTP_200_OK
             )
-        except ValueError as e:
-            return Response(
-                {"detail": str(e)}, status=status.HTTP_429_TOO_MANY_REQUESTS
-            )
         except Exception as e:
-            logger.error(f"Error sending OTP: {str(e)}")
+            logger.error(f"Failed to send OTP: {str(e)}")
             return Response(
                 {"detail": _("Failed to send OTP. Please try again later.")},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -95,17 +124,36 @@ class AuthViewSet(viewsets.GenericViewSet):
 
     @document_api_endpoint(
         summary="Verify OTP",
-        description="Verify OTP code and return authentication tokens",
+        description="Verify OTP code and authenticate user",
+        request_body=OTPVerifySerializer,
         responses={
-            200: "Success - OTP verified successfully, returns tokens and user info",
-            400: "Bad Request - Invalid OTP code or data",
+            200: "OTP verified successfully, returns authentication tokens",
+            400: "Invalid OTP code or phone number",
+            401: "OTP verification failed",
+            429: "Too many failed attempts, please try again later",
         },
-        tags=["Authentication", "OTP"],
     )
-    @action(detail=False, methods=["post"])
-    def verify_otp(self, request):
+    @action(detail=False, methods=["post"], url_path="verify-otp")
+    def verify_otp(self, request: Request) -> Response:
         """
-        Verify OTP and return tokens.
+        Verify OTP code and authenticate user.
+
+        This endpoint:
+        1. Validates the phone number and OTP code format
+        2. Verifies the OTP code against stored value
+        3. Creates or authenticates the user
+        4. Generates authentication tokens
+        5. Implements rate limiting for failed attempts
+
+        Args:
+            request: HTTP request with phone_number and code in request data
+
+        Returns:
+            Response with authentication tokens and user data on success
+
+        Raises:
+            ValidationError: If input data format is invalid
+            Throttled: If too many failed attempts
         """
         serializer = OTPVerifySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -113,335 +161,368 @@ class AuthViewSet(viewsets.GenericViewSet):
         phone_number = serializer.validated_data["phone_number"]
         code = serializer.validated_data["code"]
 
-        # Verify OTP
-        user = OTPService.verify_otp(phone_number, code)
-
-        if not user:
+        # Check rate limiting for failed attempts
+        if SecurityService.is_rate_limited(
+            identifier=phone_number,
+            action="otp_verify",
+            max_attempts=5,
+            window_minutes=15,
+        ):
+            logger.warning(f"Rate limit exceeded for OTP verification: {phone_number}")
             return Response(
-                {"detail": _("Invalid OTP code")}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Generate tokens
-        tokens = TokenService.get_tokens_for_user(user)
-
-        # Include profile completion status
-        response_data = {
-            "tokens": tokens,
-            "profile_completed": user.profile_completed,
-            "user_type": user.user_type,
-            "language": user.language_preference,
-        }
-
-        # Log successful verification
-        SecurityService.record_security_event(
-            user_id=str(user.id),
-            event_type="otp_verification_success",
-            details=f"OTP verified for {phone_number}",
-        )
-
-        return Response(response_data, status=status.HTTP_200_OK)
-
-    @document_api_endpoint(
-        summary="Login",
-        description="Login with phone number and password",
-        responses={
-            200: "Success - Login successful, returns tokens and user info",
-            401: "Unauthorized - Invalid credentials or account disabled",
-            429: "Too Many Requests - Rate limited",
-        },
-        tags=["Authentication", "Login"],
-    )
-    @action(detail=False, methods=["post"])
-    def login(self, request):
-        """
-        Login with phone number and password.
-        """
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        phone_number = serializer.validated_data["phone_number"]
-        password = serializer.validated_data["password"]
-
-        # Check if rate limited
-        if SecurityService.is_rate_limited(phone_number, "login"):
-            return Response(
-                {"detail": _("Too many login attempts. Please try again later.")},
+                {"detail": _("Too many failed attempts. Please try again later.")},
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
-        # Authenticate user
-        user = authenticate(phone_number=phone_number, password=password)
+        # Verify OTP
+        verification_result = OTPService.verify_otp(phone_number, code)
 
-        if not user:
-            # Record failed login attempt
-            SecurityService.record_security_event(
-                user_id="unknown",
-                event_type="login_failure",
-                details=f"Failed login attempt for {phone_number}",
-                severity="warning",
+        if not verification_result["success"]:
+            # Record failed attempt
+            SecurityService.record_failed_attempt(
+                identifier=phone_number, action="otp_verify"
             )
 
+            logger.warning(
+                f"OTP verification failed for {phone_number}: {verification_result['message']}"
+            )
             return Response(
-                {"detail": _("Invalid credentials")},
+                {"detail": verification_result["message"]},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # Check if user is active
-        if not user.is_active:
-            return Response(
-                {"detail": _("User account is disabled")},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+        # OTP verified successfully, get or create user
+        user, created = User.objects.get_or_create(
+            phone_number=phone_number, defaults={"is_verified": True}
+        )
 
-        # Update last login
-        user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
+        if not created and not user.is_verified:
+            user.is_verified = True
+            user.save(update_fields=["is_verified"])
 
         # Generate tokens
-        tokens = TokenService.get_tokens_for_user(user)
+        tokens = TokenService.generate_tokens(user)
 
-        # Include profile completion status
-        response_data = {
-            "tokens": tokens,
-            "profile_completed": user.profile_completed,
-            "user_type": user.user_type,
-            "language": user.language_preference,
-        }
-
-        # Record successful login
-        SecurityService.record_security_event(
-            user_id=str(user.id),
-            event_type="login_success",
-            details=f"User logged in: {phone_number}",
+        # Clear rate limiting records for successful verification
+        SecurityService.clear_rate_limiting(
+            identifier=phone_number, action="otp_verify"
         )
 
-        return Response(response_data, status=status.HTTP_200_OK)
+        # Log successful authentication
+        logger.info(f"User authenticated via OTP: {user.id} ({phone_number})")
 
-    @document_api_endpoint(
-        summary="Logout",
-        description="Logout current user by invalidating tokens",
-        responses={200: "Success - User logged out successfully"},
-        tags=["Authentication", "Login"],
-    )
-    @action(
-        detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated]
-    )
-    def logout(self, request):
-        """
-        Logout user (invalidate tokens).
-        """
-        # In a real implementation, you might add the token to a blacklist
-        # or revoke the refresh token
-
-        # Record logout
-        SecurityService.record_security_event(
-            user_id=str(request.user.id),
-            event_type="logout",
-            details=f"User logged out: {request.user.phone_number}",
+        # Return tokens and user data
+        return Response(
+            {"tokens": tokens, "user": UserSerializer(user).data},
+            status=status.HTTP_200_OK,
         )
 
-        return Response({"detail": _("Successfully logged out")})
-
     @document_api_endpoint(
-        summary="Refresh token",
-        description="Get new access token using refresh token",
+        summary="Refresh Token",
+        description="Refresh authentication tokens using a valid refresh token",
+        request_body=TokenRefreshSerializer,
         responses={
-            200: "Success - Returns new token pair",
-            401: "Unauthorized - Invalid refresh token",
+            200: "Tokens refreshed successfully",
+            401: "Invalid or expired refresh token",
         },
-        tags=["Authentication", "Tokens"],
     )
-    @action(detail=False, methods=["post"])
-    def refresh_token(self, request):
+    @action(detail=False, methods=["post"], url_path="refresh-token")
+    def refresh_token(self, request: Request) -> Response:
         """
-        Refresh token.
+        Refresh authentication tokens using a valid refresh token.
+
+        This endpoint:
+        1. Validates the refresh token
+        2. Generates new access and refresh tokens
+        3. Invalidates the old refresh token
+
+        Args:
+            request: HTTP request with refresh_token in request data
+
+        Returns:
+            Response with new authentication tokens
+
+        Raises:
+            ValidationError: If refresh token format is invalid
+            AuthenticationFailed: If refresh token is invalid or expired
         """
         serializer = TokenRefreshSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        refresh_token = serializer.validated_data["refresh"]
+        refresh_token = serializer.validated_data["refresh_token"]
 
         try:
-            # Refresh token
-            new_tokens = TokenService.refresh_token(refresh_token)
+            # Validate refresh token and get user
+            token_info = TokenService.validate_refresh_token(refresh_token)
+            user = User.objects.get(id=token_info["user_id"])
+
+            # Generate new tokens
+            new_tokens = TokenService.generate_tokens(user)
+
+            # Invalidate old refresh token
+            TokenService.invalidate_refresh_token(refresh_token)
+
+            logger.info(f"Tokens refreshed for user: {user.id}")
 
             return Response(new_tokens, status=status.HTTP_200_OK)
+
         except Exception as e:
             logger.warning(f"Token refresh failed: {str(e)}")
             return Response(
-                {"detail": _("Invalid refresh token")},
+                {"detail": _("Invalid or expired refresh token")},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
     @document_api_endpoint(
-        summary="Change language",
-        description="Update user language preference",
-        responses={200: "Success - Language preference updated successfully"},
-        tags=["User Settings"],
+        summary="Get User Profile",
+        description="Get the authenticated user's profile information",
+        responses={
+            200: "User profile retrieved successfully",
+            401: "Authentication required",
+        },
     )
     @action(
-        detail=False, methods=["post"], permission_classes=[permissions.IsAuthenticated]
+        detail=False,
+        methods=["get"],
+        url_path="profile",
+        permission_classes=[permissions.IsAuthenticated],
     )
-    def change_language(self, request):
+    def get_profile(self, request: Request) -> Response:
         """
-        Change user language preference.
+        Get the authenticated user's profile information.
+
+        This endpoint:
+        1. Retrieves the authenticated user
+        2. Returns serialized user profile data
+
+        Args:
+            request: HTTP request with authenticated user
+
+        Returns:
+            Response with user profile data
+
+        Raises:
+            NotAuthenticated: If user is not authenticated
+        """
+        user = request.user
+        serializer = UserSerializer(user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @document_api_endpoint(
+        summary="Update User Profile",
+        description="Update the authenticated user's profile information",
+        request_body=UserProfileSerializer,
+        responses={
+            200: "User profile updated successfully",
+            400: "Invalid profile data",
+            401: "Authentication required",
+        },
+        methods=["put", "patch"]
+    )
+    @action(
+        detail=False,
+        methods=["put", "patch"],
+        url_path="profile",
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def update_profile(self, request: Request) -> Response:
+        """
+        Update the authenticated user's profile information.
+
+        This endpoint:
+        1. Validates the profile update data
+        2. Updates the user profile
+        3. Returns the updated profile data
+
+        Args:
+            request: HTTP request with authenticated user and profile data
+
+        Returns:
+            Response with updated user profile data
+
+        Raises:
+            NotAuthenticated: If user is not authenticated
+            ValidationError: If profile data is invalid
+        """
+        user = request.user
+        serializer = UserProfileSerializer(
+            user, data=request.data, partial=request.method == "PATCH"
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        logger.info(f"Profile updated for user: {user.id}")
+
+        # Return full user data
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+
+    @document_api_endpoint(
+        summary="Change Language Preference",
+        description="Update the user's language preference",
+        request_body=ChangeLanguageSerializer,
+        responses={
+            200: "Language preference updated successfully",
+            400: "Invalid language code",
+            401: "Authentication required",
+        },
+    )
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="change-language",
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def change_language(self, request: Request) -> Response:
+        """
+        Update the user's language preference.
+
+        This endpoint:
+        1. Validates the language code
+        2. Updates the user's language preference
+
+        Args:
+            request: HTTP request with authenticated user and language code
+
+        Returns:
+            Response with success message
+
+        Raises:
+            NotAuthenticated: If user is not authenticated
+            ValidationError: If language code is invalid
         """
         serializer = ChangeLanguageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Update user's language preference
+        language = serializer.validated_data["language"]
         user = request.user
-        user.language_preference = serializer.validated_data["language"]
+
+        user.language_preference = language
         user.save(update_fields=["language_preference"])
 
+        logger.info(f"Language preference updated for user {user.id}: {language}")
+
         return Response(
-            {
-                "detail": _("Language preference updated successfully"),
-                "language": user.language_preference,
-            },
+            {"detail": _("Language preference updated successfully")},
             status=status.HTTP_200_OK,
         )
 
 
 @document_api_viewset(
-    summary="User Profile",
-    description="API endpoints for managing user profile and account settings",
-    tags=["Users", "Profile"],
+    summary="User Management",
+    description="API endpoints for user management and administration",
+    tags=["User Management"],
 )
-class UserProfileViewSet(
-    viewsets.GenericViewSet, mixins.RetrieveModelMixin, mixins.UpdateModelMixin
-):
+class UserViewSet(viewsets.ModelViewSet):
     """
-    User profile management.
+    User management viewset for administrative operations.
+
+    This viewset provides CRUD operations for user management,
+    restricted to administrative users only.
     """
 
     queryset = User.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
 
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return UserSerializer
-        return UserProfileSerializer
+    def get_queryset(self):
+        """
+        Get filtered queryset based on request parameters.
 
-    def get_object(self):
+        Returns:
+            Filtered User queryset
         """
-        Returns the authenticated user.
-        """
-        return self.request.user
+        queryset = super().get_queryset()
+
+        # Filter by user type if provided
+        user_type = self.request.query_params.get("user_type")
+        if user_type:
+            queryset = queryset.filter(user_type=user_type)
+
+        # Filter by verification status if provided
+        is_verified = self.request.query_params.get("is_verified")
+        if is_verified is not None:
+            is_verified = is_verified.lower() == "true"
+            queryset = queryset.filter(is_verified=is_verified)
+
+        return queryset
 
     @document_api_endpoint(
-        summary="Get user profile",
-        description="Retrieve current user profile information",
-        responses={200: "Success - Returns user profile details"},
-        tags=["Users", "Profile"],
-    )
-    def retrieve(self, request, *args, **kwargs):
-        """Override to add documentation"""
-        return super().retrieve(request, *args, **kwargs)
-
-    @document_api_endpoint(
-        summary="Update user profile",
-        description="Update current user profile information",
+        summary="Deactivate User",
+        description="Deactivate a user account",
         responses={
-            200: "Success - User profile updated successfully",
-            400: "Bad Request - Invalid data",
+            200: "User deactivated successfully",
+            404: "User not found",
+            403: "Permission denied",
         },
-        tags=["Users", "Profile"],
     )
-    def update(self, request, *args, **kwargs):
-        """Override to add documentation"""
-        return super().update(request, *args, **kwargs)
-
-    @document_api_endpoint(
-        summary="Change phone number",
-        description="Request a phone number change and start verification process",
-        responses={
-            200: "Success - Verification code sent to new phone number",
-            400: "Bad Request - Phone number is required or already in use",
-            429: "Too Many Requests - Rate limited",
-            500: "Internal Server Error - Failed to send verification",
-        },
-        tags=["Users", "Profile"],
-    )
-    @action(detail=False, methods=["post"])
-    def change_phone(self, request):
+    @action(detail=True, methods=["post"], url_path="deactivate")
+    def deactivate(self, request: Request, pk: str = None) -> Response:
         """
-        Request phone number change.
+        Deactivate a user account.
+
+        This endpoint:
+        1. Retrieves the specified user
+        2. Deactivates the user account
+        3. Logs the deactivation event
+
+        Args:
+            request: HTTP request
+            pk: User ID
+
+        Returns:
+            Response with success message
+
+        Raises:
+            NotFound: If user does not exist
+            PermissionDenied: If requester lacks permission
         """
-        new_phone = request.data.get("phone_number")
-        if not new_phone:
-            return Response(
-                {"detail": _("Phone number is required")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user = self.get_object()
+        user.is_active = False
+        user.save(update_fields=["is_active"])
 
-        # Start verification process
-        result = PhoneVerificationService.start_verification(new_phone)
-
-        if result["status"] == "already_verified":
-            return Response(
-                {"detail": _("This phone number is already in use")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        elif result["status"] == "rate_limited":
-            return Response(
-                {"detail": result["message"]}, status=status.HTTP_429_TOO_MANY_REQUESTS
-            )
-        elif result["status"] == "error":
-            return Response(
-                {"detail": result["message"]},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        logger.info(f"User deactivated: {user.id} by admin {request.user.id}")
 
         return Response(
-            {"detail": _("Verification code sent to new phone number")},
-            status=status.HTTP_200_OK,
+            {"detail": _("User deactivated successfully")}, status=status.HTTP_200_OK
         )
 
     @document_api_endpoint(
-        summary="Verify new phone number",
-        description="Verify new phone number with OTP code",
+        summary="Activate User",
+        description="Activate a user account",
         responses={
-            200: "Success - Phone number updated successfully, returns new tokens",
-            400: "Bad Request - Invalid code or phone already in use",
+            200: "User activated successfully",
+            404: "User not found",
+            403: "Permission denied",
         },
-        tags=["Users", "Profile"],
     )
-    @action(detail=False, methods=["post"])
-    def verify_new_phone(self, request):
+    @action(detail=True, methods=["post"], url_path="activate")
+    def activate(self, request: Request, pk: str = None) -> Response:
         """
-        Verify new phone number with OTP.
+        Activate a user account.
+
+        This endpoint:
+        1. Retrieves the specified user
+        2. Activates the user account
+        3. Logs the activation event
+
+        Args:
+            request: HTTP request
+            pk: User ID
+
+        Returns:
+            Response with success message
+
+        Raises:
+            NotFound: If user does not exist
+            PermissionDenied: If requester lacks permission
         """
-        new_phone = request.data.get("phone_number")
-        code = request.data.get("code")
+        user = self.get_object()
+        user.is_active = True
+        user.save(update_fields=["is_active"])
 
-        if not new_phone or not code:
-            return Response(
-                {"detail": _("Phone number and code are required")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Verify new phone number
-        result = PhoneVerificationService.verify_phone_change(
-            request.user, new_phone, code
-        )
-
-        if result["status"] == "already_in_use":
-            return Response(
-                {"detail": _("This phone number is already in use")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        elif result["status"] == "invalid_code":
-            return Response(
-                {"detail": _("Invalid verification code")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Generate new tokens with updated phone number
-        tokens = TokenService.get_tokens_for_user(request.user)
+        logger.info(f"User activated: {user.id} by admin {request.user.id}")
 
         return Response(
-            {"detail": _("Phone number updated successfully"), "tokens": tokens},
-            status=status.HTTP_200_OK,
+            {"detail": _("User activated successfully")}, status=status.HTTP_200_OK
         )

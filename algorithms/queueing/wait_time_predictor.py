@@ -883,7 +883,7 @@ class WaitTimePredictor:
                     and timezone.now() > prev_appt.start_time
                 ):
                     # Calculate how late it is
-                    late_minutes = (
+                    # late_minutes = (
                         timezone.now() - prev_appt.start_time
                     ).total_seconds() / 60
 

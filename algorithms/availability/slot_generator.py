@@ -245,7 +245,9 @@ class SlotGenerator:
                 ],
                 sort_keys=True,
             )
-            params["shop_hours"] = hashlib.md5(shop_hours_str.encode()).hexdigest()
+            params["shop_hours"] = hashlib.sha256(
+                shop_hours_str.encode(), usedforsecurity=False
+            ).hexdigest()
 
         # Add service_availability hash
         if service_availability:
@@ -259,7 +261,7 @@ class SlotGenerator:
                 ],
                 sort_keys=True,
             )
-            params["service_availability"] = hashlib.md5(
+            params["service_availability"] = hashlib.sha256(
                 service_avail_str.encode()
             ).hexdigest()
 
@@ -275,7 +277,7 @@ class SlotGenerator:
                 ],
                 sort_keys=True,
             )
-            params["specialist_hours"] = hashlib.md5(
+            params["specialist_hours"] = hashlib.sha256(
                 specialist_hours_str.encode()
             ).hexdigest()
 
@@ -302,11 +304,13 @@ class SlotGenerator:
                 ],
                 sort_keys=True,
             )
-            params["existing_bookings"] = hashlib.md5(bookings_str.encode()).hexdigest()
+            params["existing_bookings"] = hashlib.sha256(
+                bookings_str.encode(), usedforsecurity=False
+            ).hexdigest()
 
         # Create the final key
         key_str = json.dumps(params, sort_keys=True)
-        return f"slots:{hashlib.md5(key_str.encode()).hexdigest()}"
+        return f"slots:{hashlib.sha256(key_str.encode(), usedforsecurity=False).hexdigest()}"
 
     def invalidate_cache_for_date(self, date, shop_id=None, specialist_id=None):
         """

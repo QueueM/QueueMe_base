@@ -118,7 +118,6 @@ class Command(BaseCommand):
     def test_moyasar_connection(self):
         """Test connection to Moyasar API"""
 
-
         self.stdout.write("\nTesting connection to Moyasar API...")
 
         # Check subscription wallet

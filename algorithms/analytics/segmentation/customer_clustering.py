@@ -633,8 +633,8 @@ def get_customer_lifetime_value(customer_id=None, prediction_days=365):
             total_spend=Sum("amount"),
             transaction_count=Count("id"),
             avg_order_value=Avg("amount"),
-            first_purchase=models.Min("created_at"),
-            last_purchase=models.Max("created_at"),
+            first_purchase=Min("created_at"),
+            last_purchase=Max("created_at"),
         )
 
         # Calculate LTV for each customer

@@ -1,19 +1,42 @@
 """
-API Documentation Package
+API Documentation package initialization
 
-This package contains helpers and utilities for API documentation using drf-yasg.
+This module ensures that all necessary patches and configurations
+are applied when Django loads the documentation package.
 """
 
-# Apply monkey patch for drf_yasg duplicate parameters issue
-from api.documentation.api_doc_decorators import (
-    document_api_endpoint,
-    document_api_viewset,
-)
-from api.documentation.swagger import schema_view, swagger_urlpatterns
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Import the patch to ensure it's applied when the package is loaded
+try:
+    from . import yasg_patch
+    logger.info("Successfully loaded yasg_patch module")
+except ImportError as e:
+    logger.error(f"Failed to import yasg_patch: {e}")
+
+# Import utilities to ensure patches are applied
+try:
+    from . import utils
+    logger.info("Successfully loaded documentation utils")
+except ImportError as e:
+    logger.error(f"Failed to import documentation utils: {e}")
+
+# Import other documentation modules
+try:
+    from . import parameters
+    from . import api_doc_decorators
+    logger.info("Successfully loaded all documentation modules")
+except ImportError as e:
+    logger.warning(f"Failed to import some documentation modules: {e}")
 
 __all__ = [
-    "document_api_endpoint",
-    "document_api_viewset",
-    "schema_view",
-    "swagger_urlpatterns",
+    'yasg_patch',
+    'utils',
+    'parameters',
+    'api_doc_decorators',
 ]
+
+# Log that the documentation package has been initialized
+logger.info("API documentation package initialized successfully")

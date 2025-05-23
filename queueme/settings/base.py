@@ -32,10 +32,7 @@ if "production" in os.environ.get("DJANGO_SETTINGS_MODULE", ""):
 else:
     load_dotenv(BASE_DIR / ".env")  # Load development .env if exists
 
-TESTING = any(
-    cmd in sys.argv for cmd in ("test", "pytest", "makemigrations", "migrate")
-)
-
+TESTING = any(cmd in sys.argv for cmd in ("test", "pytest", "makemigrations", "migrate"))
 
 # ---------------------------------------------------------------------------
 # Tiny helper – read env with "required" flag
@@ -43,23 +40,16 @@ TESTING = any(
 def env(key: str, default: Optional[str] = None, *, required: bool = False) -> str:
     val = os.getenv(key, default)
     if required and (val is None or val == ""):
-        raise RuntimeError(
-            f"⚠️  The environment variable {key} is required but not set."
-        )
+        raise RuntimeError(f"⚠️  The environment variable {key} is required but not set.")
     return val
-
 
 # ---------------------------------------------------------------------------
 # Core toggles
 # ---------------------------------------------------------------------------
-SECRET_KEY = config(
-    "SECRET_KEY", default="django-insecure-fallback-key-change-me-in-env"
-)
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-fallback-key-change-me-in-env")
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS",
-    default="127.0.0.1,localhost",
-    cast=lambda v: [s.strip() for s in v.split(",")],
+    "ALLOWED_HOSTS", default="127.0.0.1,localhost", cast=lambda v: [s.strip() for s in v.split(",")]
 )
 
 # ---------------------------------------------------------------------------
@@ -99,9 +89,7 @@ if os.environ.get("USE_CONNECTION_POOLING", "False").lower() == "true":
         }
         print("Database connection pooling enabled.")
     except ImportError:
-        print(
-            "Package django-db-connection-pool not installed. Connection pooling disabled."
-        )
+        print("Package django-db-connection-pool not installed. Connection pooling disabled.")
         DATABASES["default"]["ENGINE"] = "django.contrib.gis.db.backends.postgis"
 
 # SQLite fallback for local/dev testing
@@ -133,7 +121,7 @@ INSTALLED_APPS = [
     "storages",
     "django_prometheus",
     # "drf_spectacular",
-    "core.apps.CoreConfig",
+    'core.apps.CoreConfig',
     "algorithms",
     "django_extensions",
     "utils",
@@ -211,9 +199,7 @@ TEMPLATES = [
 # Password validation
 # ---------------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -339,14 +325,9 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-if all(
-    env(v)
-    for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")
-):
+if all(env(v) for v in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_STORAGE_BUCKET_NAME")):
     AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", "me-south-1")
-    AWS_S3_CUSTOM_DOMAIN = (
-        f"{env('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
-    )
+    AWS_S3_CUSTOM_DOMAIN = f"{env('AWS_STORAGE_BUCKET_NAME')}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     AWS_DEFAULT_ACL = "public-read"
     AWS_QUERYSTRING_AUTH = False
@@ -372,7 +353,6 @@ MOYASAR_WEBHOOK_SECRET = env("MOYASAR_WEBHOOK_SECRET", "")
 
 try:
     from .moyasar import MOYASAR_ADS, MOYASAR_MER, MOYASAR_SUB, validate_moyasar_config
-
     if DEBUG:
         moyasar_status = validate_moyasar_config()
         has_issues = moyasar_status["missing_keys"] or moyasar_status["empty_keys"]
@@ -502,27 +482,99 @@ LOGGING = {
 # SWAGGER SETTINGS (guaranteed robust dedupe + SafeSwaggerSchema)
 # ---------------------------------------------------------------------------
 SWAGGER_SETTINGS = {
+    # Security definitions for API authentication
     "SECURITY_DEFINITIONS": {
         "Bearer": {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header",
-            "description": 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+            "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+        },
+        "SessionAuth": {
+            "type": "apiKey",
+            "name": "sessionid",
+            "in": "cookie",
+            "description": "Django session authentication"
         }
     },
-    "SECURITY_REQUIREMENTS": [{"Bearer": []}],
-    "USE_SESSION_AUTH": True,  # Allow session auth alongside Bearer tokens
+    
+    # Default security requirements
+    "SECURITY_REQUIREMENTS": [
+        {"Bearer": []},
+        {"SessionAuth": []}
+    ],
+    
+    # Allow session auth for browsing (useful for testing in browser)
+    "USE_SESSION_AUTH": True,
+    
+    # UI Configuration
     "OPERATIONS_SORTER": "alpha",
     "TAGS_SORTER": "alpha",
     "DOC_EXPANSION": "none",
     "DEFAULT_MODEL_RENDERING": "model",
-    "USE_SESSION_AUTH": False,
+    "DEEP_LINKING": True,
+    "SHOW_EXTENSIONS": True,
+    "SHOW_COMMON_EXTENSIONS": True,
+    
+    # Disable validator to avoid CORS issues
     "VALIDATOR_URL": None,
+    
+    # Display settings
     "DISPLAY_OPERATION_ID": False,
-    # CRITICAL: This line dedupes params and prevents schema errors!
+    "HIDE_HOSTNAME": False,
+    
+    # API URL Configuration
+    "DEFAULT_API_URL": "https://api.queueme.net",
+    
+    # CRITICAL: Schema URL that Swagger UI should use
+    # This must match your URL pattern that serves the schema
+    "SPEC_URL": "/api/docs/?format=openapi",
+    
+    # CRITICAL: Function to deduplicate parameters before validation
     "FUNCTION_TO_APPLY_BEFORE_SWAGGER_SCHEMA_VALIDATION": "api.documentation.utils.dedupe_operation_params",
+    
+    # CRITICAL: Use SafeSwaggerSchema to handle errors gracefully
     "DEFAULT_AUTO_SCHEMA_CLASS": "api.documentation.yasg_patch.SafeSwaggerSchema",
+    
+    # Authentication persistence
+    "PERSIST_AUTH": True,
+    "REFETCH_SCHEMA_WITH_AUTH": True,
+    "REFETCH_SCHEMA_ON_LOGOUT": True,
+    
+    # Additional features
+    "FETCH_SCHEMA_WITH_QUERY": True,
+    "JSON_EDITOR": True,
+    
+    # Request/Response configuration
+    "SUPPORTED_SUBMIT_METHODS": [
+        "get",
+        "put",
+        "post",
+        "delete",
+        "options",
+        "head",
+        "patch",
+        "trace"
+    ],
+    
+    # Custom CSS/JS (optional)
+    # "CUSTOM_CSS": "/static/swagger/custom.css",
+    # "CUSTOM_JS": "/static/swagger/custom.js",
+    
+    # OAuth2 Configuration (if needed)
+    # "OAUTH2_CONFIG": {
+    #     "clientId": "your-client-id",
+    #     "clientSecret": "your-client-secret",
+    #     "realm": "your-realm",
+    #     "appName": "your-app-name",
+    #     "scopeSeparator": " ",
+    # },
 }
+
+# Optional: Add logging for Swagger operations in DEBUG mode
+if DEBUG:
+    SWAGGER_SETTINGS["SHOW_REQUEST_HEADERS"] = True
+    SWAGGER_SETTINGS["SHOW_RESPONSE_HEADERS"] = True
 
 # ---------------------------------------------------------------------------
 # Front-end URLs
@@ -545,11 +597,7 @@ RATE_LIMIT_OTP_VERIFY_RATE = 10
 RATE_LIMIT_OTP_VERIFY_PERIOD = 300
 RATE_LIMIT_OTP_VERIFY_LOCKOUT = 1800
 
-print(
-    "🏗️  Settings loaded  |  DEBUG={}  |  DB={}".format(
-        DEBUG, DATABASES["default"]["ENGINE"]
-    )
-)
+print("🏗️  Settings loaded  |  DEBUG={}  |  DB={}".format(DEBUG, DATABASES["default"]["ENGINE"]))
 print("🏗️  Installed apps: {}".format(", ".join(INSTALLED_APPS)))
 
 # END OF FILE

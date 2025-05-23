@@ -37,7 +37,9 @@ def cache_key_builder(*args, prefix: str = None, **kwargs) -> str:
         if isinstance(arg, (list, dict, set, tuple)):
             # Convert complex types to a string representation
             key_parts.append(
-                hashlib.md5(json.dumps(arg, sort_keys=True).encode()).hexdigest()
+                hashlib.sha256(
+                    json.dumps(arg, sort_keys=True).encode(), usedforsecurity=False
+                ).hexdigest()
             )
         else:
             key_parts.append(str(arg))
@@ -48,7 +50,7 @@ def cache_key_builder(*args, prefix: str = None, **kwargs) -> str:
         for k, v in sorted_items:
             if isinstance(v, (list, dict, set, tuple)):
                 key_parts.append(
-                    f"{k}:{hashlib.md5(json.dumps(v, sort_keys=True).encode()).hexdigest()}"
+                    f"{k}:{hashlib.sha256(json.dumps(v, sort_keys=True).encode(),usedforsecurity=False).hexdigest()}"
                 )
             else:
                 key_parts.append(f"{k}:{v}")

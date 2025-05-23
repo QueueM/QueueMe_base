@@ -1,0 +1,636 @@
+exit""" Sophisticated slot generation algorithm.
+
+This module provides a powerful time slot generation algorithm that accounts for
+multiple constraints including shop hours, specialist availability, service duration,
+buffer times, and existing bookings.
+"""
+
+import hashlib
+import json
+import logging
+from datetime import datetime, time, timedelta
+from typing import Any, Dict, List, Optional
+
+from django.core.cache import cache
+
+from utils.cache_utils import delete_pattern
+
+logger = logging.getLogger(__name__)
+
+
+class TimeSlot:
+    """Represents a time slot with start and end times."""
+
+    def __init__(self, start: time, end: time):
+        """
+        Initialize a time slot.
+
+        Args:
+            start: Start time of the slot (time object)
+            end: End time of the slot (time object)
+        """
+        self.start = start
+        self.end = end
+
+    def __str__(self) -> str:
+        """Return string representation in 12-hour format with AM/PM."""
+        return f"{self.start.strftime('%I:%M %p')} - {self.end.strftime('%I:%M %p')}"
+
+    def __repr__(self) -> str:
+        """Return formal representation."""
+        return f"TimeSlot(start={self.start}, end={self.end})"
+
+    def overlaps(self, other: "TimeSlot") -> bool:
+        """
+        Check if this time slot overlaps with another.
+
+        Args:
+            other: Another TimeSlot object
+
+        Returns:
+            True if the slots overlap, False otherwise
+        """
+        # Start time of one slot is between start and end of the other
+        if (self.start <= other.start < self.end) or (
+            other.start <= self.start < other.end
+        ):
+            return True
+        return False
+
+    def contains(self, point: time) -> bool:
+        """
+        Check if this time slot contains a specific time point.
+
+        Args:
+            point: A time object
+
+        Returns:
+            True if the time point is within this slot, False otherwise
+        """
+        return self.start <= point < self.end
+
+    def duration_minutes(self) -> int:
+        """
+        Calculate the duration of the time slot in minutes.
+
+        Returns:
+            Number of minutes between start and end time
+        """
+        # Convert times to datetime for easier calculation
+        today = datetime.today().date()
+        start_dt = datetime.combine(today, self.start)
+        end_dt = datetime.combine(today, self.end)
+
+        # Handle slots that span midnight
+        if end_dt < start_dt:
+            end_dt += timedelta(days=1)
+
+        return int((end_dt - start_dt).total_seconds() / 60)
+
+
+class SlotGenerator:
+    """
+    Advanced time slot generator that creates available time slots based on
+    multiple constraints such as business hours, specialist availability,
+    service duration, and existing bookings.
+    """
+
+    def __init__(self):
+        """Initialize the slot generator."""
+        self.constraints = []
+        self.cache_enabled = True
+        self.cache_ttl = 300  # 5 minutes cache for availability data
+
+    def generate_slots(
+        self,
+        date: datetime.date,
+        shop_hours: List[Dict[str, time]],
+        service_availability: Optional[List[Dict[str, time]]] = None,
+        specialist_hours: Optional[List[Dict[str, Any]]] = None,
+        existing_bookings: Optional[List[Dict[str, Any]]] = None,
+        service_duration: int = 30,
+        buffer_before: int = 0,
+        buffer_after: int = 0,
+        slot_granularity: int = 15,
+        specialist_ids: Optional[List[str]] = None,
+        use_cache: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate available time slots based on all constraints.
+
+        Args:
+            date: The date for which to generate slots
+            shop_hours: List of shop working hours in format [{"start": time, "end": time}]
+            service_availability: Optional list of service availability windows
+            specialist_hours: Optional list of specialist working hours
+            existing_bookings: Optional list of existing bookings to avoid conflicts
+            service_duration: Service duration in minutes
+            buffer_before: Buffer time before service in minutes
+            buffer_after: Buffer time after service in minutes
+            slot_granularity: Time between slot start times in minutes
+            specialist_ids: Optional list of specialist IDs to filter by
+            use_cache: Whether to use cache for results (default: True)
+
+        Returns:
+            List of available time slots with details
+        """
+        logger.debug(
+            f"Generating slots for date {date} with service duration {service_duration}min"
+        )
+
+        # Try to get from cache if enabled
+        if self.cache_enabled and use_cache:
+            cache_key = self._generate_cache_key(
+                date,
+                shop_hours,
+                service_availability,
+                specialist_hours,
+                existing_bookings,
+                service_duration,
+                buffer_before,
+                buffer_after,
+                slot_granularity,
+                specialist_ids,
+            )
+            cached_result = cache.get(cache_key)
+            if cached_result is not None:
+                logger.debug(f"Cache hit for slots on date {date}")
+                return cached_result
+
+        # 1. Start with shop hours as base availability
+        base_slots = self._get_shop_base_slots(date, shop_hours)
+        if not base_slots:
+            logger.info(f"No shop hours available for date {date}")
+            return []
+
+        # 2. Apply service availability constraints if provided
+        available_slots = base_slots
+        if service_availability:
+            service_slots = self._apply_service_availability(
+                base_slots, service_availability
+            )
+            available_slots = self._intersect_slot_lists(available_slots, service_slots)
+
+        # 3. Apply specialist availability if provided
+        if specialist_hours and specialist_ids:
+            specialist_slots = self._apply_specialist_availability(
+                available_slots, specialist_hours, specialist_ids
+            )
+            available_slots = self._intersect_slot_lists(
+                available_slots, specialist_slots
+            )
+
+        # 4. Remove booked slots
+        if existing_bookings:
+            available_slots = self._exclude_booked_slots(
+                available_slots,
+                existing_bookings,
+                buffer_before,
+                buffer_after,
+                specialist_ids,
+            )
+
+        # 5. Apply service duration and generate discrete slots
+        discrete_slots = self._generate_discrete_slots(
+            available_slots,
+            service_duration,
+            buffer_before,
+            buffer_after,
+            slot_granularity,
+        )
+
+        # 6. Format and return the slots
+        result = self._format_slots(discrete_slots, service_duration)
+
+        # Cache the result if caching is enabled
+        if self.cache_enabled and use_cache:
+            cache.set(cache_key, result, self.cache_ttl)
+
+        return result
+
+    def _generate_cache_key(
+        self,
+        date,
+        shop_hours,
+        service_availability,
+        specialist_hours,
+        existing_bookings,
+        service_duration,
+        buffer_before,
+        buffer_after,
+        slot_granularity,
+        specialist_ids,
+    ):
+        """Generate a unique cache key for the slot generation parameters"""
+        # Create a dictionary of all parameters
+        params = {
+            "date": date.isoformat(),
+            "service_duration": service_duration,
+            "buffer_before": buffer_before,
+            "buffer_after": buffer_after,
+            "slot_granularity": slot_granularity,
+            "specialist_ids": specialist_ids,
+        }
+
+        # Add shop_hours hash
+        if shop_hours:
+            shop_hours_str = json.dumps(
+                [
+                    {
+                        k: v.strftime("%H:%M") if isinstance(v, time) else v
+                        for k, v in hour.items()
+                    }
+                    for hour in shop_hours
+                ],
+                sort_keys=True,
+            )
+            params["shop_hours"] = hashlib.md5(shop_hours_str.encode()).hexdigest()
+
+        # Add service_availability hash
+        if service_availability:
+            service_avail_str = json.dumps(
+                [
+                    {
+                        k: v.strftime("%H:%M") if isinstance(v, time) else v
+                        for k, v in avail.items()
+                    }
+                    for avail in service_availability
+                ],
+                sort_keys=True,
+            )
+            params["service_availability"] = hashlib.md5(
+                service_avail_str.encode()
+            ).hexdigest()
+
+        # Add specialist_hours hash
+        if specialist_hours:
+            specialist_hours_str = json.dumps(
+                [
+                    {
+                        k: v.strftime("%H:%M") if isinstance(v, time) else v
+                        for k, v in hour.items()
+                    }
+                    for hour in specialist_hours
+                ],
+                sort_keys=True,
+            )
+            params["specialist_hours"] = hashlib.md5(
+                specialist_hours_str.encode()
+            ).hexdigest()
+
+        # Add existing_bookings hash
+        if existing_bookings:
+            # Only include id, start_time, end_time, and specialist_id
+            bookings_str = json.dumps(
+                [
+                    {
+                        "id": str(booking.get("id", "")),
+                        "start_time": (
+                            booking.get("start_time").isoformat()
+                            if booking.get("start_time")
+                            else ""
+                        ),
+                        "end_time": (
+                            booking.get("end_time").isoformat()
+                            if booking.get("end_time")
+                            else ""
+                        ),
+                        "specialist_id": str(booking.get("specialist_id", "")),
+                    }
+                    for booking in existing_bookings
+                ],
+                sort_keys=True,
+            )
+            params["existing_bookings"] = hashlib.md5(bookings_str.encode()).hexdigest()
+
+        # Create the final key
+        key_str = json.dumps(params, sort_keys=True)
+        return f"slots:{hashlib.md5(key_str.encode()).hexdigest()}"
+
+    def invalidate_cache_for_date(self, date, shop_id=None, specialist_id=None):
+        """
+        Invalidate cache for a specific date.
+        This should be called when a booking is created, updated, or cancelled
+        """
+        # Build pattern for cache deletion
+        date_str = date.isoformat()
+
+        if shop_id and specialist_id:
+            # Specific shop and specialist
+            pattern = f"slots:*{date_str}*{shop_id}*{specialist_id}*"
+        elif shop_id:
+            # All slots for this shop on this date
+            pattern = f"slots:*{date_str}*{shop_id}*"
+        elif specialist_id:
+            # All slots for this specialist on this date
+            pattern = f"slots:*{date_str}*{specialist_id}*"
+        else:
+            # All slots for this date
+            pattern = f"slots:*{date_str}*"
+
+        # Use the custom delete_pattern utility
+        deleted_count = delete_pattern(pattern)
+
+        logger.debug(f"Invalidated {deleted_count} slot cache entries for date {date}")
+
+    def _get_shop_base_slots(
+        self, date: datetime.date, shop_hours: List[Dict[str, time]]
+    ) -> List[TimeSlot]:
+        """
+        Get base time slots based on shop opening hours.
+
+        Args:
+            date: The date for which to get shop hours
+            shop_hours: List of shop working hours
+
+        Returns:
+            List of TimeSlot objects representing shop hours
+        """
+        # Get day of week (0 = Sunday, 6 = Saturday)
+        day_of_week = date.weekday()
+        # Adjust for Python's weekday (0 = Monday) vs our schema (0 = Sunday)
+        if day_of_week == 6:  # If Python's Sunday (6)
+            day_of_week = 0  # Set to our Sunday (0)
+        else:
+            day_of_week += 1  # Otherwise add 1
+
+        # Find shop hours for this day
+        day_hours = None
+        for hours in shop_hours:
+            if hours.get("weekday") == day_of_week:
+                day_hours = hours
+                break
+
+        if not day_hours or day_hours.get("is_closed", False):
+            return []  # Shop is closed on this day
+
+        return [TimeSlot(day_hours["from_hour"], day_hours["to_hour"])]
+
+    def _apply_service_availability(
+        self, base_slots: List[TimeSlot], service_availability: List[Dict[str, time]]
+    ) -> List[TimeSlot]:
+        """
+        Apply service availability constraints.
+
+        Args:
+            base_slots: Base time slots to filter
+            service_availability: Service availability windows
+
+        Returns:
+            List of TimeSlot objects filtered by service availability
+        """
+        service_slots = []
+
+        for avail in service_availability:
+            if avail.get("is_closed", False):
+                continue
+
+            service_slot = TimeSlot(avail["from_hour"], avail["to_hour"])
+            service_slots.append(service_slot)
+
+        return service_slots
+
+    def _apply_specialist_availability(
+        self,
+        base_slots: List[TimeSlot],
+        specialist_hours: List[Dict[str, Any]],
+        specialist_ids: List[str],
+    ) -> List[TimeSlot]:
+        """
+        Apply specialist availability constraints.
+
+        Args:
+            base_slots: Base time slots to filter
+            specialist_hours: List of specialist working hours
+            specialist_ids: List of specialist IDs to consider
+
+        Returns:
+            List of TimeSlot objects where at least one specialist is available
+        """
+        # Group hours by specialist
+        specialist_availability = {}
+
+        for hours in specialist_hours:
+            specialist_id = hours.get("specialist_id")
+
+            if specialist_id in specialist_ids and not hours.get("is_off", False):
+                if specialist_id not in specialist_availability:
+                    specialist_availability[specialist_id] = []
+
+                slot = TimeSlot(hours["from_hour"], hours["to_hour"])
+                specialist_availability[specialist_id].append(slot)
+
+        # Combine availability for all specialists (union)
+        combined_slots = []
+        for specialist_id, slots in specialist_availability.items():
+            combined_slots.extend(slots)
+
+        # Merge overlapping slots
+        if combined_slots:
+            combined_slots = self._merge_overlapping_slots(combined_slots)
+
+        return combined_slots
+
+    def _exclude_booked_slots(
+        self,
+        available_slots: List[TimeSlot],
+        existing_bookings: List[Dict[str, Any]],
+        buffer_before: int,
+        buffer_after: int,
+        specialist_ids: Optional[List[str]] = None,
+    ) -> List[TimeSlot]:
+        """
+        Exclude slots that conflict with existing bookings.
+
+        Args:
+            available_slots: Available time slots
+            existing_bookings: Existing bookings to check conflicts with
+            buffer_before: Buffer time before service in minutes
+            buffer_after: Buffer time after service in minutes
+            specialist_ids: Optional list of specialist IDs to filter bookings by
+
+        Returns:
+            List of TimeSlot objects that don't conflict with bookings
+        """
+        result_slots = []
+
+        # Create booked slots with buffers
+        booked_slots = []
+        for booking in existing_bookings:
+            # Skip bookings for other specialists if specialist IDs provided
+            if specialist_ids and booking.get("specialist_id") not in specialist_ids:
+                continue
+
+            # Add buffer times to booking
+            start_with_buffer = booking["start_time"] - timedelta(minutes=buffer_before)
+            end_with_buffer = booking["end_time"] + timedelta(minutes=buffer_after)
+
+            # Convert to time objects
+            start_time = start_with_buffer.time()
+            end_time = end_with_buffer.time()
+
+            booked_slots.append(TimeSlot(start_time, end_time))
+
+        # If no booked slots, return original available slots
+        if not booked_slots:
+            return available_slots
+
+        # For each available slot, split it to remove booked periods
+        for slot in available_slots:
+            remaining_slots = [slot]
+            for booked in booked_slots:
+                new_remaining = []
+                for remaining in remaining_slots:
+                    # If booked slot overlaps with remaining slot
+                    if remaining.overlaps(booked):
+                        # Split into before and after segments if needed
+                        if remaining.start < booked.start:
+                            new_remaining.append(
+                                TimeSlot(remaining.start, booked.start)
+                            )
+                        if booked.end < remaining.end:
+                            new_remaining.append(TimeSlot(booked.end, remaining.end))
+                    else:
+                        new_remaining.append(remaining)
+                remaining_slots = new_remaining
+            result_slots.extend(remaining_slots)
+
+        return result_slots
+
+    def _generate_discrete_slots(
+        self,
+        available_slots: List[TimeSlot],
+        service_duration: int,
+        buffer_before: int,
+        buffer_after: int,
+        slot_granularity: int,
+    ) -> List[TimeSlot]:
+        """
+        Generate discrete time slots based on service duration and granularity.
+
+        Args:
+            available_slots: Available continuous time slots
+            service_duration: Service duration in minutes
+            buffer_before: Buffer time before service in minutes
+            buffer_after: Buffer time after service in minutes
+            slot_granularity: Time between slot start times in minutes
+
+        Returns:
+            List of discrete time slots that can be booked
+        """
+        discrete_slots = []
+        # Total duration calculation removed as it was unused
+
+        for slot in available_slots:
+            # Convert to datetime for easier arithmetic
+            today = datetime.today().date()
+            slot_start = datetime.combine(today, slot.start)
+            slot_end = datetime.combine(today, slot.end)
+
+            # Handle slots that span midnight
+            if slot_end < slot_start:
+                slot_end += timedelta(days=1)
+
+            # Start at the beginning of the slot plus buffer_before
+            current = slot_start + timedelta(minutes=buffer_before)
+
+            # Generate slots until we reach end minus total duration
+            while (
+                current + timedelta(minutes=service_duration + buffer_after) <= slot_end
+            ):
+                start_time = current.time()
+                end_time = (current + timedelta(minutes=service_duration)).time()
+
+                discrete_slots.append(TimeSlot(start_time, end_time))
+
+                # Move to next potential slot based on granularity
+                current += timedelta(minutes=slot_granularity)
+
+        return discrete_slots
+
+    def _intersect_slot_lists(
+        self, list1: List[TimeSlot], list2: List[TimeSlot]
+    ) -> List[TimeSlot]:
+        """
+        Find the intersection of two lists of time slots.
+
+        Args:
+            list1: First list of TimeSlot objects
+            list2: Second list of TimeSlot objects
+
+        Returns:
+            List of TimeSlot objects representing the intersection
+        """
+        result = []
+
+        for slot1 in list1:
+            for slot2 in list2:
+                # Find intersection of the two slots
+                start = max(slot1.start, slot2.start)
+                end = min(slot1.end, slot2.end)
+
+                # If there is an intersection, add it to the result
+                if start < end:
+                    result.append(TimeSlot(start, end))
+
+        return result
+
+    def _merge_overlapping_slots(self, slots: List[TimeSlot]) -> List[TimeSlot]:
+        """
+        Merge overlapping time slots.
+
+        Args:
+            slots: List of TimeSlot objects
+
+        Returns:
+            List of merged TimeSlot objects with no overlaps
+        """
+        if not slots:
+            return []
+
+        # Sort slots by start time
+        sorted_slots = sorted(slots, key=lambda x: x.start)
+
+        merged = [sorted_slots[0]]
+
+        for slot in sorted_slots[1:]:
+            last = merged[-1]
+
+            # If current slot starts before or at the end of the last merged slot
+            if slot.start <= last.end:
+                # Extend the last merged slot if needed
+                merged[-1] = TimeSlot(last.start, max(last.end, slot.end))
+            else:
+                merged.append(slot)
+
+        return merged
+
+    def _format_slots(
+        self, slots: List[TimeSlot], duration: int
+    ) -> List[Dict[str, Any]]:
+        """
+        Format time slots for API response.
+
+        Args:
+            slots: List of TimeSlot objects
+            duration: Service duration in minutes
+
+        Returns:
+            List of dictionaries with formatted time slot information
+        """
+        formatted_slots = []
+
+        for slot in slots:
+            formatted_slots.append(
+                {
+                    "start": slot.start.strftime("%H:%M"),  # 24-hour format
+                    "end": slot.end.strftime("%H:%M"),
+                    "duration": duration,
+                    "start_formatted": slot.start.strftime(
+                        "%I:%M %p"
+                    ),  # 12-hour format with AM/PM
+                    "end_formatted": slot.end.strftime("%I:%M %p"),
+                }
+            )
+
+        return formatted_slots

@@ -109,7 +109,7 @@ class DynamicSlotAllocator:
         # Get basic data
         try:
             service = Service.objects.get(id=service_id)
-            shop = Shop.objects.get(id=shop_id)
+            # shop = Shop.objects.get(id=shop_id)
         except (Service.DoesNotExist, Shop.DoesNotExist) as e:
             logger.error(f"Error retrieving service or shop: {e}")
             return []
